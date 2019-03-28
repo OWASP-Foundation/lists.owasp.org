@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981176%27s%20last%20matched%20data%20issues&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000881.html">
+   <LINK REL="Next"  HREF="000883.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981176's last matched data issues</H1>
+    <B>rm4dillo D</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981176%27s%20last%20matched%20data%20issues&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] 981176's last matched data issues">rm4dillo at gmail.com
+       </A><BR>
+    <I>Wed Sep 28 13:18:17 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000881.html">[Owasp-modsecurity-core-rule-set] Announcing Release of OWASP	ModSecurity Core Rule Set (CRS) v.2.2.2
+</A></li>
+        <LI>Next message: <A HREF="000883.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#882">[ date ]</a>
+              <a href="thread.html#882">[ thread ]</a>
+              <a href="subject.html#882">[ subject ]</a>
+              <a href="author.html#882">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have three questions concerning the changes that have been applied to the
+rule 981176 in order to add the last matched data in the log line.
+
+First, when ModSecurity is in &quot;DetectionOnly&quot; mode, the chained
+rule ( SecRule TX:/^\d/ &quot;(.*)&quot; ) that has been added is triggered as many
+times as the number of variable names in the transaction collection that
+match the &quot;^\d&quot; regular expression. This makes ModSecurity log only one
+entry when it's in the &quot;Blocking&quot; mode and lots of entries when in
+&quot;DetectionOnly&quot; mode.
+
+The second issue with this chained rule is that the &quot;^\d&quot; regular expression
+is not discriminant enough as it matches the &quot;capture&quot; action variables
+&quot;TX:0&quot;, &quot;TX:1&quot;, ... and &quot;TX:9&quot; when in &quot;DetectionOnly&quot; mod. A quick fix to
+avoid that would be replacing the regular expression by &quot;^/d{2}&quot;.
+
+The last issue (still related to this chained rule; I think that I don't
+like it much ;-) ) is that the &quot;matched_var&quot; variable does not really
+contain the &quot;Last Matched Data&quot;. In &quot;DetectionOnly&quot; mode, it will only be
+valid for the last logged line as it corresponds to the last matched rule
+and erroneous for all the other lines (Cf. first issue). In &quot;Blocking&quot; mode
+(as we log only once then the request is rejected if the score has exceeded)
+it will contain the matched data of the first rule that matched and the
+message (tx.msg) of the last one.
+This produces misleading logs as the one below:
+
+        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity:
+Warning. Pattern match &quot;(.*)&quot; at
+TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file
+&quot;/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf&quot;]
+[line &quot;26&quot;] [id &quot;981176&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total Score:
+44, SQLi=15, XSS=30): *Last Matched Message: IE XSS Filters - Attack
+Detected&quot;]* *[data &quot;Last Matched Data: benchmark(&quot;]* [hostname &quot;localhost&quot;]
+[uri &quot;/&quot;]
+
+As most rules use the &quot;capture&quot; action, why don't we replace the chained
+rule &quot;hack?&quot; with a simple &quot;logdata:'Last Matched Data: %{tx.0}&quot;. This still
+would be better but still not perfect as the content will sometimes be
+erronuous because some rules can't capture. Or, even cleaner, why don't we
+add a &quot;setvar:'tx.last_matched_data=...&quot; in every rule?
+
+Cheers,
+
+Rm4dillo
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110928/90c3e2a6/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110928/90c3e2a6/attachment.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000881.html">[Owasp-modsecurity-core-rule-set] Announcing Release of OWASP	ModSecurity Core Rule Set (CRS) v.2.2.2
+</A></li>
+	<LI>Next message: <A HREF="000883.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#882">[ date ]</a>
+              <a href="thread.html#882">[ thread ]</a>
+              <a href="subject.html#882">[ subject ]</a>
+              <a href="author.html#882">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

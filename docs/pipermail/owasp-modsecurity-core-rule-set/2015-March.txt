@@ -1,0 +1,961 @@
+From christian.folini at time-machine.ch  Tue Mar  3 05:23:45 2015
+From: christian.folini at time-machine.ch (Christian Folini)
+Date: Tue, 3 Mar 2015 06:23:45 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Successful Redirect Attack
+	Scoring only 3 with Core Rules (any clue?)
+Message-ID: <20150303052345.GA21119@elias>
+
+Hi there,
+
+Lately, I have encountered a successful redirect attack on an
+application server protected by ModSec / CoreRules.
+
+Here is the request against a vanilla ModSec Install 
+(2.9.0, latest core rules):
+$> curl -v "http://localhost/submit?file=foo.txt%0D%0ARefresh:%201;%20url=http:www.example.com"
+
+Here is the only rule that triggers:
+981173 Restricted SQL Character Anomaly Detection Alert - Total # ...
+
+[Tue Mar 03 06:11:40.733143 2015] [:error] [pid 983:tid 139737876645632] [client 127.0.0.1] ModSecurity: Warning. Pattern match "([\\\\~\\\\!\\\\@\\\\#\\\\$\\\\%\\\\^\\\\&\\\\*\\\\(\\\\)\\\\-\\\\+\\\\=\\\\{\\\\}\\\\[\\\\]\\\\|\\\\:\\\\;\\"\\\\'\\\\\\xc2\\xb4\\\\\\xe2\\x80\\x99\\\\\\xe2\\x80\\x98\\\\`\\\\<\\\\>].*?){4,}" at ARGS:file. [file "/core-rules/modsecurity_crs_41_sql_injection_attacks.conf"] [line "159"] [id "981173"] [rev "2"] [msg "Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded"] [data "Matched Data: : found within ARGS:file: foo.txt\\x0d\\x0aRefresh: 1; url=http:www.example.com"] [ver "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "8"] [tag "Local Lab Service"] [tag "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"] [hostname "localhost"] [uri "/submit"] [unique_id "VPVCjH8AAQEAAAPXe50AAAAH"]
+
+This brings a score of 3, which is really low and below a sane
+limit for the said legacy app, which had to be tuned in far too
+many aspects already.
+
+Does anybody have a good idea on how to protect against this
+_class_ of attacks? Obviously, it's a weak spot for the core rules.
+Maybe an extension is due.
+
+Ahoj,
+
+Christian
+
+-- 
+If you have men who will only come if they know there is a good road, 
+I don't want them. I want men who will come if there is no road at all.
+-- David Livingstone
+
+From achim at owasp.org  Tue Mar  3 08:00:35 2015
+From: achim at owasp.org (Achim)
+Date: Tue, 03 Mar 2015 09:00:35 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Successful Redirect Attack
+ Scoring only 3 with Core Rules (any clue?)
+In-Reply-To: <20150303052345.GA21119@elias>
+References: <20150303052345.GA21119@elias>
+Message-ID: <54F56A23.7000701@owasp.org>
+
+Hi,
+
+this is a typical "header injection" attack. AFAIK CRS has no spezial
+rules for that. What best fits is the HTTP Response Splitting rule 950911,
+but it is far to specific to match in this case.
+
+I'd suggest to craft a new set of rules for header injections.
+
+Also a variant of your example would be the meta tag, if the aplication
+writes the paramter there.
+
+In OWASP Top 10 (2013) this is A1 and A10.
+
+Ciao
+Achim
+
+
+On 03.03.2015 06:23, Christian Folini wrote:
+> Hi there,
+> 
+> Lately, I have encountered a successful redirect attack on an
+> application server protected by ModSec / CoreRules.
+> 
+> Here is the request against a vanilla ModSec Install 
+> (2.9.0, latest core rules):
+> $> curl -v "http://localhost/submit?file=foo.txt%0D%0ARefresh:%201;%20url=http:www.example.com"
+> 
+> Here is the only rule that triggers:
+> 981173 Restricted SQL Character Anomaly Detection Alert - Total # ...
+> 
+> [Tue Mar 03 06:11:40.733143 2015] [:error] [pid 983:tid 139737876645632] [client 127.0.0.1] ModSecurity: Warning. Pattern match "([\\\\~\\\\!\\\\@\\\\#\\\\$\\\\%\\\\^\\\\&\\\\*\\\\(\\\\)\\\\-\\\\+\\\\=\\\\{\\\\}\\\\[\\\\]\\\\|\\\\:\\\\;\\"\\\\'\\\\\\xc2\\xb4\\\\\\xe2\\x80\\x99\\\\\\xe2\\x80\\x98\\\\`\\\\<\\\\>].*?){4,}" at ARGS:file. [file "/core-rules/modsecurity_crs_41_sql_injection_attacks.conf"] [line "159"] [id "981173"] [rev "2"] [msg "Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded"] [data "Matched Data: : found within ARGS:file: foo.txt\\x0d\\x0aRefresh: 1; url=http:www.example.com"] [ver "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "8"] [tag "Local Lab Service"] [tag "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"] [hostname "localhost"] [uri "/submit"] [unique_id "VPVCjH8AAQEAAAPXe50AAAAH"]
+> 
+> This brings a score of 3, which is really low and below a sane
+> limit for the said legacy app, which had to be tuned in far too
+> many aspects already.
+> 
+> Does anybody have a good idea on how to protect against this
+> _class_ of attacks? Obviously, it's a weak spot for the core rules.
+> Maybe an extension is due.
+> 
+> Ahoj,
+> 
+> Christian
+
+
+From CSanders at trustwave.com  Wed Mar  4 21:36:56 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 4 Mar 2015 21:36:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity cPanel Reporting
+	Capabilities
+Message-ID: <F684BDD553BAF1479F5380EDAD3BE37101048EA2@SKYMB1.trustwave.com>
+
+Are you using OWASP CRS and cPanel? We are happy to announce that cPanel has just added the ability to 'Report a Rule'. We are very excited about this new feature because, as we all know, a WAF is only as good as its ruleset. If you are using cPanel with OWASP CRS and you find that a rule is not working correctly we highly encourage you to follow the steps outlined at https://documentation.cpanel.net/display/ALD/ModSecurity+Tools#ModSecurityTools-Reportarule. This will file a report about the rule directly with the ModSecurity team and we will do our best to quickly address the concern. We'd like to thank the cPanel team for going the extra mile in implementing this feature, we really do think it will make everyone more secure. If you are not using cPanel please remember to open issues on GitHub or email the mailing list if you find a bug. We are always on the lookout for how to improve our rules.
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150304/ecf963fe/attachment.html>
+
+From christian.folini at time-machine.ch  Thu Mar  5 08:32:56 2015
+From: christian.folini at time-machine.ch (Christian Folini)
+Date: Thu, 5 Mar 2015 09:32:56 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Successful Redirect Attack
+ Scoring only 3 with Core Rules (any clue?)
+Message-ID: <20150305083256.GA14398@elias>
+
+Hi Achim,
+
+Good to hear from you. Unfortunately, nobody else responded. We'll
+see how far we can get.
+
+On Tue, Mar 03, 2015 at 09:00:35AM +0100, Achim wrote:
+> this is a typical "header injection" attack. AFAIK CRS has no spezial
+> rules for that. What best fits is the HTTP Response Splitting rule 950911,
+> but it is far to specific to match in this case.
+
+You hit the nail on the head. We first had a response splitting
+vulnerability. Then we lowered the limit (which had been raised by
+a sysadmin on his own), then the pen-tester worked around the lower
+limit with this redirect vulnerability scoring 3 on the core ruleset.
+
+> I'd suggest to craft a new set of rules for header injections.
+
+I think that is due. 
+
+> Also a variant of your example would be the meta tag, if the aplication
+> writes the paramter there.
+
+Agreed.
+
+> In OWASP Top 10 (2013) this is A1 and A10.
+
+dito
+
+So what can we do? I must say I am a bit at loss when thinking about a
+good _generic_ approach.
+
+(1) Disallow CR/LF in Query-Strings
+    This seems do-able, but it does not help us with request bodies
+(2) Disallow CR/LF in Query-Strings and Request Bodies
+    This will raise a ton of false positives. But tuning them away
+    on certain input fields could do the job
+(3) Disallow CR/LF in Query-Strings and Request Bodies in combination
+    with certain keywords
+    This might bring less false positives, but "Refresh" is a standard
+    word, so you can not rule them out.
+    What keywords would need to be covered to address the issue?
+    What transformation / escape variants?
+(4) Disallow refresh header / meta tag in response phases
+    Will only work when ResponseBodyAccess is enabled.
+    And I think there are are still tons of applications around who
+    redirect applications in this way. -> False Positives
+(5) Define a list of allowed redirects, then disallow refresh headers /
+    meta tags not pointing to these hosts/domains.
+    I am not sure if such a list / variable-to-take-this-list
+    exists in the core rules. It's definitely a pain in the A* to
+    maintain. And the restriction with ResponseBodyAccess
+    in (4) applies too.
+
+I am not particularly fond of all these variants and I would appreciate
+if somebody had a better idea.
+
+Ahoj,
+
+Christian
+
+P.S. I will talk about practical CRS Tuning in Berne, Switzerland,
+next Tuesday, 4pm. If anybody wants to join.
+More infos here: http://www.sig-switzerland.ch/de/event_bern.php
+
+
+-- 
+Any technology that does not appear magical is insufficiently
+advanced.        ?
+-- Gregory Benford
+
+From jbabbidge at gmail.com  Thu Mar  5 16:33:22 2015
+From: jbabbidge at gmail.com (John Babbidge)
+Date: Thu, 05 Mar 2015 08:33:22 -0800 (PST)
+Subject: [Owasp-modsecurity-core-rule-set]
+	Owasp-modsecurity-core-rule-set Digest, Vol 71, Issue 2
+In-Reply-To: <mailman.21.1425556806.13834.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.21.1425556806.13834.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <1425573201900.8ae98178@Nodemailer>
+
+.?
+
+
+
+?
+Sent from my phone
+
+On Thu, Mar 5, 2015 at 4:06 AM, null
+<owasp-modsecurity-core-rule-set-request at lists.owasp.org> wrote:
+
+> Send Owasp-modsecurity-core-rule-set mailing list submissions to
+> 	owasp-modsecurity-core-rule-set at lists.owasp.org
+> To subscribe or unsubscribe via the World Wide Web, visit
+> 	https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> or, via email, send a message with subject or body 'help' to
+> 	owasp-modsecurity-core-rule-set-request at lists.owasp.org
+> You can reach the person managing the list at
+> 	owasp-modsecurity-core-rule-set-owner at lists.owasp.org
+> When replying, please edit your Subject line so it is more specific
+> than "Re: Contents of Owasp-modsecurity-core-rule-set digest..."
+> Today's Topics:
+>    1. ModSecurity cPanel Reporting	Capabilities (Chaim Sanders)
+>    2. Re: Successful Redirect Attack Scoring only 3 with Core Rules
+>       (any clue?) (Christian Folini)
+> ----------------------------------------------------------------------
+> Message: 1
+> Date: Wed, 4 Mar 2015 21:36:56 +0000
+> From: Chaim Sanders <CSanders at trustwave.com>
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org"
+> 	<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: [Owasp-modsecurity-core-rule-set] ModSecurity cPanel
+> 	Reporting	Capabilities
+> Message-ID:
+> 	<F684BDD553BAF1479F5380EDAD3BE37101048EA2 at SKYMB1.trustwave.com>
+> Content-Type: text/plain; charset="us-ascii"
+> Are you using OWASP CRS and cPanel? We are happy to announce that cPanel has just added the ability to 'Report a Rule'. We are very excited about this new feature because, as we all know, a WAF is only as good as its ruleset. If you are using cPanel with OWASP CRS and you find that a rule is not working correctly we highly encourage you to follow the steps outlined at https://documentation.cpanel.net/display/ALD/ModSecurity+Tools#ModSecurityTools-Reportarule. This will file a report about the rule directly with the ModSecurity team and we will do our best to quickly address the concern. We'd like to thank the cPanel team for going the extra mile in implementing this feature, we really do think it will make everyone more secure. If you are not using cPanel please remember to open issues on GitHub or email the mailing list if you find a bug. We are always on the lookout for how to improve our rules.
+> Chaim Sanders
+> Security Researcher, SpiderLabs
+> Trustwave | SMART SECURITY ON DEMAND
+> www.trustwave.com<http://www.trustwave.com/>
+> ________________________________
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> -------------- next part --------------
+> An HTML attachment was scrubbed...
+> URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150304/ecf963fe/attachment-0001.html>
+> ------------------------------
+> Message: 2
+> Date: Thu, 5 Mar 2015 09:32:56 +0100
+> From: Christian Folini <christian.folini at time-machine.ch>
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Successful Redirect
+> 	Attack Scoring only 3 with Core Rules (any clue?)
+> Message-ID: <20150305083256.GA14398 at elias>
+> Content-Type: text/plain; charset=utf-8
+> Hi Achim,
+> Good to hear from you. Unfortunately, nobody else responded. We'll
+> see how far we can get.
+> On Tue, Mar 03, 2015 at 09:00:35AM +0100, Achim wrote:
+>> this is a typical "header injection" attack. AFAIK CRS has no spezial
+>> rules for that. What best fits is the HTTP Response Splitting rule 950911,
+>> but it is far to specific to match in this case.
+> You hit the nail on the head. We first had a response splitting
+> vulnerability. Then we lowered the limit (which had been raised by
+> a sysadmin on his own), then the pen-tester worked around the lower
+> limit with this redirect vulnerability scoring 3 on the core ruleset.
+>> I'd suggest to craft a new set of rules for header injections.
+> I think that is due. 
+>> Also a variant of your example would be the meta tag, if the aplication
+>> writes the paramter there.
+> Agreed.
+>> In OWASP Top 10 (2013) this is A1 and A10.
+> dito
+> So what can we do? I must say I am a bit at loss when thinking about a
+> good _generic_ approach.
+> (1) Disallow CR/LF in Query-Strings
+>     This seems do-able, but it does not help us with request bodies
+> (2) Disallow CR/LF in Query-Strings and Request Bodies
+>     This will raise a ton of false positives. But tuning them away
+>     on certain input fields could do the job
+> (3) Disallow CR/LF in Query-Strings and Request Bodies in combination
+>     with certain keywords
+>     This might bring less false positives, but "Refresh" is a standard
+>     word, so you can not rule them out.
+>     What keywords would need to be covered to address the issue?
+>     What transformation / escape variants?
+> (4) Disallow refresh header / meta tag in response phases
+>     Will only work when ResponseBodyAccess is enabled.
+>     And I think there are are still tons of applications around who
+>     redirect applications in this way. -> False Positives
+> (5) Define a list of allowed redirects, then disallow refresh headers /
+>     meta tags not pointing to these hosts/domains.
+>     I am not sure if such a list / variable-to-take-this-list
+>     exists in the core rules. It's definitely a pain in the A* to
+>     maintain. And the restriction with ResponseBodyAccess
+>     in (4) applies too.
+> I am not particularly fond of all these variants and I would appreciate
+> if somebody had a better idea.
+> Ahoj,
+> Christian
+> P.S. I will talk about practical CRS Tuning in Berne, Switzerland,
+> next Tuesday, 4pm. If anybody wants to join.
+> More infos here: http://www.sig-switzerland.ch/de/event_bern.php
+> -- 
+> Any technology that does not appear magical is insufficiently
+> advanced.        ?
+> -- Gregory Benford
+> ------------------------------
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> End of Owasp-modsecurity-core-rule-set Digest, Vol 71, Issue 2
+> **************************************************************
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150305/bae4a36b/attachment.html>
+
+From barry_pollard at hotmail.com  Fri Mar  6 12:52:43 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Fri, 6 Mar 2015 12:52:43 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+	modsecurity_crs_11_dos_protection.conf
+Message-ID: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+
+I've a few questions about?modsecurity_crs_11_dos_protection.conf
+
+Question 1. The first set of rules are these:
+
+#
+# Enforce an existing IP address block and log only 1-time/minute
+# We don't want to get flooded by alerts during an attack or scan so
+# we are only triggering an alert once/minute. ?You can adjust how often
+# you want to receive status alerts by changing the expirevar setting below.
+#
+SecRule IP:DOS_BLOCK "@eq 1" "chain,phase:1,id:'981044',drop,msg:'Denial of Service (DoS) Attack Identified from %{tx.real_ip} (%{tx.dos_block_counter} hits since last alert)',setvar:ip.dos_block_counter=+1"
+	SecRule &IP:DOS_BLOCK_FLAG "@eq 0" "setvar:ip.dos_block_flag=1,expirevar:ip.dos_block_flag=60,setvar:tx.dos_block_counter=%{ip.dos_block_counter},setvar:ip.dos_block_counter=0"
+
+#
+# Block and track # of requests but don't log
+SecRule IP:DOS_BLOCK "@eq 1" "phase:1,id:'981045',t:none,drop,nolog,setvar:ip.dos_block_counter=+1"
+
+
+Is rule 981045 needed? Rule 981044 already increments the counter even if the chained rule does not match so I don't see the point in rule 981045. Or am I misunderstanding this:
+https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#setvar
+
+
+Question 2:
+
+#
+# DOS Counter
+# Count the number of requests to non-static resoures
+#?
+SecRule REQUEST_BASENAME "!\.(jpe?g|png|gif|js|css|ico)$" "phase:5,id:'981047',t:none,nolog,pass,setvar:ip.dos_counter=+1"
+
+Any reason we don't use t:lowercase instead of assuming the file extensions are already in lowercase? Would also be nice to specify the exact pattern match in?modsecurity_crs_10_setup.conf with it defaulting to above though I guess you can always use?SecRuleUpdateTargetById to add your own extensions or other pattern matching.
+
+
+Question 3:
+
+#
+# Check DOS Counter
+# If the request count is greater than or equal to user settings,
+# we then set the burst counter
+#?
+SecRule IP:DOS_COUNTER "@gt %{tx.dos_counter_threshold}" "phase:5,id:'981048',t:none,nolog,pass,t:none,setvar:ip.dos_burst_counter=+1,expirevar:ip.dos_burst_counter=%{tx.dos_burst_time_slice},setvar:!ip.dos_counter"
+
+I presume this is a typo to have t:none specified twice in this rule?
+
+Question 4:
+
+Not directly related to this but has anyone made any progress in keeping ip.pag down to a reasonable size as doesn't seem to clean up like it should do? Several posts about this about the place but not managed to find any definitive answers...
+
+
+
+ 		 	   		  
+
+From CSanders at trustwave.com  Wed Mar 11 02:54:01 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 11 Mar 2015 02:54:01 +0000
+Subject: [Owasp-modsecurity-core-rule-set] block CONNECT
+In-Reply-To: <54D85BFD.9050809@gmail.com>
+References: <54D85BFD.9050809@gmail.com>
+Message-ID: <D1252396.370A%csanders@trustwave.com>
+
+Sorry for the long lead time for this reply. This is actually a more
+complicated problem then it ought to be. Currently ModSecurity does not
+support easy methods of persisting data permanently. Compounding this
+issue is that while ModSecurity is running, it uses SDBM which has a
+somewhat low storage limit per variable (these would also be removed each
+time you restart). What I would recommend would be modifying this rule (or
+adding a custom one) to call a LUA script when triggered. This LUA script
+should add/append to an IP blacklist file. Once in file format it is easy
+enough to block these using ipmatchfromfile. The rule would probably start
+similarly to 'SecRule REMOTE_ADDR "@ipMatchFromFile blacklist.ip ??.
+Hopefully this helps a bit.
+
+
+
+On 2/9/15, 2:04 AM, "Aniyan Rajan" <aniyan.rajan6 at gmail.com> wrote:
+
+>Hello,
+>
+>
+>I am getting the following in the apache/error.log. There are plenty of
+>such errors coming in daily. So I would like to block them. They are
+>from different ips. So fail2ban is not a good option. They come from
+>"http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooY
+>tUAWWYzeg&s=5&u=http%3a%2f%2fmail2000%2ecom%2etw". How can I block this
+>domain from trying to CONNECT ?
+>
+>
+>[Sat Feb 07 09:52:21 2015] [error] [client 118.165.130.55] ModSecurity:
+>Access denied with code 403 (phase 1). Match of "rx
+>^(?:(?:[a-z]{3,10}\\\\s+(?:\\\\w{3,7}?://[\\\\w\\\\-\\\\./]*(?::\\\\d+)?)?
+>/[^?#]*(?:\\\\?[^#\\\\s]*)?(?:#[\\\\S]*)?|connect
+>(?:\\\\d{1,3}\\\\.){3}\\\\d{1,3}\\\\.?(?::\\\\d+)?|options
+>\\\\*)\\\\s+[\\\\w\\\\./]+|get
+>/[^?#]*(?:\\\\?[^#\\\\s]*)?(?:#[\\\\S]*)?)$" against "REQUEST_LINE"
+>required. [file
+>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_20_protocol_vi
+>olations.conf"]
+>[line "37"] [id "960911"] [rev "2.2.5"] [msg "Invalid HTTP Request
+>Line"] [data "CONNECT
+>http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooYo
+>BRCWUwLA&s=5&u=http%3a%2f%2fmx0%2email2000%2ecom%2etw%3a25 HTTP/1.0"]
+>[severity
+>"WARNING"] [tag
+>"http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooY
+>oBWDzBnfw&s=5&u=https%3a%2f%2fwww%2eowasp%2eorg%2findex%2ephp%2fModSecurit
+>y%5fCRS%5fRuleID-960911"] [tag
+>"http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooY
+>oNeUmIwLQ&s=5&u=http%3a%2f%2fwww%2ew3%2eorg%2fProtocols%2frfc2616%2frfc261
+>6-sec3%2ehtml%23sec3%2e2%2e1"] [tag
+>"RULE_MATURITY/8"] [tag "RULE_ACCURACY/8"] [hostname
+>"http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooY
+>t1XWGU8Kw&s=5&u=http%3a%2f%2fmx0%2email2000%2ecom%2etw"] [uri "/"]
+>[unique_id "VNXgVX8AAAEAAHqycsoAAAAC"]
+>
+>
+>I tried the following in /etc/apache2/sites-available/default. Will this
+>work ?
+><VirtualHost *:80>
+>.....
+>.....
+></VirtualHost>
+>
+><Files *>
+><LimitExcept GET POST>
+>deny from all
+></LimitExcept>
+>
+>
+>Thanks.
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>http://scanmail.trustwave.com/?c=4062&d=5uDY1ObqUZnGj7BGQHeiLo2p2q3I23ooYt
+>BWUmVndg&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fow
+>asp-modsecurity-core-rule-set
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From CSanders at trustwave.com  Wed Mar 11 03:54:43 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 11 Mar 2015 03:54:43 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+ modsecurity_crs_11_dos_protection.conf
+In-Reply-To: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+References: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+Message-ID: <D125274A.3744%csanders@trustwave.com>
+
+Sorry for the delay in response, I wanted to push the merge request before
+I sent a reply. I have addressed your questions inline below. Thank you
+for your suggestions and feedback. Keep them coming :)
+
+On 3/6/15, 7:52 AM, "Barry Pollard" <barry_pollard at hotmail.com> wrote:
+
+>I've a few questions about modsecurity_crs_11_dos_protection.conf
+>
+>Question 1. The first set of rules are these:
+>
+>#
+># Enforce an existing IP address block and log only 1-time/minute
+># We don't want to get flooded by alerts during an attack or scan so
+># we are only triggering an alert once/minute.  You can adjust how often
+># you want to receive status alerts by changing the expirevar setting
+>below.
+>#
+>SecRule IP:DOS_BLOCK "@eq 1" "chain,phase:1,id:'981044',drop,msg:'Denial
+>of Service (DoS) Attack Identified from %{tx.real_ip}
+>(%{tx.dos_block_counter} hits since last
+>alert)',setvar:ip.dos_block_counter=+1"
+>       SecRule &IP:DOS_BLOCK_FLAG "@eq 0"
+>"setvar:ip.dos_block_flag=1,expirevar:ip.dos_block_flag=60,setvar:tx.dos_b
+>lock_counter=%{ip.dos_block_counter},setvar:ip.dos_block_counter=0"
+>
+>#
+># Block and track # of requests but don't log
+>SecRule IP:DOS_BLOCK "@eq 1"
+>"phase:1,id:'981045',t:none,drop,nolog,setvar:ip.dos_block_counter=+1"
+>
+>
+>Is rule 981045 needed? Rule 981044 already increments the counter even if
+>the chained rule does not match so I don't see the point in rule 981045.
+>Or am I misunderstanding this:
+>http://scanmail.trustwave.com/?c=4062&d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw
+>rskdE9ZA&s=5&u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fModSecurity%2fwik
+>i%2fReference-Manual%23setvar
+
+The difference between these two rules is that rule 981044 is there to
+generate the log event when the threshold has been hit, whereas rule
+981045 is present to increment the counter. 981045 does not write to the
+log, otherwise during a DOS your log would fill up with many alerts.
+Instead the rules have been split out to such that logging only occurs
+once per DOS event.
+
+>
+>
+>Question 2:
+>
+>#
+># DOS Counter
+># Count the number of requests to non-static resoures
+>#
+>SecRule REQUEST_BASENAME "!\.(jpe?g|png|gif|js|css|ico)$"
+>"phase:5,id:'981047',t:none,nolog,pass,setvar:ip.dos_counter=+1"
+>
+>Any reason we don't use t:lowercase instead of assuming the file
+>extensions are already in lowercase? Would also be nice to specify the
+>exact pattern match in modsecurity_crs_10_setup.conf with it defaulting
+>to above though I guess you can always use SecRuleUpdateTargetById to add
+>your own extensions or other pattern matching.
+
+These are great ideas, I have pushed a merge request to the 3.0.0 branch
+with these changes. After testing you should see it in there.
+
+>
+>
+>Question 3:
+>
+>#
+># Check DOS Counter
+># If the request count is greater than or equal to user settings,
+># we then set the burst counter
+>#
+>SecRule IP:DOS_COUNTER "@gt %{tx.dos_counter_threshold}"
+>"phase:5,id:'981048',t:none,nolog,pass,t:none,setvar:ip.dos_burst_counter=
+>+1,expirevar:ip.dos_burst_counter=%{tx.dos_burst_time_slice},setvar:!ip.do
+>s_counter"
+>
+>I presume this is a typo to have t:none specified twice in this rule?
+
+This is part of the previous merge request as well, seems to be a typo.
+
+>
+>Question 4:
+>
+>Not directly related to this but has anyone made any progress in keeping
+>ip.pag down to a reasonable size as doesn't seem to clean up like it
+>should do? Several posts about this about the place but not managed to
+>find any definitive answers...
+>
+
+Asking around the answer is that there are no definitive answers. The
+problem is that we are using a database that was built to store a small
+amount of data to store a massive amount of data and the mechanism that
+sdbm has to protect agains race conditions were not built for the massive
+amount of data that we are saving. There are ways to circumvent the
+problem by using the modsec-sdbm utility + periodicals restarts but that
+is pretty much as good as we get right now. This is a known issue and as
+we look towards features for modsecv3 this is an underlying issue we are
+looking to address.
+
+>
+>
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>http://scanmail.trustwave.com/?c=4062&d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw
+>u4y9FoZA&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fow
+>asp-modsecurity-core-rule-set
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From barry_pollard at hotmail.com  Wed Mar 11 07:49:05 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Wed, 11 Mar 2015 07:49:05 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+	modsecurity_crs_11_dos_protection.conf
+In-Reply-To: <D125274A.3744%csanders@trustwave.com>
+References: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+	<D125274A.3744%csanders@trustwave.com>
+Message-ID: <DUB406-EAS43213CB6E0F25BF25A84C1B82190@phx.gbl>
+
+Thanks for those answers Chaim. Make sense to me.
+
+I do think the use of SDBM for storage for large scale tracking like for IP addresses is a problem (with ModSecurity rather than with the core rule set but not that that matters). Unfortunately it just doesn't work for even relatively small amounts of traffic.
+
+Not sure how you could resolve it and I know nothing about ModSecurity is written, or about writing really high performing systems like this, but came up with below suggestions after a bit of a think. Not sure how feasible any of these are.
+
+* Split out IP.pag into several files based on hashed IP address so bottle neck is not on one file. Would need to be hashed IP address in case your customer based is skewed towards certain IP ranges. Could also configure number of files to split across, so busier sites have larger number of IP.pag files, if the hashing algorithm could take that config number into account.
+
+* Have a minimum update time e.g. If hit from IP in last 1 second then don't bother saving another hit as record is reasonably up to date. Again time could be configurable. Would obviously impact any DoS/Brute force rules since we'd be filtering out hits here.
+
+* Make it easier to ignore the problem by ignoring certain alerts (e.g. deleting stale collections fails... etc.) unless in high log level, and add a safe way of ModSecurity clearing down the file and starting again at certain times (e.g. daily/weekly) or after it reaches a certain size. Massive fudge but could be short term solution.
+
+* Use some other persistent storage. Though I'd imagine, given the potential rate of data updates for a busy site, this would also be a problem in whatever we move to.
+
+* Use in-memory storage - though guess that would raise questions on memory requirements and how to share between different threads/processes.
+
+* Have dedicated process/program to manage collections that all other threads/processes talk via. Could address some of the issues with in using in-memory storage raised above. Then again could bring in whole raft of other problems :-)
+
+* Store less. Collections do seem to be quite large. Could you have a minimal set for things like IP address with just last access time/num hits? For rules that require more things tracked (e.g. Brute force attempts on a specific URL) they could be tracked in a separate "full" collection which would have a larger record set, but with less entries.
+
+* Reduce blocking time in code making the SDBM update. Imagine the code is probably pretty tight here already but obviously any reduction here would have benefit. Had a quick look myself (more out of nosiness) but the C code scared me too much (been a while!).
+
+* Look into how other modules (e.g. mod_evasive) handle this problem to see if can learn anything from them.
+
+Am sure you've probably already considered these and better solutions but thought I'd suggest them anyway.
+
+Thanks,
+Barry
+
+> On 11 Mar 2015, at 03:54, Chaim Sanders <CSanders at trustwave.com> wrote:
+> 
+> we
+
+From jamuse at owasp.org  Wed Mar 11 08:37:30 2015
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Wed, 11 Mar 2015 10:37:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+	modsecurity_crs_11_dos_protection.conf
+In-Reply-To: <DUB406-EAS43213CB6E0F25BF25A84C1B82190@phx.gbl>
+References: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+	<D125274A.3744%csanders@trustwave.com>
+	<DUB406-EAS43213CB6E0F25BF25A84C1B82190@phx.gbl>
+Message-ID: <CAC+O4mFJM2b-rBLcU2EwQEt5nLnxAspOgwKimRmBTCYPu3SgPw@mail.gmail.com>
+
+Hi Barry,
+
+FWIW, we've run into similar issues and re-implemented some rules to use
+Redis for storage instead. This had to be implemented via Lua scripting
+though, which takes a slight performance hit. Having said that, there is an
+open ticket to implement an alternative shared persistent storage mechanism:
+
+https://github.com/SpiderLabs/ModSecurity/issues/378
+
+--
+ - Josh
+
+On Wed, Mar 11, 2015 at 9:49 AM, Barry Pollard <barry_pollard at hotmail.com>
+wrote:
+
+> Thanks for those answers Chaim. Make sense to me.
+>
+> I do think the use of SDBM for storage for large scale tracking like for
+> IP addresses is a problem (with ModSecurity rather than with the core rule
+> set but not that that matters). Unfortunately it just doesn't work for even
+> relatively small amounts of traffic.
+>
+> Not sure how you could resolve it and I know nothing about ModSecurity is
+> written, or about writing really high performing systems like this, but
+> came up with below suggestions after a bit of a think. Not sure how
+> feasible any of these are.
+>
+> * Split out IP.pag into several files based on hashed IP address so bottle
+> neck is not on one file. Would need to be hashed IP address in case your
+> customer based is skewed towards certain IP ranges. Could also configure
+> number of files to split across, so busier sites have larger number of
+> IP.pag files, if the hashing algorithm could take that config number into
+> account.
+>
+> * Have a minimum update time e.g. If hit from IP in last 1 second then
+> don't bother saving another hit as record is reasonably up to date. Again
+> time could be configurable. Would obviously impact any DoS/Brute force
+> rules since we'd be filtering out hits here.
+>
+> * Make it easier to ignore the problem by ignoring certain alerts (e.g.
+> deleting stale collections fails... etc.) unless in high log level, and add
+> a safe way of ModSecurity clearing down the file and starting again at
+> certain times (e.g. daily/weekly) or after it reaches a certain size.
+> Massive fudge but could be short term solution.
+>
+> * Use some other persistent storage. Though I'd imagine, given the
+> potential rate of data updates for a busy site, this would also be a
+> problem in whatever we move to.
+>
+> * Use in-memory storage - though guess that would raise questions on
+> memory requirements and how to share between different threads/processes.
+>
+> * Have dedicated process/program to manage collections that all other
+> threads/processes talk via. Could address some of the issues with in using
+> in-memory storage raised above. Then again could bring in whole raft of
+> other problems :-)
+>
+> * Store less. Collections do seem to be quite large. Could you have a
+> minimal set for things like IP address with just last access time/num hits?
+> For rules that require more things tracked (e.g. Brute force attempts on a
+> specific URL) they could be tracked in a separate "full" collection which
+> would have a larger record set, but with less entries.
+>
+> * Reduce blocking time in code making the SDBM update. Imagine the code is
+> probably pretty tight here already but obviously any reduction here would
+> have benefit. Had a quick look myself (more out of nosiness) but the C code
+> scared me too much (been a while!).
+>
+> * Look into how other modules (e.g. mod_evasive) handle this problem to
+> see if can learn anything from them.
+>
+> Am sure you've probably already considered these and better solutions but
+> thought I'd suggest them anyway.
+>
+> Thanks,
+> Barry
+>
+> > On 11 Mar 2015, at 03:54, Chaim Sanders <CSanders at trustwave.com> wrote:
+> >
+> > we
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150311/baca12a5/attachment-0001.html>
+
+From CSanders at trustwave.com  Wed Mar 11 12:13:06 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 11 Mar 2015 12:13:06 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+ modsecurity_crs_11_dos_protection.conf
+In-Reply-To: <CAC+O4mFJM2b-rBLcU2EwQEt5nLnxAspOgwKimRmBTCYPu3SgPw@mail.gmail.com>
+References: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>
+	<D125274A.3744%csanders@trustwave.com>
+	<DUB406-EAS43213CB6E0F25BF25A84C1B82190@phx.gbl>
+	<CAC+O4mFJM2b-rBLcU2EwQEt5nLnxAspOgwKimRmBTCYPu3SgPw@mail.gmail.com>
+Message-ID: <D125A95F.3866%csanders@trustwave.com>
+
+It should be noted for the purposes of this discussion that there is an experimental build of mod security with memcache support (https://github.com/SpiderLabs/ModSecurity/tree/memcache_collections).
+
+From: Josh Amishav-Zlatin <jamuse at owasp.org<mailto:jamuse at owasp.org>>
+Date: Wednesday, March 11, 2015 at 4:37 AM
+To: Barry Pollard <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>>
+Cc: Chaim Sanders <csanders at trustwave.com<mailto:csanders at trustwave.com>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf
+
+Hi Barry,
+
+FWIW, we've run into similar issues and re-implemented some rules to use Redis for storage instead. This had to be implemented via Lua scripting though, which takes a slight performance hit. Having said that, there is an open ticket to implement an alternative shared persistent storage mechanism:
+
+https://github.com/SpiderLabs/ModSecurity/issues/378<http://scanmail.trustwave.com/?c=4062&d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wPR_Yvt2BA&s=5&u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fModSecurity%2fissues%2f378>
+
+--
+ - Josh
+
+On Wed, Mar 11, 2015 at 9:49 AM, Barry Pollard <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>> wrote:
+Thanks for those answers Chaim. Make sense to me.
+
+I do think the use of SDBM for storage for large scale tracking like for IP addresses is a problem (with ModSecurity rather than with the core rule set but not that that matters). Unfortunately it just doesn't work for even relatively small amounts of traffic.
+
+Not sure how you could resolve it and I know nothing about ModSecurity is written, or about writing really high performing systems like this, but came up with below suggestions after a bit of a think. Not sure how feasible any of these are.
+
+* Split out IP.pag into several files based on hashed IP address so bottle neck is not on one file. Would need to be hashed IP address in case your customer based is skewed towards certain IP ranges. Could also configure number of files to split across, so busier sites have larger number of IP.pag files, if the hashing algorithm could take that config number into account.
+
+* Have a minimum update time e.g. If hit from IP in last 1 second then don't bother saving another hit as record is reasonably up to date. Again time could be configurable. Would obviously impact any DoS/Brute force rules since we'd be filtering out hits here.
+
+* Make it easier to ignore the problem by ignoring certain alerts (e.g. deleting stale collections fails... etc.) unless in high log level, and add a safe way of ModSecurity clearing down the file and starting again at certain times (e.g. daily/weekly) or after it reaches a certain size. Massive fudge but could be short term solution.
+
+* Use some other persistent storage. Though I'd imagine, given the potential rate of data updates for a busy site, this would also be a problem in whatever we move to.
+
+* Use in-memory storage - though guess that would raise questions on memory requirements and how to share between different threads/processes.
+
+* Have dedicated process/program to manage collections that all other threads/processes talk via. Could address some of the issues with in using in-memory storage raised above. Then again could bring in whole raft of other problems :-)
+
+* Store less. Collections do seem to be quite large. Could you have a minimal set for things like IP address with just last access time/num hits? For rules that require more things tracked (e.g. Brute force attempts on a specific URL) they could be tracked in a separate "full" collection which would have a larger record set, but with less entries.
+
+* Reduce blocking time in code making the SDBM update. Imagine the code is probably pretty tight here already but obviously any reduction here would have benefit. Had a quick look myself (more out of nosiness) but the C code scared me too much (been a while!).
+
+* Look into how other modules (e.g. mod_evasive) handle this problem to see if can learn anything from them.
+
+Am sure you've probably already considered these and better solutions but thought I'd suggest them anyway.
+
+Thanks,
+Barry
+
+> On 11 Mar 2015, at 03:54, Chaim Sanders <CSanders at trustwave.com<mailto:CSanders at trustwave.com>> wrote:
+>
+> we
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set<http://scanmail.trustwave.com/?c=4062&d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wKcqY65yWQ&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150311/16549c20/attachment.html>
+
+From barry_pollard at hotmail.com  Wed Mar 11 15:37:48 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Wed, 11 Mar 2015 15:37:48 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Questions about
+ modsecurity_crs_11_dos_protection.conf
+In-Reply-To: <D125A95F.3866%csanders@trustwave.com>
+References: <DUB129-W8869A3CAEABF9681EBF5A6821C0@phx.gbl>,
+	<D125274A.3744%csanders@trustwave.com>,
+	<DUB406-EAS43213CB6E0F25BF25A84C1B82190@phx.gbl>,
+	<CAC+O4mFJM2b-rBLcU2EwQEt5nLnxAspOgwKimRmBTCYPu3SgPw@mail.gmail.com>,
+	<D125A95F.3866%csanders@trustwave.com>
+Message-ID: <DUB129-W623FC001CA5BC37A30743D82190@phx.gbl>
+
+Interesting to know.
+
+The other thing I'm thinking about is do I need to track each request? For DoS checks (back to original subject!) ideally you would track each request, but it could be argued that DoS checks in webserver are only of limited use anyway (as a real DoS could attack the webserver itself), so I'm more worried about protecting only certain URLs that give up dynamic content via my app server and therefore that are more vulnerable to DoS attacks.
+
+So I'm thinking of the following:
+Move the initcol rules for the IP config to phase 2 (and also update the modsecurity_crs_11_dos_protection.conf phase 1 rules from phase 2), plus have some "ignore static content" rules which "allow" static content at the end of phase 1, thus skipping phase 2.
+That should dramatically reduce the number of IP addresses tracked in the collection and should hopefully I see less errors.
+
+The reason I'm doing the "allow" at the end of phase 1 is so that basic checks (e.g. protocol anomolies, bad robots...etc) are still followed in phase 1.
+And I'll also need to use the ctl:ruleEngine=On setting as part of my rule to force the use fo "allow" during DetectionOnly mode.
+
+Thoughts on this? Obviously this is deviating from the DoS rules as they were intended in the CRS and think I'll probably take a copy of the rules in modsecurity_crs_11_dos_protection.conf rather than directly edit them.
+
+Thanks,
+Barry
+
+________________________________
+> From: CSanders at trustwave.com 
+> To: jamuse at owasp.org; barry_pollard at hotmail.com 
+> CC: owasp-modsecurity-core-rule-set at lists.owasp.org 
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Questions about 
+> modsecurity_crs_11_dos_protection.conf 
+> Date: Wed, 11 Mar 2015 12:13:06 +0000 
+> 
+> It should be noted for the purposes of this discussion that there is an 
+> experimental build of mod security with memcache support 
+> (https://github.com/SpiderLabs/ModSecurity/tree/memcache_collections). 
+> 
+> From: Josh Amishav-Zlatin <jamuse at owasp.org<mailto:jamuse at owasp.org>> 
+> Date: Wednesday, March 11, 2015 at 4:37 AM 
+> To: Barry Pollard 
+> <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>> 
+> Cc: Chaim Sanders 
+> <csanders at trustwave.com<mailto:csanders at trustwave.com>>, 
+> "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" 
+> <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>> 
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Questions about 
+> modsecurity_crs_11_dos_protection.conf 
+> 
+> Hi Barry, 
+> 
+> FWIW, we've run into similar issues and re-implemented some rules to 
+> use Redis for storage instead. This had to be implemented via Lua 
+> scripting though, which takes a slight performance hit. Having said 
+> that, there is an open ticket to implement an alternative shared 
+> persistent storage mechanism: 
+> 
+> https://github.com/SpiderLabs/ModSecurity/issues/378<http://scanmail.trustwave.com/?c=4062&d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wPR_Yvt2BA&s=5&u=https://github.com/SpiderLabs/ModSecurity/issues/378> 
+> 
+> -- 
+> - Josh 
+> 
+> On Wed, Mar 11, 2015 at 9:49 AM, Barry Pollard 
+> <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>> wrote: 
+> Thanks for those answers Chaim. Make sense to me. 
+> 
+> I do think the use of SDBM for storage for large scale tracking like 
+> for IP addresses is a problem (with ModSecurity rather than with the 
+> core rule set but not that that matters). Unfortunately it just doesn't 
+> work for even relatively small amounts of traffic. 
+> 
+> Not sure how you could resolve it and I know nothing about ModSecurity 
+> is written, or about writing really high performing systems like this, 
+> but came up with below suggestions after a bit of a think. Not sure how 
+> feasible any of these are. 
+> 
+> * Split out IP.pag into several files based on hashed IP address so 
+> bottle neck is not on one file. Would need to be hashed IP address in 
+> case your customer based is skewed towards certain IP ranges. Could 
+> also configure number of files to split across, so busier sites have 
+> larger number of IP.pag files, if the hashing algorithm could take that 
+> config number into account. 
+> 
+> * Have a minimum update time e.g. If hit from IP in last 1 second then 
+> don't bother saving another hit as record is reasonably up to date. 
+> Again time could be configurable. Would obviously impact any DoS/Brute 
+> force rules since we'd be filtering out hits here. 
+> 
+> * Make it easier to ignore the problem by ignoring certain alerts (e.g. 
+> deleting stale collections fails... etc.) unless in high log level, and 
+> add a safe way of ModSecurity clearing down the file and starting again 
+> at certain times (e.g. daily/weekly) or after it reaches a certain 
+> size. Massive fudge but could be short term solution. 
+> 
+> * Use some other persistent storage. Though I'd imagine, given the 
+> potential rate of data updates for a busy site, this would also be a 
+> problem in whatever we move to. 
+> 
+> * Use in-memory storage - though guess that would raise questions on 
+> memory requirements and how to share between different 
+> threads/processes. 
+> 
+> * Have dedicated process/program to manage collections that all other 
+> threads/processes talk via. Could address some of the issues with in 
+> using in-memory storage raised above. Then again could bring in whole 
+> raft of other problems :-) 
+> 
+> * Store less. Collections do seem to be quite large. Could you have a 
+> minimal set for things like IP address with just last access time/num 
+> hits? For rules that require more things tracked (e.g. Brute force 
+> attempts on a specific URL) they could be tracked in a separate "full" 
+> collection which would have a larger record set, but with less entries. 
+> 
+> * Reduce blocking time in code making the SDBM update. Imagine the code 
+> is probably pretty tight here already but obviously any reduction here 
+> would have benefit. Had a quick look myself (more out of nosiness) but 
+> the C code scared me too much (been a while!). 
+> 
+> * Look into how other modules (e.g. mod_evasive) handle this problem to 
+> see if can learn anything from them. 
+> 
+> Am sure you've probably already considered these and better solutions 
+> but thought I'd suggest them anyway. 
+> 
+> Thanks, 
+> Barry 
+> 
+>> On 11 Mar 2015, at 03:54, Chaim Sanders 
+> <CSanders at trustwave.com<mailto:CSanders at trustwave.com>> wrote: 
+>> 
+>> we 
+> _______________________________________________ 
+> Owasp-modsecurity-core-rule-set mailing list 
+> Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org> 
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set<http://scanmail.trustwave.com/?c=4062&d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wKcqY65yWQ&s=5&u=https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set> 
+> 
+> 
+> ________________________________ 
+> 
+> This transmission may contain information that is privileged, 
+> confidential, and/or exempt from disclosure under applicable law. If 
+> you are not the intended recipient, you are hereby notified that any 
+> disclosure, copying, distribution, or use of the information contained 
+> herein (including any reliance thereon) is strictly prohibited. If you 
+> received this transmission in error, please immediately contact the 
+> sender and destroy the material in its entirety, whether in electronic 
+> or hard copy format. 
+ 		 	   		  
+

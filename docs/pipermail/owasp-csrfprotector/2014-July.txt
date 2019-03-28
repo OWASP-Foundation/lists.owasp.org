@@ -1,0 +1,839 @@
+From minhazav at gmail.com  Tue Jul  1 09:04:22 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 1 Jul 2014 14:34:22 +0530
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <CAOPE6PiG_9QXXdErnQ8Tgni39OVbzivfEfH-H5YXcV5uuE_jjA@mail.gmail.com>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+	<D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+	<CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+	<FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+	<CAOPE6PiG_9QXXdErnQ8Tgni39OVbzivfEfH-H5YXcV5uuE_jjA@mail.gmail.com>
+Message-ID: <CADCpCkjBuerxdSsFR76W3yfmwWLEw2k__J4vpSCijUUndsWsQA@mail.gmail.com>
+
+Its not actually caching, its like we are giving an options for developers
+to create a new version of js file when then modify their config file (so
+that we can maintain a static js file rather than a dynamic one, in which
+we pass the rules for get validation). It would be something used very
+rarely or only at the development stage of web application as once they
+have identified their needs there would be very less chances of changing
+the configuration.
+In Fact, we'd recommend the developers to run the script themselves after
+they change config. Then the same js script will be served to every client.
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jul 1, 2014 at 5:20 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> On Mon, Jun 30, 2014 at 5:26 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+> > But you need the path to be writable to be able to cache. You have to
+> check
+> > if you can overwrite the js file anyway, and if you can?t, serve it
+> inline.
+> > -A
+>
+> I'm confused. Why would he need to *overwrite* the .js file when the config
+> file is changed?  Or you are just referring to him updating the file's
+> modification
+> timestamp (which the simplest way is to write 0 bytes to the file) so that
+> a
+> HEAD request by the browser re-fetches the file instead of pulling it from
+> cache?  And if he is going to do that, surely he doesn't have to do it for
+> ALL changes to the configuration. E.g., if something is updated to add
+> a URL to include for GET requests or exclude for POSTs or whatever,
+> that wouldn't require changing the .js file. So it's only cases where
+> a new .js file is provided and the web-application is restarted where
+> it would matter. Or am I missing something? And generally, if
+> the web server is restarted, aren't client browser sessions typically
+> going to be dropped anyway? (Maybe not in a clustered application
+> environment where you use shared session state rather than sticky
+> sessions and only restart only one application server at a time.)
+>
+> Seems to me that this (changing anything that is requires a new
+> .js file to be downloaded by a client with an existing session state
+> will be a seldom used edge use case. So in the interest of simplicity,
+> can't we just ignore this case and say that if you want to support
+> it you need to completely restart your web / application server (or
+> cluster of servers)? That is, treat it as if you are doing a new
+> deployment.
+>
+> I mean, do you REALLY anticipate the need for the .js file contents to
+> change all all often. I thought this was going to be a set-it-once and
+> forget it type of thing.
+>
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140701/bcc65cad/attachment.html>
+
+From minhazav at gmail.com  Thu Jul  3 19:46:22 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 4 Jul 2014 01:16:22 +0530
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+Message-ID: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+
+I need a little help with unit testing I was set up for CSRF Protector php
+Project.
+Most of the actions set for failed validation result in setting headers, I
+need to test if particular header is set or not. Any idea on how to test
+headers? because If I check them normally it throws *"headers already sent"*
+error.
+
+Thanks!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/c1f0a96b/attachment.html>
+
+From jim.manico at owasp.org  Fri Jul  4 00:42:38 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 4 Jul 2014 08:42:38 +0800
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+In-Reply-To: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+Message-ID: <-2500267801673598189@unknownmsgid>
+
+Only add a header before body content, that is what that error means....
+
+Are you doing this?
+
+1) Add response header
+2) Add some HTML or JSON or other body content
+3) Add another response header
+
+This is the kind of logic that causes that error...
+
+--
+Jim Manico
+@Manicode
+(808) 652-3805
+
+On Jul 4, 2014, at 3:47 AM, Minhaz A V <minhazav at gmail.com> wrote:
+
+I need a little help with unit testing I was set up for CSRF Protector php
+Project.
+Most of the actions set for failed validation result in setting headers, I
+need to test if particular header is set or not. Any idea on how to test
+headers? because If I check them normally it throws *"headers already sent"*
+error.
+
+Thanks!
+
+_______________________________________________
+Owasp-csrfprotector mailing list
+Owasp-csrfprotector at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/3eba553a/attachment.html>
+
+From abiusx at owasp.org  Fri Jul  4 03:40:44 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Thu, 3 Jul 2014 23:40:44 -0400
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+In-Reply-To: <-2500267801673598189@unknownmsgid>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+Message-ID: <3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+
+You should test your logical units using phpunit, and not your HTML output for now.
+-A
+On Jul 3, 2014, at 8:42 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+> Only add a header before body content, that is what that error means.... 
+> 
+> Are you doing this?
+> 
+> 1) Add response header
+> 2) Add some HTML or JSON or other body content
+> 3) Add another response header
+> 
+> This is the kind of logic that causes that error...
+> 
+> --
+> Jim Manico
+> @Manicode
+> (808) 652-3805
+> 
+> On Jul 4, 2014, at 3:47 AM, Minhaz A V <minhazav at gmail.com> wrote:
+> 
+>> I need a little help with unit testing I was set up for CSRF Protector php Project.
+>> Most of the actions set for failed validation result in setting headers, I need to test if particular header is set or not. Any idea on how to test headers? because If I check them normally it throws "headers already sent" error.
+>> 
+>> Thanks!
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140703/f5eab9ac/attachment.html>
+
+From jim.manico at owasp.org  Fri Jul  4 03:51:11 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 4 Jul 2014 11:51:11 +0800
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+In-Reply-To: <3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+Message-ID: <-1485005025055282660@unknownmsgid>
+
++1000. Abbas knows. :)
+
+Salaam,
+--
+Jim Manico
+@Manicode
+(808) 652-3805
+
+On Jul 4, 2014, at 11:40 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+You should test your logical units using phpunit, and not your HTML output
+for now.
+-A
+On Jul 3, 2014, at 8:42 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+Only add a header before body content, that is what that error means....
+
+Are you doing this?
+
+1) Add response header
+2) Add some HTML or JSON or other body content
+3) Add another response header
+
+This is the kind of logic that causes that error...
+
+--
+Jim Manico
+@Manicode
+(808) 652-3805
+
+On Jul 4, 2014, at 3:47 AM, Minhaz A V <minhazav at gmail.com> wrote:
+
+I need a little help with unit testing I was set up for CSRF Protector php
+Project.
+Most of the actions set for failed validation result in setting headers, I
+need to test if particular header is set or not. Any idea on how to test
+headers? because If I check them normally it throws *"headers already sent"*
+error.
+
+Thanks!
+
+_______________________________________________
+Owasp-csrfprotector mailing list
+Owasp-csrfprotector at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+_______________________________________________
+Owasp-csrfprotector mailing list
+Owasp-csrfprotector at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/128f1d5d/attachment.html>
+
+From abiusx at owasp.org  Fri Jul  4 03:52:23 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Thu, 3 Jul 2014 23:52:23 -0400
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+In-Reply-To: <-1485005025055282660@unknownmsgid>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+Message-ID: <887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+
+Actually Jim was correct too, all I?m saying is that we need to be testing our logical units for now. Testing the system behavior is a little over unit testing, thuogh can be done with tricks and stuff!
+Thanks
+-Abbas
+On Jul 3, 2014, at 11:51 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+> +1000. Abbas knows. :)
+> 
+> Salaam,
+> --
+> Jim Manico
+> @Manicode
+> (808) 652-3805
+> 
+> On Jul 4, 2014, at 11:40 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+> 
+>> You should test your logical units using phpunit, and not your HTML output for now.
+>> -A
+>> On Jul 3, 2014, at 8:42 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>> 
+>>> Only add a header before body content, that is what that error means.... 
+>>> 
+>>> Are you doing this?
+>>> 
+>>> 1) Add response header
+>>> 2) Add some HTML or JSON or other body content
+>>> 3) Add another response header
+>>> 
+>>> This is the kind of logic that causes that error...
+>>> 
+>>> --
+>>> Jim Manico
+>>> @Manicode
+>>> (808) 652-3805
+>>> 
+>>> On Jul 4, 2014, at 3:47 AM, Minhaz A V <minhazav at gmail.com> wrote:
+>>> 
+>>>> I need a little help with unit testing I was set up for CSRF Protector php Project.
+>>>> Most of the actions set for failed validation result in setting headers, I need to test if particular header is set or not. Any idea on how to test headers? because If I check them normally it throws "headers already sent" error.
+>>>> 
+>>>> Thanks!
+>>>> _______________________________________________
+>>>> Owasp-csrfprotector mailing list
+>>>> Owasp-csrfprotector at lists.owasp.org
+>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>> _______________________________________________
+>>> Owasp-csrfprotector mailing list
+>>> Owasp-csrfprotector at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>> 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140703/7ca5176c/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jul  4 12:13:14 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 4 Jul 2014 17:43:14 +0530
+Subject: [Owasp-csrfprotector] Need help with phpunit, unit testing
+In-Reply-To: <887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+Message-ID: <CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+
+@Jim: no this has nothing to do with the library directly. Its being
+triggered because, *phpunit* sends some output prior to start testing our
+code. So even if there is no such case in our code, it triggers *headers
+already sent *error if I test some code where headers are set.  Can say
+this is small bug in phpunit itself.
+
+@Abbas: I have implemented unit testing on functions separately where ever
+I can*. Are you suggesting some other way?*
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Fri, Jul 4, 2014 at 9:22 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+> Actually Jim was correct too, all I?m saying is that we need to be testing
+> our logical units for now. Testing the system behavior is a little over
+> unit testing, thuogh can be done with tricks and stuff!
+> Thanks
+> -Abbas
+>
+> On Jul 3, 2014, at 11:51 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> +1000. Abbas knows. :)
+>
+> Salaam,
+> --
+> Jim Manico
+> @Manicode
+> (808) 652-3805
+>
+> On Jul 4, 2014, at 11:40 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+>
+> You should test your logical units using phpunit, and not your HTML output
+> for now.
+> -A
+> On Jul 3, 2014, at 8:42 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> Only add a header before body content, that is what that error means....
+>
+> Are you doing this?
+>
+> 1) Add response header
+> 2) Add some HTML or JSON or other body content
+> 3) Add another response header
+>
+> This is the kind of logic that causes that error...
+>
+> --
+> Jim Manico
+> @Manicode
+> (808) 652-3805
+>
+> On Jul 4, 2014, at 3:47 AM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+> I need a little help with unit testing I was set up for CSRF Protector php
+> Project.
+> Most of the actions set for failed validation result in setting headers, I
+> need to test if particular header is set or not. Any idea on how to test
+> headers? because If I check them normally it throws *"headers already
+> sent"* error.
+>
+> Thanks!
+>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/ea7aceda/attachment.html>
+
+From abiusx at owasp.org  Fri Jul  4 17:55:15 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 4 Jul 2014 13:55:15 -0400
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+Message-ID: <7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+
+In particular, the convention has been established that the GET and HEAD methods SHOULD NOT have the significance of taking an action other than retrieval. These methods ought to be considered "safe". This allows user agents to represent other methods, such as POST, PUT and DELETE, in a special way, so that the user is made aware of the fact that a possibly unsafe action is being requested.
+
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/bce91cfb/attachment.html>
+
+From jim.manico at owasp.org  Fri Jul  4 17:58:26 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Sat, 05 Jul 2014 01:58:26 +0800
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+Message-ID: <53B6EB42.3080608@owasp.org>
+
+I fully agree with this convention, but it's not a protocol requirement 
+and *many* websites break it. I think the option of protecting GET 
+requests for a in-depth CSRF protection scheme is key. Also keep in mind...
+
+"However, it is possible that a sequence of several requests is non- 
+idempotent, even if all of the methods executed in that sequence are 
+idempotent. (A sequence is idempotent if a single execution of the 
+entire sequence always yields a result that is not changed by a 
+reexecution of all, or part, of that sequence.) For example, a sequence 
+is non-idempotent if its result depends on a value that is later 
+modified in the same sequence."
+
+Aloha,
+Jim
+
+
+On 7/5/14, 1:55 AM, Abbas Naderi wrote:
+>
+> In particular, the convention has been established that the GET and 
+> HEAD methods SHOULD NOT have the significance of taking an action 
+> other than retrieval. These methods ought to be considered "safe". 
+> This allows user agents to represent other methods, such as POST, PUT 
+> and DELETE, in a special way, so that the user is made aware of the 
+> fact that a possibly unsafe action is being requested.
+>
+> http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140705/cc2c62c1/attachment.html>
+
+From abiusx at owasp.org  Fri Jul  4 18:00:13 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 4 Jul 2014 14:00:13 -0400
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <53B6EB42.3080608@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+Message-ID: <D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+
+I?m on board with you. Just saying that its a convention.
+I?m a web developer, and I definitely to not obey this :D
+-A
+On Jul 4, 2014, at 1:58 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+> I fully agree with this convention, but it's not a protocol requirement and *many* websites break it. I think the option of protecting GET requests for a in-depth CSRF protection scheme is key. Also keep in mind...
+> 
+> "However, it is possible that a sequence of several requests is non- idempotent, even if all of the methods executed in that sequence are idempotent. (A sequence is idempotent if a single execution of the entire sequence always yields a result that is not changed by a reexecution of all, or part, of that sequence.) For example, a sequence is non-idempotent if its result depends on a value that is later modified in the same sequence."
+> 
+> Aloha,
+> Jim
+> 
+> 
+> On 7/5/14, 1:55 AM, Abbas Naderi wrote:
+>> In particular, the convention has been established that the GET and HEAD methods SHOULD NOT have the significance of taking an action other than retrieval. These methods ought to be considered "safe". This allows user agents to represent other methods, such as POST, PUT and DELETE, in a special way, so that the user is made aware of the fact that a possibly unsafe action is being requested.
+>> 
+>> http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+>> 
+> 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140704/63cb0d51/attachment.html>
+
+From jim.manico at owasp.org  Fri Jul  4 18:01:54 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Sat, 5 Jul 2014 02:01:54 +0800
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+Message-ID: <2471257562721612225@unknownmsgid>
+
+ROFL. So disobedient Abbas. ;-)
+
+Salam,
+--
+Jim Manico
+@Manicode
+(808) 652-3805
+
+On Jul 5, 2014, at 2:00 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+I?m on board with you. Just saying that its a convention.
+I?m a web developer, and I definitely to not obey this :D
+-A
+On Jul 4, 2014, at 1:58 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+ I fully agree with this convention, but it's not a protocol requirement
+and *many* websites break it. I think the option of protecting GET requests
+for a in-depth CSRF protection scheme is key. Also keep in mind...
+
+ "However, it is possible that a sequence of several requests is non-
+idempotent, even if all of the methods executed in that sequence are
+idempotent. (A sequence is idempotent if a single execution of the entire
+sequence always yields a result that is not changed by a reexecution of
+all, or part, of that sequence.) For example, a sequence is non-idempotent
+if its result depends on a value that is later modified in the same
+sequence."
+
+Aloha,
+Jim
+
+
+On 7/5/14, 1:55 AM, Abbas Naderi wrote:
+
+In particular, the convention has been established that the GET and HEAD
+methods SHOULD NOT have the significance of taking an action other than
+retrieval. These methods ought to be considered "safe". This allows user
+agents to represent other methods, such as POST, PUT and DELETE, in a
+special way, so that the user is made aware of the fact that a possibly
+unsafe action is being requested.
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140705/0ef30b4b/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jul  4 18:08:50 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 4 Jul 2014 23:38:50 +0530
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <2471257562721612225@unknownmsgid>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+	<2471257562721612225@unknownmsgid>
+Message-ID: <655FE9CB-3274-40ED-A774-29248AAF6246@gmail.com>
+
+Same here :D, I?d say most of web develepors don?t know conventions :p  
+
+From jim.manico at owasp.org  Fri Jul  4 18:11:19 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Sat, 05 Jul 2014 02:11:19 +0800
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <655FE9CB-3274-40ED-A774-29248AAF6246@gmail.com>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+	<2471257562721612225@unknownmsgid>
+	<655FE9CB-3274-40ED-A774-29248AAF6246@gmail.com>
+Message-ID: <53B6EE47.3050609@owasp.org>
+
+Can you tell that to the rest of the board for me?
+
+*wink*
+
+Aloha,
+Jim
+
+On 7/5/14, 2:08 AM, Minhaz A V wrote:
+> Same here :D, I?d say most of web develepors don?t know conventions :p
+
+
+From kevin.w.wall at gmail.com  Fri Jul  4 18:15:05 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 4 Jul 2014 14:15:05 -0400
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+Message-ID: <CAOPE6PjVnFEf4M3K9gkxqp7r4Q-4+Kpxk-TtyF+9jQaR13t3fQ@mail.gmail.com>
+
+> I?m on board with you. Just saying that its a convention.
+> I?m a web developer, and I definitely to not obey this :D
+
+BAD Abbas! ;)
+
+-kevin
+
+From minhazav at gmail.com  Fri Jul  4 18:15:03 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 4 Jul 2014 23:45:03 +0530
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <53B6EE47.3050609@owasp.org>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+	<2471257562721612225@unknownmsgid>
+	<655FE9CB-3274-40ED-A774-29248AAF6246@gmail.com>
+	<53B6EE47.3050609@owasp.org>
+Message-ID: <28B1405E-6DE7-467C-9475-FCF672DC4BA0@gmail.com>
+
+:D, They do not believe this?
+On 04-Jul-2014, at 11:41 pm, Jim Manico <jim.manico at owasp.org> wrote:
+
+> Can you tell that to the rest of the board for me?
+> 
+> *wink*
+> 
+> Aloha,
+> Jim
+> 
+> On 7/5/14, 2:08 AM, Minhaz A V wrote:
+>> Same here :D, I?d say most of web develepors don?t know conventions :p
+> 
+
+
+From jim.manico at owasp.org  Fri Jul  4 18:25:25 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Sat, 05 Jul 2014 02:25:25 +0800
+Subject: [Owasp-csrfprotector] GET requests
+In-Reply-To: <28B1405E-6DE7-467C-9475-FCF672DC4BA0@gmail.com>
+References: <CADCpCkgYHGWBQO8c=4opY_KzLDi+aO1rKhhFCbWWcEgd+gQUfw@mail.gmail.com>
+	<-2500267801673598189@unknownmsgid>
+	<3788E336-812E-4FA3-B86F-5EFFADE22D27@owasp.org>
+	<-1485005025055282660@unknownmsgid>
+	<887E3F00-F1C1-4B10-A25C-32EACB499922@owasp.org>
+	<CADCpCkh36GeZ4SuxxF0PMQXASwsVBoAuSVgQMfvQDjDXz_jywA@mail.gmail.com>
+	<7B1E62EB-0465-4360-970D-572065F65F23@owasp.org>
+	<53B6EB42.3080608@owasp.org>
+	<D4CAD6CB-B12D-47FB-86A1-B275E778747B@owasp.org>
+	<2471257562721612225@unknownmsgid>
+	<655FE9CB-3274-40ED-A774-29248AAF6246@gmail.com>
+	<53B6EE47.3050609@owasp.org>
+	<28B1405E-6DE7-467C-9475-FCF672DC4BA0@gmail.com>
+Message-ID: <53B6F195.8000400@owasp.org>
+
+Good point. :)
+
+Aloha,
+Jim
+
+On 7/5/14, 2:15 AM, Minhaz A V wrote:
+> :D, They do not believe this?
+> On 04-Jul-2014, at 11:41 pm, Jim Manico <jim.manico at owasp.org> wrote:
+>
+>> Can you tell that to the rest of the board for me?
+>>
+>> *wink*
+>>
+>> Aloha,
+>> Jim
+>>
+>> On 7/5/14, 2:08 AM, Minhaz A V wrote:
+>>> Same here :D, I?d say most of web develepors don?t know conventions :p
+
+
+From minhazav at gmail.com  Sat Jul  5 11:32:39 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Sat, 5 Jul 2014 17:02:39 +0530
+Subject: [Owasp-csrfprotector] CSRF Protector php - version 0.0.1 almost
+	complete, code review needed
+Message-ID: <CADCpCkiks73VLZ2OzkFMn2uKNX-HeQjTsMYXVwxJ_-MmrFg+PA@mail.gmail.com>
+
+Hi,
+Today I added more test cases (code coverage of 64% now, test-cases for
+exit() and private methods left) and tested the library with a web
+application which was vulnerable to CSRF (It was created by me only,
+earlier ;->), and library is working fine! :)
+I think its time for some code review, source code is @
+https://github.com/mebjas/CSRF-Protector-PHP
+
+Also, I have started documentation, wiki is available @
+https://github.com/mebjas/CSRF-Protector-PHP/wiki , its not complete, I'll
+keep updating it.
+
+I'll continue my work on mod_csrfprotector now, and try to finish it!
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140705/72b8dbe6/attachment.html>
+
+From abiusx at gmail.com  Sat Jul  5 13:28:42 2014
+From: abiusx at gmail.com (AbiusX)
+Date: Sat, 5 Jul 2014 09:28:42 -0400
+Subject: [Owasp-csrfprotector] CSRF Protector php - version 0.0.1 almost
+	complete, code review needed
+In-Reply-To: <CADCpCkiks73VLZ2OzkFMn2uKNX-HeQjTsMYXVwxJ_-MmrFg+PA@mail.gmail.com>
+References: <CADCpCkiks73VLZ2OzkFMn2uKNX-HeQjTsMYXVwxJ_-MmrFg+PA@mail.gmail.com>
+Message-ID: <A727F8CD-5E0A-41E0-AAE4-BDB6203382AE@gmail.com>
+
+It is important to test this with more complicated code such as Wordpress. Find a CSRF on exploit-db and test this, we wanna make sure that this does not break anything.
+-A
+On Jul 5, 2014, at 7:32 AM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> Hi,
+> Today I added more test cases (code coverage of 64% now, test-cases for exit() and private methods left) and tested the library with a web application which was vulnerable to CSRF (It was created by me only, earlier ;->), and library is working fine! :)
+> I think its time for some code review, source code is @https://github.com/mebjas/CSRF-Protector-PHP
+> 
+> Also, I have started documentation, wiki is available @https://github.com/mebjas/CSRF-Protector-PHP/wiki , its not complete, I'll keep updating it.
+> 
+> I'll continue my work on mod_csrfprotector now, and try to finish it!
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140705/1377b550/attachment.html>
+
+From minhazav at gmail.com  Sun Jul  6 17:43:55 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Sun, 6 Jul 2014 23:13:55 +0530
+Subject: [Owasp-csrfprotector] CSRF Protector php - version 0.0.1 almost
+ complete, code review needed
+In-Reply-To: <A727F8CD-5E0A-41E0-AAE4-BDB6203382AE@gmail.com>
+References: <CADCpCkiks73VLZ2OzkFMn2uKNX-HeQjTsMYXVwxJ_-MmrFg+PA@mail.gmail.com>
+	<A727F8CD-5E0A-41E0-AAE4-BDB6203382AE@gmail.com>
+Message-ID: <CADCpCkhVZ8rOJfzUSYqS_FK3M70uhOyzmbwocQA1+-dxUDQBCQ@mail.gmail.com>
+
+csrfp php version tested with Wordpress, && phpbb admin panel.
+- Didn't break any thing, added token with every POST and correctly
+verified on server side
+- Worked well for GET request also. Things went as expected.
+- Added, token properly, although both have their own nonce for protection.
+- Wordpress admin panel is mostly based on <form> POST while phpbb is based
+on XHR POST, & csrfp worked well with both.
+
+One good thing with Wordpress was, although Wordpress has made itself safe
+using nonce in admin panel, but installing plugins which do not implement
+nonce, make it vulnerable. However using CSRFP ensures CSRF Protection to
+every POST request (&rule based GET) & works independent of plugins
+implementation.
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Sat, Jul 5, 2014 at 6:58 PM, AbiusX <abiusx at gmail.com> wrote:
+
+> It is important to test this with more complicated code such as Wordpress.
+> Find a CSRF on exploit-db and test this, we wanna make sure that this does
+> not break anything.
+> -A
+> On Jul 5, 2014, at 7:32 AM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+> Hi,
+> Today I added more test cases (code coverage of 64% now, test-cases for
+> exit() and private methods left) and tested the library with a web
+> application which was vulnerable to CSRF (It was created by me only,
+> earlier ;->), and library is working fine! :)
+> I think its time for some code review, source code is @
+> https://github.com/mebjas/CSRF-Protector-PHP
+>
+> Also, I have started documentation, wiki is available @
+> https://github.com/mebjas/CSRF-Protector-PHP/wiki , its not complete,
+> I'll keep updating it.
+>
+> I'll continue my work on mod_csrfprotector now, and try to finish it!
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>  _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140706/3da57198/attachment.html>
+

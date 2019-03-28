@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] uploading files
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20uploading%20files&In-Reply-To=C411C2EF-AAE5-4285-AE16-7A043DA154BB%40gorilla-concept.de">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000057.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] uploading files</H1>
+    <B>Eric Sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20uploading%20files&In-Reply-To=C411C2EF-AAE5-4285-AE16-7A043DA154BB%40gorilla-concept.de"
+       TITLE="[Owasp-csrfguard] uploading files">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Mon Apr  4 11:13:45 EDT 2011</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000057.html">[Owasp-csrfguard] Funding and or Resource Donation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#56">[ date ]</a>
+              <a href="thread.html#56">[ thread ]</a>
+              <a href="subject.html#56">[ subject ]</a>
+              <a href="author.html#56">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Eike,
+
+Welcome to the list and thanks for helping test out the newly added
+multipart support. Looks like I really need to revisit the multi-part
+support code and associated test cases. I'm not sure the &quot;/** skip files
+**/&quot; part matters as I (possibly incorrectly) thought that higher level
+classes would call getInputStream and parse it into their own Multipart
+request object as Spring does.
+
+I'm going to take a much closer look at how the Spring guys did it. I'm
+adding this to the GitHub issues as we speak. If you have time/interest,
+please feel free to take a crack at this and I'd gladly integrate your
+changes into the baseline along with appropriate attribution.
+
+-Eric
+
+On 3/29/11 3:09 AM, Eike Hirsch wrote:
+&gt;<i> Hi Eric, hi list,
+</I>&gt;<i> 
+</I>&gt;<i> this is my first post - thanks for this project!
+</I>&gt;<i> 
+</I>&gt;<i> For the background:  I am trying to integrate the csrf-gurad in a yui3 - spring mvc application.
+</I>&gt;<i> 
+</I>&gt;<i> With the multipart stuff in place I had a hard time fixing my upload-forms. I was able to secure the upload now but it seemed that the csrf-filter always removed the uploaded files out of the request. 
+</I>&gt;<i> So dove a little bit into the sources. I think there might be a problem in org.owasp.csrfguard.http.MultipartHttpServletRequest:
+</I>&gt;<i> 
+</I>&gt;<i> --- 
+</I>&gt;<i> public MultipartHttpServletRequest(HttpServletRequest request) throws IOException {
+</I>&gt;<i> ...
+</I>&gt;<i> 	if(fileItem.isFormField()) {
+</I>&gt;<i> 		List&lt;String&gt; values = parameters.get(fileItem.getFieldName());
+</I>&gt;<i> 					
+</I>&gt;<i> 		if(values == null) {
+</I>&gt;<i> 			values = new ArrayList&lt;String&gt;();
+</I>&gt;<i> 			parameters.put(fileItem.getFieldName(), values);
+</I>&gt;<i> 		}
+</I>&gt;<i> 					
+</I>&gt;<i> 		values.add(fileItem.getString());
+</I>&gt;<i> 	} else {
+</I>&gt;<i> 		/** skip files **/                                                      &lt;----------------------------- ???
+</I>&gt;<i> 	}
+</I>&gt;<i> &#8230;
+</I>&gt;<i> }
+</I>&gt;<i> ---
+</I>&gt;<i> skip files???? 
+</I>&gt;<i> 
+</I>&gt;<i> I don't know if this is really a problem but after wrapping the request in this wrapper - spring was not able to extract any files out of the request anymore. For a quick fix I changed the csrf-filter in line 60. 
+</I>&gt;<i> 
+</I>&gt;<i> old:
+</I>&gt;<i> 	httpRequest = new MultipartHttpServletRequest(httpRequest);
+</I>&gt;<i> new:
+</I>&gt;<i> 	httpRequest = new CommonsMultipartResolver().resolveMultipart(httpRequest);
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> The CommonsMultipartResolver is a spring class, so I guess this will not fix the general problem. But if there was a way to plugin a MultipartResolver as needed. This problem could get fixed - I guess.
+</I>&gt;<i> The filter could get a setter for its resolver, which in turn would need to implement a new csrf-guard interface (something like springs org.springframework.web.multipart.MultipartResolver).
+</I>&gt;<i> With such a resolver in place the filter would be able to cleanup any temporary files created during &quot;resolveMultipart&quot; once the filter chain finishes. 
+</I>&gt;<i> 
+</I>&gt;<i> Any thoughts?
+</I>&gt;<i> 
+</I>&gt;<i> Eike  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000057.html">[Owasp-csrfguard] Funding and or Resource Donation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#56">[ date ]</a>
+              <a href="thread.html#56">[ thread ]</a>
+              <a href="subject.html#56">[ subject ]</a>
+              <a href="author.html#56">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

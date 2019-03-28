@@ -1,0 +1,395 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Announcing: Real-time Application Profiling Ruleset
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Announcing%3A%20Real-time%0A%20Application%20Profiling%20Ruleset&In-Reply-To=C9A8C846.1C1DE%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000654.html">
+   <LINK REL="Next"  HREF="000651.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Announcing: Real-time Application Profiling Ruleset</H1>
+    <B>Colin Watson</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Announcing%3A%20Real-time%0A%20Application%20Profiling%20Ruleset&In-Reply-To=C9A8C846.1C1DE%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Announcing: Real-time Application Profiling Ruleset">colin.watson at owasp.org
+       </A><BR>
+    <I>Mon Mar 21 05:08:49 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000654.html">[Owasp-modsecurity-core-rule-set] Announcing: Real-time Application Profiling Ruleset
+</A></li>
+        <LI>Next message: <A HREF="000651.html">[Owasp-modsecurity-core-rule-set] RESPONSE_CONTENT_LENGTH and	RESPONSE_HEADERS:Content-Length not work
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#659">[ date ]</a>
+              <a href="thread.html#659">[ thread ]</a>
+              <a href="subject.html#659">[ subject ]</a>
+              <a href="author.html#659">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan
+
+Comments inline.  If we need to discuss any of these further (and most
+don't), perhaps we should start separate threads?
+
+On 18 March 2011 13:36, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> On 3/16/11 5:21 AM, &quot;Colin Watson&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">colin.watson at owasp.org</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i>Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>I have implemented the experimental rules on a couple of servers, one
+</I>&gt;&gt;<i>in a production environment.
+</I>&gt;<i>
+</I>&gt;<i> Does it seem to be working as expected?
+</I>
+I should have said so - yes it works as expected.
+
+
+&gt;&gt;<i>Having read the blog post at:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i><A HREF="http://blog.spiderlabs.com/2011/02/modsecurity-advanced-topic-of-the-week-">http://blog.spiderlabs.com/2011/02/modsecurity-advanced-topic-of-the-week-</A>
+</I>&gt;&gt;<i>real-time-application-profiling.html
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>and your reply to Lucas in this thread, I have some additional
+</I>&gt;&gt;<i>comments. &#160;None of these are meant to criticise the excellent work so
+</I>&gt;&gt;<i>far, and may well reflect ideas the team already has, or are just
+</I>&gt;&gt;<i>restating concepts in related work from Ivan Ristic, Ofer Shezaf and
+</I>&gt;&gt;<i>Christian Bockermann. &#160;Some of these are of course just a dream wish
+</I>&gt;&gt;<i>list. &#160;Anyway here goes...
+</I>&gt;<i>
+</I>&gt;<i> Feedback is always welcome! &#160;This version of the rules was merely the
+</I>&gt;<i> first step. &#160;There are many improvements that we can make.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>Configuration
+</I>&gt;&gt;<i>---------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>C1: I had to create an empty &quot;modsecurity_40_profiler_ignore.data&quot; for
+</I>&gt;&gt;<i>the rules to work &quot;as is&quot; i.e. this file is not in the CRS 2.1.2
+</I>&gt;&gt;<i>distribution.
+</I>&gt;<i>
+</I>&gt;<i> Ah right. &#160;I will update the comment text for &quot;Ignore Resource&quot; in the
+</I>&gt;<i> file that if the file is not present that you have to create one. &#160;I guess
+</I>&gt;<i> we could have the default also be that these two SecRules are commented
+</I>&gt;<i> out by default. &#160;If a user wants to ignore profiling/enforcement for
+</I>&gt;<i> certain resources, then they can uncomment these lines and then create the
+</I>&gt;<i> .data file.
+</I>&gt;<i>
+</I>&gt;&gt;<i>Is the syntax of this file one URL per line?
+</I>&gt;<i>
+</I>&gt;<i> Yes - see the Notes section of @pmFromFile -
+</I>&gt;<i> <A HREF="http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referenc">http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referenc</A>
+</I>&gt;<i> e_Manual#pmFromFile
+</I>
+Great thanks, I should have looked there.
+
+
+&gt;&gt;<i>C2: Apart from ignoring certain URLs, could we specify some parameters
+</I>&gt;&gt;<i>to ignore (on some URLs) and on some HTTP methods? &#160;i.e. ignore params
+</I>&gt;&gt;<i>if GET, but enforce if POST.
+</I>&gt;<i>
+</I>&gt;<i> In ModSecurity v2.6 (available in trunk) we added the
+</I>&gt;<i> SecRuleUpdateTargetById (and ctl:ruleUpdateTargetById) -
+</I>&gt;<i> <A HREF="http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referenc">http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referenc</A>
+</I>&gt;<i> e_Manual#SecRuleUpdateTargetById
+</I>&gt;<i>
+</I>&gt;<i> This capability will allow you to create chained rules with the
+</I>&gt;<i> ctl:ruleUpdateTargetById to dynamically exclude ARGS from validation.
+</I>&gt;<i>
+</I>&gt;<i> Of course in looking at these rules, we do need to assign rule IDs to them
+</I>&gt;<i> for this to work.
+</I>
+Noted, thanks.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>C3: Could the thresholds (50 and 100) be set near the top of the rule
+</I>&gt;&gt;<i>file, instead of within the SecAction of Step 1?
+</I>&gt;<i>
+</I>&gt;<i> Well, it is the first configurable setting in the file. &#160;What issue would
+</I>&gt;<i> this solve? &#160;We want to try and keep consistency with the CRS banner info
+</I>&gt;<i> at the top and then I wanted to have a small intro section of text about
+</I>&gt;<i> the detection.
+</I>
+You're probably right... they are not that difficult to find/set.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>C4: Thresholds per host/site?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>C5: Some application owners may know all the allowable entry
+</I>&gt;&gt;<i>points.... it would be fantastic to have a way of defining that
+</I>&gt;&gt;<i>profile (in XML?) which the CRS profiler could
+</I>&gt;&gt;<i> &#160; i) use as a base starting point, or
+</I>&gt;&gt;<i> &#160; ii) use as a mandatory profile, or
+</I>&gt;&gt;<i> &#160; iii) use to compare against when reporting discrepancies.
+</I>&gt;&gt;<i> &#160;This would also help to group similar URLs (e.g. paths when URL
+</I>&gt;&gt;<i>rewriting is in use).
+</I>&gt;<i>
+</I>&gt;<i> So if an organization actually had an XML map/profile of their entry
+</I>&gt;<i> points right? &#160;Hmm, you know what would be cool is to have something
+</I>&gt;<i> similar to @validateSchema but called something like @validateProfile.
+</I>&gt;<i> This would be able to parse an XML file that defines the allowable site
+</I>&gt;<i> tree profile and then block/alert when request data that doesn't match.
+</I>&gt;<i> That would be pretty cool. &#160;:)
+</I>
+Yes it would.  Even on complex sites, it might be possible for source
+code scanning tools to identify all the entry points (and types), and
+they might be able to export a profile.
+
+I currently export sets of ModSecurity rules to do this for one site
+where the entry points are defined in a database.  But it's not very
+efficient, and a profile schema/processor would be better.
+
+The specified profile could also be used to compare against the
+learned profile to look for gaps and discrepancies.
+
+
+&gt;<i>I guess the next step would be to come to
+</I>&gt;<i> an agreed upon Site profile schema. &#160;I think this is where your references
+</I>&gt;<i> to Ivan's Recipes (<A HREF="http://www.modsecurity.org/projects/ppr/">http://www.modsecurity.org/projects/ppr/</A>) and Chris
+</I>&gt;<i> Bockermann's Web Profiles (<A HREF="http://jwall.org/web/policy/index.jsp">http://jwall.org/web/policy/index.jsp</A>) comes in
+</I>&gt;<i> as we would need a standard method of defining an app profile.
+</I>
+Yes, that would be the way forward - maybe a separate project?
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>C6: Ability to modify model in C5 in real time (e.g. as URLs are added
+</I>&gt;&gt;<i>created when writing a new blog post, or pages are added in a CMS)
+</I>&gt;<i>
+</I>&gt;<i> Agreed. &#160;The way it is implemented currently with the CRS profiler rules,
+</I>&gt;<i> however, is on a per-resource basis anyways. &#160;So if you have a new
+</I>&gt;<i> resource that is dynamically created by a CMS then it will begin to be
+</I>&gt;<i> profiled.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>C7: Ability for model in C5 to have the idea of &quot;strict&quot; and
+</I>&gt;&gt;<i>&quot;allowable&quot; parameter value definitions. &#160;Example 1: we might want a
+</I>&gt;&gt;<i>phone number to be all numbers and spaces, but let's not get too upset
+</I>&gt;&gt;<i>with hyphens and parentheses. &#160;Example 2: A trailing line break on a
+</I>&gt;&gt;<i>password could just be from copy &amp; paste, not an attack. &#160;So the
+</I>&gt;&gt;<i>profiler would then need to report whether a parameter value just met
+</I>&gt;&gt;<i>the allowable format, or failed that too.
+</I>&gt;<i>
+</I>&gt;<i> This is referencing the AppSensor model of categorizing the event as
+</I>&gt;<i> either Suspicious or Malicious. &#160;As you can see in the rules, I have
+</I>&gt;<i> mapped each rule to the corresponding AppSensor Detection point. &#160;For
+</I>&gt;<i> example -
+</I>&gt;<i> tag:'OWASP_AppSensor/RE1'
+</I>&gt;<i>
+</I>&gt;<i> My view is that these profiler rules only identify Suspicious events as
+</I>&gt;<i> they don't match an expected learned profile. &#160;In order to determine
+</I>&gt;<i> Malicious events, the CRS should be run in Anomaly Scoring Mode
+</I>&gt;<i> (<A HREF="http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-">http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-</A>
+</I>&gt;<i> vs-anomaly-scoring-detection-modes.html) so that the transaction continues
+</I>&gt;<i> into the other blacklist CRS rules to verify if there are XSS, SQLi attack
+</I>&gt;<i> payloads, etc... &#160;The profiler rules will increase an anomaly score and it
+</I>&gt;<i> is set at a slightly lower severity level than attack rules (that have a
+</I>&gt;<i> critical level) -
+</I>&gt;<i>
+</I>&gt;<i> setvar:tx.profiler_score=+%{tx.error_anomaly_score}
+</I>
+Of course if the profile was defined, rather than learned, we could be
+more definitive about malicious vs. suspicious.  But we'd also have to
+take into account non-malicious URL requests (e.g.
+<A HREF="http://www.clerkendweller.com/2010/10/26/Benign-Unexpected-URLs-Part-1-Missing-Files">http://www.clerkendweller.com/2010/10/26/Benign-Unexpected-URLs-Part-1-Missing-Files</A>
+) giving a softer edge to the application's profile.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>Method
+</I>&gt;&gt;<i>----------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>M1: Accessing the same URL on multiple virtual hosts, using the same
+</I>&gt;&gt;<i>instance of ModSecurity (and with the same web browser) seems to
+</I>&gt;&gt;<i>create an aggregated profile rather than a profile per host (but I may
+</I>&gt;&gt;<i>be wrong):
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;<A HREF="http://www.example1.com/profiler.txt?site=2">http://www.example1.com/profiler.txt?site=2</A>
+</I>&gt;&gt;<i> &#160;<A HREF="http://www.example2com/profiler.txt?site=1&amp;day=wednesday">http://www.example2com/profiler.txt?site=1&amp;day=wednesday</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;Is there a way to profile each host separately?
+</I>&gt;<i>
+</I>&gt;<i> Good point - I think that we need to expand the RESOURCE collection data
+</I>&gt;<i> so that it can utilize the SecWebAppId directive data in the same way that
+</I>&gt;<i> the setsid does so the collections are per-site.
+</I>
+Noted.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>M2: Could (or Is?) the HTTP method be part of the profile so there
+</I>&gt;&gt;<i>could be different parameters for GET and POST for example.
+</I>&gt;<i>
+</I>&gt;<i> I see your point as there may be different parameters that are valid based
+</I>&gt;<i> on the Request Method. &#160;We could do that with a new SecAction line at the
+</I>&gt;<i> beginning like this -
+</I>&gt;<i>
+</I>&gt;<i> SecAction
+</I>&gt;<i> &quot;phase:1,t:none,nolog,pass,initcol:resource=%{REQUEST_FILENAME}_%{REQUEST_M
+</I>&gt;<i> ETHOD},setvar:resource.pattern_threshold=50,setvar:resource.confidence_coun
+</I>&gt;<i> ter_threshold=100&quot;
+</I>&gt;<i>
+</I>&gt;<i> The only issue I see is if a client sends a request to a resource with a
+</I>&gt;<i> different REQUEST_METHOD, then it will create its own resource collection.
+</I>&gt;<i> &#160;So how would we validate which request methods are valid/allowed? &#160;I
+</I>&gt;<i> guess we could rely upon the app's response (HTTP Status Code of 405 -
+</I>&gt;<i> Method Not Allowed) to let us know if the request was valid in this case
+</I>&gt;<i> and then remove the collection.
+</I>
+Yes there are difficulties with this, and I don't have good answers
+for profiling.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>M3: Further data types (bit, SQL types, UUID, lists of integers, etc),
+</I>&gt;&gt;<i>and perhaps user-definable data types - both of these would be of more
+</I>&gt;&gt;<i>use if C5 is implemented.
+</I>&gt;<i>
+</I>&gt;<i> I have a long list of other parameter types to add but I wanted to this
+</I>&gt;<i> framework out for testing.
+</I>
+Yes, I guessed so!
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>M4: Ability to allow null values for parameters e.g. normally 0 or 1
+</I>&gt;&gt;<i>but could be NULL
+</I>&gt;<i>
+</I>&gt;<i> Yeah, the RegEx length range checks are a but crude... Do you mean that a
+</I>&gt;<i> param payload could be:
+</I>&gt;<i>
+</I>&gt;<i> - foo.php?param=1
+</I>&gt;<i> - foo.php?param=0
+</I>&gt;<i> - foo.php?param
+</I>
+Yes, and
+
+- foo.php?param=
+
+in case that's different from your last example.
+
+&gt;<i> In these cases, the parameter named &quot;param&quot; might match both of these
+</I>&gt;<i> length checks -
+</I>&gt;<i>
+</I>&gt;<i> SecRule ARGS &quot;^0$&quot;
+</I>&gt;<i> &quot;phase:5,t:none,t:length,nolog,pass,setvar:resource.args_length_check0_%{ma
+</I>&gt;<i> tched_var_name}=+1&quot;
+</I>&gt;<i> SecRule ARGS &quot;^[1-5]$&quot;
+</I>&gt;<i> &quot;phase:5,t:none,t:length,nolog,pass,setvar:resource.args_length_check1_%{ma
+</I>&gt;<i> tched_var_name}=+1&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> And then added to either the resource.args_length_check0_enforce or
+</I>&gt;<i> resource.args_length_check1_enforce variable lists for enforcement. &#160;It
+</I>&gt;<i> would depend upon how often the param was empty/NULL.
+</I>
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>M5: Build result into anomaly scoring.
+</I>&gt;<i>
+</I>&gt;<i> You mean something more than what is already there? &#160;We already have two
+</I>&gt;<i> levels of anomaly scoring built it -
+</I>&gt;<i>
+</I>&gt;<i> - Contribution to the overall anomaly score
+</I>&gt;<i> setvar:tx.anomaly_score=+%{tx.error_anomaly_score}
+</I>&gt;<i>
+</I>&gt;<i> - Contribution to a &quot;profiler&quot; anomaly score which would allow a user to
+</I>&gt;<i> add custom blocking level just for profiler check scores.
+</I>&gt;<i> setvar:tx.profiler_score=+%{tx.error_anomaly_score}
+</I>
+No, you are correct - this is sufficient as it is.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>Data Storage
+</I>&gt;&gt;<i>-------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>D1: Do you have any references for the format of this file, and of the
+</I>&gt;&gt;<i>profiler key records, so we can try to extract data and convert it
+</I>&gt;&gt;<i>into other formats?
+</I>&gt;<i>
+</I>&gt;<i> You mean the data stored in the RESOURCE collections? &#160;If so, I would
+</I>&gt;<i> recommend using Christian Bockermann's jwall-tools java app so you can
+</I>&gt;<i> view collection data outside of the Debug log -
+</I>&gt;<i> <A HREF="https://www.jwall.org/tools/jwall-tools.jsp.">https://www.jwall.org/tools/jwall-tools.jsp.</A> &#160;Perhaps Chris could update
+</I>&gt;<i> the tools to extract RESOURCE collection data and translate it to an XML
+</I>&gt;<i> profile.
+</I>&gt;<i>
+</I>&gt;<i> Another cool idea would be for the jwall-tools to be able to actually
+</I>&gt;<i> manipulate the RESOURCE collection data! &#160;That would allow for some manual
+</I>&gt;<i> tweaking of a profile rather than having to just delete and relearn it.
+</I>
+That's sounds interesting, I'll take a look.
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>Syndication of result
+</I>&gt;&gt;<i>------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>S1: Could the &quot;result&quot; be added as another X-WAF-... Header
+</I>&gt;<i>
+</I>&gt;<i> They should already be added to the default list of match events. &#160;But if
+</I>&gt;<i> you want a separate one, we could do that.
+</I>
+Thinking to the future, there may be more information we want to send
+regarding the Profiler findings (actual parameter results, comparison
+to learned profile, comparison to defined profile).  Therefore a
+separate item now might be of use (as well)?
+
+
+&gt;&gt;<i>
+</I>&gt;&gt;<i>S2: This one isn't Profiling-specific, but currently the X-WAF-
+</I>&gt;&gt;<i>headers are added to the request... could there be a method to pass
+</I>&gt;&gt;<i>data on by URL (e.g. like CSP reporting mechanism), so that say even
+</I>&gt;&gt;<i>if something is blocked it is possible to inform other devices of the
+</I>&gt;&gt;<i>event? &#160;The data sent could be configurable, but might include what's
+</I>&gt;&gt;<i>currently in the X-WAF- headers, plus the original header content.
+</I>&gt;<i>
+</I>&gt;<i> Just so I understand - we would block the original request but then send a
+</I>&gt;<i> new HTTP request out from the WAF to other security devices with the X-WAF
+</I>&gt;<i> data as URL parameters?
+</I>
+Yes, but also even if ModSecurity doesn't block... potentially for all
+requests.  The HTTP requests might be to a different host/port than
+the application being protected.
+
+&gt;<i> &#160;You should be able to do that by using the
+</I>&gt;<i> &quot;exec:&quot; action and just write a script that will use something like
+</I>&gt;<i> curl/wget to send the HTTP request and populate the data you need. &#160;I will
+</I>&gt;<i> test this out.
+</I>
+That sounds like the way.
+
+Regards
+
+Colin
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000654.html">[Owasp-modsecurity-core-rule-set] Announcing: Real-time Application Profiling Ruleset
+</A></li>
+	<LI>Next message: <A HREF="000651.html">[Owasp-modsecurity-core-rule-set] RESPONSE_CONTENT_LENGTH and	RESPONSE_HEADERS:Content-Length not work
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#659">[ date ]</a>
+              <a href="thread.html#659">[ thread ]</a>
+              <a href="subject.html#659">[ subject ]</a>
+              <a href="author.html#659">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

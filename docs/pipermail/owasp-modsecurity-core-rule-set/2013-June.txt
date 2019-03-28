@@ -1,0 +1,1898 @@
+From jamuse at owasp.org  Mon Jun  3 09:12:46 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Mon, 3 Jun 2013 12:12:46 +0300
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity SVM Bypass Charity
+	Challenge
+Message-ID: <CAC+O4mH5D7x3DPAJH22zcZxoyWR6j=1bPYKgs1TfYLH=-1TxPg@mail.gmail.com>
+
+I'm happy to announce the ModSecurity SVM Bypass Charity Challenge. The
+goal of this challenge is to bypass the SVM attack classification filter
+and execute SQLi, XSS or Path Traversal against one of four vulnerable web
+apps. For details see:
+
+https://www.purehacking.com/blogs/josh-zlatin/modsecurity-bypass-charity-challenge
+
+--
+ - Josh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130603/ecbec6a2/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Wed Jun  5 06:19:52 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Wed, 5 Jun 2013 11:49:52 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+	allowed by policy
+Message-ID: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+
+Hello CRS Users,
+
+I have installed CRS Version 2.2.5 in my server. I am using Modsecurity
+2.5.12 from Debian/squeeze. I have iRedMail installed in my server.
+
+When I click the login button from the iRedAdmin webpage (
+www.mydomain.org/iredadmin), I am getting a Forbidden webpage with the
+following details:
+
+Forbidden
+> You don't have permission to access /iredadmin/login on this server.
+> Apache Server at www.mydomain.org Port 443
+>
+
+I checked the modsecurity_audit.log and it shows the following. I found
+that if I remove the following 3 rules in
+base_rules/modsecurity_crs_30_http_policy.conf, the problem will be solved.
+But how can I allow (whitelist) the iredadmin webpage alone, without
+completely removing the following rules ? I feel that this will be a better
+fix. Thanks.
+
+# cat base_rules/modsecurity_crs_30_http_policy.conf
+SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+"phase:1,chain,t:none,block,msg:'Request conten\
+t type is not allowed by
+policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'\
+OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'4',logdata:'%{matched_var}'"
+        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+                SecRule TX:0 "!^%{tx.allowed_request_content_type}$"
+"t:none,ctl:forceRequestBodyVariable\
+=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_sco\
+re=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id
+}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=\
+%{matched_var}"
+
+
+
+# cat modsecurity_audit.log
+--99e3kk88-A--
+[05/Jun/2013:05:48:13 +0000] Ua7546EIEUORRHEB14AAAAA 193.234.545.213 38211
+177.133.23.32 443
+--99e3kk88-B--
+POST /iredadmin/login HTTP/1.1
+Host: www.mydomain.org
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:10.0.2) Gecko/20100101
+Firefox/10.0.2 Iceweasel/10.0.2
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Referer: https://www.mydomain.org/iredadmin
+Cookie: iRedAdmin=649aeu44fgyf567aoeu3454idhf77b4ef32710f
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 78
+
+--99e3kk88-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 235
+Keep-Alive: timeout=15, max=95
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--99e3kk88-H--
+Message: Access denied with code 403 (phase 1). Match of "rx
+^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+"/etc/apache2/crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+[line "64"] [id "960010"] [msg "Request content type is not allowed by
+policy"] [data "application/x-www-form-urlencoded"] [severity "WARNING"]
+[tag "POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+"OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+Action: Intercepted (phase 1)
+Stopwatch: 1370476453521229 1278 (- - -)
+Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/);
+OWASP_CRS/2.2.5.
+Server: Apache
+
+--99e3kk88-Z--
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/f155b6d1/attachment.html>
+
+From jamuse at owasp.org  Wed Jun  5 07:08:10 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Wed, 5 Jun 2013 10:08:10 +0300
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+References: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+Message-ID: <CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+
+On Wed, Jun 5, 2013 at 9:19 AM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+
+> Hello CRS Users,
+>
+> I have installed CRS Version 2.2.5 in my server. I am using Modsecurity
+> 2.5.12 from Debian/squeeze. I have iRedMail installed in my server.
+>
+> When I click the login button from the iRedAdmin webpage (
+> www.mydomain.org/iredadmin), I am getting a Forbidden webpage with the
+> following details:
+>
+> Forbidden
+>> You don't have permission to access /iredadmin/login on this server.
+>> Apache Server at www.mydomain.org Port 443
+>>
+>
+> I checked the modsecurity_audit.log and it shows the following. I found
+> that if I remove the following 3 rules in
+> base_rules/modsecurity_crs_30_http_policy.conf, the problem will be solved.
+> But how can I allow (whitelist) the iredadmin webpage alone, without
+> completely removing the following rules ? I feel that this will be a better
+> fix. Thanks.
+>
+
+
+Hi Aniyan,
+
+Editing the CRS rules directly is not recommended as it makes upgrading the
+rules much harder. Furthermore, its probably a good idea to upgrade
+ModSecurity to the latest version as there was recently a DoS related
+vulnerability patched. Once you are running a more recent version, your
+options for handling false positives becomes significantly more flexible as
+well, see:
+http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+On ModSec 2.5.12, you can simply white-list the offending rule/s by
+including something like the following *before* you include the offending
+CRS rules.
+
+<Location /iredadmin/login>
+  SecRuleRemoveById 960010
+</Location>
+
+--
+ - Josh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/240db20d/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Wed Jun  5 12:25:13 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Wed, 5 Jun 2013 17:55:13 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+References: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+	<CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+Message-ID: <CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+
+Josh,
+
+
+> Editing the CRS rules directly is not recommended as it makes upgrading
+> the rules much harder. Furthermore, its probably a good idea to upgrade
+> ModSecurity to the latest version as there was recently a DoS related
+> vulnerability patched. Once you are running a more recent version, your
+> options for handling false positives becomes significantly more flexible as
+> well, see:
+>
+> http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+>
+>
+I know that using the latest version is better, but I have some practical
+difficulties to upgrade at the moment. Will do that only after 6 months.
+
+
+> On ModSec 2.5.12, you can simply white-list the offending rule/s by
+> including something like the following *before* you include the offending
+> CRS rules.
+>
+> <Location /iredadmin/login>
+>   SecRuleRemoveById 960010
+> </Location>
+>
+>
+This solution is fine for me. I gave this in apache.conf as follows. But it
+is not working (still forbidden).
+
+Is it Location or LocationMatch ? Thanks.
+
+
+<IfModule security2_module>
+          <Location /iredadmin/login/>
+            SecRuleRemoveById 960010
+          </Location>
+
+          Include modsecurity_crs/modsecurity_crs_10_setup.conf
+          Include modsecurity_crs/activated_rules/*.conf
+
+</IfModule>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/446fedd5/attachment.html>
+
+From P.Beckett at uea.ac.uk  Wed Jun  5 14:42:41 2013
+From: P.Beckett at uea.ac.uk (Paul Beckett (ITCS))
+Date: Wed, 5 Jun 2013 14:42:41 +0000
+Subject: [Owasp-modsecurity-core-rule-set] experimental brute_force
+	protection rule
+Message-ID: <4D4373D703ED1C41BE658211EED9530B16C36247@ueastfexch02.UEA.AC.UK>
+
+I believe this issue solved by Ryan's suggestion (below), is still present in 2.2.7-4. Currently I'm patching the CRS before deployment on my servers with this modification, but was wondering if it, or an equivalent improvement could be applied in the CRS source?
+Thanks,
+Paul
+
+From: Paul Beckett (ITCS)
+Sent: Monday, January 14, 2013 4:24 PM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: RE: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Ryan,
+That's fantastic. It works perfectly for me.
+Do you know if this (or a similar change) will make it into the CRS?
+Thanks,
+Paul
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+Sent: Monday, January 14, 2013 2:27 PM
+To: Paul Beckett (ITCS); owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Right.... The issue here seems to be that, only for "/", we have a sub-string match.  Here is a quick fix.  Essentially you need to make that rule into a chained rule.  The first like is used to simply create a new custom variable that uses # chars to surround the request filename data.  The 2nd rule in the chain then runs the same -
+
+SecRule REQUEST_FILENAME ".*" "chain,phase:5,id:'981039',t:none,nolog,pass,setvar:'tx.filename=#%{request_filename}#',skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+ SecRule TX:FILENAME "!@within %{tx.brute_force_protected_urls}<mailto:!@within%20%25%7btx.brute_force_protected_urls%7d>"
+
+For this to work, you would then need to modify your URL list in the 10 file like this -
+
+
+SecAction \
+
+  "id:'900014', \
+
+  phase:1, \
+
+  t:none, \
+
+  setvar:'tx.brute_force_protected_urls=#/login.jsp# #/partner_login.php#', \
+
+  setvar:'tx.brute_force_burst_time_slice=60', \
+
+  setvar:'tx.brute_force_counter_threshold=10', \
+
+  setvar:'tx.brute_force_block_timeout=300', \
+
+  nolog, \
+
+  pass"
+
+
+This should work.
+
+-Ryan
+
+From: "Paul Beckett (ITCS)" <P.Beckett at uea.ac.uk<mailto:P.Beckett at uea.ac.uk>>
+Date: Monday, January 14, 2013 8:54 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Ryan,
+Thanks for the very quick response.
+
+The proposed modification, doesn't work for me. The original rule negated the @within match. I'm still figuring out the modsecurity rule language so I'm not at all sure about this...... but I guess it's not as simple as negating @pm if you have multiple values in brute_force_protected_urls.
+
+Cheers,
+Paul
+
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+Sent: Monday, January 14, 2013 1:34 PM
+To: Paul Beckett (ITCS); owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+
+
+From: "Paul Beckett (ITCS)" <P.Beckett at uea.ac.uk<mailto:P.Beckett at uea.ac.uk>>
+Date: Monday, January 14, 2013 8:22 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+I'm pretty new to this list, so apologies if this is the wrong place for this.
+
+I've just been looking at the experimental brute force protection rules in OWASP CRS v2.2.7. Currently I still have the default brute_force_protected_urls value of "/login.jsp /partner_login.php", and was initially surprised to see that the home-page of my site triggered these rules. I think this is because the homepage "/" is always going to be within "/login.jsp" and will therefore never bypass rule 981039.
+
+
+Hmm, yes, good catch.
+
+For me, matching the home-page of my site, wasn't my expected behaviour for this rule. To avoid matching the site home-page I guess I could either remove the leading slash in the brute_force_protected_urls , or for sites that only require protecting a single URL I could change the @within operator to be @streq. Any other thoughts / ideas would be welcome.
+
+
+I think that you should change 981039 below to look like this instead -
+
+SecRule REQUEST_FILENAME "@pm %{tx.brute_force_protected_urls}" "phase:5,id:'981039',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+
+Hopefully this works for you,
+Ryan
+
+
+Cheers,
+Paul
+
+modsecurity_crs_10_setup.conf:
+
+SecAction \
+
+  "id:'900014', \
+
+  phase:1, \
+
+  t:none, \
+
+  setvar:'tx.brute_force_protected_urls=/login.jsp /partner_login.php', \
+
+  setvar:'tx.brute_force_burst_time_slice=60', \
+
+  setvar:'tx.brute_force_counter_threshold=10', \
+
+  setvar:'tx.brute_force_block_timeout=300', \
+
+  nolog, \
+
+  pass"
+
+
+
+
+
+modsecurity_crs_11_brute_force.conf
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "chain,phase:1,id:'981036',block,msg:'Brute Force Attack Identified from %{remote_addr} (%{tx.brute_force_block_counter} hits since last alert)',setvar:ip.brute_force_block_counter=+1"
+
+        SecRule &IP:BRUTE_FORCE_BLOCK_FLAG "@eq 0" "setvar:ip.brute_force_block_flag=1,expirevar:ip.brute_force_block_flag=60,setvar:tx.brute_force_block_counter=%{ip.brute_force_block_counter},setvar:ip.brute_force_block_counter=0"
+
+
+
+#
+
+# Block and track # of requests but don't log
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "phase:1,id:'981037',block,nolog,setvar:ip.brute_force_block_counter=+1"
+
+
+
+#
+
+# skipAfter Checks
+
+# There are different scenarios where we don't want to do checks -
+
+# 1. If the user has not defined any URLs for Brute Force Protection in the 10 config file
+
+# 2. If the current URL is not listed as a protected URL
+
+# 3. If the current IP address has already been blocked due to high requests
+
+# In these cases, we skip doing the request counts.
+
+#
+
+SecRule &TX:BRUTE_FORCE_PROTECTED_URLS "@eq 0" "phase:5,id:'981038',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+SecRule REQUEST_FILENAME "!@within %{tx.brute_force_protected_urls}<mailto:!@within%20%25%7btx.brute_force_protected_urls%7d>" "phase:5,id:'981039',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "phase:5,id:'981040',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+
+
+#
+
+# Brute Force Counter
+
+# Count the number of requests to these resoures
+
+#
+
+SecAction "phase:5,id:'981041',t:none,nolog,pass,setvar:ip.brute_force_counter=+1"
+
+
+
+#
+
+# Check Brute Force Counter
+
+# If the request count is greater than or equal to 50 within 5 mins,
+
+# we then set the burst counter
+
+#
+
+SecRule IP:BRUTE_FORCE_COUNTER "@gt %{tx.brute_force_counter_threshold}" "phase:5,id:'981042',t:none,nolog,pass,t:none,setvar:ip.brute_force_burst_counter=+1,expirevar:ip.brute_force_burst_counter=%{tx.brute_force_burst_time_slice},setvar:!ip.brute_force_counter"
+
+
+
+#
+
+# Check Brute Force Burst Counter and set Block
+
+# Check the burst counter - if greater than or equal to 2, then we set the IP
+
+# block variable for 5 mins and issue an alert.
+
+#
+
+SecRule IP:BRUTE_FORCE_BURST_COUNTER "@ge 2" "phase:5,id:'981043',t:none,log,pass,msg:'Potential Brute Force Attack from %{remote_addr} - # of Request Bursts: %{ip.brute_force_burst_counter}',setvar:ip.brute_force_block=1,expirevar:ip.brute_force_block=%{tx.brute_force_block_timeout}"
+
+
+
+SecMarker END_BRUTE_FORCE_PROTECTION_CHECKS
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+_______________________________________________ Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/a2c1f68d/attachment-0001.html>
+
+From RBarnett at trustwave.com  Wed Jun  5 16:05:59 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 5 Jun 2013 16:05:59 +0000
+Subject: [Owasp-modsecurity-core-rule-set] experimental brute_force
+ protection rule
+In-Reply-To: <4D4373D703ED1C41BE658211EED9530B16C36247@ueastfexch02.UEA.AC.UK>
+Message-ID: <CDD4DA13.A8295%rbarnett@trustwave.com>
+
+Fixed it in GitHub master repo.
+
+--
+Ryan Barnett
+Lead Security Researcher
+Trustwave - SpiderLabs
+
+
+From: "Paul Beckett (ITCS)" <P.Beckett at uea.ac.uk<mailto:P.Beckett at uea.ac.uk>>
+Date: Wednesday, June 5, 2013 10:42 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+I believe this issue solved by Ryan?s suggestion (below), is still present in 2.2.7-4. Currently I?m patching the CRS before deployment on my servers with this modification, but was wondering if it, or an equivalent improvement could be applied in the CRS source?
+Thanks,
+Paul
+
+From: Paul Beckett (ITCS)
+Sent: Monday, January 14, 2013 4:24 PM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Ryan,
+That?s fantastic. It works perfectly for me.
+Do you know if this (or a similar change) will make it into the CRS?
+Thanks,
+Paul
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+Sent: Monday, January 14, 2013 2:27 PM
+To: Paul Beckett (ITCS); owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Right?. The issue here seems to be that, only for "/", we have a sub-string match.  Here is a quick fix.  Essentially you need to make that rule into a chained rule.  The first like is used to simply create a new custom variable that uses # chars to surround the request filename data.  The 2nd rule in the chain then runs the same -
+
+SecRule REQUEST_FILENAME ".*" "chain,phase:5,id:'981039',t:none,nolog,pass,setvar:'tx.filename=#%{request_filename}#',skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+ SecRule TX:FILENAME "!@within %{tx.brute_force_protected_urls}<mailto:!@within%20%25%7btx.brute_force_protected_urls%7d>"
+
+For this to work, you would then need to modify your URL list in the 10 file like this -
+
+
+SecAction \
+
+  "id:'900014', \
+
+  phase:1, \
+
+  t:none, \
+
+  setvar:'tx.brute_force_protected_urls=#/login.jsp# #/partner_login.php#', \
+
+  setvar:'tx.brute_force_burst_time_slice=60', \
+
+  setvar:'tx.brute_force_counter_threshold=10', \
+
+  setvar:'tx.brute_force_block_timeout=300', \
+
+  nolog, \
+
+  pass"
+
+
+This should work.
+
+-Ryan
+
+From: "Paul Beckett (ITCS)" <P.Beckett at uea.ac.uk<mailto:P.Beckett at uea.ac.uk>>
+Date: Monday, January 14, 2013 8:54 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+Ryan,
+Thanks for the very quick response.
+
+The proposed modification, doesn?t work for me. The original rule negated the @within match. I?m still figuring out the modsecurity rule language so I?m not at all sure about this?? but I guess it?s not as simple as negating @pm if you have multiple values in brute_force_protected_urls.
+
+Cheers,
+Paul
+
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+Sent: Monday, January 14, 2013 1:34 PM
+To: Paul Beckett (ITCS); owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+
+
+From: "Paul Beckett (ITCS)" <P.Beckett at uea.ac.uk<mailto:P.Beckett at uea.ac.uk>>
+Date: Monday, January 14, 2013 8:22 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+
+I?m pretty new to this list, so apologies if this is the wrong place for this.
+
+I?ve just been looking at the experimental brute force protection rules in OWASP CRS v2.2.7. Currently I still have the default brute_force_protected_urls value of ?/login.jsp /partner_login.php?, and was initially surprised to see that the home-page of my site triggered these rules. I think this is because the homepage ?/? is always going to be within ?/login.jsp? and will therefore never bypass rule 981039.
+
+
+Hmm, yes, good catch.
+
+For me, matching the home-page of my site, wasn?t my expected behaviour for this rule. To avoid matching the site home-page I guess I could either remove the leading slash in the brute_force_protected_urls , or for sites that only require protecting a single URL I could change the @within operator to be @streq. Any other thoughts / ideas would be welcome.
+
+
+I think that you should change 981039 below to look like this instead -
+
+SecRule REQUEST_FILENAME "@pm %{tx.brute_force_protected_urls}" "phase:5,id:'981039',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+
+Hopefully this works for you,
+Ryan
+
+
+Cheers,
+Paul
+
+modsecurity_crs_10_setup.conf:
+
+SecAction \
+
+  "id:'900014', \
+
+  phase:1, \
+
+  t:none, \
+
+  setvar:'tx.brute_force_protected_urls=/login.jsp /partner_login.php', \
+
+  setvar:'tx.brute_force_burst_time_slice=60', \
+
+  setvar:'tx.brute_force_counter_threshold=10', \
+
+  setvar:'tx.brute_force_block_timeout=300', \
+
+  nolog, \
+
+  pass"
+
+
+
+
+
+modsecurity_crs_11_brute_force.conf
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "chain,phase:1,id:'981036',block,msg:'Brute Force Attack Identified from %{remote_addr} (%{tx.brute_force_block_counter} hits since last alert)',setvar:ip.brute_force_block_counter=+1"
+
+        SecRule &IP:BRUTE_FORCE_BLOCK_FLAG "@eq 0" "setvar:ip.brute_force_block_flag=1,expirevar:ip.brute_force_block_flag=60,setvar:tx.brute_force_block_counter=%{ip.brute_force_block_counter},setvar:ip.brute_force_block_counter=0"
+
+
+
+#
+
+# Block and track # of requests but don't log
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "phase:1,id:'981037',block,nolog,setvar:ip.brute_force_block_counter=+1"
+
+
+
+#
+
+# skipAfter Checks
+
+# There are different scenarios where we don't want to do checks -
+
+# 1. If the user has not defined any URLs for Brute Force Protection in the 10 config file
+
+# 2. If the current URL is not listed as a protected URL
+
+# 3. If the current IP address has already been blocked due to high requests
+
+# In these cases, we skip doing the request counts.
+
+#
+
+SecRule &TX:BRUTE_FORCE_PROTECTED_URLS "@eq 0" "phase:5,id:'981038',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+SecRule REQUEST_FILENAME "!@within %{tx.brute_force_protected_urls}<mailto:!@within%20%25%7btx.brute_force_protected_urls%7d>" "phase:5,id:'981039',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+SecRule IP:BRUTE_FORCE_BLOCK "@eq 1" "phase:5,id:'981040',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS"
+
+
+
+#
+
+# Brute Force Counter
+
+# Count the number of requests to these resoures
+
+#
+
+SecAction "phase:5,id:'981041',t:none,nolog,pass,setvar:ip.brute_force_counter=+1"
+
+
+
+#
+
+# Check Brute Force Counter
+
+# If the request count is greater than or equal to 50 within 5 mins,
+
+# we then set the burst counter
+
+#
+
+SecRule IP:BRUTE_FORCE_COUNTER "@gt %{tx.brute_force_counter_threshold}" "phase:5,id:'981042',t:none,nolog,pass,t:none,setvar:ip.brute_force_burst_counter=+1,expirevar:ip.brute_force_burst_counter=%{tx.brute_force_burst_time_slice},setvar:!ip.brute_force_counter"
+
+
+
+#
+
+# Check Brute Force Burst Counter and set Block
+
+# Check the burst counter - if greater than or equal to 2, then we set the IP
+
+# block variable for 5 mins and issue an alert.
+
+#
+
+SecRule IP:BRUTE_FORCE_BURST_COUNTER "@ge 2" "phase:5,id:'981043',t:none,log,pass,msg:'Potential Brute Force Attack from %{remote_addr} - # of Request Bursts: %{ip.brute_force_burst_counter}',setvar:ip.brute_force_block=1,expirevar:ip.brute_force_block=%{tx.brute_force_block_timeout}"
+
+
+
+SecMarker END_BRUTE_FORCE_PROTECTION_CHECKS
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+_______________________________________________ Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/9a04d1eb/attachment-0001.html>
+
+From chris at derham.me.uk  Wed Jun  5 16:40:54 2013
+From: chris at derham.me.uk (chris derham)
+Date: Wed, 5 Jun 2013 13:40:54 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Problem with 960032
+Message-ID: <CAG6aRdXcEyvXG94WT=yng+vaotdee_X7ntKBBEz4WLUeV4D_ug@mail.gmail.com>
+
+So we are trying to upgrade from apache 2.2 to 2.4, and bring
+mod_security up from an earlier version to the latest. We are running
+on Windows, but we took a stock installation of everything, and it
+works. However 960032 keeps nagging that the request method is not
+valid. The specific error entry is
+
+[Wed Jun 05 17:19:47.207015 2013] [:error] [pid 1972:tid 1232] [client
+81.143.18.217] ModSecurity: Warning. Match of "within
+%{tx.allowed_methods}" against "REQUEST_METHOD" required. [file
+"D:/apps/apacheHttpd/Apache24/conf/mod_security_crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+[line "31"] [id "960032"] [rev "2"] [msg "Method is not allowed by
+policy"] [data "GET"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.7"]
+[maturity "9"] [accuracy "9"] [tag
+"OWASP_CRS/POLICY/METHOD_NOT_ALLOWED"] [tag "WASCTC/WASC-15"] [tag
+"OWASP_TOP_10/A6"] [tag "OWASP_AppSensor/RE1"] [tag "PCI/12.1"]
+[hostname "athena.atomus.com"] [uri "/qns/gwtMember/loading.gif"]
+[unique_id "Ua9lI8CoADIAAAe0NnoAAAA-"]
+
+If we update the rule from
+
+SecRule REQUEST_METHOD "!@within %{tx.allowed_methods}"
+
+to
+
+SecRule REQUEST_METHOD "!@within GET HEAD POST"
+
+then it works correctly. My conclusion is that somehow the
+tx.allowed_methods isn't been passed correctly. The relevant contents
+of modsecurity_crs_10_config.conf file that sets this are
+
+SecAction \
+ "id:'900012',\
+  phase:request,\
+  nolog,\
+  pass,\
+  t:none,\
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json|text/x-gwt-rpc|text/plain',
+\
+  setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+  setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/
+.idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/
+.pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/
+.vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+  setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+/Content-Range/ /Translate/ /via/ /if/'"
+
+We updated the tx.allowed_request_content_type, but tx.allowed_methods
+is as was.
+
+Any ideas as to how to proceed debugging this?
+
+Thanks
+
+Chris
+
+P.S. version numbers apache 2.4.4 win64, poenssl/1.01e windows web
+server 2008 r2
+
+[Wed Jun 05 17:19:41.005660 2013] [:notice] [pid 1972:tid 456]
+ModSecurity for Apache/2.7.4 (http://www.modsecurity.org/) configured.
+[Wed Jun 05 17:19:41.005660 2013] [:notice] [pid 1972:tid 456]
+ModSecurity: APR compiled version="1.4.6"; loaded version="1.4.6"
+[Wed Jun 05 17:19:41.005660 2013] [:notice] [pid 1972:tid 456]
+ModSecurity: PCRE compiled version="8.32 "; loaded version="8.32
+2012-11-30"
+[Wed Jun 05 17:19:41.005660 2013] [:notice] [pid 1972:tid 456]
+ModSecurity: LUA compiled version="Lua 5.1"
+[Wed Jun 05 17:19:41.005660 2013] [:notice] [pid 1972:tid 456]
+ModSecurity: LIBXML compiled version="2.9.1"
+
+From jamuse at owasp.org  Thu Jun  6 07:39:38 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Thu, 6 Jun 2013 10:39:38 +0300
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+References: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+	<CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+	<CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+Message-ID: <CAC+O4mEJdw3U5+Fi6j5Z35DLobdbUSWWj3NSw=rTBnx515hbKQ@mail.gmail.com>
+
+On Wed, Jun 5, 2013 at 3:25 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+
+>
+> This solution is fine for me. I gave this in apache.conf as follows. But
+> it is not working (still forbidden).
+>
+> Is it Location or LocationMatch ? Thanks.
+>
+>
+Hi Aniyan,
+
+If your using a regex like below then use LocationMatch, otherwise if your
+only matching a specific URI then Location works. The audit log that you
+posted showed the request was to  /iredadmin/login, thus use can use
+Location and simply remove the trailing / after 'login' in the Location
+section below.
+
+--
+ - Josh
+
+
+> <IfModule security2_module>
+>           <Location /iredadmin/login/>
+>             SecRuleRemoveById 960010
+>           </Location>
+>
+>           Include modsecurity_crs/modsecurity_crs_10_setup.conf
+>           Include modsecurity_crs/activated_rules/*.conf
+>
+> </IfModule>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/8095f9ff/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Thu Jun  6 09:02:10 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Thu, 6 Jun 2013 14:32:10 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAC+O4mEJdw3U5+Fi6j5Z35DLobdbUSWWj3NSw=rTBnx515hbKQ@mail.gmail.com>
+References: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+	<CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+	<CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+	<CAC+O4mEJdw3U5+Fi6j5Z35DLobdbUSWWj3NSw=rTBnx515hbKQ@mail.gmail.com>
+Message-ID: <CAMDu0FCz4OWXX+4OQ4sD5GrSddco5=bjCanW1==nE22bUwW7tQ@mail.gmail.com>
+
+Josh,
+
+It is not working. Still getting Forbidden page.
+
+THanks.
+
+On Thu, Jun 6, 2013 at 1:09 PM, Josh Amishav-Zlatin <jamuse at owasp.org>wrote:
+
+> On Wed, Jun 5, 2013 at 3:25 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+>
+>>
+>> This solution is fine for me. I gave this in apache.conf as follows. But
+>> it is not working (still forbidden).
+>>
+>> Is it Location or LocationMatch ? Thanks.
+>>
+>>
+> Hi Aniyan,
+>
+> If your using a regex like below then use LocationMatch, otherwise if your
+> only matching a specific URI then Location works. The audit log that you
+> posted showed the request was to  /iredadmin/login, thus use can use
+> Location and simply remove the trailing / after 'login' in the Location
+> section below.
+>
+> --
+>  - Josh
+>
+>
+>> <IfModule security2_module>
+>>           <Location /iredadmin/login/>
+>>             SecRuleRemoveById 960010
+>>           </Location>
+>>
+>>           Include modsecurity_crs/modsecurity_crs_10_setup.conf
+>>           Include _crs/activated_rules/*.conf
+>>
+>> </IfModule>
+>>
+>>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/875cf048/attachment.html>
+
+From jamuse at owasp.org  Thu Jun  6 09:11:57 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Thu, 6 Jun 2013 12:11:57 +0300
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAMDu0FCz4OWXX+4OQ4sD5GrSddco5=bjCanW1==nE22bUwW7tQ@mail.gmail.com>
+References: <CAMDu0FBnGS=iHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg@mail.gmail.com>
+	<CAC+O4mFFwB+4uVAeA=1_q+aJNtQTREZGjd=tPn02eK1p3epgbg@mail.gmail.com>
+	<CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+	<CAC+O4mEJdw3U5+Fi6j5Z35DLobdbUSWWj3NSw=rTBnx515hbKQ@mail.gmail.com>
+	<CAMDu0FCz4OWXX+4OQ4sD5GrSddco5=bjCanW1==nE22bUwW7tQ@mail.gmail.com>
+Message-ID: <CAC+O4mFRZJ_COhJ6od3CHGcjGsVJQ11ds03wyYWQ-ipL7TUDqQ@mail.gmail.com>
+
+On Thu, Jun 6, 2013 at 12:02 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+
+> Josh,
+>
+> It is not working. Still getting Forbidden page.
+>
+>
+Hi Aniyan,
+
+Can you send me the audit log (with sections H and K) privately?
+
+Thanks,
+
+--
+ - Josh
+
+
+> THanks.
+>
+> On Thu, Jun 6, 2013 at 1:09 PM, Josh Amishav-Zlatin <jamuse at owasp.org>wrote:
+>
+>> On Wed, Jun 5, 2013 at 3:25 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+>>
+>>>
+>>> This solution is fine for me. I gave this in apache.conf as follows. But
+>>> it is not working (still forbidden).
+>>>
+>>> Is it Location or LocationMatch ? Thanks.
+>>>
+>>>
+>> Hi Aniyan,
+>>
+>> If your using a regex like below then use LocationMatch, otherwise if
+>> your only matching a specific URI then Location works. The audit log that
+>> you posted showed the request was to  /iredadmin/login, thus use can use
+>> Location and simply remove the trailing / after 'login' in the Location
+>> section below.
+>>
+>> --
+>>  - Josh
+>>
+>>
+>>> <IfModule security2_module>
+>>>           <Location /iredadmin/login/>
+>>>             SecRuleRemoveById 960010
+>>>           </Location>
+>>>
+>>>           Include modsecurity_crs/modsecurity_crs_10_setup.conf
+>>>           Include _crs/activated_rules/*.conf
+>>>
+>>> </IfModule>
+>>>
+>>>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/f6c06a76/attachment.html>
+
+From RBarnett at trustwave.com  Thu Jun  6 12:54:14 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 6 Jun 2013 12:54:14 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+Message-ID: <CDD5F6B4.A84B6%rbarnett@trustwave.com>
+
+
+From: Aniyan Rajan <aniyan.rajan6 at gmail.com<mailto:aniyan.rajan6 at gmail.com>>
+Date: Wednesday, June 5, 2013 8:25 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+
+Josh,
+
+
+Editing the CRS rules directly is not recommended as it makes upgrading the rules much harder. Furthermore, its probably a good idea to upgrade ModSecurity to the latest version as there was recently a DoS related vulnerability patched. Once you are running a more recent version, your options for handling false positives becomes significantly more flexible as well, see:
+http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+
+I know that using the latest version is better, but I have some practical difficulties to upgrade at the moment. Will do that only after 6 months.
+
+On ModSec 2.5.12, you can simply white-list the offending rule/s by including something like the following *before* you include the offending CRS rules.
+
+<Location /iredadmin/login>
+  SecRuleRemoveById 960010
+</Location>
+
+
+This solution is fine for me. I gave this in apache.conf as follows. But it is not working (still forbidden).
+
+Is it Location or LocationMatch ? Thanks.
+
+
+<IfModule security2_module>
+          <Location /iredadmin/login/>
+            SecRuleRemoveById 960010
+          </Location>
+
+          Include modsecurity_crs/modsecurity_crs_10_setup.conf
+          Include modsecurity_crs/activated_rules/*.conf
+
+</IfModule>
+
+
+The reason this does not work is because rule ID 960010 runs in phase:1 and by placing the SecRuleRemoveById directive within an Apache scope location, it won't execute until the end of phase:2.
+
+You might want to do this instead in a custom rules file that runs before the other rules -
+
+SecRule REQUEST_FILENAME "@beginsWith /iredadmin/login/" "phase:1,id:123,t:none,nolog,pass,ctl:ruleRemoveById=960010"
+
+-Ryan
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/e8f9dfaa/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Thu Jun  6 13:19:55 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Thu, 6 Jun 2013 18:49:55 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Request content type is not
+ allowed by policy
+In-Reply-To: <CDD5F6B4.A84B6%rbarnett@trustwave.com>
+References: <CAMDu0FD77Oyhut-t0-oKNBeDWO8+PoRKM-0QEt5njN2+-pGWPw@mail.gmail.com>
+	<CDD5F6B4.A84B6%rbarnett@trustwave.com>
+Message-ID: <CAMDu0FDySFU3OW66FAfYfgGO6oCHUOq86tMsMMrp9JOL248xqQ@mail.gmail.com>
+
+Ryan,
+
+Thanks for the input. I believe that I can refer the custom-rules-file in
+apache.conf. Is there any particular name I need to give for that custom
+rules file ? (like modsecurity_crs_55*.conf) Then what should be the number
+to execute the contained rule with the right priority ?
+
+Thanks.
+
+
+ This solution is fine for me. I gave this in apache.conf as follows. But
+> it is not working (still forbidden).
+>
+> Is it Location or LocationMatch ? Thanks.
+>
+>
+> <IfModule security2_module>
+>           <Location /iredadmin/login/>
+>             SecRuleRemoveById 960010
+>           </Location>
+>
+>           Include modsecurity_crs/modsecurity_crs_10_setup.conf
+>           Include modsecurity_crs/activated_rules/*.conf
+>
+> </IfModule>
+>
+>
+>
+>  The reason this does not work is because rule ID 960010 runs in phase:1
+> and by placing the SecRuleRemoveById directive within an Apache scope
+> location, it won't execute until the end of phase:2.
+>
+>  You might want to do this instead in a custom rules file that runs
+> before the other rules -
+>
+>  SecRule REQUEST_FILENAME "@beginsWith /iredadmin/login/"
+> "phase:1,id:123,t:none,nolog,pass,ctl:ruleRemoveById=960010"
+>
+>  -Ryan
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/97819b50/attachment.html>
+
+From benji0256 at yahoo.com  Thu Jun  6 14:51:45 2013
+From: benji0256 at yahoo.com (Benjamin Flament)
+Date: Thu, 6 Jun 2013 07:51:45 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] Problem with 960032
+Message-ID: <1370530305.93384.YahooMailNeo@web120106.mail.ne1.yahoo.com>
+
+Chris
+
+For some reason, rule 900012 (where you set the tx.allowed_methods) was moved to phase:2, and therefore is executing after rule 960032. By moving back rule 900012 to phase:1, you should get it working properly.
+
+Regards
+Benjamin F
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/81ced797/attachment.html>
+
+From stephen.e.canell at jpl.nasa.gov  Thu Jun  6 21:18:56 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Thu, 6 Jun 2013 21:18:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity rule management
+Message-ID: <CDD64ACE.7D875%scanell@jpl.nasa.gov>
+
+All,
+I am curious what type of tool is recommended for a central editing, version management, and
+distribution of modsecurity rules including OWASP for multiple systems.
+
+It would need to have the ability to edit and or create a new rule file that can be identified with
+one or multiple WAF servers, but one in which the rule file may be unique to one system and not
+another and thus the ability to manage rules to WAF systems with versioning.
+
+Thank you
+-=Steve
+--
+
+Stephen Canell
+IT Security Engineer 4, EBIS Security
+Enterprise Business Information Services
+EBIS Security - 1734
+Jet Propulsion Laboratory
+4800 Oak Grove Drive
+Pasadena, California 91109
+Phone: 818-354-1731
+
+Procrastination is the thief of time!
+
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: PGP 8.0.3
+
+mQGiBEKTRBkRBAD2QUiPAuj1uMh0NdynTY8uV1vyDd89/1+Zcs1SX+CZiaFAJ6y0
+ELBBoXQJ/CM9SYrouGC81NyB2A/w+ttB+uUj/penJQ0nvXtYK7GmEVJgFFSUEryS
+FOoPNo+ZGY4JrQe8HpptoovwEwxTT5cjWy6FUpmgSPxllR+DiyZBWbSugwCg/xXe
+qylX5HpJFg8gVOzCZsPNhOED/2csfvCfFnu9LQm9GMIS72TtGc4qldjJCBmYqW/c
+zq/h8Paj0jRfz1g+Eo/LrV4ViIukc6OTLL4CYT8hQu88YzyPHPxRmagIJKTbYjwZ
+MOgud9Kj61BbRB2eyl2wC114M8/B6byKHqf85SrstOQCX+4BfAOLR4dywiM5TTpz
+Mih5A/9eOHoFJ+FLmwio4rVq22dE7R3TtsY0FB2234uIdgsj+hdmZLpDJfJheKvx
+vBdWK3oAqZaborjid+PzxlBxSThUOhZe/UjQbauSXzLhoNkqEEZY8eeulszyT6NW
+zVHOHZU0kiyvwQIVBp1v1BshMImjRwXavCuHUAeOiOH2LmZV4rQnU3RlcGhlbiBF
+IENhbmVsbCA8c2NhbmVsbEBqcGwubmFzYS5nb3Y+iQBXBBARAgAXBQJCk0QZBwsJ
+CAcDAgoCGQEFGwMAAAAACgkQaUvAMvtD8t0ioACfSPsU3wo+vqxTCkxOreCYNFF3
+oB8An3dEmj8lt1wYe2tKJl0qEePhRr0LuQINBEKTRBkQCAD2Qle3CH8IF3Kiutap
+QvMF6PlTETlPtvFuuUs4INoBp1ajFOmPQFXz0AfGy0OplK33TGSGSfgMg71l6RfU
+odNQ+PVZX9x2Uk89PY3bzpnhV5JZzf24rnRPxfx2vIPFRzBhznzJZv8V+bv9kV7H
+AarTW56NoKVyOtQa8L9GAFgr5fSI/VhOSdvNILSd5JEHNmszbDgNRR0PfIizHHxb
+LY7288kjwEPwpVsYjY67VYy4XTjTNP18F1dDox0YbN4zISy1Kv884bEpQBgRjXyE
+pwpy1obEAxnIByl6ypUM2Zafq9AKUJsCRtMIPWakXUGfnHy9iUsiGSa6q6Jew1Xp
+Mgs7AAICCACaG3547RkJTEAcx+6YjaviN3erEh/EYYpxcinWulkU5i928RgxWVAt
+P/7XiEJtq2TiovOFvpvyX2V1CycTCACzqftG5Q2KSzVdEOiixm98/k44vm6JHL2K
+4JuclI7KFt7pCzPJGsySDn2i7t3PQXDa7K8jBAE2S4LB7ZTVzetzoCDKQMi4Xei3
+bz7zovMrF8qGzkkSWKM9eZYMfDBZm++SUbTpq1IhIufcbTUMdSZC85/BU1LtZz22
+mfA2nViQyLQjEa3R8Y1HdLaaU7GxafZDPCpJjoaIXwhyplbHeM3DfHTgud7ZcB83
+CrlYRIkN5rE9JCpuXNY7LGzwBh9+xJJviQBMBBgRAgAMBQJCk0QZBRsMAAAAAAoJ
+EGlLwDL7Q/LdLM0An0uyV06R65S+tFq7UijE0tz49VZiAJ9dIRu54sVtNS8hWTTH
+ZXVJw6u9yA==
+=Z1Fa
+-----END PGP PUBLIC KEY BLOCK-----
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/0fd616f2/attachment-0001.html>
+
+From aniyan.rajan6 at gmail.com  Fri Jun  7 11:31:56 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Fri, 7 Jun 2013 17:01:56 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Bing Bot
+Message-ID: <CAMDu0FCO0uceh-p9TyFtc4hOyZptiBmapJRYPTCXvBACmusb_A@mail.gmail.com>
+
+Hello,
+
+How can I block the Bing Bots that I am finding in my access.log ? I can
+find some Bots Blocking in modsecurity_crs_55_marketing.conf. I thought of
+editing it, but the previous reply from the mailing-list says that "Editing
+the CRS rules directly is not recommended as it makes upgrading the rules
+much harder". Please advise.
+
+Thanks.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130607/19ee5d4f/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Sat Jun  8 02:04:48 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Sat, 8 Jun 2013 07:34:48 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Bing Bot
+In-Reply-To: <CAMDu0FCO0uceh-p9TyFtc4hOyZptiBmapJRYPTCXvBACmusb_A@mail.gmail.com>
+References: <CAMDu0FCO0uceh-p9TyFtc4hOyZptiBmapJRYPTCXvBACmusb_A@mail.gmail.com>
+Message-ID: <CAMDu0FCvTd0Zn0wtR7abjju99HEeWZCfxQnd_9-iB18FFUZFaQ@mail.gmail.com>
+
+Hello,
+
+I have added the following to modsecurity_crs_55_marketing.conf. Is this
+okay ? Or is there any conventional method to block more bots ?
+
+SecRule REQUEST_HEADERS:User-Agent "bing(?:bot|ptc)" \
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Bing robot
+activity',id:'910009',severity:'6'\
+"
+
+Thanks.
+
+On Fri, Jun 7, 2013 at 5:01 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+
+> Hello,
+>
+> How can I block the Bing Bots that I am finding in my access.log ? I can
+> find some Bots Blocking in modsecurity_crs_55_marketing.conf. I thought of
+> editing it, but the previous reply from the mailing-list says that "Editing
+> the CRS rules directly is not recommended as it makes upgrading the rules
+> much harder". Please advise.
+>
+> Thanks.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130608/4a482836/attachment.html>
+
+From jamuse at owasp.org  Sat Jun  8 20:18:50 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Sat, 8 Jun 2013 23:18:50 +0300
+Subject: [Owasp-modsecurity-core-rule-set] Bing Bot
+In-Reply-To: <CAMDu0FCvTd0Zn0wtR7abjju99HEeWZCfxQnd_9-iB18FFUZFaQ@mail.gmail.com>
+References: <CAMDu0FCO0uceh-p9TyFtc4hOyZptiBmapJRYPTCXvBACmusb_A@mail.gmail.com>
+	<CAMDu0FCvTd0Zn0wtR7abjju99HEeWZCfxQnd_9-iB18FFUZFaQ@mail.gmail.com>
+Message-ID: <CAC+O4mFeUydnDjL9YVp7qHJuf-30E2+TkQOMjudk2+JbHe3U6w@mail.gmail.com>
+
+On Sat, Jun 8, 2013 at 5:04 AM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+
+> Hello,
+>
+> I have added the following to modsecurity_crs_55_marketing.conf. Is this
+> okay ? Or is there any conventional method to block more bots ?
+>
+> SecRule REQUEST_HEADERS:User-Agent "bing(?:bot|ptc)" \
+>         "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Bing robot
+> activity',id:'910009',severity:'6'\
+> "
+>
+>
+Hi Aniyan,
+
+My comment before about not directly editing the CRS rules was mainly
+because when you upgrade the rules you'll need to remember all the changes
+you made and edit/update the new version as well. While there are several
+ways to handle custom rules, I personally use a rules.conf file from which
+my custom and CRS rules are included. Another note, you may want to assign
+your custom rules an ID between 1-99,999 to avoid potential (future)
+clashes with CRS rules.
+
+--
+ - Josh
+
+Thanks.
+>
+>
+> On Fri, Jun 7, 2013 at 5:01 PM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+>
+>> Hello,
+>>
+>> How can I block the Bing Bots that I am finding in my access.log ? I can
+>> find some Bots Blocking in modsecurity_crs_55_marketing.conf. I thought of
+>> editing it, but the previous reply from the mailing-list says that "Editing
+>> the CRS rules directly is not recommended as it makes upgrading the
+>> rules much harder". Please advise.
+>>
+>> Thanks.
+>>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130608/2dd75099/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Sun Jun  9 01:38:29 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Sun, 9 Jun 2013 07:08:29 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Bing Bot
+In-Reply-To: <CAC+O4mFeUydnDjL9YVp7qHJuf-30E2+TkQOMjudk2+JbHe3U6w@mail.gmail.com>
+References: <CAMDu0FCO0uceh-p9TyFtc4hOyZptiBmapJRYPTCXvBACmusb_A@mail.gmail.com>
+	<CAMDu0FCvTd0Zn0wtR7abjju99HEeWZCfxQnd_9-iB18FFUZFaQ@mail.gmail.com>
+	<CAC+O4mFeUydnDjL9YVp7qHJuf-30E2+TkQOMjudk2+JbHe3U6w@mail.gmail.com>
+Message-ID: <CAMDu0FA-VJVHMKuwq9nuFarM0C0EbOp08KsX0U-w1jdLzHkT9g@mail.gmail.com>
+
+On Sun, Jun 9, 2013 at 1:48 AM, Josh Amishav-Zlatin <jamuse at owasp.org>wrote:
+
+> On Sat, Jun 8, 2013 at 5:04 AM, Aniyan Rajan <aniyan.rajan6 at gmail.com>wrote:
+>
+>> Hello,
+>>
+>> I have added the following to modsecurity_crs_55_marketing.conf. Is this
+>> okay ? Or is there any conventional method to block more bots ?
+>>
+>> SecRule REQUEST_HEADERS:User-Agent "bing(?:bot|ptc)" \
+>>         "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Bing robot
+>> activity',id:'910009',severity:'6'\
+>> "
+>>
+>>
+> Hi Aniyan,
+>
+> My comment before about not directly editing the CRS rules was mainly
+> because when you upgrade the rules you'll need to remember all the changes
+> you made and edit/update the new version as well. While there are several
+> ways to handle custom rules, I personally use a rules.conf file from which
+> my custom and CRS rules are included.
+>
+
+Just keep the original tar.gz and before upgrade, just do a directory
+comparison with a tool. This will fetch the changes in any other
+configurations too - 10 file. I use meld.
+
+I hope that the following will catch two strings 'bingbot' and 'bingptc'.
+Am I correct ?
+"bing(?:bot|ptc)"
+
+Thanks.
+
+
+Thanks.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130609/6fa1fa6e/attachment.html>
+
+From RBarnett at trustwave.com  Mon Jun 10 20:59:48 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 10 Jun 2013 20:59:48 +0000
+Subject: [Owasp-modsecurity-core-rule-set] IRC BOTNET LEVERAGING UNPATCHED
+	PLESK VULNERABILITY
+Message-ID: <CDDBB68B.A8999%rbarnett@trustwave.com>
+
+I wanted to reach out to the community on this issue and ask for some help.
+
+An exploit for Plesk was released last week - http://seclists.org/fulldisclosure/2013/Jun/21 and now there are reports of mass exploits from IRC botnets.  Reference this link - http://threatpost.com/irc-botnet-leveraging-unpatched-plesk-vulnerability/
+
+Here is an example ModSecurity audit log of running the plesk-simple.pl script against a host -
+
+--c0538227-A--
+[10/Jun/2013:16:33:13 --0400] UbY4B8CoAWQAAP3TbGsAAAAC 127.0.0.1 56954 127.0.0.1 80
+--c0538227-B--
+POST /%70%68%70%70%61%74%68/%70%68%70?%2D%64+%61%6C%6C%6F%77%5F%75%72%6C%5F%69%6E%63%6C%75%64%65%3D%6F%6E+%2D%64+%73%61%66%65%5F%6D%6F%64%65%3D%6F%66%66+%2D%64+%73%75%68%6F%73%69%6E%2E%73%69%6D%75%6C%61%74%69%6F%6E%3D%6F%6E+%2D%64+%64%69%73%61%62%6C%65%5F%66%75%6E%63%74%69%6F%6E%73%3D%22%22+%2D%64+%6F%70%65%6E%5F%62%61%73%65%64%69%72%3D%6E%6F%6E%65+%2D%64+%61%75%74%6F%5F%70%72%65%70%65%6E%64%5F%66%69%6C%65%3D%70%68%70%3A%2F%2F%69%6E%70%75%74+%2D%6E HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 82
+
+--c0538227-C--
+<?php echo "Content-Type:text/html\r\n\r\n";echo "OK\n";system("uname -a;id;"); ?>
+
+For those of you running the OWASP ModSecurity CRS ? this attac would already be picked up by a number of rules/signatures.  For example -
+
+Message: Warning. Pattern match "<\\?(?!xml)" at ARGS_NAMES:<?php echo "Content-Type:text/html\\r\\n\\r\\n";echo "OK\\n";system("uname -a;id;"); ?>. [file "/usr/local/apache/conf/crs/base_rules/modsecurity_crs_40_generic_attacks.conf"] [line "230"] [id "959151"] [rev "2"] [msg "PHP Injection Attack"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.7"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/WEB_ATTACK/PHP_INJECTION"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "PCI/6.5.2"] [tag "WASCTC/WASC-25"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/CIE4"] [tag "PCI/6.5.2"]
+
+I am working on a blog post to highlight this vulnerability and the ModSecurity protections.  It would be useful if anyone who has seen these attacks hit their server to send me some example audit log entries as I want to show real-world instances vs only running the PoC.
+
+Thanks.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130610/a0ed0e70/attachment.html>
+
+From RBarnett at trustwave.com  Mon Jun 10 22:51:54 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 10 Jun 2013 22:51:54 +0000
+Subject: [Owasp-modsecurity-core-rule-set] New Mail-List - ModSecurity
+	Emerging Attacks
+Message-ID: <5D948907-C8AA-4856-8403-C360AA078D26@trustwave.com>
+
+We just created the following mail-list in an attempt to have a community of users who want to keep tabs on the latest web attacks seen in the wild -
+https://lists.sourceforge.net/lists/listinfo/mod-security-emerging-attacks
+
+Participants are expected to be active and share attack/log data and also discuss ModSecurity defenses.
+
+If you want to work in a collaborative environment to share data, please sign up!
+
+--
+Ryan Barnett
+Lead Security Researcher
+Trustwave - SpiderLabs
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130610/40d0d62d/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Mon Jun 17 09:25:29 2013
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Mon, 17 Jun 2013 14:55:29 +0530
+Subject: [Owasp-modsecurity-core-rule-set] access.log
+Message-ID: <CAMDu0FCxgzoH0Y7o=YRBzC5QQRC+B=G5ZG7zvpvfGLiY11bGHg@mail.gmail.com>
+
+Hello,
+
+I found the following in the access.log today. It looks like the apache has
+executed the request successfully with a 200. Is it a bad thing that I need
+to block with modsecurity ? Thanks.
+
+195.3.146.94 - - [16/Jun/2013:19:04:16 +0000] "GET
+/?q=admin&destination=admin HTTP/1.0" 200 476 "
+http://mydomain.org/administrator/index.php" "Mozilla/5.0 (Windows NT 6.1;
+WOW64) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.162
+Safari/535.19"
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130617/ca284bb1/attachment.html>
+
+From jg at softjury.de  Tue Jun 18 11:25:00 2013
+From: jg at softjury.de (Jan Phillip Greimann)
+Date: Tue, 18 Jun 2013 13:25:00 +0200
+Subject: [Owasp-modsecurity-core-rule-set] two questions about custom rules
+Message-ID: <51C0438C.5040703@softjury.de>
+
+Hi there,
+
+I have two questions about custom mod-sec rules for CRS, hope you could 
+help me.
+
+Here are my custom-files:
+http://pastebin.com/yTAAC4CP
+http://pastebin.com/raw.php?i=yTAAC4CP
+
+Question 1:
+I've got two files, one on the beginning of the CRS and one after the 
+CRS is loaded. Did I need both of them? Or is it ok if all my 
+modifications are at the begin / end?
+
+Question 2:
+I try to update a target in the second file 
+(modsecurity_crs_70_post_custom.conf), the targeted rule is in phase:2, 
+should this rule also in the second phase?
+
+
+Best regards,
+Jan
+
+
+From RBarnett at trustwave.com  Wed Jun 19 16:01:37 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 19 Jun 2013 16:01:37 +0000
+Subject: [Owasp-modsecurity-core-rule-set]
+ [Mod-security-emerging-attacks] Fwd: IRC BOTNET LEVERAGING UNPATCHED PLESK
+ VULNERABILITY
+In-Reply-To: <5B6D4FF3-48AF-478C-9CE1-4B95E52C0EC2@trustwave.com>
+Message-ID: <CDE74D33.A9A35%rbarnett@trustwave.com>
+
+Our web honeypots picked up more exploit attempts today -
+
+5.9.16.104 - - [19/Jun/2013:00:47:05 +0200] "POST /phppath/php?-d+allow_url_include%3d1+-d+safe_mode%3d0+-d+suhosin.simulation%3d1+-d+disable_functions%3d''+-d+open_basedir%3dnone+-d+auto_prepend_file%3dphp://input+-n HTTP/1.1" 404 314 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_1) AppleWebKit/535.1 (KHTML, like Gecko) Safari/535.1"
+
+While the OWASP ModSecurity CRS does pick up the POST payload PHP code, it does not trigger on the various PHP configuration directives -
+http://www.modsecurity.org/demo/demo-deny.html?test=-d+allow_url_include%3d1+-d+safe_mode%3d0+-d+suhosin.simulation%3d1+-d+disable_functions%3d%27%27+-d+open_basedir%3dnone+-d+auto_prepend_file%3dphp://input+-n
+
+We should modify the CRS rules to include these PHP config directives in the PHP code injection rules and also to make sure that these are inspecting ARGS_NAMES.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+From: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Date: Monday, June 10, 2013 6:53 PM
+To: "mod-security-emerging-attacks at lists.sourceforge.net<mailto:mod-security-emerging-attacks at lists.sourceforge.net>" <mod-security-emerging-attacks at lists.sourceforge.net<mailto:mod-security-emerging-attacks at lists.sourceforge.net>>
+Subject: [Mod-security-emerging-attacks] Fwd: IRC BOTNET LEVERAGING UNPATCHED PLESK VULNERABILITY
+
+
+Begin forwarded message:
+
+From: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Date: June 10, 2013, 4:59:55 PM EDT
+To: "mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>" <mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: IRC BOTNET LEVERAGING UNPATCHED PLESK VULNERABILITY
+
+I wanted to reach out to the community on this issue and ask for some help.
+
+An exploit for Plesk was released last week - http://seclists.org/fulldisclosure/2013/Jun/21 and now there are reports of mass exploits from IRC botnets.  Reference this link - http://threatpost.com/irc-botnet-leveraging-unpatched-plesk-vulnerability/
+
+Here is an example ModSecurity audit log of running the plesk-simple.pl script against a host -
+
+--c0538227-A--
+[10/Jun/2013:16:33:13 --0400] UbY4B8CoAWQAAP3TbGsAAAAC 127.0.0.1 56954 127.0.0.1 80
+--c0538227-B--
+POST /%70%68%70%70%61%74%68/%70%68%70?%2D%64+%61%6C%6C%6F%77%5F%75%72%6C%5F%69%6E%63%6C%75%64%65%3D%6F%6E+%2D%64+%73%61%66%65%5F%6D%6F%64%65%3D%6F%66%66+%2D%64+%73%75%68%6F%73%69%6E%2E%73%69%6D%75%6C%61%74%69%6F%6E%3D%6F%6E+%2D%64+%64%69%73%61%62%6C%65%5F%66%75%6E%63%74%69%6F%6E%73%3D%22%22+%2D%64+%6F%70%65%6E%5F%62%61%73%65%64%69%72%3D%6E%6F%6E%65+%2D%64+%61%75%74%6F%5F%70%72%65%70%65%6E%64%5F%66%69%6C%65%3D%70%68%70%3A%2F%2F%69%6E%70%75%74+%2D%6E HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 82
+
+--c0538227-C--
+<?php echo "Content-Type:text/html\r\n\r\n";echo "OK\n";system("uname -a;id;"); ?>
+
+For those of you running the OWASP ModSecurity CRS ? this attac would already be picked up by a number of rules/signatures.  For example -
+
+Message: Warning. Pattern match "<\\?(?!xml)" at ARGS_NAMES:<?php echo "Content-Type:text/html\\r\\n\\r\\n";echo "OK\\n";system("uname -a;id;"); ?>. [file "/usr/local/apache/conf/crs/base_rules/modsecurity_crs_40_generic_attacks.conf"] [line "230"] [id "959151"] [rev "2"] [msg "PHP Injection Attack"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.7"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/WEB_ATTACK/PHP_INJECTION"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "PCI/6.5.2"] [tag "WASCTC/WASC-25"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/CIE4"] [tag "PCI/6.5.2"]
+
+I am working on a blog post to highlight this vulnerability and the ModSecurity protections.  It would be useful if anyone who has seen these attacks hit their server to send me some example audit log entries as I want to show real-world instances vs only running the PoC.
+
+Thanks.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130619/502b2b4c/attachment.html>
+
+From vaclav.ovsik at i.cz  Tue Jun 25 12:16:51 2013
+From: vaclav.ovsik at i.cz (=?iso-8859-1?Q?V=E1clav_Ovs=EDk?=)
+Date: Tue, 25 Jun 2013 14:16:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] 950901 - false positive
+Message-ID: <20130625121651.GA8003@bobek.localdomain>
+
+Hi,
+I've got false positive with 950901, because the regexp lacks word
+boundary marks. I have prepared a little test suite for this (files
+attached).
+
+pcre.orig   - contains an original regexp of 950901
+pcre	    - contains a fixed regexp of 950901
+data.*	    - some test data
+
+zito at bobek:~/pokusy/mod_security/bug-950901$ for x in *; do printf "%10s: %s\n" $x "$(cat $x)"; done
+data.fail1: SID=875708633+FID=20+OP=DISPLAY_FORM+HTMPL=role_main.htmpl+prop.role_menubar=menubar_sd.htmpl
+data.fail2: xxx1=1ffff
+data.fail3: 1=1ffff
+data.fail4: xxx1=1
+   data.ok: foo yes=yes bar
+      pcre: (?i:([\s'\"`???\(\)]*?)\b([\d\w]++)([\s'\"`???\(\)]*?)(?:(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`???\(\)]*?)\2\b|(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`???\(\)]*?)(?!\2)([\d\w]+)\b))
+ pcre.orig: (?i:([\s'\"`???\(\)]*?)([\d\w]++)([\s'\"`???\(\)]*?)(?:(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`???\(\)]*?)\2|(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+like|not\s+regexp)([\s'\"`???\(\)]*?)(?!\2)([\d\w]+)))
+
+zito at bobek:~/pokusy/mod_security/bug-950901$ pcregrep --color -f pcre.orig data.*
+data.fail1:SID=875708633+FID=20+OP=DISPLAY_FORM+HTMPL=role_main.htmpl+prop.role_menubar=menubar_sd.htmpl
+data.fail2:xxx1=1ffff
+data.fail3:1=1ffff
+data.fail4:xxx1=1
+data.ok:foo yes=yes bar
+
+zito at bobek:~/pokusy/mod_security/bug-950901$ pcregrep --color -f pcre data.*
+data.ok:foo yes=yes bar
+
+My attempt to fix the problem on github and pull request:
+https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/48
+
+Cheers
+-- 
+Zito
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: bug-950901-tests.tar.bz2
+Type: application/octet-stream
+Size: 617 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130625/44f03362/attachment.obj>
+
+From RBarnett at trustwave.com  Wed Jun 26 20:47:03 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 26 Jun 2013 20:47:03 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Request for Successful Reflected
+	XSS Audit Logs
+Message-ID: <CDF0CB81.AB744%rbarnett@trustwave.com>
+
+Please excuse the cross-posting.  I am scheduled to give a talk next month at Blackhat USA talking about real-world XSS attacks - http://www.blackhat.com/us-13/briefings.html#Wroblewski.
+
+Greg and I are using a variety of data sources for analysis.  As part of this effort, I would like to try and include some examples gathered from ModSecurity audit log data.  So, if you have any ModSecurity audit logs where ModSecurity identified inbound XSS and an outbound anomaly related to the # of scripts present (see - https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/experimental_rules/modsecurity_crs_55_response_profiling.conf) please contact me.
+
+What we would like to do would be to include some example rendered HTML with XSS PoC testing, etc..
+
+Thanks for you help.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130626/e83471a0/attachment.html>
+
+From yu_y_neu at neusoft.com  Thu Jun 27 08:27:17 2013
+From: yu_y_neu at neusoft.com (=?gb2312?B?09rR7g==?=)
+Date: Thu, 27 Jun 2013 16:27:17 +0800
+Subject: [Owasp-modsecurity-core-rule-set] About modsecurity for nginx
+	version
+Message-ID: <201306271627128409722@neusoft.com>
+
+Hi,
+1?I hava a question ,I want to know modsecurity whether support the lua  language in nginx or not ?
+2?why the modsecurity for nginx version can not use the "include" directive in modsecurity.conf for include crs 
+conf file? And it can not be supported in the further?
+---------------------------------------------------------------------------------------------------
+Confidentiality Notice: The information contained in this e-mail and any accompanying attachment(s) 
+is intended only for the use of the intended recipient and may be confidential and/or privileged of 
+Neusoft Corporation, its subsidiaries and/or its affiliates. If any reader of this communication is 
+not the intended recipient, unauthorized use, forwarding, printing,  storing, disclosure or copying 
+is strictly prohibited, and may be unlawful.If you have received this communication in error,please 
+immediately notify the sender by return e-mail, and delete the original message and all copies from 
+your system. Thank you. 
+---------------------------------------------------------------------------------------------------
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130627/c3516013/attachment.html>
+
+From Lucas.Bremgartner at united-security-providers.ch  Thu Jun 27 11:31:29 2013
+From: Lucas.Bremgartner at united-security-providers.ch (Bremgartner, Lucas)
+Date: Thu, 27 Jun 2013 11:31:29 +0000
+Subject: [Owasp-modsecurity-core-rule-set] XSS Filters from IE
+	(modsecurity_crs_41_xss_attacks.conf)
+Message-ID: <FCFBEC6FEC5C0F419C8864147BF6426F2439F7@uspexch01.tetrade.ch>
+
+Hi all,
+
+I am currently looking at the performance of some rules in the OWASP CRS, especially the block "XSS Filters form IE" (modsecurity_crs_41_xss_attacks.conf), and I would like to have your opinion to the following two proposals:
+
+1. Remove rules with ID 973345 and 973346
+The two rules 973345 and 973346 are matching html-encoding-variants of "vbscript:" and "javascript:". Both rules are using the transformation functions t:htmlEntityDecode and t:compressWhiteSpace. If I understand these transformation functions correctly, then they are redundant to the regular expression (e.g. transformation from "& #x06A;" to "j" is already done by t:htmlEntityDecode). If this is correct, then these rules are not needed because they are already covered by the block beginning with rule 981136. These rules are operating in the same phase and on the same targets.
+Did I miss something? 
+
+2. Rule Pre-Filtering
+Most of the remaining rules (except the last 3 rules: 973316, 973325, 973319 and of course rules from proposal 1) are beginning with one of the following characters: < " '
+Therefore I propose to pre-filter the whole "XSS Filters from IE" rule block (except the last 3 rules: 973316, 973325, 973319) with a rule like:
+
+SecRule REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/* "<|\"|\'" \
+"phase:2,id:'10000',rev:'2',ver:'OWASP_CRS/2.2.7',maturity:'8',accuracy:'8',t:none,t:htmlEntityDecode,t:compressWhiteSpace,pass,nolog,setvar:tx.pm_xss_filter_score=+%{tx.critical_anomaly_score}"
+SecRule &TX:PM_XSS_FILTER_SCORE "@eq 0" "phase:2,id:'10001',t:none,pass,skipAfter:END_XSS_FILTER_CHECK,nolog"
+...
+SecMarker END_XSS_FILTER_CHECK
+
+
+With these two changes I measured a noticeable performance improvement of 15 - 25% (depending on parameter size and parameter count) in my test setup with the whole CRS (base rules) activated.
+
+Feedbacks and suggestions are welcome.
+
+Regards,
+Lucas Bremgartner
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: smime.p7s
+Type: application/x-pkcs7-signature
+Size: 5387 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130627/64470c50/attachment.bin>
+
+From owasp at sic-sec.org  Thu Jun 27 12:05:26 2013
+From: owasp at sic-sec.org (Achim)
+Date: Thu, 27 Jun 2013 14:05:26 +0200
+Subject: [Owasp-modsecurity-core-rule-set] XSS Filters from IE
+	(modsecurity_crs_41_xss_attacks.conf)
+In-Reply-To: <FCFBEC6FEC5C0F419C8864147BF6426F2439F7@uspexch01.tetrade.ch>
+References: <FCFBEC6FEC5C0F419C8864147BF6426F2439F7@uspexch01.tetrade.ch>
+Message-ID: <51CC2A86.10906@sic-sec.org>
+
+Am 27.06.2013 13:31, schrieb Bremgartner, Lucas:
+> 2. Rule Pre-Filtering
+> Most of the remaining rules (except the last 3 rules: 973316, 973325, 973319 and of course rules from proposal 1) are beginning with one of the following characters: < " '
+> Therefore I propose to pre-filter the whole "XSS Filters from IE" rule block (except the last 3 rules: 973316, 973325, 973319) with a rule like:
+> 
+> SecRule REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/* "<|\"|\'" \
+> "phase:2,id:'10000',rev:'2',ver:'OWASP_CRS/2.2.7',maturity:'8',accuracy:'8',t:none,t:htmlEntityDecode,t:compressWhiteSpace,pass,nolog,setvar:tx.pm_xss_filter_score=+%{tx.critical_anomaly_score}"
+> SecRule &TX:PM_XSS_FILTER_SCORE "@eq 0" "phase:2,id:'10001',t:none,pass,skipAfter:END_XSS_FILTER_CHECK,nolog"
+> ...
+> SecMarker END_XSS_FILTER_CHECK
+
+Are these rules only handling XSS injections in context of HTML?
+Or should they also match in CSS, JavaScript, JSON context?
+
+If so, a prefix containing   "'<   is not sufficient, you need also ,;.\/)]}|&=?+-
+(and probably many more, as JavaScript is not limited to 7-bit US-ASCII :-)).
+
+Just my 2 pence
+Achim
+
+From RBarnett at trustwave.com  Thu Jun 27 13:57:15 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 27 Jun 2013 13:57:15 +0000
+Subject: [Owasp-modsecurity-core-rule-set] XSS Filters from IE
+ (modsecurity_crs_41_xss_attacks.conf)
+In-Reply-To: <FCFBEC6FEC5C0F419C8864147BF6426F2439F7@uspexch01.tetrade.ch>
+Message-ID: <CDF1BBCF.AB818%rbarnett@trustwave.com>
+
+
+On 6/27/13 7:31 AM, "Bremgartner, Lucas"
+<Lucas.Bremgartner at united-security-providers.ch> wrote:
+
+>Hi all,
+>
+>I am currently looking at the performance of some rules in the OWASP CRS,
+>especially the block "XSS Filters form IE"
+>(modsecurity_crs_41_xss_attacks.conf), and I would like to have your
+>opinion to the following two proposals:
+>
+>1. Remove rules with ID 973345 and 973346
+>The two rules 973345 and 973346 are matching html-encoding-variants of
+>"vbscript:" and "javascript:". Both rules are using the transformation
+>functions t:htmlEntityDecode and t:compressWhiteSpace. If I understand
+>these transformation functions correctly, then they are redundant to the
+>regular expression (e.g. transformation from "& #x06A;" to "j" is already
+>done by t:htmlEntityDecode). If this is correct, then these rules are not
+>needed because they are already covered by the block beginning with rule
+>981136. These rules are operating in the same phase and on the same
+>targets.
+>Did I miss something?
+>
+>2. Rule Pre-Filtering
+>Most of the remaining rules (except the last 3 rules: 973316, 973325,
+>973319 and of course rules from proposal 1) are beginning with one of the
+>following characters: < " '
+>Therefore I propose to pre-filter the whole "XSS Filters from IE" rule
+>block (except the last 3 rules: 973316, 973325, 973319) with a rule like:
+>
+>SecRule
+>REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|
+>ARGS|XML:/* "<|\"|\'" \
+>"phase:2,id:'10000',rev:'2',ver:'OWASP_CRS/2.2.7',maturity:'8',accuracy:'8
+>',t:none,t:htmlEntityDecode,t:compressWhiteSpace,pass,nolog,setvar:tx.pm_x
+>ss_filter_score=+%{tx.critical_anomaly_score}"
+>SecRule &TX:PM_XSS_FILTER_SCORE "@eq 0"
+>"phase:2,id:'10001',t:none,pass,skipAfter:END_XSS_FILTER_CHECK,nolog"
+>...
+>SecMarker END_XSS_FILTER_CHECK
+>
+>
+>With these two changes I measured a noticeable performance improvement of
+>15 - 25% (depending on parameter size and parameter count) in my test
+>setup with the whole CRS (base rules) activated.
+>
+>Feedbacks and suggestions are welcome.
+>
+>Regards,
+>Lucas Bremgartner
+
+Lucas,
+You bring up a good point - rule detection overlap.  The XSS rules have
+not been properly vetted and maintained over the years and instead have
+simply had new rules thrown on top.  We are in the process of working on
+the new CRS v3.0.0 and one of the key items is to review/update all rule
+groups including XSS.  We will take a more systematic approach to our
+rules for coverage and performance.
+
+It is worth noting that I will be giving a joint talk with Greg Wroblewski
+of Microsoft Security Research and Defense team at Blackhat USA talking
+about real-world XSS attacks and defense -
+http://www.blackhat.com/us-13/briefings.html#Wroblewski.  As part of this
+research - Greg is developing an XSS detection module.  We will be
+including this with ModSecurity as a new operator @detectXSS to help with
+both detection and performance.
+
+Thanks,
+Ryan
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From mikolajmm at gmail.com  Sat Jun 29 14:08:41 2013
+From: mikolajmm at gmail.com (=?UTF-8?B?TWlrb8WCYWogTWlsZWo=?=)
+Date: Sat, 29 Jun 2013 16:08:41 +0200
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity-core-rule-set problem
+In-Reply-To: <51CEE52E.5080102@gmail.com>
+References: <51CEE52E.5080102@gmail.com>
+Message-ID: <51CEEA69.7040604@gmail.com>
+
+Hi all!
+
+I've installed yesterday mod_security on my debian machine:
+libapache2-modsecurity 2.6.6-6+deb7u1
+and rules tagged as 2.2.5
+
+But there are tons of errors in Apache log:
+
+[Sat Jun 29 06:10:04 2013] [error] [client 157.158.66.216] ModSecurity:
+Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+"/etc/modsecurity/activated_rules/modsecurity_crs_21_protocol_anomalies.conf"] 
+
+[line "47"] [id "960015"] [rev "2.2.5"] [msg "Request Missing an Accept
+Header"] [severity "CRITICAL"] [tag
+"PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag "WASCTC/WASC-21"] [tag
+"OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "forum.mydomain"] [uri
+"/download/file.php"] [unique_id "Uc5eHJ2eQtgAAHbzG3sAAAFq"]
+(...)
+[Sat Jun 29 08:51:59 2013] [error] [client 83.10.190.85] ModSecurity:
+Rule 7fc4d6aab2b0 [id "950901"][file
+"/etc/modsecurity/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+
+"77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+"redmine.mydomain"] [uri
+"/plugin_assets/redmine_lightbox/images/blank.gif"] [unique_id
+"Uc6ED52eQtgAAHbrGl0AAAD0"]
+
+On google there are suggestions to increase pcre limit so I've set:
+SecPcreMatchLimit 150000
+SecPcreMatchLimitRecursion 150000
+
+but without any result (that logs are with increased limits).
+I want to get rid of this errors.
+
+Regards
+Miko?aj
+
+From pablo.valcarcel1980 at gmail.com  Sat Jun 29 16:44:35 2013
+From: pablo.valcarcel1980 at gmail.com (=?ISO-8859-1?Q?Jose_Pablo_Valc=E1rcel_L=E1zaro?=)
+Date: Sat, 29 Jun 2013 18:44:35 +0200
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity-core-rule-set
+	problem
+In-Reply-To: <51CEEA69.7040604@gmail.com>
+References: <51CEE52E.5080102@gmail.com>
+	<51CEEA69.7040604@gmail.com>
+Message-ID: <CABkhgLqb1oJjLwa0F65_WRV8+CO9QvD39GZH9ofFhaAG0nOSKQ@mail.gmail.com>
+
+Hi. I have searched for pcre limits mod_security errors and setting up
+those limits through php.ini and mod_security limits didn't work it.I don't
+know where I read it but It seems a mod_security bugs in that version. I
+hope someone can confirm it.
+
+Kind regards,
+El 29/06/2013 16:11, "Miko?aj Milej" <mikolajmm at gmail.com> escribi?:
+
+> Hi all!
+>
+> I've installed yesterday mod_security on my debian machine:
+> libapache2-modsecurity 2.6.6-6+deb7u1
+> and rules tagged as 2.2.5
+>
+> But there are tons of errors in Apache log:
+>
+> [Sat Jun 29 06:10:04 2013] [error] [client 157.158.66.216] ModSecurity:
+> Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+> "/etc/modsecurity/activated_**rules/modsecurity_crs_21_**protocol_anomalies.conf"]
+>
+> [line "47"] [id "960015"] [rev "2.2.5"] [msg "Request Missing an Accept
+> Header"] [severity "CRITICAL"] [tag
+> "PROTOCOL_VIOLATION/MISSING_**HEADER_ACCEPT"] [tag "WASCTC/WASC-21"] [tag
+> "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "forum.mydomain"] [uri
+> "/download/file.php"] [unique_id "Uc5eHJ2eQtgAAHbzG3sAAAFq"]
+> (...)
+> [Sat Jun 29 08:51:59 2013] [error] [client 83.10.190.85] ModSecurity:
+> Rule 7fc4d6aab2b0 [id "950901"][file
+> "/etc/modsecurity/activated_**rules/modsecurity_crs_41_sql_**injection_attacks.conf"][line
+>
+> "77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+> "redmine.mydomain"] [uri
+> "/plugin_assets/redmine_**lightbox/images/blank.gif"] [unique_id
+> "Uc6ED52eQtgAAHbrGl0AAAD0"]
+>
+> On google there are suggestions to increase pcre limit so I've set:
+> SecPcreMatchLimit 150000
+> SecPcreMatchLimitRecursion 150000
+>
+> but without any result (that logs are with increased limits).
+> I want to get rid of this errors.
+>
+> Regards
+> Miko?aj
+> ______________________________**_________________
+> Owasp-modsecurity-core-rule-**set mailing list
+> Owasp-modsecurity-core-rule-**set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+> https://lists.owasp.org/**mailman/listinfo/owasp-**
+> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130629/42f5732a/attachment.html>
+

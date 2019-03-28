@@ -1,0 +1,794 @@
+From michael.haas10 at gmail.com  Wed Oct  5 07:33:44 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Wed, 5 Oct 2011 13:33:44 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Duplicate Rule id
+Message-ID: <CAFW5hxBTqvcbbdyAVKKWt=xbia57OT_RzKTSG0=ijwJ+BxkRHA@mail.gmail.com>
+
+Hello,
+
+Rule id 960009 is used two times in modsecurity_crs_21_protocol_anomalies.conf.
+
+Best Regards
+Michael
+
+From rp-modsec-crs-list at bev.net  Mon Oct 10 14:19:05 2011
+From: rp-modsec-crs-list at bev.net (rp-modsec-crs-list at bev.net)
+Date: Mon, 10 Oct 2011 14:19:05 -0400 (EDT)
+Subject: [Owasp-modsecurity-core-rule-set] CRS 2.2.2 rule 971202 false
+	positives
+Message-ID: <Pine.LNX.4.64.1110101413100.25220@calloway>
+
+In CRS 2.2.2, base_rules/modsecurity_crs_50_outbound.conf
+the Directory Listing check seems incorrect. Here's the rule:
+
+SecRule RESPONSE_BODY ">[To Parent Directory]</[Aa]><br>" \
+
+"phase:4,rev:'2.2.2',t:none,capture,ctl:auditLogParts=+E,block,msg:'Directory 
+Listing',id:'971202' ....
+
+
+The "[To Parent Directory]" portion is a regex char class. I doubt that
+was the intention of the rule author.
+
+So, it produces false positives b/c it matches stuff like "> </a><br>"
+
+From Claude.Durocher at mcccf.gouv.qc.ca  Wed Oct 12 16:41:59 2011
+From: Claude.Durocher at mcccf.gouv.qc.ca (Claude.Durocher at mcccf.gouv.qc.ca)
+Date: Wed, 12 Oct 2011 16:41:59 -0400
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules 981243,
+	981244 and 981248
+Message-ID: <OF8A93FEDE.05C5E95F-ON85257927.007170A9-85257927.0071B4D1@mcccf.gouv.qc.ca>
+
+
+
+- Avis: Ce message est confidentiel et ne s'adresse qu'aux destinataires.
+Si vous le recevez par erreur, veuillez le supprimer et nous en aviser.
+-
+Hi,
+
+I'm getting false positive with rules 981243, 981244 and 981248 (core rule
+set 2.2.2 and mod_security 2.6). Seems like the rule don't like "dIv" or
+"div" in the url.
+
+Is there a way to use SecRuleUpdateTargetById to handle this ?
+
+
+--37216702-B--
+GET /uploads/tx_jcarousel/dIversite-culturelle-2_01.gif HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr,fr-fr;q=0.8,en;q=0.5,en-us;q=0.3
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+DNT: 1
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+
+Claude
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111012/8e6648eb/attachment.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 5A559535.jpg
+Type: image/jpeg
+Size: 3034 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111012/8e6648eb/attachment.jpg 
+
+From RBarnett at trustwave.com  Wed Oct 12 16:52:50 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 12 Oct 2011 15:52:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules
+ 981243, 981244 and 981248
+In-Reply-To: <OF8A93FEDE.05C5E95F-ON85257927.007170A9-85257927.0071B4D1@mcccf.gouv.qc.ca>
+Message-ID: <CABB75DD.377F9%rbarnett@trustwave.com>
+
+Right, there is a low chance of false negatives for SQLi attack against REQUEST_FILENAME. We will remove it from the TARGET list in the next rev.  In the meantime, I would add in a SecRuleUpdateTargetById directive to exclude it.
+
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME
+
+-Ryan
+
+From: "Claude.Durocher at mcccf.gouv.qc.ca<mailto:Claude.Durocher at mcccf.gouv.qc.ca>" <Claude.Durocher at mcccf.gouv.qc.ca<mailto:Claude.Durocher at mcccf.gouv.qc.ca>>
+Date: Wed, 12 Oct 2011 15:41:59 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248
+
+
+[cid:1__=0ABBF3B4DFE2F6398f9e8a9 at mcccf.gouv.qc.ca]
+- Avis: Ce message est confidentiel et ne s'adresse qu'aux destinataires. Si vous le recevez par erreur, veuillez le supprimer et nous en aviser.
+-
+Hi,
+
+I'm getting false positive with rules 981243, 981244 and 981248 (core rule set 2.2.2 and mod_security 2.6). Seems like the rule don't like "dIv" or "div" in the url.
+
+Is there a way to use SecRuleUpdateTargetById to handle this ?
+
+
+--37216702-B--
+GET /uploads/tx_jcarousel/dIversite-culturelle-2_01.gif HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr,fr-fr;q=0.8,en;q=0.5,en-us;q=0.3
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+DNT: 1
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+
+Claude
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 5A559535.jpg
+Type: image/jpeg
+Size: 3034 bytes
+Desc: 5A559535.jpg
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111012/f7730f69/attachment.jpg 
+
+From jczucco at gmail.com  Mon Oct 17 09:31:35 2011
+From: jczucco at gmail.com (Jeronimo Zucco)
+Date: Mon, 17 Oct 2011 11:31:35 -0200
+Subject: [Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on
+	request
+Message-ID: <CAPNehxojgiu4ijDhE+oyrJquR_RWhR0dN5cT2DpY82ahNe8v6A@mail.gmail.com>
+
+We have some issues with 960024 rule of CRS 2.2.2 here.
+
+Our native language is Brazilian Portuguese, UTF-8 enconding (Django),
+and when we have some ARG by POST with special caracter content of our
+language (like "?" for example), we get this modsecurity log:
+
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"\\W{4,}" at ARGS:descricao_procedencia. [file
+"/dbs1/www/apache2/conf/modsecurity/crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "509"] [id "960024"] [rev "2.2.2"] [msg "SQL Character Anomaly
+Detection Alert - Repetative Non-Word Characters"] [data
+"\xc3\x87\xc3\x83"]
+
+The uncoding can be done this way in a python shell:
+
+>>> import urllib
+>>> b=urllib.unquote_plus('4%C2%AA+COORDENADORIA+REGIONAL+DE+EDUCA%C3%87%C3%83O')
+>>> print b
+4? COORDENADORIA REGIONAL DE EDUCA??O
+
+We have enabled the option of UTF-8 enconding in modsecurity_crs_10_config.conf:
+
+SecAction "phase:1,id:'981216',t:none,nolog,pass,setvar:tx.crs_validate_utf8_encoding=1"
+
+How can I solve this issue ?
+
+Thanks in advance.
+
+-- 
+Jeronimo Zucco
+http://jczucco.blogspot.com
+
+From RBarnett at trustwave.com  Mon Oct 17 15:16:04 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 17 Oct 2011 14:16:04 -0500
+Subject: [Owasp-modsecurity-core-rule-set] CRS v2.2.3 updated in SVN
+Message-ID: <CAC1F733.37C19%rbarnett@trustwave.com>
+
+I just pushed a quick CRS update to SVN and I recommend that users update.  Here is the CHANGES file info -
+
+--------------------------
+Version 2.2.3 - 10/17/2011
+--------------------------
+
+Improvements:
+- Added Watcher Cookie Checks to optional_rules/modsecurity_crs_55_app_defects.conf file
+  http://websecuritytool.codeplex.com/wikipage?title=Checks#cookies
+
+Bug Fixes:
+- Fixed Content-Type evasion issue by adding ctl:forceRequestBodyVariable action to
+  rule ID 960010. (Identified by Andrew Wilson of Trustwave SpiderLabs).
+- Updated the regex and added tags for RFI rules.
+
+
+The main reason for updating is that there is an evasion issue related to the default request body parsers.  From the Reference Manual for the "ctl" action - http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#ctl
+
+
+The requestBodyProcessor option allows you to configure the request body processor. By default, ModSecurity will use the URLENCODED and MULTIPART processors to process an application/x-www-form-urlencoded and a multipart/form-data body, respectively. A third processor, XML, is also supported, but it is never used implicitly. Instead, you must tell ModSecurity to use it by placing a few rules in the REQUEST_HEADERS processing phase. After the request body is processed as XML, you will be able to use the XML-related features to inspect it.
+
+Request body processors will not interrupt a transaction if an error occurs during parsing. Instead, they will set the variables REQBODY_PROCESSOR_ERROR and REQBODY_PROCESSOR_ERROR_MSG. These variables should be inspected in the REQUEST_BODY phase and an appropriate action taken. The forceRequestBodyVariable option allows you to configure the REQUEST_BODY variable to be set when there is no request body processor configured. This allows for inspection of request bodies of unknown types.
+
+One of the SpiderLabs AppPentest Consultants found that by sending different Content-Type request headers, oftentimes the application doesn't care, and it would cause ModSecurity not to parse the request body.  This means that POST ARGS and REQUEST_BODY variables would not be populated.
+
+It is for this reason that we have updated the following rule in the modsecurity_crs_30_http_policy.conf file (http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_rules/modsecurity_crs_30_http_policy.conf?revision=1854)
+
+
+SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$" "phase:1,chain,t:none,block,msg:'Request content type is not allowed by policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'4',logdata:'%{matched_var}'"
+        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+                SecRule TX:0 "!@within %{tx.allowed_request_content_type}" "t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+This rule will force population of REQUEST_BODY for Content-Types not defined by the admin in the 10 config file.  One option for this issue would be to simply update the actions for this rule and deny the request if a client is sending unexpected Content-Types.  Many users, however, are running in anomaly scoring or detection only mode and not blocking based on just one rule.  With this new configuration, other rules would be able to inspect the REQUEST_BODY variable and create alerts.
+
+Please let us know if you have any feedback.
+
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From daniel at danielhall.me  Mon Oct 17 22:25:08 2011
+From: daniel at danielhall.me (Daniel Hall)
+Date: Tue, 18 Oct 2011 13:25:08 +1100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 958291 and Google Chrome PDF
+	viewer
+Message-ID: <CAMB82SHQud7gmXx5sosbOaKG-H32xHYUW5H2QJ2EiQ0-QyypaQ@mail.gmail.com>
+
+Hi,
+
+I was looking at some issues we were having with Google Chrome users
+and found that the PDF viewer built into Chrome first requests the
+first 1024 bytes of the PDF before displaying it. This causes it to
+trigger rule 958291 which leads to the request being blocked. I've
+confirmed this on Linux and Windows versions of Chrome.
+
+This request seems like a perfectly valid thing to do and not in clear
+violation of any HTTP standards. I've setup a local override for the
+rule on our systems, but you may want to reconsider including it in
+the ruleset.
+
+Here is the request made by Chrome:
+
+GET /test.pdf HTTP/1.1
+Host: test.int.danielhall.me
+Connection: keep-alive
+Cache-Control: max-age=0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML,
+like Gecko) Chrome/14.0.835.202 Safari/535.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+Range: bytes=0-1023
+If-Range: "9bc88-37563-4af884ec837c0"
+
+-- 
+Cheers,
+Daniel Hall
+http://www.danielhall.me/
+
+From michael.haas10 at gmail.com  Wed Oct 19 08:10:36 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Wed, 19 Oct 2011 14:10:36 +0200
+Subject: [Owasp-modsecurity-core-rule-set]
+	modsecurity_crs_40_generic_attacks.conf duplicate id's
+Message-ID: <CAFW5hxCYF+nty_i-7naZeT7PAiymp88qyzNS_JSJ3VOy1VkZhg@mail.gmail.com>
+
+Hello,
+
+in modsecurity_crs_40_generic_attacks.conf the command injection rule
+id's are duplicate (same id is used for paranoid an normal).
+
+Thanks in Advance.
+Michael
+
+From dyioulos at onpointfc.com  Wed Oct 19 12:50:57 2011
+From: dyioulos at onpointfc.com (Dimitri Yioulos)
+Date: Wed, 19 Oct 2011 12:50:57 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Stop particular alert
+Message-ID: <201110191250.57611.dyioulos@onpointfc.com>
+
+All,
+
+It's a bit embarrassing that I can't figure out how to stop this 
+particular alert, but I don't know how. ?Here's the situation:
+
+I have Sophos anti-virus installed on some of my Linux boxes. ?I 
+keep getting Ossec alerts like the following:
+
+2011 Oct 19 11:21:59 Rule Id: 1002 level: 2
+Location: (plymouth) 192.168.1.2->/var/log/messages
+Unknown problem somewhere in the system.
+Oct 19 11:21:59 plymouth savd: savscan.log: On-demand scan 
+details: master boot records scanned: 0, boot records scanned: 0, 
+files scanned: 3, scan errors: 0, viruses detected: 0, infected 
+files detected: 0
+
+Obviously, I don't want this event to alert. ?What do I have to do 
+in Ossec to prevent this specific alert?
+
+Many thanks.
+
+Dimitri
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
+
+From RBarnett at trustwave.com  Wed Oct 19 12:56:45 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 19 Oct 2011 11:56:45 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Stop particular alert
+In-Reply-To: <201110191250.57611.dyioulos@onpointfc.com>
+Message-ID: <CAC47976.37E69%rbarnett@trustwave.com>
+
+Did you check on the OSSEC user forum?
+
+http://www.ossec.net/main/support#ossec-list
+
+-Ryan
+
+
+
+On 10/19/11 12:50 PM, "Dimitri Yioulos" <dyioulos at onpointfc.com> wrote:
+
+>All,
+>
+>It's a bit embarrassing that I can't figure out how to stop this
+>particular alert, but I don't know how.  Here's the situation:
+>
+>I have Sophos anti-virus installed on some of my Linux boxes.  I
+>keep getting Ossec alerts like the following:
+>
+>2011 Oct 19 11:21:59 Rule Id: 1002 level: 2
+>Location: (plymouth) 192.168.1.2->/var/log/messages
+>Unknown problem somewhere in the system.
+>Oct 19 11:21:59 plymouth savd: savscan.log: On-demand scan
+>details: master boot records scanned: 0, boot records scanned: 0,
+>files scanned: 3, scan errors: 0, viruses detected: 0, infected
+>files detected: 0
+>
+>Obviously, I don't want this event to alert.  What do I have to do
+>in Ossec to prevent this specific alert?
+>
+>Many thanks.
+>
+>Dimitri
+>
+>--
+>This message has been scanned for viruses and
+>dangerous content by MailScanner, and is
+>believed to be clean.
+>
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From dyioulos at onpointfc.com  Wed Oct 19 14:23:13 2011
+From: dyioulos at onpointfc.com (Dimitri Yioulos)
+Date: Wed, 19 Oct 2011 14:23:13 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Stop particular alert
+In-Reply-To: <201110191250.57611.dyioulos@onpointfc.com>
+References: <201110191250.57611.dyioulos@onpointfc.com>
+Message-ID: <201110191423.14085.dyioulos@onpointfc.com>
+
+On Wednesday 19 October 2011 12:50:57 pm Dimitri Yioulos wrote:
+> All,
+>
+> It's a bit embarrassing that I can't figure out how to stop
+> this particular alert, but I don't know how. ?Here's the
+> situation:
+>
+> I have Sophos anti-virus installed on some of my Linux boxes.
+> ?I keep getting Ossec alerts like the following:
+>
+> 2011 Oct 19 11:21:59 Rule Id: 1002 level: 2
+> Location: (plymouth) 192.168.1.2->/var/log/messages
+> Unknown problem somewhere in the system.
+> Oct 19 11:21:59 plymouth savd: savscan.log: On-demand scan
+> details: master boot records scanned: 0, boot records scanned:
+> 0, files scanned: 3, scan errors: 0, viruses detected: 0,
+> infected files detected: 0
+>
+> Obviously, I don't want this event to alert. ?What do I have to
+> do in Ossec to prevent this specific alert?
+>
+> Many thanks.
+>
+> Dimitri
+
+
+I'm such a knob!  Sorry for the noise.
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
+
+From Claude.Durocher at mcccf.gouv.qc.ca  Fri Oct 21 13:44:16 2011
+From: Claude.Durocher at mcccf.gouv.qc.ca (Claude.Durocher at mcccf.gouv.qc.ca)
+Date: Fri, 21 Oct 2011 13:44:16 -0400
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules
+ 981243, 981244 and 981248
+In-Reply-To: <CABB75DD.377F9%rbarnett@trustwave.com>
+References: <OF8A93FEDE.05C5E95F-ON85257927.007170A9-85257927.0071B4D1@mcccf.gouv.qc.ca>
+	<CABB75DD.377F9%rbarnett@trustwave.com>
+Message-ID: <OFD790BE7D.E0006324-ON85257930.00614472-85257930.00616F95@mcccf.gouv.qc.ca>
+
+
+I have more cases of false positives with 'div' in the arguments : I tried
+to exclude them with "SecRuleUpdateTargetById 981244 !ARGS_NAMES:div" but
+this doesn't work. I also tried "ajaxDiv", "Div" with no success. I also
+found cases of the word "div" appearing in the url so I wonder if this
+should be completly removed from the rules.
+
+GET /test/detailBien.do?bienId=103948&methode=consulter&contenuOngletId=emplacement&ajaxDiv=true&ajax=true&ms=1319160007747
+ HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr-ca,fr-fr;q=0.8,fr;q=0.6,en-us;q=0.4,en;q=0.2
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Connection: keep-alive
+Referer:
+http://www.mysite.com/test/detailBien.do?methode=consulter&bienId=103948
+Cookie: jbo.ApplicationCookie.Modeletest={904}054A9A0715B18F3C27;
+JSESSIONID=31a35ba68dfe.e3uai1ynknvrIn0; style=null
+
+--73b83d45-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Keep-Alive: timeout=15, max=100
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html
+
+--73b83d45-H--
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:\\d
+(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s+(\"|'|`|\xc2\xb4|\xe2\x80
+\x99|\xe2\x80\x98)\\s+\\d)|(?:^admin\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2
+\x80\x98)|(\\/\\*)+(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)+\\s?(?:--|#|
+\\/\\*|{)?)|(?:(\"|'| ..." at ARGS_NAMES:ajaxDiv. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+ [line "533"] [id "981244"] [msg "Detects basic SQL authentication bypass
+attempts 1/3"] [data "Div"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"]
+[tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+Action: Intercepted (phase 2)
+
+-------------
+
+
+Right, there is a low chance of false negatives for SQLi attack against
+REQUEST_FILENAME. We will remove it from the TARGET list in the next rev.
+In the meantime, I would add in a SecRuleUpdateTargetById directive to
+exclude it.
+
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME
+
+-Ryan
+
+From:
+"Claude.Durocher at mcccf.gouv.qc.ca<mailto:Claude.Durocher at mcccf.gouv.qc.ca>"
+<Claude.Durocher at mcccf.gouv.qc.ca<mailto:Claude.Durocher at mcccf.gouv.qc.ca>>
+Date: Wed, 12 Oct 2011 15:41:59 -0500
+To:
+"owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>"
+
+<owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules
+981243, 981244 and 981248
+
+
+[cid:1__=0ABBF3B4DFE2F6398f9e8a9 at mcccf.gouv.qc.ca]
+- Avis: Ce message est confidentiel et ne s'adresse qu'aux destinataires.
+Si vous le recevez par erreur, veuillez le supprimer et nous en aviser.
+-
+Hi,
+
+I'm getting false positive with rules 981243, 981244 and 981248 (core rule
+set 2.2.2 and mod_security 2.6). Seems like the rule don't like "dIv" or
+"div" in the url.
+
+Is there a way to use SecRuleUpdateTargetById to handle this ?
+
+
+--37216702-B--
+GET /uploads/tx_jcarousel/dIversite-culturelle-2_01.gif HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr,fr-fr;q=0.8,en;q=0.5,en-us;q=0.3
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+DNT: 1
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+..." at REQUEST_FILENAME. [file
+"/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "dIv"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+
+
+Claude
+
+________________________________
+This transmission may contain information that is privileged, confidential,
+and/or exempt from disclosure under applicable law. If you are not the
+intended recipient, you are hereby notified that any disclosure, copying,
+distribution, or use of the information contained herein (including any
+reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+in error, please immediately contact the sender and destroy the material in
+its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111021/3d849f45/attachment.html 
+
+From rainer.jung at kippdata.de  Mon Oct 24 12:03:45 2011
+From: rainer.jung at kippdata.de (Rainer Jung)
+Date: Mon, 24 Oct 2011 18:03:45 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Empty directory activated_rules
+	problematic (CVS etc.)
+Message-ID: <4EA58C61.9030309@kippdata.de>
+
+Hi everyone,
+
+the new activated_rules directory is a nice idea. But when transferring
+mod_security e.g. into CVS an empty directory is a problem (vanishes in
+CVS). Would it be possible to put some small dummy file into the empty
+directory in gthe default distribution? Or a simple README?
+
+Regards,
+
+Rainer
+
+
+From rm4dillo at gmail.com  Mon Oct 24 14:30:09 2011
+From: rm4dillo at gmail.com (rm4dillo D)
+Date: Mon, 24 Oct 2011 20:30:09 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Performance issues
+Message-ID: <CAAzXPXDLXqg2PYNHdzTWzpwu5WtViNn=LB0R=1M3G8YUJ51ibA@mail.gmail.com>
+
+Hi,
+
+I recently installed ModSecurity with CRS 2.2.2 (base rules only, paranoid
+mode set to off and SecResponseBodyAccess to off too) on a high traffic
+server and the CPU usage almost reached 100% while it's usually around 2 to
+5% and I have no errors.
+
+By disabling mod_security_crs_4[01]* rules (generic, xss, sqli) it's way
+better but not really useful :).
+
+Any clues? Does someone benchmark the rules before every release?
+
+Thanks.
+
+Rm4dillo
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111024/e5f19c18/attachment.html 
+
+From RBarnett at trustwave.com  Mon Oct 24 14:45:30 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 24 Oct 2011 13:45:30 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Performance issues
+In-Reply-To: <CAAzXPXDLXqg2PYNHdzTWzpwu5WtViNn=LB0R=1M3G8YUJ51ibA@mail.gmail.com>
+References: <CAAzXPXDLXqg2PYNHdzTWzpwu5WtViNn=LB0R=1M3G8YUJ51ibA@mail.gmail.com>
+Message-ID: <09CD5642-8A3C-42B8-A1FC-51C06A83053A@trustwave.com>
+
+My guess is that it is related to the initcol at the end of the 10 config file. This is used to setup the IP collection for other rules to use. While this is helpful, I think it is causing these types of perf issues on high traffic sites as it is forcing ModSec to create a persistent collection for ALL request.
+
+Try commenting out the final initcol SecRule at the end of the 10 file and see if it helps.
+
+We will think of a better approach.
+
+Ryan
+
+On Oct 24, 2011, at 2:30 PM, "rm4dillo D" <rm4dillo at gmail.com> wrote:
+
+> Hi,
+>
+> I recently installed ModSecurity with CRS 2.2.2 (base rules only, paranoid mode set to off and SecResponseBodyAccess to off too) on a high traffic server and the CPU usage almost reached 100% while it's usually around 2 to 5% and I have no errors.
+>
+> By disabling mod_security_crs_4[01]* rules (generic, xss, sqli) it's way better but not really useful :).
+>
+> Any clues? Does someone benchmark the rules before every release?
+>
+> Thanks.
+>
+> Rm4dillo
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From rainer.jung at kippdata.de  Wed Oct 26 05:05:54 2011
+From: rainer.jung at kippdata.de (Rainer Jung)
+Date: Wed, 26 Oct 2011 11:05:54 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Missing parts in CRS commit 1854
+	(Watcher Cookie Checks)?
+Message-ID: <4EA7CD72.7030606@kippdata.de>
+
+Hi,
+
+CRS commit 1854 includes in the CHANGELOG:
+
+Improvements:
+- Added Watcher Cookie Checks to
+optional_rules/modsecurity_crs_55_app_defects.conf file
+  http://websecuritytool.codeplex.com/wikipage?title=Checks#cookies
+
+but there is no change in
+optional_rules/modsecurity_crs_55_application_defects.conf since r1820.
+
+Maybe the change was missing in the commit, or the CHANGELOG ne3eds fixing.
+
+Regards,
+
+Rainer
+
+

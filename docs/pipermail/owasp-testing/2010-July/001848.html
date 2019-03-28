@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-testing] Copy Cookies
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20Copy%20Cookies&In-Reply-To=FD69EE97-32EB-4B35-AEA8-CBF425F41783%40bluemoon.com.vn">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001850.html">
+   <LINK REL="Next"  HREF="001851.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-testing] Copy Cookies</H1>
+    <B>Dave van Stein</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20Copy%20Cookies&In-Reply-To=FD69EE97-32EB-4B35-AEA8-CBF425F41783%40bluemoon.com.vn"
+       TITLE="[Owasp-testing] Copy Cookies">dvstein at gmail.com
+       </A><BR>
+    <I>Thu Jul 22 03:50:47 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001850.html">[Owasp-testing] Copy Cookies
+</A></li>
+        <LI>Next message: <A HREF="001851.html">[Owasp-testing] Copy Cookies
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1848">[ date ]</a>
+              <a href="thread.html#1848">[ thread ]</a>
+              <a href="subject.html#1848">[ subject ]</a>
+              <a href="author.html#1848">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Assuming you are talking about some sort of session token in the cookie that
+can be reused on another client some other relevant tips from
+<A HREF="http://www.owasp.org/index.php/Session_Management">http://www.owasp.org/index.php/Session_Management</A>
+ All session tokens in high value applications SHOULD be tied to a specific
+HTTP client instance (session identifier and IP address).
+Application servers SHOULD use private temporary file areas per
+client/application to store session data.
+All applications SHOULD use a cryptographically secure page or form nonce in
+a hidden form field.
+Each form or page nonce SHOULD be removed from the active list as soon as it
+is submitted.
+ Session tokens should be regenerated prior to any significant high value
+transaction.
+In high-value applications, session tokens should be regenerated after a
+certain number of requests.
+In high-value applications, session tokens should be regenerated after a
+certain period of time.
+
+In general you can say the less predictable a session token is, the more
+secure it is.
+So to make your appplication as secure as possible:
+- make it difficult to predict
+- link it to the client with an difficult to predict property
+- reuse each token as little as possible and regenerate as often as possible
+- make use of a second (unpredictable) token and validate and reissue that
+for every request (also helps against CSRF)
+
+regards, Dave
+
+
+
+2010/7/22 Nam T. Nguyen &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">namn at bluemoon.com.vn</A>&gt;
+
+&gt;<i> A few ways:
+</I>&gt;<i>
+</I>&gt;<i> 1. Embed some specific information such as REMOTE_ADDRESS into the cookie.
+</I>&gt;<i>
+</I>&gt;<i> 2. It is unclear whether the cookie stores username/password. If it does,
+</I>&gt;<i> DON'T.
+</I>&gt;<i>
+</I>&gt;<i> 3. Give the cookie a shorter time out.
+</I>&gt;<i>
+</I>&gt;<i> Well, these don't complete solve the problem. But they will help limit the
+</I>&gt;<i> possibilities.
+</I>&gt;<i>
+</I>&gt;<i> Besides, if one can obtain a cookie, he pretty much can do anything else.
+</I>&gt;<i> That's how CSS and CSRF works, isn't it? In your case, this requires access
+</I>&gt;<i> to that particular machine (to __copy the cookies__). You have a bigger
+</I>&gt;<i> problem to worry about then.
+</I>&gt;<i>
+</I>&gt;<i> Cheers
+</I>&gt;<i> Nam
+</I>&gt;<i>
+</I>&gt;<i> On Jul 22, 2010, at 10:03 AM, Zaki Akhmad wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt; Hello,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I found the web application that I test is vulnerable with its
+</I>&gt;<i> &gt; cookies. After I successfully login with userid and password provided,
+</I>&gt;<i> &gt; I can copy the cookies to another browser/computer so that he/she can
+</I>&gt;<i> &gt; enter the web application without login.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; How do I fix this vulnerability?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks!
+</I>&gt;<i> &gt; --
+</I>&gt;<i> &gt; Zaki Akhmad
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-testing mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">https://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;<i>
+</I>&gt;<i> Nam Nguyen, CISA, CISSP, CSSLP
+</I>&gt;<i> Blue Moon Consulting Co., Ltd.
+</I>&gt;<i> <A HREF="http://www.bluemoon.com.vn">http://www.bluemoon.com.vn</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-testing mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">https://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-testing/attachments/20100722/342aad98/attachment.html">https://lists.owasp.org/pipermail/owasp-testing/attachments/20100722/342aad98/attachment.html</A> 
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001850.html">[Owasp-testing] Copy Cookies
+</A></li>
+	<LI>Next message: <A HREF="001851.html">[Owasp-testing] Copy Cookies
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1848">[ date ]</a>
+              <a href="thread.html#1848">[ thread ]</a>
+              <a href="subject.html#1848">[ subject ]</a>
+              <a href="author.html#1848">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

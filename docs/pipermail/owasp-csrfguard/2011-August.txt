@@ -1,0 +1,2221 @@
+From nirav.shah83 at gmail.com  Mon Aug  1 10:28:03 2011
+From: nirav.shah83 at gmail.com (Nirav)
+Date: Mon, 1 Aug 2011 15:28:03 +0100
+Subject: [Owasp-csrfguard] Cant Get Forms Working
+In-Reply-To: <4E346FEA.1070103@stanford.edu>
+References: <CAA1+OusxzpbF=EvjsF8eecp8yTXsyDmJE+d=jabExjBeh=yY2g@mail.gmail.com>
+	<CAA1+OuubCCYTmbSRZu=J=FzZ8oE-aqwbdvtR9O+Wb-K1_2_2qQ@mail.gmail.com>
+	<4E32D5A0.7020005@stanford.edu>
+	<CAA1+Outz+zJEo4n0+FXwKPhWRSnhyjkX2oYyN=Uzj51AqXRugQ@mail.gmail.com>
+	<4E346FEA.1070103@stanford.edu>
+Message-ID: <CAA1+Ouu1ZtS-1=AECtEsjTFOqAPTf1q4recQZdF6_RLgvG8=Mg@mail.gmail.com>
+
+Hello!
+
+Thanks for your suggestion below. I did further prod into the HTML source
+and need some help understanding how the form submission works. As you can
+see from the attached screenshot, there is a hidden field that gets inserted
+into the HTML, it just doesn't get used. Where should I be looking for the
+code that actually makes the form submit with the hidden field?
+
+Thanks!
+Nirav
+
+
+On Sat, Jul 30, 2011 at 9:56 PM, Patrick Radtke <pradtke at stanford.edu>wrote:
+
+>  On 7/29/11 8:59 AM, Nirav wrote:
+>
+> Hi Patrick,
+>
+> Thanks for replying. We are using the Javascript DOM Manipulation. The
+> application POSTs to a URL without the token.
+> The token's included in the Referer header. A firebug snapshot attached.
+>
+> Thanks!
+> Nirav
+>
+>
+> Nirav,
+>
+> The token should be added as a hidden form field. The referer header just
+> shows which page you were posting from, in
+> your case you are posting from a page that had a token in the URL.
+>
+> I would use a javascript debugger and look at why the token isn't being
+> added as a hidden from field.
+>
+> -Patrick
+>
+>
+>
+>
+> On Fri, Jul 29, 2011 at 4:45 PM, Patrick Radtke <pradtke at stanford.edu>wrote:
+>
+>>   On 7/29/11 7:29 AM, Nirav wrote:
+>>
+>> Hello All !
+>>
+>> I just got the latest version of the CSRFGuard from github and built it
+>> and deployed it on our application on Glassfish 2.1. We use Stripes as our
+>> MVC. Most parts of the app seem to be working fine and I see the token being
+>> injected where it should be. But I cant get any of the forms to work. The
+>> POST in firebug shows the token being sent. But when its intercepted by the
+>> CSRFGuardFilter - it does not find it. I debugged further and found that
+>> there were no request parameters at all in my HTTPRequest !
+>>
+>> Any idea what the weirdness is? We have been at it for two days now ! :(
+>>
+>> Regards!
+>> Nirav
+>>
+>>   Are you posting with the token as a form parameter, or are you posting
+>> to URL that contains the token?
+>> We post to a url that contains the token and that works fine.
+>> Are you using the JavaScript library or the JSTL tags?
+>>
+>> -Patrick
+>>
+>>
+>>
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>
+>>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110801/09df0274/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: HTMLSource.JPG
+Type: image/jpeg
+Size: 103874 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110801/09df0274/attachment-0001.jpe 
+
+From pradtke at stanford.edu  Mon Aug  1 10:55:45 2011
+From: pradtke at stanford.edu (Patrick Radtke)
+Date: Mon, 01 Aug 2011 07:55:45 -0700
+Subject: [Owasp-csrfguard] Cant Get Forms Working
+In-Reply-To: <CAA1+Ouu1ZtS-1=AECtEsjTFOqAPTf1q4recQZdF6_RLgvG8=Mg@mail.gmail.com>
+References: <CAA1+OusxzpbF=EvjsF8eecp8yTXsyDmJE+d=jabExjBeh=yY2g@mail.gmail.com>
+	<CAA1+OuubCCYTmbSRZu=J=FzZ8oE-aqwbdvtR9O+Wb-K1_2_2qQ@mail.gmail.com>
+	<4E32D5A0.7020005@stanford.edu>
+	<CAA1+Outz+zJEo4n0+FXwKPhWRSnhyjkX2oYyN=Uzj51AqXRugQ@mail.gmail.com>
+	<4E346FEA.1070103@stanford.edu>
+	<CAA1+Ouu1ZtS-1=AECtEsjTFOqAPTf1q4recQZdF6_RLgvG8=Mg@mail.gmail.com>
+Message-ID: <4E36BE71.1020300@stanford.edu>
+
+On 8/1/11 7:28 AM, Nirav wrote:
+> Hello!
+>
+> Thanks for your suggestion below. I did further prod into the HTML 
+> source and need some help understanding how the form submission works. 
+> As you can see from the attached screenshot, there is a hidden field 
+> that gets inserted into the HTML, it just doesn't get used. Where 
+> should I be looking for the code that actually makes the form submit 
+> with the hidden field?
+Hi Nirav,
+
+CSRF Guard doesn't currently support
+
+enctype="multipart/form-data"
+https://lists.owasp.org/pipermail/owasp-csrfguard/2011-February/000045.html
+
+If you look back a few commits in github, you can see Eric had started 
+working on a
+fix. I don't know how much work is left to do on it.
+
+-Patrick
+
+From nirav.shah83 at gmail.com  Mon Aug  1 11:20:14 2011
+From: nirav.shah83 at gmail.com (Nirav)
+Date: Mon, 1 Aug 2011 16:20:14 +0100
+Subject: [Owasp-csrfguard] Cant Get Forms Working
+In-Reply-To: <4E36BE71.1020300@stanford.edu>
+References: <CAA1+OusxzpbF=EvjsF8eecp8yTXsyDmJE+d=jabExjBeh=yY2g@mail.gmail.com>
+	<CAA1+OuubCCYTmbSRZu=J=FzZ8oE-aqwbdvtR9O+Wb-K1_2_2qQ@mail.gmail.com>
+	<4E32D5A0.7020005@stanford.edu>
+	<CAA1+Outz+zJEo4n0+FXwKPhWRSnhyjkX2oYyN=Uzj51AqXRugQ@mail.gmail.com>
+	<4E346FEA.1070103@stanford.edu>
+	<CAA1+Ouu1ZtS-1=AECtEsjTFOqAPTf1q4recQZdF6_RLgvG8=Mg@mail.gmail.com>
+	<4E36BE71.1020300@stanford.edu>
+Message-ID: <CAA1+OuukHCh2uLve0qV_ynX9=XbpHmXFWP6KygPib+zBf99Z=Q@mail.gmail.com>
+
+Thanks Patrick ! That make's sense.
+I will in that case look at going around that issue and try and implement
+something of my own. Cause I can see the actual token being sent through as
+part of the form data - the CSRFGuardFilter gets confused cause it cant find
+it on the URI.
+
+But this is very helpful information. Thanks Much!
+
+
+
+On Mon, Aug 1, 2011 at 3:55 PM, Patrick Radtke <pradtke at stanford.edu> wrote:
+
+> On 8/1/11 7:28 AM, Nirav wrote:
+>
+>> Hello!
+>>
+>> Thanks for your suggestion below. I did further prod into the HTML source
+>> and need some help understanding how the form submission works. As you can
+>> see from the attached screenshot, there is a hidden field that gets inserted
+>> into the HTML, it just doesn't get used. Where should I be looking for the
+>> code that actually makes the form submit with the hidden field?
+>>
+> Hi Nirav,
+>
+> CSRF Guard doesn't currently support
+>
+> enctype="multipart/form-data"
+> https://lists.owasp.org/**pipermail/owasp-csrfguard/**
+> 2011-February/000045.html<https://lists.owasp.org/pipermail/owasp-csrfguard/2011-February/000045.html>
+>
+> If you look back a few commits in github, you can see Eric had started
+> working on a
+> fix. I don't know how much work is left to do on it.
+>
+> -Patrick
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110801/88905e8a/attachment.html 
+
+From staleks at gmail.com  Wed Aug  3 11:35:34 2011
+From: staleks at gmail.com (Aleksandar Stoisavljevic)
+Date: Wed, 3 Aug 2011 17:35:34 +0200
+Subject: [Owasp-csrfguard] how to configure LogLevel in
+	Owasp.CsrfGuard.properties ????
+Message-ID: <CAJHA-iMp2GEOBJeNuXjRDPb3Er=ei-V6P+Lgi7QUqY4X9EqXXw@mail.gmail.com>
+
+Hi,
+
+I am now using your project in a way that I want to protect some of the
+resources to prevent CSRF Attacks.
+
+I've looked in Owasp test project and accommodate those properties to my
+needs but now I am having quite a lot of [Info] level logs.
+
+
+How I can turn this just to have Error ????
+
+
+Thanks
+
+-- 
+Aleksandar dipl. ing. Stoisavljevic
+Software Developer
+mobile: +381 (0) 64 211 50 40
+Web: http://www.staleksit.in.rs
+E-mail:staleks at gmail.com
+SkypeId: staleks_ns
+Mail: Branislava Nusica 10, 21000 Novi Sad, Serbia
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110803/ee6a71b3/attachment.html 
+
+From pradtke at stanford.edu  Thu Aug  4 12:42:57 2011
+From: pradtke at stanford.edu (Patrick Radtke)
+Date: Thu, 04 Aug 2011 09:42:57 -0700
+Subject: [Owasp-csrfguard] how to configure LogLevel in
+ Owasp.CsrfGuard.properties ????
+In-Reply-To: <CAJHA-iMp2GEOBJeNuXjRDPb3Er=ei-V6P+Lgi7QUqY4X9EqXXw@mail.gmail.com>
+References: <CAJHA-iMp2GEOBJeNuXjRDPb3Er=ei-V6P+Lgi7QUqY4X9EqXXw@mail.gmail.com>
+Message-ID: <4E3ACC11.1000503@stanford.edu>
+
+On 8/3/11 8:35 AM, Aleksandar Stoisavljevic wrote:
+> Hi,
+>
+> I am now using your project in a way that I want to protect some of 
+> the resources to prevent CSRF Attacks.
+>
+> I've looked in Owasp test project and accommodate those properties to 
+> my needs but now I am having quite a lot of [Info] level logs.
+>
+>
+> How I can turn this just to have Error ????
+I don't think there is a way. You can create you own logger with 
+org.owasp.csrfguard.log.ILogger.
+https://www.owasp.org/index.php/CSRFGuard_3_Configuration#Logger
+
+
+From angela.sullivan at fmr.com  Thu Aug 18 10:41:41 2011
+From: angela.sullivan at fmr.com (Sullivan, Angela)
+Date: Thu, 18 Aug 2011 09:41:41 -0500
+Subject: [Owasp-csrfguard] Latest CsrfGuard GA release
+Message-ID: <98B83666BBE7CC4493FCBAB00A6CACDC81B7788E43@MSGDALCCRC2WIN.DMN1.FMR.COM>
+
+
+Hi All,
+
+I'm looking for that latest CsrfGuard GA release with matching source. The website shows a 3.0.0.503-alpha release but no GA release. I also can't tell which source matches that alpha release. If anybody could point me in the right direction, that would be great.
+
+Thanks
+Angela
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110818/9d31e34c/attachment.html 
+
+From sdittm1 at gmail.com  Thu Aug 25 20:45:45 2011
+From: sdittm1 at gmail.com (Steve Dittmann)
+Date: Thu, 25 Aug 2011 17:45:45 -0700
+Subject: [Owasp-csrfguard] First implementation of csrfguard getting errors.
+Message-ID: <CAHTPmKnrWemwWAVJeiPmkz1YBuLyQLD8bRcvTr=knbGz3MMKAA@mail.gmail.com>
+
+Hello,
+
+This is my first attempt to implement csrfguard.
+
+I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and
+the Owasp.CsrfGuard.properties to the WEB-INF folder.
+
+It also has been added to the classpath:
+
+CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+
+I'm receiving the below errors on my localhost when I attempt to access the
+login page.
+
+
+Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+<Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User defined
+listener org.owasp.csrfguard.CsrfGuardListener failed:
+java.lang.RuntimeException: java.lang.NullPointerException.
+java.lang.RuntimeException: java.lang.NullPointerException
+        at
+org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+        at
+org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+        at
+weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+        at
+weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+        at
+weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+        Truncated. see log file for complete stacktrace
+java.lang.NullPointerException
+        at java.io.File.<init>(File.java:194)
+        at
+org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+        at
+org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+        at
+org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+        at
+weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+        Truncated. see log file for complete stacktrace
+>
+<Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020>
+<[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet failed
+with Exception
+java.lang.NullPointerException
+        at
+org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+        at
+weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+        at
+weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+        at
+weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+        at weblogic.security.service.SecurityManager.runAs(Unknown Source)
+        Truncated. see log file for complete stacktrace
+
+
+Below is the Web.xml:
+
+<web-app>
+<display-name>SDDWeb</display-name>
+ <context-param>
+<param-name>Owasp.CsrfGuard.Config</param-name>
+<param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+</context-param>
+ <context-param>
+<param-name>Owasp.CsrfGuard.Config.Print</param-name>
+<param-value>true</param-value>
+</context-param>
+ <listener>
+<listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+</listener>
+
+
+<filter>
+<filter-name>CSRFGuard</filter-name>
+<filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+</filter>
+<filter-mapping>
+<filter-name>CSRFGuard</filter-name>
+<url-pattern>/*</url-pattern>
+</filter-mapping>
+
+
+<filter>
+    <filter-name>SessionFilter</filter-name>
+    <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+    <init-param>
+    <param-name>findSessionAttribute</param-name>
+    <param-value>user</param-value>
+    </init-param>
+    <init-param>
+    <param-name>message</param-name>
+    <param-value>error.session.expired</param-value>
+    </init-param>
+    <init-param>
+    <param-name>notFoundFoward</param-name>
+    <param-value>/sdd.do</param-value>
+    </init-param>
+   </filter>
+   <filter-mapping>
+    <filter-name>SessionFilter</filter-name>
+    <url-pattern>*.jsp</url-pattern>
+   </filter-mapping>
+    <filter-mapping>
+    <filter-name>SessionFilter</filter-name>
+    <url-pattern>*.do</url-pattern>
+   </filter-mapping>
+   <listener>
+           <listener-class>
+             com.sig.sdd.ui.utils.ReceiptListener
+           </listener-class>
+  </listener>
+  <listener>
+
+<listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+   </listener>
+  <servlet>
+      <servlet-name>action</servlet-name>
+      <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+      <init-param>
+        <param-name>config</param-name>
+        <param-value>/WEB-INF/struts-config.xml</param-value>
+      </init-param>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+
+
+    <!-- Action Servlet Mapping -->
+    <servlet-mapping>
+      <servlet-name>action</servlet-name>
+      <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AddressBook</servlet-name>
+
+<servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+        <init-param>
+          <param-name>ConfigFile</param-name>
+          <param-value>/WEB-INF/addressbook.xml</param-value>
+        </init-param>
+        <init-param>
+         <param-name>Reloadable</param-name>
+         <param-value>true</param-value>
+        </init-param>
+        <display-name>AddressBook</display-name>
+    </servlet>
+
+    <servlet-mapping>
+            <servlet-name>AddressBook</servlet-name>
+            <url-pattern>AddressBook</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+         <servlet-name>JavaScriptServlet</servlet-name>
+
+ <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+         <init-param>
+             <param-name>source-file</param-name>
+             <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+         </init-param>
+         <init-param>
+             <param-name>inject-into-forms</param-name>
+             <param-value>true</param-value>
+         </init-param>
+         <init-param>
+             <param-name>inject-into-attributes</param-name>
+             <param-value>true</param-value>
+         </init-param>
+        <init-param>
+             <param-name>domain-strict</param-name>
+             <param-value>false</param-value>
+        </init-param>
+        <init-param>
+             <param-name>referer-pattern</param-name>
+             <param-value>.*localhost.*</param-value>
+        </init-param>
+</servlet>
+
+<servlet-mapping>
+     <servlet-name>JavaScriptServlet</servlet-name>
+     <url-pattern>/JavaScriptServlet</url-pattern>
+</servlet-mapping>
+
+
+    <!-- The Welcome File List -->
+    <welcome-file-list>
+      <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- Application Tag Library Descriptor -->
+    <taglib>
+      <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+      <taglib-location>/WEB-INF/app.tld</taglib-location>
+    </taglib>
+
+    <!-- Struts Tag Library Descriptors -->
+    <taglib>
+      <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+      <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+    </taglib>
+
+    <taglib>
+      <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+      <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+    </taglib>
+
+    <taglib>
+      <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+      <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+    </taglib>
+
+    <taglib>
+      <taglib-uri>/view-taglib</taglib-uri>
+      <taglib-location>/WEB-INF/view.tld</taglib-location>
+    </taglib>
+
+    <taglib>
+      <taglib-uri>/webdb-taglib</taglib-uri>
+      <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+    </taglib>
+
+    <taglib>
+      <taglib-uri>/auth-taglib</taglib-uri>
+      <taglib-location>/WEB-INF/auth.tld</taglib-location>
+    </taglib>
+
+  <session-config>
+    <session-timeout>30</session-timeout>
+  </session-config>
+  <error-page>
+    <error-code>404</error-code>
+    <location>error.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>error.jsp</location>
+  </error-page>
+</web-app>
+
+
+Any ideas?
+
+Thanks in advance.
+
+Steve
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110825/cb67e32a/attachment.html 
+
+From pradtke at stanford.edu  Fri Aug 26 12:46:01 2011
+From: pradtke at stanford.edu (Patrick Radtke)
+Date: Fri, 26 Aug 2011 09:46:01 -0700
+Subject: [Owasp-csrfguard] First implementation of csrfguard getting
+	errors.
+In-Reply-To: <CAHTPmKnrWemwWAVJeiPmkz1YBuLyQLD8bRcvTr=knbGz3MMKAA@mail.gmail.com>
+References: <CAHTPmKnrWemwWAVJeiPmkz1YBuLyQLD8bRcvTr=knbGz3MMKAA@mail.gmail.com>
+Message-ID: <4E57CDC9.9080203@stanford.edu>
+
+What version are you using?
+If you are building from github let me know the commit.
+
+On 8/25/11 5:45 PM, Steve Dittmann wrote:
+> Hello,
+>
+> This is my first attempt to implement csrfguard.
+>
+> I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and 
+> the Owasp.CsrfGuard.properties to the WEB-INF folder.
+>
+> It also has been added to the classpath:
+>
+> CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+>
+> I'm receiving the below errors on my localhost when I attempt to 
+> access the login page.
+>
+>
+> Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+> <Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User 
+> defined listener org.owasp.csrfguard.CsrfGuardListener failed: 
+> java.lang.RuntimeException: java.lang.NullPointerException.
+> java.lang.RuntimeException: java.lang.NullPointerException
+>         at 
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+>         at 
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>         at 
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>         at 
+> weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+>         at 
+> weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+>         Truncated. see log file for complete stacktrace
+> java.lang.NullPointerException
+>         at java.io.File.<init>(File.java:194)
+>         at 
+> org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+>         at 
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+>         at 
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>         at 
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>         Truncated. see log file for complete stacktrace
+> >
+> <Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020> 
+> <[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet 
+> failed with Exception
+> java.lang.NullPointerException
+>         at 
+> org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+>         at 
+> weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+>         at 
+> weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+>         at 
+> weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+>         at weblogic.security.service.SecurityManager.runAs(Unknown Source)
+>         Truncated. see log file for complete stacktrace
+>
+>
+> Below is the Web.xml:
+>
+> <web-app>
+> <display-name>SDDWeb</display-name>
+> <context-param>
+> <param-name>Owasp.CsrfGuard.Config</param-name>
+> <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+> </context-param>
+> <context-param>
+> <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+> <param-value>true</param-value>
+> </context-param>
+> <listener>
+> <listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+> </listener>
+>
+>
+> <filter>
+> <filter-name>CSRFGuard</filter-name>
+> <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+> </filter>
+> <filter-mapping>
+> <filter-name>CSRFGuard</filter-name>
+> <url-pattern>/*</url-pattern>
+> </filter-mapping>
+>
+>
+> <filter>
+> <filter-name>SessionFilter</filter-name>
+> <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+> <init-param>
+> <param-name>findSessionAttribute</param-name>
+> <param-value>user</param-value>
+> </init-param>
+> <init-param>
+> <param-name>message</param-name>
+> <param-value>error.session.expired</param-value>
+> </init-param>
+> <init-param>
+> <param-name>notFoundFoward</param-name>
+> <param-value>/sdd.do</param-value>
+> </init-param>
+> </filter>
+> <filter-mapping>
+> <filter-name>SessionFilter</filter-name>
+> <url-pattern>*.jsp</url-pattern>
+> </filter-mapping>
+> <filter-mapping>
+> <filter-name>SessionFilter</filter-name>
+> <url-pattern>*.do</url-pattern>
+> </filter-mapping>
+> <listener>
+> <listener-class>
+>              com.sig.sdd.ui.utils.ReceiptListener
+> </listener-class>
+> </listener>
+> <listener>
+> <listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+> </listener>
+> <servlet>
+> <servlet-name>action</servlet-name>
+> <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+> <init-param>
+> <param-name>config</param-name>
+> <param-value>/WEB-INF/struts-config.xml</param-value>
+> </init-param>
+> <load-on-startup>1</load-on-startup>
+> </servlet>
+> <!-- Action Servlet Mapping -->
+> <servlet-mapping>
+> <servlet-name>action</servlet-name>
+> <url-pattern>*.do</url-pattern>
+> </servlet-mapping>
+> <servlet>
+> <servlet-name>AddressBook</servlet-name>
+> <servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+> <init-param>
+> <param-name>ConfigFile</param-name>
+> <param-value>/WEB-INF/addressbook.xml</param-value>
+> </init-param>
+> <init-param>
+> <param-name>Reloadable</param-name>
+> <param-value>true</param-value>
+> </init-param>
+> <display-name>AddressBook</display-name>
+> </servlet>
+> <servlet-mapping>
+> <servlet-name>AddressBook</servlet-name>
+> <url-pattern>AddressBook</url-pattern>
+> </servlet-mapping>
+> <servlet>
+> <servlet-name>JavaScriptServlet</servlet-name>
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+> <init-param>
+> <param-name>source-file</param-name>
+> <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+> </init-param>
+> <init-param>
+> <param-name>inject-into-forms</param-name>
+> <param-value>true</param-value>
+> </init-param>
+> <init-param>
+> <param-name>inject-into-attributes</param-name>
+> <param-value>true</param-value>
+> </init-param>
+> <init-param>
+> <param-name>domain-strict</param-name>
+> <param-value>false</param-value>
+> </init-param>
+> <init-param>
+> <param-name>referer-pattern</param-name>
+> <param-value>.*localhost.*</param-value>
+> </init-param>
+> </servlet>
+>
+> <servlet-mapping>
+> <servlet-name>JavaScriptServlet</servlet-name>
+> <url-pattern>/JavaScriptServlet</url-pattern>
+> </servlet-mapping>
+> <!-- The Welcome File List -->
+> <welcome-file-list>
+> <welcome-file>index.jsp</welcome-file>
+> </welcome-file-list>
+> <!-- Application Tag Library Descriptor -->
+> <taglib>
+> <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+> <taglib-location>/WEB-INF/app.tld</taglib-location>
+> </taglib>
+> <!-- Struts Tag Library Descriptors -->
+> <taglib>
+> <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+> <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+> </taglib>
+> <taglib>
+> <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+> <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+> </taglib>
+> <taglib>
+> <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+> <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+> </taglib>
+>
+> <taglib>
+> <taglib-uri>/view-taglib</taglib-uri>
+> <taglib-location>/WEB-INF/view.tld</taglib-location>
+> </taglib>
+> <taglib>
+> <taglib-uri>/webdb-taglib</taglib-uri>
+> <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+> </taglib>
+> <taglib>
+> <taglib-uri>/auth-taglib</taglib-uri>
+> <taglib-location>/WEB-INF/auth.tld</taglib-location>
+> </taglib>
+>
+> <session-config>
+> <session-timeout>30</session-timeout>
+> </session-config>
+> <error-page>
+> <error-code>404</error-code>
+> <location>error.jsp</location>
+> </error-page>
+> <error-page>
+> <error-code>500</error-code>
+> <location>error.jsp</location>
+> </error-page>
+> </web-app>
+>
+>
+> Any ideas?
+>
+> Thanks in advance.
+>
+> Steve
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/3f1aadb7/attachment-0001.html 
+
+From sdittm1 at gmail.com  Fri Aug 26 12:55:55 2011
+From: sdittm1 at gmail.com (Steve Dittmann)
+Date: Fri, 26 Aug 2011 09:55:55 -0700
+Subject: [Owasp-csrfguard] Owasp-csrfguard Digest, Vol 14, Issue 8
+In-Reply-To: <mailman.949.1314377176.2296.owasp-csrfguard@lists.owasp.org>
+References: <mailman.949.1314377176.2296.owasp-csrfguard@lists.owasp.org>
+Message-ID: <CAHTPmK=L0x1WuQgyJ_J2JJo4R5e0D82k78MjppMAU-uRFxhNTw@mail.gmail.com>
+
+Hi Patrick,
+
+I used the download from
+https://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project
+
+Downloads
+
+OWASP CSRFGuard 3.0.0.503
+(ALPHA)<https://github.com/downloads/esheri3/OWASP-CSRFGuard/Owasp-CsrfGuard-3.0.0.503.tar.gz>
+-
+download the latest development release with binary and associated
+configuration files *(recommended)*.
+
+Steve
+
+
+On Fri, Aug 26, 2011 at 9:46 AM, <owasp-csrfguard-request at lists.owasp.org>wrote:
+
+> Send Owasp-csrfguard mailing list submissions to
+>        owasp-csrfguard at lists.owasp.org
+>
+> To subscribe or unsubscribe via the World Wide Web, visit
+>        https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> or, via email, send a message with subject or body 'help' to
+>        owasp-csrfguard-request at lists.owasp.org
+>
+> You can reach the person managing the list at
+>        owasp-csrfguard-owner at lists.owasp.org
+>
+> When replying, please edit your Subject line so it is more specific
+> than "Re: Contents of Owasp-csrfguard digest..."
+>
+>
+> Today's Topics:
+>
+>   1. Re: First implementation of csrfguard getting     errors.
+>      (Patrick Radtke)
+>
+>
+> ----------------------------------------------------------------------
+>
+> Message: 1
+> Date: Fri, 26 Aug 2011 09:46:01 -0700
+> From: Patrick Radtke <pradtke at stanford.edu>
+> Subject: Re: [Owasp-csrfguard] First implementation of csrfguard
+>        getting errors.
+> To: owasp-csrfguard at lists.owasp.org
+> Message-ID: <4E57CDC9.9080203 at stanford.edu>
+> Content-Type: text/plain; charset="iso-8859-1"
+>
+> What version are you using?
+> If you are building from github let me know the commit.
+>
+> On 8/25/11 5:45 PM, Steve Dittmann wrote:
+> > Hello,
+> >
+> > This is my first attempt to implement csrfguard.
+> >
+> > I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and
+> > the Owasp.CsrfGuard.properties to the WEB-INF folder.
+> >
+> > It also has been added to the classpath:
+> >
+> >
+> CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+> >
+> > I'm receiving the below errors on my localhost when I attempt to
+> > access the login page.
+> >
+> >
+> > Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+> > <Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User
+> > defined listener org.owasp.csrfguard.CsrfGuardListener failed:
+> > java.lang.RuntimeException: java.lang.NullPointerException.
+> > java.lang.RuntimeException: java.lang.NullPointerException
+> >         at
+> >
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+> >         at
+> >
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+> >         at
+> >
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+> >         at
+> >
+> weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+> >         at
+> >
+> weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+> >         Truncated. see log file for complete stacktrace
+> > java.lang.NullPointerException
+> >         at java.io.File.<init>(File.java:194)
+> >         at
+> >
+> org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+> >         at
+> >
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+> >         at
+> >
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+> >         at
+> >
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+> >         Truncated. see log file for complete stacktrace
+> > >
+> > <Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020>
+> > <[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet
+> > failed with Exception
+> > java.lang.NullPointerException
+> >         at
+> > org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+> >         at
+> >
+> weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+> >         at
+> >
+> weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+> >         at
+> >
+> weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+> >         at weblogic.security.service.SecurityManager.runAs(Unknown
+> Source)
+> >         Truncated. see log file for complete stacktrace
+> >
+> >
+> > Below is the Web.xml:
+> >
+> > <web-app>
+> > <display-name>SDDWeb</display-name>
+> > <context-param>
+> > <param-name>Owasp.CsrfGuard.Config</param-name>
+> > <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+> > </context-param>
+> > <context-param>
+> > <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+> > <param-value>true</param-value>
+> > </context-param>
+> > <listener>
+> > <listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+> > </listener>
+> >
+> >
+> > <filter>
+> > <filter-name>CSRFGuard</filter-name>
+> > <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+> > </filter>
+> > <filter-mapping>
+> > <filter-name>CSRFGuard</filter-name>
+> > <url-pattern>/*</url-pattern>
+> > </filter-mapping>
+> >
+> >
+> > <filter>
+> > <filter-name>SessionFilter</filter-name>
+> > <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+> > <init-param>
+> > <param-name>findSessionAttribute</param-name>
+> > <param-value>user</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>message</param-name>
+> > <param-value>error.session.expired</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>notFoundFoward</param-name>
+> > <param-value>/sdd.do</param-value>
+> > </init-param>
+> > </filter>
+> > <filter-mapping>
+> > <filter-name>SessionFilter</filter-name>
+> > <url-pattern>*.jsp</url-pattern>
+> > </filter-mapping>
+> > <filter-mapping>
+> > <filter-name>SessionFilter</filter-name>
+> > <url-pattern>*.do</url-pattern>
+> > </filter-mapping>
+> > <listener>
+> > <listener-class>
+> >              com.sig.sdd.ui.utils.ReceiptListener
+> > </listener-class>
+> > </listener>
+> > <listener>
+> >
+> <listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+> > </listener>
+> > <servlet>
+> > <servlet-name>action</servlet-name>
+> > <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+> > <init-param>
+> > <param-name>config</param-name>
+> > <param-value>/WEB-INF/struts-config.xml</param-value>
+> > </init-param>
+> > <load-on-startup>1</load-on-startup>
+> > </servlet>
+> > <!-- Action Servlet Mapping -->
+> > <servlet-mapping>
+> > <servlet-name>action</servlet-name>
+> > <url-pattern>*.do</url-pattern>
+> > </servlet-mapping>
+> > <servlet>
+> > <servlet-name>AddressBook</servlet-name>
+> > <servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+> > <init-param>
+> > <param-name>ConfigFile</param-name>
+> > <param-value>/WEB-INF/addressbook.xml</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>Reloadable</param-name>
+> > <param-value>true</param-value>
+> > </init-param>
+> > <display-name>AddressBook</display-name>
+> > </servlet>
+> > <servlet-mapping>
+> > <servlet-name>AddressBook</servlet-name>
+> > <url-pattern>AddressBook</url-pattern>
+> > </servlet-mapping>
+> > <servlet>
+> > <servlet-name>JavaScriptServlet</servlet-name>
+> >
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+> > <init-param>
+> > <param-name>source-file</param-name>
+> > <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>inject-into-forms</param-name>
+> > <param-value>true</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>inject-into-attributes</param-name>
+> > <param-value>true</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>domain-strict</param-name>
+> > <param-value>false</param-value>
+> > </init-param>
+> > <init-param>
+> > <param-name>referer-pattern</param-name>
+> > <param-value>.*localhost.*</param-value>
+> > </init-param>
+> > </servlet>
+> >
+> > <servlet-mapping>
+> > <servlet-name>JavaScriptServlet</servlet-name>
+> > <url-pattern>/JavaScriptServlet</url-pattern>
+> > </servlet-mapping>
+> > <!-- The Welcome File List -->
+> > <welcome-file-list>
+> > <welcome-file>index.jsp</welcome-file>
+> > </welcome-file-list>
+> > <!-- Application Tag Library Descriptor -->
+> > <taglib>
+> > <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+> > <taglib-location>/WEB-INF/app.tld</taglib-location>
+> > </taglib>
+> > <!-- Struts Tag Library Descriptors -->
+> > <taglib>
+> > <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+> > <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+> > </taglib>
+> > <taglib>
+> > <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+> > <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+> > </taglib>
+> > <taglib>
+> > <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+> > <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+> > </taglib>
+> >
+> > <taglib>
+> > <taglib-uri>/view-taglib</taglib-uri>
+> > <taglib-location>/WEB-INF/view.tld</taglib-location>
+> > </taglib>
+> > <taglib>
+> > <taglib-uri>/webdb-taglib</taglib-uri>
+> > <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+> > </taglib>
+> > <taglib>
+> > <taglib-uri>/auth-taglib</taglib-uri>
+> > <taglib-location>/WEB-INF/auth.tld</taglib-location>
+> > </taglib>
+> >
+> > <session-config>
+> > <session-timeout>30</session-timeout>
+> > </session-config>
+> > <error-page>
+> > <error-code>404</error-code>
+> > <location>error.jsp</location>
+> > </error-page>
+> > <error-page>
+> > <error-code>500</error-code>
+> > <location>error.jsp</location>
+> > </error-page>
+> > </web-app>
+> >
+> >
+> > Any ideas?
+> >
+> > Thanks in advance.
+> >
+> > Steve
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> > _______________________________________________
+> > Owasp-csrfguard mailing list
+> > Owasp-csrfguard at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+> -------------- next part --------------
+> An HTML attachment was scrubbed...
+> URL:
+> https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/3f1aadb7/attachment.html
+>
+> ------------------------------
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+>
+> End of Owasp-csrfguard Digest, Vol 14, Issue 8
+> **********************************************
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/349ce599/attachment.html 
+
+From pradtke at stanford.edu  Fri Aug 26 13:02:43 2011
+From: pradtke at stanford.edu (Patrick Radtke)
+Date: Fri, 26 Aug 2011 10:02:43 -0700
+Subject: [Owasp-csrfguard] First implementation of csrfguard getting
+	errors.
+In-Reply-To: <4E57CDC9.9080203@stanford.edu>
+References: <CAHTPmKnrWemwWAVJeiPmkz1YBuLyQLD8bRcvTr=knbGz3MMKAA@mail.gmail.com>
+	<4E57CDC9.9080203@stanford.edu>
+Message-ID: <4E57D1B3.9070909@stanford.edu>
+
+It looks like it can't find your Owasp properties file.
+Try specifying the full file path and see if it can find it then.
+On 8/26/11 9:46 AM, Patrick Radtke wrote:
+> What version are you using?
+> If you are building from github let me know the commit.
+>
+> On 8/25/11 5:45 PM, Steve Dittmann wrote:
+>> Hello,
+>>
+>> This is my first attempt to implement csrfguard.
+>>
+>> I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and 
+>> the Owasp.CsrfGuard.properties to the WEB-INF folder.
+>>
+>> It also has been added to the classpath:
+>>
+>> CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+>>
+>> I'm receiving the below errors on my localhost when I attempt to 
+>> access the login page.
+>>
+>>
+>> Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+>> <Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User 
+>> defined listener org.owasp.csrfguard.CsrfGuardListener failed: 
+>> java.lang.RuntimeException: java.lang.NullPointerException.
+>> java.lang.RuntimeException: java.lang.NullPointerException
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>>         at 
+>> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>>         at 
+>> weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+>>         at 
+>> weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+>>         Truncated. see log file for complete stacktrace
+>> java.lang.NullPointerException
+>>         at java.io.File.<init>(File.java:194)
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>>         at 
+>> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>>         Truncated. see log file for complete stacktrace
+>> >
+>> <Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020> 
+>> <[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet 
+>> failed with Exception
+>> java.lang.NullPointerException
+>>         at 
+>> org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+>>         at 
+>> weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+>>         at 
+>> weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+>>         at 
+>> weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+>>         at weblogic.security.service.SecurityManager.runAs(Unknown 
+>> Source)
+>>         Truncated. see log file for complete stacktrace
+>>
+>>
+>> Below is the Web.xml:
+>>
+>> <web-app>
+>> <display-name>SDDWeb</display-name>
+>> <context-param>
+>> <param-name>Owasp.CsrfGuard.Config</param-name>
+>> <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+>> </context-param>
+>> <context-param>
+>> <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+>> <param-value>true</param-value>
+>> </context-param>
+>> <listener>
+>> <listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+>> </listener>
+>>
+>>
+>> <filter>
+>> <filter-name>CSRFGuard</filter-name>
+>> <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+>> </filter>
+>> <filter-mapping>
+>> <filter-name>CSRFGuard</filter-name>
+>> <url-pattern>/*</url-pattern>
+>> </filter-mapping>
+>>
+>>
+>> <filter>
+>> <filter-name>SessionFilter</filter-name>
+>> <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+>> <init-param>
+>> <param-name>findSessionAttribute</param-name>
+>> <param-value>user</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>message</param-name>
+>> <param-value>error.session.expired</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>notFoundFoward</param-name>
+>> <param-value>/sdd.do</param-value>
+>> </init-param>
+>> </filter>
+>> <filter-mapping>
+>> <filter-name>SessionFilter</filter-name>
+>> <url-pattern>*.jsp</url-pattern>
+>> </filter-mapping>
+>> <filter-mapping>
+>> <filter-name>SessionFilter</filter-name>
+>> <url-pattern>*.do</url-pattern>
+>> </filter-mapping>
+>> <listener>
+>> <listener-class>
+>>              com.sig.sdd.ui.utils.ReceiptListener
+>> </listener-class>
+>> </listener>
+>> <listener>
+>> <listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+>> </listener>
+>> <servlet>
+>> <servlet-name>action</servlet-name>
+>> <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+>> <init-param>
+>> <param-name>config</param-name>
+>> <param-value>/WEB-INF/struts-config.xml</param-value>
+>> </init-param>
+>> <load-on-startup>1</load-on-startup>
+>> </servlet>
+>> <!-- Action Servlet Mapping -->
+>> <servlet-mapping>
+>> <servlet-name>action</servlet-name>
+>> <url-pattern>*.do</url-pattern>
+>> </servlet-mapping>
+>> <servlet>
+>> <servlet-name>AddressBook</servlet-name>
+>> <servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+>> <init-param>
+>> <param-name>ConfigFile</param-name>
+>> <param-value>/WEB-INF/addressbook.xml</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>Reloadable</param-name>
+>> <param-value>true</param-value>
+>> </init-param>
+>> <display-name>AddressBook</display-name>
+>> </servlet>
+>> <servlet-mapping>
+>> <servlet-name>AddressBook</servlet-name>
+>> <url-pattern>AddressBook</url-pattern>
+>> </servlet-mapping>
+>> <servlet>
+>> <servlet-name>JavaScriptServlet</servlet-name>
+>> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+>> <init-param>
+>> <param-name>source-file</param-name>
+>> <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>inject-into-forms</param-name>
+>> <param-value>true</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>inject-into-attributes</param-name>
+>> <param-value>true</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>domain-strict</param-name>
+>> <param-value>false</param-value>
+>> </init-param>
+>> <init-param>
+>> <param-name>referer-pattern</param-name>
+>> <param-value>.*localhost.*</param-value>
+>> </init-param>
+>> </servlet>
+>>
+>> <servlet-mapping>
+>> <servlet-name>JavaScriptServlet</servlet-name>
+>> <url-pattern>/JavaScriptServlet</url-pattern>
+>> </servlet-mapping>
+>> <!-- The Welcome File List -->
+>> <welcome-file-list>
+>> <welcome-file>index.jsp</welcome-file>
+>> </welcome-file-list>
+>> <!-- Application Tag Library Descriptor -->
+>> <taglib>
+>> <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+>> <taglib-location>/WEB-INF/app.tld</taglib-location>
+>> </taglib>
+>> <!-- Struts Tag Library Descriptors -->
+>> <taglib>
+>> <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+>> <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+>> </taglib>
+>> <taglib>
+>> <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+>> <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+>> </taglib>
+>> <taglib>
+>> <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+>> <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+>> </taglib>
+>>
+>> <taglib>
+>> <taglib-uri>/view-taglib</taglib-uri>
+>> <taglib-location>/WEB-INF/view.tld</taglib-location>
+>> </taglib>
+>> <taglib>
+>> <taglib-uri>/webdb-taglib</taglib-uri>
+>> <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+>> </taglib>
+>> <taglib>
+>> <taglib-uri>/auth-taglib</taglib-uri>
+>> <taglib-location>/WEB-INF/auth.tld</taglib-location>
+>> </taglib>
+>>
+>> <session-config>
+>> <session-timeout>30</session-timeout>
+>> </session-config>
+>> <error-page>
+>> <error-code>404</error-code>
+>> <location>error.jsp</location>
+>> </error-page>
+>> <error-page>
+>> <error-code>500</error-code>
+>> <location>error.jsp</location>
+>> </error-page>
+>> </web-app>
+>>
+>>
+>> Any ideas?
+>>
+>> Thanks in advance.
+>>
+>> Steve
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/a9b8c7f3/attachment-0001.html 
+
+From sdittm1 at gmail.com  Mon Aug 29 15:00:09 2011
+From: sdittm1 at gmail.com (Steve Dittmann)
+Date: Mon, 29 Aug 2011 12:00:09 -0700
+Subject: [Owasp-csrfguard] Owasp-csrfguard Digest, Vol 14, Issue 8
+In-Reply-To: <CAHTPmK=L0x1WuQgyJ_J2JJo4R5e0D82k78MjppMAU-uRFxhNTw@mail.gmail.com>
+References: <mailman.949.1314377176.2296.owasp-csrfguard@lists.owasp.org>
+	<CAHTPmK=L0x1WuQgyJ_J2JJo4R5e0D82k78MjppMAU-uRFxhNTw@mail.gmail.com>
+Message-ID: <CAHTPmKkVaRuzRdhBiwQt975GvXdZLm+ecmK8b=gFC8Psk827sA@mail.gmail.com>
+
+Any ideas?
+
+Thanks.
+On Aug 26, 2011 9:55 AM, "Steve Dittmann" <sdittm1 at gmail.com> wrote:
+> Hi Patrick,
+>
+> I used the download from
+> https://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project
+>
+> Downloads
+>
+> OWASP CSRFGuard 3.0.0.503
+> (ALPHA)<
+https://github.com/downloads/esheri3/OWASP-CSRFGuard/Owasp-CsrfGuard-3.0.0.503.tar.gz
+>
+> -
+> download the latest development release with binary and associated
+> configuration files *(recommended)*.
+>
+> Steve
+>
+>
+> On Fri, Aug 26, 2011 at 9:46 AM, <owasp-csrfguard-request at lists.owasp.org
+>wrote:
+>
+>> Send Owasp-csrfguard mailing list submissions to
+>> owasp-csrfguard at lists.owasp.org
+>>
+>> To subscribe or unsubscribe via the World Wide Web, visit
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>> or, via email, send a message with subject or body 'help' to
+>> owasp-csrfguard-request at lists.owasp.org
+>>
+>> You can reach the person managing the list at
+>> owasp-csrfguard-owner at lists.owasp.org
+>>
+>> When replying, please edit your Subject line so it is more specific
+>> than "Re: Contents of Owasp-csrfguard digest..."
+>>
+>>
+>> Today's Topics:
+>>
+>> 1. Re: First implementation of csrfguard getting errors.
+>> (Patrick Radtke)
+>>
+>>
+>> ----------------------------------------------------------------------
+>>
+>> Message: 1
+>> Date: Fri, 26 Aug 2011 09:46:01 -0700
+>> From: Patrick Radtke <pradtke at stanford.edu>
+>> Subject: Re: [Owasp-csrfguard] First implementation of csrfguard
+>> getting errors.
+>> To: owasp-csrfguard at lists.owasp.org
+>> Message-ID: <4E57CDC9.9080203 at stanford.edu>
+>> Content-Type: text/plain; charset="iso-8859-1"
+>>
+>> What version are you using?
+>> If you are building from github let me know the commit.
+>>
+>> On 8/25/11 5:45 PM, Steve Dittmann wrote:
+>> > Hello,
+>> >
+>> > This is my first attempt to implement csrfguard.
+>> >
+>> > I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and
+>> > the Owasp.CsrfGuard.properties to the WEB-INF folder.
+>> >
+>> > It also has been added to the classpath:
+>> >
+>> >
+>>
+CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+>> >
+>> > I'm receiving the below errors on my localhost when I attempt to
+>> > access the login page.
+>> >
+>> >
+>> > Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+>> > <Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User
+>> > defined listener org.owasp.csrfguard.CsrfGuardListener failed:
+>> > java.lang.RuntimeException: java.lang.NullPointerException.
+>> > java.lang.RuntimeException: java.lang.NullPointerException
+>> > at
+>> >
+>>
+org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+>> > at
+>> >
+>>
+org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+>> > Truncated. see log file for complete stacktrace
+>> > java.lang.NullPointerException
+>> > at java.io.File.<init>(File.java:194)
+>> > at
+>> >
+>>
+org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+>> > at
+>> >
+>>
+org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+>> > at
+>> >
+>>
+org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+>> > Truncated. see log file for complete stacktrace
+>> > >
+>> > <Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020>
+>> > <[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet
+>> > failed with Exception
+>> > java.lang.NullPointerException
+>> > at
+>> > org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+>> > at
+>> >
+>>
+weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+>> > at
+>> >
+>>
+weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+>> > at weblogic.security.service.SecurityManager.runAs(Unknown
+>> Source)
+>> > Truncated. see log file for complete stacktrace
+>> >
+>> >
+>> > Below is the Web.xml:
+>> >
+>> > <web-app>
+>> > <display-name>SDDWeb</display-name>
+>> > <context-param>
+>> > <param-name>Owasp.CsrfGuard.Config</param-name>
+>> > <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+>> > </context-param>
+>> > <context-param>
+>> > <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+>> > <param-value>true</param-value>
+>> > </context-param>
+>> > <listener>
+>> > <listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+>> > </listener>
+>> >
+>> >
+>> > <filter>
+>> > <filter-name>CSRFGuard</filter-name>
+>> > <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+>> > </filter>
+>> > <filter-mapping>
+>> > <filter-name>CSRFGuard</filter-name>
+>> > <url-pattern>/*</url-pattern>
+>> > </filter-mapping>
+>> >
+>> >
+>> > <filter>
+>> > <filter-name>SessionFilter</filter-name>
+>> > <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+>> > <init-param>
+>> > <param-name>findSessionAttribute</param-name>
+>> > <param-value>user</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>message</param-name>
+>> > <param-value>error.session.expired</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>notFoundFoward</param-name>
+>> > <param-value>/sdd.do</param-value>
+>> > </init-param>
+>> > </filter>
+>> > <filter-mapping>
+>> > <filter-name>SessionFilter</filter-name>
+>> > <url-pattern>*.jsp</url-pattern>
+>> > </filter-mapping>
+>> > <filter-mapping>
+>> > <filter-name>SessionFilter</filter-name>
+>> > <url-pattern>*.do</url-pattern>
+>> > </filter-mapping>
+>> > <listener>
+>> > <listener-class>
+>> > com.sig.sdd.ui.utils.ReceiptListener
+>> > </listener-class>
+>> > </listener>
+>> > <listener>
+>> >
+>>
+<listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+>> > </listener>
+>> > <servlet>
+>> > <servlet-name>action</servlet-name>
+>> > <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+>> > <init-param>
+>> > <param-name>config</param-name>
+>> > <param-value>/WEB-INF/struts-config.xml</param-value>
+>> > </init-param>
+>> > <load-on-startup>1</load-on-startup>
+>> > </servlet>
+>> > <!-- Action Servlet Mapping -->
+>> > <servlet-mapping>
+>> > <servlet-name>action</servlet-name>
+>> > <url-pattern>*.do</url-pattern>
+>> > </servlet-mapping>
+>> > <servlet>
+>> > <servlet-name>AddressBook</servlet-name>
+>> > <servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+>> > <init-param>
+>> > <param-name>ConfigFile</param-name>
+>> > <param-value>/WEB-INF/addressbook.xml</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>Reloadable</param-name>
+>> > <param-value>true</param-value>
+>> > </init-param>
+>> > <display-name>AddressBook</display-name>
+>> > </servlet>
+>> > <servlet-mapping>
+>> > <servlet-name>AddressBook</servlet-name>
+>> > <url-pattern>AddressBook</url-pattern>
+>> > </servlet-mapping>
+>> > <servlet>
+>> > <servlet-name>JavaScriptServlet</servlet-name>
+>> >
+>>
+<servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+>> > <init-param>
+>> > <param-name>source-file</param-name>
+>> > <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>inject-into-forms</param-name>
+>> > <param-value>true</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>inject-into-attributes</param-name>
+>> > <param-value>true</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>domain-strict</param-name>
+>> > <param-value>false</param-value>
+>> > </init-param>
+>> > <init-param>
+>> > <param-name>referer-pattern</param-name>
+>> > <param-value>.*localhost.*</param-value>
+>> > </init-param>
+>> > </servlet>
+>> >
+>> > <servlet-mapping>
+>> > <servlet-name>JavaScriptServlet</servlet-name>
+>> > <url-pattern>/JavaScriptServlet</url-pattern>
+>> > </servlet-mapping>
+>> > <!-- The Welcome File List -->
+>> > <welcome-file-list>
+>> > <welcome-file>index.jsp</welcome-file>
+>> > </welcome-file-list>
+>> > <!-- Application Tag Library Descriptor -->
+>> > <taglib>
+>> > <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+>> > <taglib-location>/WEB-INF/app.tld</taglib-location>
+>> > </taglib>
+>> > <!-- Struts Tag Library Descriptors -->
+>> > <taglib>
+>> > <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+>> > <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+>> > </taglib>
+>> > <taglib>
+>> > <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+>> > <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+>> > </taglib>
+>> > <taglib>
+>> > <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+>> > <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+>> > </taglib>
+>> >
+>> > <taglib>
+>> > <taglib-uri>/view-taglib</taglib-uri>
+>> > <taglib-location>/WEB-INF/view.tld</taglib-location>
+>> > </taglib>
+>> > <taglib>
+>> > <taglib-uri>/webdb-taglib</taglib-uri>
+>> > <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+>> > </taglib>
+>> > <taglib>
+>> > <taglib-uri>/auth-taglib</taglib-uri>
+>> > <taglib-location>/WEB-INF/auth.tld</taglib-location>
+>> > </taglib>
+>> >
+>> > <session-config>
+>> > <session-timeout>30</session-timeout>
+>> > </session-config>
+>> > <error-page>
+>> > <error-code>404</error-code>
+>> > <location>error.jsp</location>
+>> > </error-page>
+>> > <error-page>
+>> > <error-code>500</error-code>
+>> > <location>error.jsp</location>
+>> > </error-page>
+>> > </web-app>
+>> >
+>> >
+>> > Any ideas?
+>> >
+>> > Thanks in advance.
+>> >
+>> > Steve
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> > _______________________________________________
+>> > Owasp-csrfguard mailing list
+>> > Owasp-csrfguard at lists.owasp.org
+>> > https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>
+>> -------------- next part --------------
+>> An HTML attachment was scrubbed...
+>> URL:
+>>
+https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/3f1aadb7/attachment.html
+>>
+>> ------------------------------
+>>
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>
+>>
+>> End of Owasp-csrfguard Digest, Vol 14, Issue 8
+>> **********************************************
+>>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110829/17f338e3/attachment-0001.html 
+
+From Sal.ScottoDiluzio at us.elster.com  Mon Aug 29 15:04:14 2011
+From: Sal.ScottoDiluzio at us.elster.com (Sal.ScottoDiluzio at us.elster.com)
+Date: Mon, 29 Aug 2011 15:04:14 -0400
+Subject: [Owasp-csrfguard] AUTO: Sal ScottoDiluzio is out of the office
+	(returning 09/02/2011)
+Message-ID: <OF5077B598.2E690CD7-ON852578FB.0068C1F5-852578FB.0068C1F6@gb.elster.com>
+
+
+I am out of the office until 09/02/2011.
+
+Please contact Jean Metcalf, if this is an urgent need
+
+
+Note: This is an automated response to your message  "Owasp-csrfguard
+Digest, Vol 14, Issue 10" sent on 8/29/2011 3:00:18 PM.
+
+This is the only notification you will receive while this person is away.
+
+
+From pradtke at stanford.edu  Mon Aug 29 15:24:09 2011
+From: pradtke at stanford.edu (Patrick Radtke)
+Date: Mon, 29 Aug 2011 12:24:09 -0700
+Subject: [Owasp-csrfguard] Owasp-csrfguard Digest, Vol 14, Issue 8
+In-Reply-To: <CAHTPmKkVaRuzRdhBiwQt975GvXdZLm+ecmK8b=gFC8Psk827sA@mail.gmail.com>
+References: <mailman.949.1314377176.2296.owasp-csrfguard@lists.owasp.org>
+	<CAHTPmK=L0x1WuQgyJ_J2JJo4R5e0D82k78MjppMAU-uRFxhNTw@mail.gmail.com>
+	<CAHTPmKkVaRuzRdhBiwQt975GvXdZLm+ecmK8b=gFC8Psk827sA@mail.gmail.com>
+Message-ID: <4E5BE759.9070301@stanford.edu>
+
+Oops, I must have forgotten to push 'send' last week.
+
+It looks like there is a bug in how the properties file is found,
+which is preventing it from trying the other fallback methods.
+
+Assuming that the properties file is deployed
+
+You could try setting the path to:
+/WEB-INF/Owasp.CsrfGuard.properties  (note the leading slash)
+which may make the fall back method work.
+
+or
+
+Try specifying the full file path and see if it can find it then.
+
+-Patrick
+
+
+On 8/29/11 12:00 PM, Steve Dittmann wrote:
+>
+> Any ideas?
+>
+> Thanks.
+>
+> On Aug 26, 2011 9:55 AM, "Steve Dittmann" <sdittm1 at gmail.com 
+> <mailto:sdittm1 at gmail.com>> wrote:
+> > Hi Patrick,
+> >
+> > I used the download from
+> > https://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project
+> >
+> > Downloads
+> >
+> > OWASP CSRFGuard 3.0.0.503
+> > 
+> (ALPHA)<https://github.com/downloads/esheri3/OWASP-CSRFGuard/Owasp-CsrfGuard-3.0.0.503.tar.gz>
+> > -
+> > download the latest development release with binary and associated
+> > configuration files *(recommended)*.
+> >
+> > Steve
+> >
+> >
+> > On Fri, Aug 26, 2011 at 9:46 AM, 
+> <owasp-csrfguard-request at lists.owasp.org 
+> <mailto:owasp-csrfguard-request at lists.owasp.org>>wrote:
+> >
+> >> Send Owasp-csrfguard mailing list submissions to
+> >> owasp-csrfguard at lists.owasp.org 
+> <mailto:owasp-csrfguard at lists.owasp.org>
+> >>
+> >> To subscribe or unsubscribe via the World Wide Web, visit
+> >> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> >> or, via email, send a message with subject or body 'help' to
+> >> owasp-csrfguard-request at lists.owasp.org 
+> <mailto:owasp-csrfguard-request at lists.owasp.org>
+> >>
+> >> You can reach the person managing the list at
+> >> owasp-csrfguard-owner at lists.owasp.org 
+> <mailto:owasp-csrfguard-owner at lists.owasp.org>
+> >>
+> >> When replying, please edit your Subject line so it is more specific
+> >> than "Re: Contents of Owasp-csrfguard digest..."
+> >>
+> >>
+> >> Today's Topics:
+> >>
+> >> 1. Re: First implementation of csrfguard getting errors.
+> >> (Patrick Radtke)
+> >>
+> >>
+> >> ----------------------------------------------------------------------
+> >>
+> >> Message: 1
+> >> Date: Fri, 26 Aug 2011 09:46:01 -0700
+> >> From: Patrick Radtke <pradtke at stanford.edu 
+> <mailto:pradtke at stanford.edu>>
+> >> Subject: Re: [Owasp-csrfguard] First implementation of csrfguard
+> >> getting errors.
+> >> To: owasp-csrfguard at lists.owasp.org 
+> <mailto:owasp-csrfguard at lists.owasp.org>
+> >> Message-ID: <4E57CDC9.9080203 at stanford.edu 
+> <mailto:4E57CDC9.9080203 at stanford.edu>>
+> >> Content-Type: text/plain; charset="iso-8859-1"
+> >>
+> >> What version are you using?
+> >> If you are building from github let me know the commit.
+> >>
+> >> On 8/25/11 5:45 PM, Steve Dittmann wrote:
+> >> > Hello,
+> >> >
+> >> > This is my first attempt to implement csrfguard.
+> >> >
+> >> > I've added the Owasp.CsrfGuard.jar to the WEB-INF\lib and
+> >> > the Owasp.CsrfGuard.properties to the WEB-INF folder.
+> >> >
+> >> > It also has been added to the classpath:
+> >> >
+> >> >
+> >> 
+> CLASSPATH=;contrib.jar;;:\bea\WLSERV~1.0\common\eval\pointbase\lib\pbclient51.jar;C:\bea\WLSERV~1.0\server\lib\xqrl.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\com.ibm.mq.jar;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\prop\log4j.properties;C:\apps\GTS\d_whsldm\deploy\d_whsldm\sdd_local\lib\Owasp.CsrfGuard.jar;
+> >> >
+> >> > I'm receiving the below errors on my localhost when I attempt to
+> >> > access the login page.
+> >> >
+> >> >
+> >> > Cutoff Date is Wed Aug 24 17:22:47 PDT 2011
+> >> > <Aug 25, 2011 5:23:10 PM PDT> <Warning> <HTTP> <BEA-101162> <User
+> >> > defined listener org.owasp.csrfguard.CsrfGuardListener failed:
+> >> > java.lang.RuntimeException: java.lang.NullPointerException.
+> >> > java.lang.RuntimeException: java.lang.NullPointerException
+> >> > at
+> >> >
+> >> 
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:49)
+> >> > at
+> >> >
+> >> 
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.session.MemorySessionData.<init>(MemorySessionData.java:10)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.session.MemorySessionContext.getNewSession(MemorySessionContext.java:28)
+> >> > Truncated. see log file for complete stacktrace
+> >> > java.lang.NullPointerException
+> >> > at java.io.File.<init>(File.java:194)
+> >> > at
+> >> >
+> >> 
+> org.owasp.csrfguard.CsrfGuardListener.getResourceStream(CsrfGuardListener.java:72)
+> >> > at
+> >> >
+> >> 
+> org.owasp.csrfguard.CsrfGuardListener.newInstance(CsrfGuardListener.java:46)
+> >> > at
+> >> >
+> >> 
+> org.owasp.csrfguard.CsrfGuardListener.sessionCreated(CsrfGuardListener.java:24)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.EventsManager.notifySessionLifetimeEvent(EventsManager.java:257)
+> >> > Truncated. see log file for complete stacktrace
+> >> > >
+> >> > <Aug 25, 2011 5:23:10 PM PDT> <Error> <HTTP> <BEA-101020>
+> >> > <[weblogic.servlet.internal.WebAppServletContext at 19de9c9 - Servlet
+> >> > failed with Exception
+> >> > java.lang.NullPointerException
+> >> > at
+> >> > org.owasp.csrfguard.CsrfGuardFilter.doFilter(CsrfGuardFilter.java:53)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.FilterChainImpl.doFilter(FilterChainImpl.java:42)
+> >> > at
+> >> >
+> >> 
+> weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction.run(WebAppServletContext.java:3393)
+> >> > at
+> >> >
+> >> 
+> weblogic.security.acl.internal.AuthenticatedSubject.doAs(AuthenticatedSubject.java:321)
+> >> > at weblogic.security.service.SecurityManager.runAs(Unknown
+> >> Source)
+> >> > Truncated. see log file for complete stacktrace
+> >> >
+> >> >
+> >> > Below is the Web.xml:
+> >> >
+> >> > <web-app>
+> >> > <display-name>SDDWeb</display-name>
+> >> > <context-param>
+> >> > <param-name>Owasp.CsrfGuard.Config</param-name>
+> >> > <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+> >> > </context-param>
+> >> > <context-param>
+> >> > <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+> >> > <param-value>true</param-value>
+> >> > </context-param>
+> >> > <listener>
+> >> > 
+> <listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+> >> > </listener>
+> >> >
+> >> >
+> >> > <filter>
+> >> > <filter-name>CSRFGuard</filter-name>
+> >> > <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+> >> > </filter>
+> >> > <filter-mapping>
+> >> > <filter-name>CSRFGuard</filter-name>
+> >> > <url-pattern>/*</url-pattern>
+> >> > </filter-mapping>
+> >> >
+> >> >
+> >> > <filter>
+> >> > <filter-name>SessionFilter</filter-name>
+> >> > <filter-class>com.sig.sdd.ui.utils.SddSessionFilter</filter-class>
+> >> > <init-param>
+> >> > <param-name>findSessionAttribute</param-name>
+> >> > <param-value>user</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>message</param-name>
+> >> > <param-value>error.session.expired</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>notFoundFoward</param-name>
+> >> > <param-value>/sdd.do</param-value>
+> >> > </init-param>
+> >> > </filter>
+> >> > <filter-mapping>
+> >> > <filter-name>SessionFilter</filter-name>
+> >> > <url-pattern>*.jsp</url-pattern>
+> >> > </filter-mapping>
+> >> > <filter-mapping>
+> >> > <filter-name>SessionFilter</filter-name>
+> >> > <url-pattern>*.do</url-pattern>
+> >> > </filter-mapping>
+> >> > <listener>
+> >> > <listener-class>
+> >> > com.sig.sdd.ui.utils.ReceiptListener
+> >> > </listener-class>
+> >> > </listener>
+> >> > <listener>
+> >> >
+> >> 
+> <listener-class>com.sig.sdd.ui.utils.DynaContentInitListener</listener-class>
+> >> > </listener>
+> >> > <servlet>
+> >> > <servlet-name>action</servlet-name>
+> >> > <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+> >> > <init-param>
+> >> > <param-name>config</param-name>
+> >> > <param-value>/WEB-INF/struts-config.xml</param-value>
+> >> > </init-param>
+> >> > <load-on-startup>1</load-on-startup>
+> >> > </servlet>
+> >> > <!-- Action Servlet Mapping -->
+> >> > <servlet-mapping>
+> >> > <servlet-name>action</servlet-name>
+> >> > <url-pattern>*.do</url-pattern>
+> >> > </servlet-mapping>
+> >> > <servlet>
+> >> > <servlet-name>AddressBook</servlet-name>
+> >> > 
+> <servlet-class>com.eXtropia.app.servlet.ExtropiaServlet</servlet-class>
+> >> > <init-param>
+> >> > <param-name>ConfigFile</param-name>
+> >> > <param-value>/WEB-INF/addressbook.xml</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>Reloadable</param-name>
+> >> > <param-value>true</param-value>
+> >> > </init-param>
+> >> > <display-name>AddressBook</display-name>
+> >> > </servlet>
+> >> > <servlet-mapping>
+> >> > <servlet-name>AddressBook</servlet-name>
+> >> > <url-pattern>AddressBook</url-pattern>
+> >> > </servlet-mapping>
+> >> > <servlet>
+> >> > <servlet-name>JavaScriptServlet</servlet-name>
+> >> >
+> >> 
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+> >> > <init-param>
+> >> > <param-name>source-file</param-name>o
+> >> > <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>inject-into-forms</param-name>
+> >> > <param-value>true</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>inject-into-attributes</param-name>
+> >> > <param-value>true</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>domain-strict</param-name>
+> >> > <param-value>false</param-value>
+> >> > </init-param>
+> >> > <init-param>
+> >> > <param-name>referer-pattern</param-name>
+> >> > <param-value>.*localhost.*</param-value>
+> >> > </init-param>
+> >> > </servlet>
+> >> >
+> >> > <servlet-mapping>
+> >> > <servlet-name>JavaScriptServlet</servlet-name>
+> >> > <url-pattern>/JavaScriptServlet</url-pattern>
+> >> > </servlet-mapping>
+> >> > <!-- The Welcome File List -->
+> >> > <welcome-file-list>
+> >> > <welcome-file>index.jsp</welcome-file>
+> >> > </welcome-file-list>
+> >> > <!-- Application Tag Library Descriptor -->
+> >> > <taglib>
+> >> > <taglib-uri>/WEB-INF/app.tld</taglib-uri>
+> >> > <taglib-location>/WEB-INF/app.tld</taglib-location>
+> >> > </taglib>
+> >> > <!-- Struts Tag Library Descriptors -->
+> >> > <taglib>
+> >> > <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+> >> > <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+> >> > </taglib>
+> >> > <taglib>
+> >> > <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+> >> > <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+> >> > </taglib>
+> >> > <taglib>
+> >> > <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+> >> > <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+> >> > </taglib>
+> >> >
+> >> > <taglib>
+> >> > <taglib-uri>/view-taglib</taglib-uri>
+> >> > <taglib-location>/WEB-INF/view.tld</taglib-location>
+> >> > </taglib>
+> >> > <taglib>
+> >> > <taglib-uri>/webdb-taglib</taglib-uri>
+> >> > <taglib-location>/WEB-INF/webdb.tld</taglib-location>
+> >> > </taglib>
+> >> > <taglib>
+> >> > <taglib-uri>/auth-taglib</taglib-uri>
+> >> > <taglib-location>/WEB-INF/auth.tld</taglib-location>
+> >> > </taglib>
+> >> >
+> >> > <session-config>
+> >> > <session-timeout>30</session-timeout>
+> >> > </session-config>
+> >> > <error-page>
+> >> > <error-code>404</error-code>
+> >> > <location>error.jsp</location>
+> >> > </error-page>
+> >> > <error-page>
+> >> > <error-code>500</error-code>
+> >> > <location>error.jsp</location>
+> >> > </error-page>
+> >> > </web-app>
+> >> >
+> >> >
+> >> > Any ideas?
+> >> >
+> >> > Thanks in advance.
+> >> >
+> >> > Steve
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> > _______________________________________________
+> >> > Owasp-csrfguard mailing list
+> >> > Owasp-csrfguard at lists.owasp.org 
+> <mailto:Owasp-csrfguard at lists.owasp.org>
+> >> > https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> >>
+> >> -------------- next part --------------
+> >> An HTML attachment was scrubbed...
+> >> URL:
+> >> 
+> https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110826/3f1aadb7/attachment.html
+> >>
+> >> ------------------------------
+> >>
+> >> _______________________________________________
+> >> Owasp-csrfguard mailing list
+> >> Owasp-csrfguard at lists.owasp.org 
+> <mailto:Owasp-csrfguard at lists.owasp.org>
+> >> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> >>
+> >>
+> >> End of Owasp-csrfguard Digest, Vol 14, Issue 8
+> >> **********************************************
+> >>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110829/88433650/attachment-0001.html 
+

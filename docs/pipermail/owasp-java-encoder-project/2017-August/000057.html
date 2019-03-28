@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-java-encoder-project] Weak &quot;javascript&quot; encoding ?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-java-encoder-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-java-encoder-project%5D%20Weak%20%22javascript%22%20encoding%20%3F&In-Reply-To=%3CCADYkqj5EJCVqdc29hpcLf7PEh5EMVn4eRLkcQ3ZmQ5aJ19YnKA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000056.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-java-encoder-project] Weak &quot;javascript&quot; encoding ?</H1>
+    <B>Matt Seil</B> 
+    <A HREF="mailto:owasp-java-encoder-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-java-encoder-project%5D%20Weak%20%22javascript%22%20encoding%20%3F&In-Reply-To=%3CCADYkqj5EJCVqdc29hpcLf7PEh5EMVn4eRLkcQ3ZmQ5aJ19YnKA%40mail.gmail.com%3E"
+       TITLE="[Owasp-java-encoder-project] Weak &quot;javascript&quot; encoding ?">mseil at acm.org
+       </A><BR>
+    <I>Thu Aug 24 14:45:16 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000056.html">[Owasp-java-encoder-project] Weak &quot;javascript&quot; encoding ?
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#57">[ date ]</a>
+              <a href="thread.html#57">[ thread ]</a>
+              <a href="subject.html#57">[ subject ]</a>
+              <a href="author.html#57">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Aug 24, 2017 at 7:24 AM Benoit Plessis &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project">b.plessis at doyousoft.com</A>&gt;
+wrote:
+
+&gt;<i> Le 24/08/2017 &#224; 15:53, Matt Seil a &#233;crit :
+</I>&gt;<i>
+</I>&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> I do work on ESAPI's encoder and decoder.
+</I>&gt;<i>
+</I>&gt;<i> I can tell you this for sure, 2.0.1 is extremely outdated.
+</I>&gt;<i>
+</I>&gt;<i> And after having worked on ESAPI's encoder, I know for that when dealing
+</I>&gt;<i> with HTML entities, we typically encode human-readable escapes when
+</I>&gt;<i> available, and use hex for everything else.  I say typically because this
+</I>&gt;<i> is what the current encoder produces for your script tag input:
+</I>&gt;<i>
+</I>&gt;<i> &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;'/&quot;!$
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> &lt;script&gt;&lt;&amp;#x2f;script&gt;&amp;#x20;&amp;#x7c;&amp;#x20;&amp;&lt;&gt;&amp;#x27;&amp;#x2f;&quot;&amp;#x21;&amp;#x24;
+</I>&gt;<i>
+</I>&gt;<i> Hex only has an advantage when dealing with non-BMP code points as well as
+</I>&gt;<i> any character set larger than Latin 1. Browsers render either human
+</I>&gt;<i> readable and hex escapes equally well.
+</I>&gt;<i>
+</I>&gt;<i> What makes you think that &lt; is weaker than &#60; ?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I do not think that, i was puzzled by the fact that the XSS Cheat sheet
+</I>&gt;<i> strongly recommended a full escaping of all non-alphanum chars but that the
+</I>&gt;<i> java encoder lib wasn't doing that.
+</I>&gt;<i>
+</I>&gt;<i> Except for alphanumeric characters, escape all characters less than 256
+</I>&gt;<i> with the \xHH format to prevent switching out of the data value into the
+</I>&gt;<i> script context or into another attribute. DO NOT use any escaping shortcuts
+</I>&gt;<i> like \&quot; because the quote character may be matched by the HTML attribute
+</I>&gt;<i> parser which runs first. These escaping shortcuts are also susceptible to
+</I>&gt;<i> &quot;escape-the-escape&quot; attacks where the attacker sends \&quot; and the vulnerable
+</I>&gt;<i> code turns that into \\&quot; which enables the quote.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> EncodeForJavascript: &lt;script&gt;&lt;\/script&gt; | \x26&lt;&gt;\x27\/\x22!$
+</I>&gt;<i> EncodeForJavascriptBlock: &lt;script&gt;&lt;\/script&gt; | \x26&lt;&gt;\'\/\&quot;!$
+</I>&gt;<i> EncodeForJavascriptAttribute: &lt;script&gt;&lt;/script&gt; | \x26&lt;&gt;\x27/\x22!$
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>Actually, I share your concern.  ESAPI's output for
+
+&lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;'/&quot;!$
+
+in the specific JavaScript context is
+
+ \x3Cscript\x3E\x3C\x2Fscript\x3E\x20\x7C\x20\x26\x3C\x3E\x27\x2F\x22\x21\x24\x20
+
+The chars &quot;&gt;, &lt;&quot; while more lethal in the HTML context coudl still
+interfere with javaScript logic.
+
+Jim, any idea as to why &quot;&lt;&quot; and &quot;&gt;&quot; aren't getting encoded?
+
+
+&gt;<i> Also i did miss the fact that the encoder did at least escape the &quot;/&quot; from
+</I>&gt;<i> the closing tag (not my brightest day), it's not as bad as i initialy saw
+</I>&gt;<i> it.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>My recommendation when debugging escaped characters is to drop them into an
+html file and see what gets rendered.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/e5c9bc93/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/e5c9bc93/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000056.html">[Owasp-java-encoder-project] Weak &quot;javascript&quot; encoding ?
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#57">[ date ]</a>
+              <a href="thread.html#57">[ thread ]</a>
+              <a href="subject.html#57">[ subject ]</a>
+              <a href="author.html#57">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project">More information about the Owasp-java-encoder-project
+mailing list</a><br>
+</body></html>

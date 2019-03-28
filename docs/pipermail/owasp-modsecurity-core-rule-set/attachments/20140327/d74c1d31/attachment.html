@@ -1,0 +1,69 @@
+<tt>
+&lt;div&nbsp;dir=&quot;ltr&quot;&gt;Hi&nbsp;Ryan,&nbsp;Piotr&nbsp;and&nbsp;all,&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;I&#39;m&nbsp;just&nbsp;trying&nbsp;to&nbsp;get&nbsp;my&nbsp;head&nbsp;round&nbsp;this&nbsp;thread,&nbsp;so&nbsp;I&#39;d&nbsp;appreciate&nbsp;it&nbsp;if&nbsp;you&#39;d&nbsp;see&nbsp;whether&nbsp;the&nbsp;following&nbsp;is&nbsp;a&nbsp;reasonable&nbsp;summary:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;<br>
+(Below&nbsp;I&nbsp;refer&nbsp;to&nbsp;the&nbsp;U+0084&nbsp;character&nbsp;as&nbsp;an&nbsp;example,&nbsp;but&nbsp;the&nbsp;same&nbsp;is&nbsp;true&nbsp;for&nbsp;the&nbsp;other&nbsp;non-ascii&nbsp;characters&nbsp;in&nbsp;the&nbsp;rule)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Rule&nbsp;981318&nbsp;checks&nbsp;for&nbsp;the&nbsp;U+0084&nbsp;character&nbsp;because&nbsp;some&nbsp;application&nbsp;environments&nbsp;transliterate&nbsp;that&nbsp;to&nbsp;an&nbsp;apostrophe/single&nbsp;quote,&nbsp;not&nbsp;because&nbsp;U+0084&nbsp;&#39;dangerous&#39;&nbsp;in&nbsp;it&#39;s&nbsp;own&nbsp;right.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;False&nbsp;positives&nbsp;occur&nbsp;because&nbsp;when&nbsp;processing&nbsp;the&nbsp;U+0084&nbsp;character&nbsp;(&lt;span&nbsp;style=&quot;color:rgb(0,0,0);font-size:13px;line-height:1.3em&quot;&gt;\xc2\xb4&nbsp;in&nbsp;UTF8)&nbsp;the&nbsp;PCRE&nbsp;interprets&nbsp;the&nbsp;\xc2\xb4&nbsp;as&nbsp;individual&nbsp;bytes&nbsp;and&nbsp;will&nbsp;trigger&nbsp;on&nbsp;any&nbsp;string&nbsp;where&nbsp;the&nbsp;first/last&nbsp;character&#39;s&nbsp;first/last&nbsp;byte&nbsp;(respectively)&nbsp;is&nbsp;\xc2&nbsp;or&nbsp;\xb4.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;There&nbsp;isn&#39;t&nbsp;a&nbsp;direct&nbsp;fix&nbsp;for&nbsp;this&nbsp;PCRE&nbsp;multibyte&nbsp;issue&nbsp;but&nbsp;by::&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;1)Adding&nbsp;a&nbsp;t:utf8toUnicode&nbsp;to&nbsp;the&nbsp;981318&nbsp;rule&nbsp;it&nbsp;will&nbsp;cause&nbsp;any &lt;span&nbsp;style=&quot;color:rgb(0,0,0);font-size:13px;line-height:16.899999618530273px&quot;&gt;\xc2\xb4&nbsp;in&nbsp;the&nbsp;input&nbsp;to&nbsp;be&nbsp;transformed&nbsp;to&nbsp;a&nbsp;%u0084&nbsp;representation&nbsp;internally.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;2)Setting&nbsp;up&nbsp;the&lt;/div&gt;&lt;div&gt; &lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;SecUnicodeMapFile&nbsp;/etc/apache2/unicode.mapping&nbsp;20127 &lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;it&nbsp;will&nbsp;cause&nbsp;the&nbsp;%u0084&nbsp;representation&nbsp;to&nbsp;be&nbsp;transliterated&nbsp;to&nbsp;an&nbsp;ascii&nbsp;apostrophe/single&nbsp;quote&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;The&nbsp;U+0084&nbsp;character&nbsp;in&nbsp;the&nbsp;981318&nbsp;is&nbsp;now&nbsp;unnecessary&nbsp;because&nbsp;any&nbsp;instances&nbsp;of&nbsp;that&nbsp;in&nbsp;the&nbsp;input&nbsp;will&nbsp;now&nbsp;just&nbsp;appear&nbsp;to&nbsp;the&nbsp;rule&nbsp;as&nbsp;an&nbsp;apostrophe&nbsp;covered&nbsp;elsewhere&nbsp;in&nbsp;the&nbsp;rule.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;This&nbsp;allows&nbsp;us&nbsp;to&nbsp;remove&nbsp;the&nbsp;U+0084&nbsp;from&nbsp;the&nbsp;rule&nbsp;and&nbsp;eliminate&nbsp;the&nbsp;multibyte&nbsp;PCRE&nbsp;collision&nbsp;issue.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;<br>
+&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;So,&nbsp;in&nbsp;essence,&nbsp;t:utf8toUnicode&nbsp;and&nbsp;SecUnicodeMapFile&nbsp;don&#39;t&nbsp;solve&nbsp;the&nbsp;underlying&nbsp;PCRE&nbsp;problem&nbsp;per&nbsp;se&nbsp;but&nbsp;avoid&nbsp;needing&nbsp;to&nbsp;put&nbsp;multibyte&nbsp;data&nbsp;into&nbsp;the&nbsp;PCRE&nbsp;for&nbsp;the&nbsp;rule&nbsp;to&nbsp;have&nbsp;the&nbsp;same&nbsp;effect.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;So&nbsp;the&nbsp;best&nbsp;way&nbsp;to&nbsp;&#39;fix&#39;&nbsp;rule&nbsp;981318&nbsp;would&nbsp;be&nbsp;to:&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;-Set&nbsp;up&nbsp;the&nbsp;SecUnicodeMapFile&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;-Add&nbsp;t:utf8toUnicode&nbsp;to&nbsp;the&nbsp;981318&nbsp;rule&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;-Remove&nbsp;the&nbsp;U+0084&nbsp;(and&nbsp;other&nbsp;non-ascii)&nbsp;characters&nbsp;from&nbsp;the&nbsp;981318&nbsp;regex.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;Does&nbsp;that&nbsp;make&nbsp;sense?&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;<br>
+&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;Similarly&nbsp;if&nbsp;you&nbsp;were&nbsp;ultra&nbsp;confident&nbsp;nothing&nbsp;in&nbsp;your&nbsp;application&nbsp;stack&nbsp;did&nbsp;do&nbsp;U+0084&nbsp;to&nbsp;&#39;single&nbsp;quote&#39;&nbsp;transliteration&nbsp;(and&nbsp;for&nbsp;other&nbsp;characters)&nbsp;you&nbsp;could&nbsp;just&nbsp;remove&nbsp;them&nbsp;from&nbsp;the&nbsp;981318&nbsp;rule.&lt;/span&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;Paul&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;font-family:arial,sans-serif;font-size:13px&quot;&gt;&lt;br&gt;<br>
+&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;gmail_extra&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Tue,&nbsp;Mar&nbsp;18,&nbsp;2014&nbsp;at&nbsp;1:16&nbsp;AM,&nbsp;Ryan&nbsp;Barnett&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:ryan.barnett@owasp.org&quot;&nbsp;target=&quot;_blank&quot;&gt;ryan.barnett@owasp.org&lt;/a&gt;&gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex&quot;&gt;&lt;div&nbsp;class=&quot;HOEnZb&quot;&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;On&nbsp;3/17/14&nbsp;10:01&nbsp;AM,&nbsp;&quot;Piotr&nbsp;Gackiewicz&quot;&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:p.gackiewicz@intertele.pl&quot;&gt;p.gackiewicz@intertele.pl&lt;/a&gt;&gt;&nbsp;wrote:&lt;br&gt;<br>
+<br>
+&lt;br&gt;<br>
+&gt;On&nbsp;Mon,&nbsp;17&nbsp;Mar&nbsp;2014,&nbsp;Ramy&nbsp;Darwish&nbsp;wrote:&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&gt;&nbsp;Hi&nbsp;Piotr,&lt;br&gt;<br>
+&gt;&gt;&lt;br&gt;<br>
+&gt;&gt;&nbsp;In&nbsp;my&nbsp;experience,&nbsp;you&nbsp;need&nbsp;to&nbsp;use&nbsp;a&nbsp;utf8toUnicode&nbsp;transformation&nbsp;to&lt;br&gt;<br>
+&gt;&gt;properly&lt;br&gt;<br>
+&gt;&gt;&nbsp;map&nbsp;UTF8&nbsp;strings&nbsp;to&nbsp;Unicode&nbsp;before&nbsp;the&nbsp;rule&nbsp;processes&nbsp;the&nbsp;input&nbsp;as&lt;br&gt;<br>
+&gt;&gt;Unicode,&lt;br&gt;<br>
+&gt;&gt;&nbsp;as&nbsp;well&nbsp;as&nbsp;fine-tune&nbsp;the&nbsp;urlDecodeUni&nbsp;transformation&nbsp;to&nbsp;properly&lt;br&gt;<br>
+&gt;&gt;normalize&lt;br&gt;<br>
+&gt;&gt;&nbsp;Central&nbsp;European&nbsp;Unicode&nbsp;characters.&lt;br&gt;<br>
+&gt;&gt;&lt;br&gt;<br>
+&gt;&gt;&nbsp;Provide&nbsp;a&nbsp;code&nbsp;point&nbsp;declaration&nbsp;for&nbsp;the&nbsp;urlDecodeUni&nbsp;transformation,&lt;br&gt;<br>
+&gt;&gt;&nbsp;in&nbsp;order&nbsp;to&nbsp;properly&nbsp;normalize&nbsp;Unicode&nbsp;strings&nbsp;(in&nbsp;modsecurity.conf)&lt;br&gt;<br>
+&gt;&gt;&nbsp;---------------------------------------------------&lt;br&gt;<br>
+&gt;&gt;&nbsp;#&nbsp;With&nbsp;the&nbsp;1250&nbsp;code&nbsp;point&nbsp;for&nbsp;Central&nbsp;Europe:&lt;br&gt;<br>
+&gt;&gt;&nbsp;SecUnicodeMapFile&nbsp;/etc/modsecurity/unicode.mapping&lt;br&gt;<br>
+&gt;&gt;&nbsp;SecUnicodeCodePage&nbsp;1250&lt;br&gt;<br>
+&gt;&gt;&nbsp;---------------------------------------------------&lt;br&gt;<br>
+&gt;&gt;&lt;br&gt;<br>
+&gt;&gt;&nbsp;See&nbsp;these&nbsp;resources&nbsp;for&nbsp;more&nbsp;info:&lt;br&gt;<br>
+&gt;&gt;&nbsp;http:&lt;br&gt;<br>
+&gt;&gt;//&lt;a&nbsp;href=&quot;http://blog.spiderlabs.com/2011/06/modsecurity-advanced-topic-of-the-week-unic&quot;&nbsp;target=&quot;_blank&quot;&gt;blog.spiderlabs.com/2011/06/modsecurity-advanced-topic-of-the-week-unic&lt;/a&gt;&lt;br&gt;<br>
+&gt;&gt;ode-mapping-support.html&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;Thanks&nbsp;for&nbsp;the&nbsp;response.&lt;br&gt;<br>
+&gt;Unfortunately,&nbsp;both&nbsp;You&nbsp;and&nbsp; Ryan&nbsp;Barnett&nbsp;in:&lt;br&gt;<br>
+&gt;&gt;&nbsp;http:&nbsp;//&lt;a&nbsp;href=&quot;http://blog.spiderlabs.com/2012/08/waf-normalization-and-i18n.html&quot;&nbsp;target=&quot;_blank&quot;&gt;blog.spiderlabs.com/2012/08/waf-normalization-and-i18n.html&lt;/a&gt;&lt;br&gt;<br>
+&gt;are&nbsp;probably&nbsp;missing&nbsp;the&nbsp;point.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;This&nbsp;is&nbsp;not&nbsp;the&nbsp;problem&nbsp;with&nbsp;URI&nbsp;normalization/Best-Fit&nbsp;Mapping.&nbsp;This&nbsp;is&nbsp;a&lt;br&gt;<br>
+&gt;problem&nbsp;with&nbsp;UTF8&nbsp;multibyte&nbsp;characters,&nbsp;put&nbsp;into&nbsp;rule&nbsp;regexp,&lt;br&gt;<br>
+&gt;matched&nbsp;with&nbsp;UTF8-unaware&nbsp;PCRE&nbsp;code.&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;/div&gt;&lt;/div&gt;You&nbsp;are&nbsp;correct.&nbsp; These&nbsp;rules&nbsp;were&nbsp;made&nbsp;prior&nbsp;to&nbsp;the&nbsp;UTF8/Unicode&nbsp;mapping&lt;br&gt;<br>
+and&nbsp;transformation&nbsp;functions&nbsp;were&nbsp;added&nbsp;to&nbsp;the&nbsp;ModSecurity&nbsp;code.&nbsp; These&lt;br&gt;<br>
+regexes&nbsp;in&nbsp;the&nbsp;rules&nbsp;will&nbsp;be&nbsp;updated&nbsp;(in&nbsp;CRS&nbsp;v.3.0.0)&nbsp;to&nbsp;be&nbsp;quote&nbsp;(&#39;)&lt;br&gt;<br>
+double-quote&nbsp;(&quot;)&nbsp;and&nbsp;backtick&nbsp;(`)&nbsp;characters&nbsp;instead.&nbsp; The&lt;br&gt;<br>
+SecUnicodeMapFile&nbsp;directive&nbsp;+&nbsp;t:utf8toUnicode.t:urlDecodeUni&lt;br&gt;<br>
+transformation&nbsp;functions&nbsp;should&nbsp;then&nbsp;properly&nbsp;handle&nbsp;the&nbsp;data.&lt;br&gt;<br>
+&lt;span&nbsp;class=&quot;HOEnZb&quot;&gt;&lt;font&nbsp;color=&quot;#888888&quot;&gt;&lt;br&gt;<br>
+-Ryan&lt;br&gt;<br>
+&lt;/font&gt;&lt;/span&gt;&lt;div&nbsp;class=&quot;HOEnZb&quot;&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+_______________________________________________&lt;br&gt;<br>
+Owasp-modsecurity-core-rule-set&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;Owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;/a&gt;&lt;br&gt;<br>
+&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;<br>
+
+</tt>

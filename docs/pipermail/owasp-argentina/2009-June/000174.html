@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-argentina] Un intento de análisis taint dinámico en Python
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%0A%09%3D%3Fiso-8859-1%3Fq%3FUn_intento_de_an%3DE1lisis_taint_d%3F%3D%0A%09%3D%3Fiso-8859-1%3Fq%3Fin%3DE1mico_en_Python%3F%3D&In-Reply-To=cdfaf8b20906020539x2cfb97b6p6ec52e3bfa70d70b%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <LINK REL="Previous"  HREF="000173.html">
+   <LINK REL="Next"  HREF="000176.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-argentina] Un intento de análisis taint dinámico en Python </H1>
+    <B>Ezequiel Gutesman</B> 
+    <A HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%0A%09%3D%3Fiso-8859-1%3Fq%3FUn_intento_de_an%3DE1lisis_taint_d%3F%3D%0A%09%3D%3Fiso-8859-1%3Fq%3Fin%3DE1mico_en_Python%3F%3D&In-Reply-To=cdfaf8b20906020539x2cfb97b6p6ec52e3bfa70d70b%40mail.gmail.com"
+       TITLE="[Owasp-argentina] Un intento de análisis taint dinámico en Python">egutesman en gmail.com
+       </A><BR>
+    <I>Mar Jun  2 17:26:13 EDT 2009</I>
+    <P><UL>
+        <LI>Mensaje anterior: <A HREF="000173.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+        <LI>Próximo mensaje: <A HREF="000176.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#174">[ fecha ]</a>
+              <a href="thread.html#174">[ hilo ]</a>
+              <a href="subject.html#174">[ asunto ]</a>
+              <a href="author.html#174">[ autor ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>2009/6/2 Andres Riancho &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">andres.riancho en gmail.com</A>&gt;
+
+&gt;<i> Juanjo,
+</I>&gt;<i>
+</I>&gt;<i> 2009/6/2 Juanjo Conti &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">jjconti en gmail.com</A>&gt;:
+</I>&gt;<i> &gt; Parece que la lista no acepta adjuntos.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; <A HREF="http://juanjoconti.com.ar/files/dyntaint/">http://juanjoconti.com.ar/files/dyntaint/</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; El día 1 de junio de 2009 22:59, Juanjo Conti &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">jjconti en gmail.com</A>&gt;
+</I>&gt;<i> escribió:
+</I>&gt;<i> &gt;&gt; - No es lo que dije que iba a intentar hacer.
+</I>&gt;<i> &gt;&gt; - Es dinámico en lugar de estático.
+</I>&gt;<i> &gt;&gt; - Solo funciona para Python.
+</I>&gt;<i> &gt;&gt; - Es intrusivo.
+</I>&gt;<i> &gt;&gt; - No distingue entre vulnerabilidades (esto es fácil de cambiar) -
+</I>&gt;<i> &gt;&gt; único set TAINTED.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Pero bue... quería programar algo como para empezar a probar. Es
+</I>&gt;<i> &gt;&gt; código de una hora.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Adjuntos:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; - dyntaint.py : core, debe ser incluido por los programas a revisar.
+</I>&gt;<i> &gt;&gt; - ej1.py : un programa de ejemplo, al correrlo lanza una advertencia
+</I>&gt;<i> &gt;&gt; al intentar ejecutar una función sensible con un argumento manchado.
+</I>&gt;<i> &gt;&gt; No termina la ejecución del programa. Debería terminar?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; $ python ej1.py
+</I>&gt;<i> &gt;&gt; Ingrese un numero: 2
+</I>&gt;<i> &gt;&gt; WARNING
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; - ej2.py : la versión corregida del primer programa. Ejecuta
+</I>&gt;<i> normalmente.
+</I>&gt;<i>
+</I>&gt;<i> Corrí los programas, ví las diferencias en el código, veo que esta
+</I>&gt;<i> funcionando bien =)
+</I>&gt;<i>
+</I>&gt;<i> Ahora... hay una parte del código que no la entiendo, y creo que es
+</I>&gt;<i> porque no entiendo que son las properties de python [0] ? Las partes
+</I>&gt;<i> que no entiendo son las que dicen:
+</I>&gt;<i>
+</I>&gt;<i> @cleaner
+</I>&gt;<i> def limpiarSQLi(s):
+</I>&gt;<i>
+</I>&gt;<i> @ssinc
+</I>&gt;<i> def guardarDB(valor):
+</I>&gt;<i>
+</I>&gt;<i> Osea, especificamente que es lo que hacen el @cleaner, @ssinc? Que
+</I>&gt;<i> modificación le aplican al guardarDB? Esto es lo que hace que
+</I>&gt;<i> &quot;cleaner&quot; sea llamado antes de limpiarSQLi? Esto no es una propiedad,
+</I>&gt;<i> o si?
+</I>
+
+Segun entiendo, si la funcion esta decorada con @untrusted, l oque devuleve
+lo agrega al set de TAINTED.
+
+Si en cambio esta decorada con @cleaner a TAINTED le saca la union de todos
+los argumentos.. es decir limpia todo?
+
+@ssinc si la llamas con algo tainted revienta y te imprime  &quot;WARNING&quot;
+
+lo que seguiria es la propagacion de las marcas, que es la parte (segun lo
+veo yo) mas compleja.
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Mensaje anterior: <A HREF="000173.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+	<LI>Próximo mensaje: <A HREF="000176.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#174">[ fecha ]</a>
+              <a href="thread.html#174">[ hilo ]</a>
+              <a href="subject.html#174">[ asunto ]</a>
+              <a href="author.html#174">[ autor ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-argentina">Más información sobre la lista de distribución Owasp-argentina </a><br>
+</body></html>

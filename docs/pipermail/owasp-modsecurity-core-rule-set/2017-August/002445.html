@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Run%20core%20rule%20set%20on%20just%20one%0A%20page%20/%20parameter&In-Reply-To=%3CCAAO0q_GyF%3DLnuLKdxjyE6PLu6aw7ri-U8SJwUweJVYoEa%3D%3D4Gg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002442.html">
+   <LINK REL="Next"  HREF="002446.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter</H1>
+    <B>Kirk Jackson</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Run%20core%20rule%20set%20on%20just%20one%0A%20page%20/%20parameter&In-Reply-To=%3CCAAO0q_GyF%3DLnuLKdxjyE6PLu6aw7ri-U8SJwUweJVYoEa%3D%3D4Gg%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter">kirk at pageofwords.com
+       </A><BR>
+    <I>Tue Aug 15 23:09:45 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002442.html">[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter
+</A></li>
+        <LI>Next message: <A HREF="002446.html">[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2445">[ date ]</a>
+              <a href="thread.html#2445">[ thread ]</a>
+              <a href="subject.html#2445">[ subject ]</a>
+              <a href="author.html#2445">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks Christian, I appreciate your help!
+
+On Wed, Aug 16, 2017 at 12:46 AM, Christian Folini &lt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>&gt; wrote:
+
+&gt;<i> Do you have a paper copy of the book? If not, then please give me your
+</I>&gt;<i> address and I will have a copy be sent your way. Ironically, it will
+</I>&gt;<i> come with the bug, but I really appreciate people submitting errors the
+</I>&gt;<i> encounter in the book.
+</I>&gt;<i>
+</I>
+That's not necessary, thanks for the offer. I've already got the electronic
+version, and the paper copy is shipping as we speak :)
+
+
+&gt;<i> &gt; If you have any ideas on how to further restrict it so I can rule the
+</I>&gt;<i> SQLi
+</I>&gt;<i> &gt; rules for only one page + parameter combo, I'm interested to know!
+</I>&gt;<i>
+</I>&gt;<i> With ctl:ruleUpdateTargetById being no longer an option, we need a
+</I>&gt;<i> different approach. This is turning more and more into a wild hack, but
+</I>&gt;<i> let's try out the following:
+</I>&gt;<i>
+</I>&gt;<i> - Remove all the ARGS at startup time
+</I>&gt;<i> - Add ARGS:SearchTerm at startup time
+</I>&gt;<i> - Remove SearchTerm from all paths but /product/search at runtime
+</I>&gt;<i>   -&gt; &quot;!@beginsWith /product/search&quot;
+</I>&gt;<i>
+</I>&gt;<i> Good luck and please report back!
+</I>&gt;<i>
+</I>
+That works well.
+
+Here's my canonical &quot;How you run the Core Rule Set's SQLi rules only on
+vulnerable pages and parameters&quot; for historical / archival reference:
+
+These rules disable the SQL injection rules in the Core Rule Set v3, except
+for two parameters: &quot;SearchTerm&quot; and &quot;foo&quot;. This is done at configuration
+time, so the SecRuleUpdateTargetByID statements have to go after the Core
+Rule Set is included.
+
+Then at runtime, we narrow down the list of pages that the SQLi rules are
+run against, by removing the two parameters &quot;SearchTerm&quot; and &quot;foo&quot;
+depending on which URL is being requested. As this is at runtime, these two
+rules need to go before the Core Rule Set rules are included, so that the
+change to their Target is done before they run.
+
+# Rutime: Only run the SQLi rules against SearchTerm if on the Product
+Search page
+SecRule REQUEST_FILENAME &quot;!@beginsWith /product/search&quot; \
+    &quot;id:2011,phase:2,\
+        pass,nolog,\
+        t:none,t:lowercase,t:normalisePath,\
+        ctl:ruleRemoveTargetById=942100-942999;ARGS:SearchTerm&quot;
+
+# Runtime: Only run the SQLi rules against argument foo if on the About page
+
+SecRule REQUEST_FILENAME &quot;!@beginsWith /home/about&quot; \
+    &quot;id:2012,phase:2,\
+        pass,nolog,\
+        t:none,t:lowercase,t:normalisePath,\
+        ctl:ruleRemoveTargetById=942100-942999;ARGS:foo&quot;
+
+Include modsecurity/crs-setup.conf
+Include crs/*.conf
+
+# Configure-Time: Disable CRS's SQLi rules:
+SecRuleUpdateTargetByID 942100-942999 &quot;!REQUEST_COOKIES&quot;
+SecRuleUpdateTargetByID 942100-942999 &quot;!REQUEST_COOKIES_NAMES&quot;
+SecRuleUpdateTargetByID 942100-942999 &quot;!ARGS_NAMES&quot;
+SecRuleUpdateTargetByID 942100-942999 &quot;!ARGS&quot;
+SecRuleUpdateTargetByID 942100-942999 &quot;!XML&quot;
+
+# Configure-Time: Only test SQLi for the SearchTerm &amp; foo parameters
+SecRuleUpdateTargetByID 942100-942999 &quot;ARGS:SearchTerm&quot;
+SecRuleUpdateTargetByID 942100-942999 &quot;ARGS:foo&quot;
+
+# (Jump back up to ID 2011 and 2012 above the include for CRS, to see the
+rest of the rules)
+
+
+I appreciate your help getting this working.
+
+Cheers,
+
+Kirk
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170816/6abd4e35/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170816/6abd4e35/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002442.html">[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter
+</A></li>
+	<LI>Next message: <A HREF="002446.html">[Owasp-modsecurity-core-rule-set] Run core rule set on just one page / parameter
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2445">[ date ]</a>
+              <a href="thread.html#2445">[ thread ]</a>
+              <a href="subject.html#2445">[ subject ]</a>
+              <a href="author.html#2445">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

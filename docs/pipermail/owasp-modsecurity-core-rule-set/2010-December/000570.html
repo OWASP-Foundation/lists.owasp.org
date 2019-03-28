@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Access denied code 403	(Multiple Parameters with the same Name)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Access%20denied%20code%20403%0A%09%28Multiple%20Parameters%20with%20the%20same%20Name%29&In-Reply-To=C940C34D.16B88%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000569.html">
+   <LINK REL="Next"  HREF="000571.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Access denied code 403	(Multiple Parameters with the same Name)</H1>
+    <B>Josue Del Valle</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Access%20denied%20code%20403%0A%09%28Multiple%20Parameters%20with%20the%20same%20Name%29&In-Reply-To=C940C34D.16B88%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Access denied code 403	(Multiple Parameters with the same Name)">jodelvalle at braishfield.com
+       </A><BR>
+    <I>Wed Dec 29 11:05:11 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000569.html">[Owasp-modsecurity-core-rule-set] Access denied code 403 (Multiple Parameters with the same Name)
+</A></li>
+        <LI>Next message: <A HREF="000571.html">[Owasp-modsecurity-core-rule-set] Seasons Greetings! Announcing Release of OWASP ModSecurity CRS v2.1.0
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#570">[ date ]</a>
+              <a href="thread.html#570">[ thread ]</a>
+              <a href="subject.html#570">[ subject ]</a>
+              <a href="author.html#570">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sounds like upgrading is the best option.  
+
+Thanks Ryan.
+
+
+Josue del Valle
+
+
+-----Original Message-----
+From: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>] 
+Sent: Wednesday, December 29, 2010 10:58 AM
+To: Josue Del Valle; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Access denied code 403 (Multiple Parameters with the same Name)
+
+From:  Josue Del Valle &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jodelvalle at braishfield.com</A>&gt;
+Date:  Wed, 29 Dec 2010 09:47:24 -0600
+To:  &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Cc:  &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&gt;
+Subject:  [Owasp-modsecurity-core-rule-set] Access denied code 403
+(Multiple Parameters with the same Name)
+
+
+&gt;<i>Hi,
+</I>&gt;<i> 
+</I>&gt;<i>Our developer has a form which submits 2 inputs with the same name.
+</I>&gt;<i>There are 2 check boxes and if he select one checkbox and submit
+</I>&gt;<i>everything works fine but if he select both checkboxes he gets an access
+</I>&gt;<i>denied code 403 error.
+</I>&gt;<i> 
+</I>&gt;<i>Can anyone explain how to create an exception so this doesn&#185;t happen.  I
+</I>&gt;<i>have attached the error log.
+</I>&gt;<i> 
+</I>&gt;<i> Please be as detail as possible because I know little about mod_security.
+</I>&gt;<i> 
+</I>&gt;<i>Thanks in advance for your help.
+</I>&gt;<i> 
+</I>&gt;<i>Regards,
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>Josue del Valle
+</I>&gt;<i> 
+</I>&gt;<i>
+</I>&gt;<i> 
+</I>
+Josue,
+I would suggest that you upgrade your OWASP CRS package.  You are using
+v2.0.1 and the current version is 2.0.10.  As to your specific issue, the
+old CRS that you are using issued alerts for HTTP Parameter Pollution
+(HPP) when there are more than 1 parameters with the same name.  This was
+a crude attempt at detection as, as you have shown, there are still
+legitimate scenarios where an app may have multiple params with the same
+name.  In newer CRS, we have moved the HPP rules to the experimental rules
+files (instead of in the 40 generic attacks file as it is with your
+version).  Additionally, the newer HPP rules don't alert when multiple
+params have the same name, but instead attempts to concat the payloads
+into a new TX variable that is then inspected by the other attack rules.
+
+If you can't upgrade CRS at this time, I would suggest that you just
+comment out that rule.
+
+Hope this helps,
+Ryan 
+
+
+
+
+
+
+Coverage cannot be assumed to be bound, altered or canceled without confirmation from an authorized representative of Braishfield Associates, Inc.
+
+
+DISCLAIMER:
+
+CONFIDENTIALITY NOTICE: Braishfield Associates, Inc. would like you to know that the information contained in this communication, including attachments is privileged and confidential. It is intended only for the exclusive use of the addressee. If the reader of this message is not the intended recipient, or the employee or agent responsible for delivering it to the intended recipient, you are hereby notified that any dissemination, distribution or copying of this communication is strictly prohibited. Insurance coverage can not be bound, amended or changed via an e-mail message without knowledge or consent from the insuring carrier. If you have received this communication in error please notify us by telephone immediately at (407) 825-9911 or e-mail <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">disclaimer at braishfield.com.</A> Thank you.
+
+Loss runs are now available online to contracted agents.  Please visit our web portal and utilize this efficient functionality.
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000569.html">[Owasp-modsecurity-core-rule-set] Access denied code 403 (Multiple Parameters with the same Name)
+</A></li>
+	<LI>Next message: <A HREF="000571.html">[Owasp-modsecurity-core-rule-set] Seasons Greetings! Announcing Release of OWASP ModSecurity CRS v2.1.0
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#570">[ date ]</a>
+              <a href="thread.html#570">[ thread ]</a>
+              <a href="subject.html#570">[ subject ]</a>
+              <a href="author.html#570">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

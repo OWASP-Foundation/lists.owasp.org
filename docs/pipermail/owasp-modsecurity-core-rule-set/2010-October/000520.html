@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] correct use of inbound and	outbound blocking
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20correct%20use%20of%20inbound%20and%0A%09outbound%20blocking&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000519.html">
+   <LINK REL="Next"  HREF="000521.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] correct use of inbound and	outbound blocking</H1>
+    <B>R.A. Imhoff</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20correct%20use%20of%20inbound%20and%0A%09outbound%20blocking&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] correct use of inbound and	outbound blocking">lists at flashgenie.net
+       </A><BR>
+    <I>Fri Oct 29 03:46:54 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000519.html">[Owasp-modsecurity-core-rule-set] Results from User Survey
+</A></li>
+        <LI>Next message: <A HREF="000521.html">[Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#520">[ date ]</a>
+              <a href="thread.html#520">[ thread ]</a>
+              <a href="subject.html#520">[ subject ]</a>
+              <a href="author.html#520">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+I would be most grateful for advice on correctly using the TX:ANOMALY_SCORE in the final modsecurity_crs_49_inbound_blocking.conf &amp; modsecurity_crs_59_outbound_blocking.conf
+
+My goal would be to arrive at something where at the end of all the rule evaluations, I could use different disruptive actions depending on the anomaly score.
+Such that requests with a moderate anomaly would be simply blocked, but those with a high anomaly score would blacklist the source IP.
+
+In modsecurity_crs_10_config.conf, I have:
+
+SecAction &quot;phase:1,t:none,nolog,pass, \
+setvar:tx.critical_anomaly_score=20, \
+setvar:tx.error_anomaly_score=15, \
+setvar:tx.warning_anomaly_score=10, \
+setvar:tx.notice_anomaly_score=5&quot; 
+
+These appear to be the amounts that the anomaly score is increased in the different rules, but there doesn't otherwise seem to be anything that differentiates the disruptive action in function of these scores.
+
+Would it be correct if I added something like:
+
+SecRule TX:ANOMALY_SCORE &quot;@gt 30&quot; &quot;log,drop,skip:1,exec:/sbin/blacklist_web,msg:'blacklisting (Total Score: %{TX.ANOMALY_SCORE})'&quot;
+SecRule TX:ANOMALY_SCORE &quot;@gt 10&quot; &quot;log,block,msg:'blocking (Total Score: %{TX.ANOMALY_SCORE})'&quot;
+
+Many thanks in advance!
+Robert
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000519.html">[Owasp-modsecurity-core-rule-set] Results from User Survey
+</A></li>
+	<LI>Next message: <A HREF="000521.html">[Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#520">[ date ]</a>
+              <a href="thread.html#520">[ thread ]</a>
+              <a href="subject.html#520">[ subject ]</a>
+              <a href="author.html#520">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

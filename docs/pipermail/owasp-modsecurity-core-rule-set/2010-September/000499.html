@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] false positive on 959006
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20on%20959006&In-Reply-To=AANLkTimJAMqmxiMR57G6bNU49G7eX%2BKmdmciKhd_OvBN%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000498.html">
+   <LINK REL="Next"  HREF="000500.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] false positive on 959006</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20on%20959006&In-Reply-To=AANLkTimJAMqmxiMR57G6bNU49G7eX%2BKmdmciKhd_OvBN%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] false positive on 959006">RBarnett at trustwave.com
+       </A><BR>
+    <I>Wed Sep 22 20:18:22 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000498.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+        <LI>Next message: <A HREF="000500.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#499">[ date ]</a>
+              <a href="thread.html#499">[ thread ]</a>
+              <a href="subject.html#499">[ subject ]</a>
+              <a href="author.html#499">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Those have different rule id's vs the alert you showed -  [id &quot;959006&quot;]
+
+Sent from my iPhone
+
+On Sep 22, 2010, at 8:12 PM, &quot;Russell Clemings&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;&gt; wrote:
+
+It's whatever cPanel supplies by default. Maybe that's part of the problem.
+
+On the ARGS, I just stopped copying too soon. I think this is it:
+
+SecRule ARGS \
+        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+        &quot;phase:2,capture,t:none,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System Command Injection',id:'950907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+SecRule &quot;REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs|User-Agent)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES&quot; \
+        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+        &quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System Command Injection',id:'959907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+
+
+
+On Wed, Sep 22, 2010 at 5:06 PM, Ryan Barnett &lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt; wrote:
+Rus,
+What CRS version are you using?  This looks old as the newer versions are listed in the alert using the rev action.  Also i believe the variable listing/targets for this rule were updated as it is missing ARGS.
+
+Sent from my iPhone
+
+On Sep 22, 2010, at 7:56 PM, &quot;Russell Clemings&quot; &lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;&gt; wrote:
+
+&gt;<i> I could use some help dealing with the following false positive (some identifying details masked):
+</I>&gt;<i>
+</I>&gt;<i> 116818:[Tue Sep 21 22:52:43 2010] [error] [client XX.XX.XX.XX] ModSecurity: Access denied with code 501 (phase 2). Pattern match &quot;(?:\\b(?:(?:n(?:et(?:\\b\\W+?\\blocalgroup|\\.exe)|(?:map|c)\\.exe)|t(?:racer(?:oute|t)|elnet\\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\\.exe|echo\\b\\W*?\\by+)\\b|c(?:md(?:(?:32)?\\.exe\\b|\\b\\W*?\\/c)|d(?:\\b\\W*?[\\\\/]|\\W*?\\.\\.)|hmod.{0,40}?\\+.{0,3}x))|[\\;\\|\\`]\\W*? ...&quot; at REQUEST_COOKIES:__utmz. [file &quot;/usr/local/apache/conf/modsec2.user.conf&quot;] [line &quot;149&quot;] [id &quot;959006&quot;] [msg &quot;System Command Injection&quot;] [data &quot;/mail&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/COMMAND_INJECTION&quot;] [hostname &quot;xxx.xxx.xxx&quot;] [uri &quot;/xxxx-xxxxx-xxxxxxxx&quot;] [unique_id &quot;TJlve0CDUIUAAHyD6SMAAAAL&quot;]
+</I>&gt;<i>
+</I>&gt;<i> A couple of previous posts suggest that this is hitting on a Google Analytics cookie (REQUEST_COOKIES:__utmz) that tracks where the user came from. It only seems to affect a few users. I've commented out the rule, and that fixed the immediate problem, but of course I would rather create a narrow exemption and leave the rule intact otherwise.
+</I>&gt;<i>
+</I>&gt;<i> How would I do that? FWIW, this is a cPanel VPS so the exceptions have to go in an unusual place (e.g. /usr/local/apache/conf/userdata/std/2/etc/etc/etc) but I can handle that part. It's how to write the rule that confuses me.
+</I>&gt;<i>
+</I>&gt;<i> Here's the rule as it stands now:
+</I>&gt;<i>
+</I>&gt;<i> SecRule REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES \
+</I>&gt;<i>     &quot;(?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b\W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\W*?[\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+</I>&gt;<i>     &quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System Command Injection',id:'959006',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+</I>&gt;<i>
+</I>&gt;<i> I probably should add that I'm functionally regex-illiterate, so please speak slowly :)
+</I>&gt;<i>
+</I>&gt;<i> rac
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+
+
+--
+============================================
+Russell Clemings
+&lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">russell at clemings.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">russell at clemings.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">russell at clemings.com</A>&gt;&gt;
+National Association of Science Writers cybrarian:
+&lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cybrarian at nasw.org</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cybrarian at nasw.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cybrarian at nasw.org</A>&gt;&gt;
+============================================
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000498.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+	<LI>Next message: <A HREF="000500.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#499">[ date ]</a>
+              <a href="thread.html#499">[ thread ]</a>
+              <a href="subject.html#499">[ subject ]</a>
+              <a href="author.html#499">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

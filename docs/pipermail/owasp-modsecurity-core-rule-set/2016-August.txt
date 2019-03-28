@@ -1,0 +1,2472 @@
+From cristiano.galdino at gmail.com  Tue Aug  2 16:16:32 2016
+From: cristiano.galdino at gmail.com (Cristiano Galdino)
+Date: Tue, 2 Aug 2016 13:16:32 -0300
+Subject: [Owasp-modsecurity-core-rule-set] ruleRemoveByTag dont work
+Message-ID: <CAP2OKe-ngW_zEnPxcLELGTWaeKPR4Bp8PYbvdKAfAkrJeUVAuA@mail.gmail.com>
+
+Hi there,
+
+This is my modsecurity_crs_15_local_exceptions file, but dont skip the TAGs
+on rule. Why?
+
+SecRule REQUEST_FILENAME "@beginsWith /path" \
+"id:1500,phase:2,nolog,noauditlog,t:none,t:lowercase,pass, \
+ctl:ruleRemoveById=960024, \
+ctl:ruleRemoveById=981173, \
+ctl:ruleRemoveById=960915, \
+ctl:ruleRemoveById=200003, \
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/XSS';ARGS:Detalhamento, \
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/SQL_INJECTION';ARGS:Detalhamento,
+\
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION';ARGS:Detalhamento,
+\
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/XSS';ARGS:comentario, \
+ctl:ruleRemoveByTag='*OWASP_CRS/WEB_ATTACK/SQL_INJECTION*';ARGS:*comentario*,
+\
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION';ARGS:comentario,
+\
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/XSS';ARGS:texto, \
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/SQL_INJECTION';ARGS:texto, \
+ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION';ARGS:texto"
+
+
+
+Sample message:
+
+Message: Pattern match
+"(/\\*!?|\\*/|[';]--|--[\\s\\r\\n\\v\\f]|(?:--[^-]*?-)|([^\\-&])#.*?[\\s\\r\\n\\v\\f]|;?\\x00)"
+at ARGS:*comentario*. [file
+"/usr/local/apache2/conf/mod_security/owasp/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "49"] [id "981231"] [rev "2"] [msg "SQL Comment Sequence Detected."]
+[data "Matched Data:  #\x0d found within ARGS:comentario: # Poss\xedvel
+fraude descoberta pela PREVEN\xc7\xc3O #\x0d\x0a\x0d\x0aEm contato com
+associado, o mesmo desconhece as seguintes
+transa\xe7\xf5es:\x0d\x0a\x0d\x0a# Transa\xe7\xf5es
+aprovadas:\x0d\x0a01/08/2016 22:05:58\x0923,19D\x09APROVADA\x09COMPRA CARD\
+x09SITE.COM.BR SAO PAULO BRA\x0d\x0a01/08/2016
+21:57:23\x0913,15C\x09APROVADA\x09COMPRA CARD\x09NET FARMA CARAPICUIBA
+BRA\x0d\x0a01/08/2016 19:31:41\x0913,15D\x09APROVADA\x09COMPRA CA..."]
+[severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "8"] [accuracy "8"]
+[tag "*OWASP_CRS/WEB_ATTACK/SQL_INJECTION*"] [tag "WASCTC/WASC-19"] [tag
+"OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/CIE1"] [tag "PCI/6.5.2"]
+
+-- 
+Cristiano Galdino - cristiano at galdino.net
+http://cristiano.galdino.net
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160802/4fa5c4ad/attachment.html>
+
+From modsec at spam.lifeforms.nl  Tue Aug  2 16:58:30 2016
+From: modsec at spam.lifeforms.nl (Walter Hop)
+Date: Tue, 2 Aug 2016 18:58:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] ruleRemoveByTag dont work
+In-Reply-To: <CAP2OKe-ngW_zEnPxcLELGTWaeKPR4Bp8PYbvdKAfAkrJeUVAuA@mail.gmail.com>
+References: <CAP2OKe-ngW_zEnPxcLELGTWaeKPR4Bp8PYbvdKAfAkrJeUVAuA@mail.gmail.com>
+Message-ID: <176D21E2-BDC9-4CE2-9491-1B2F5AECA0D4@spam.lifeforms.nl>
+
+> Hi there,
+> 
+> This is my modsecurity_crs_15_local_exceptions file, but dont skip the TAGs on rule. Why?
+> 
+> ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/SQL_INJECTION';ARGS:comentario, \
+> ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION';ARGS:comentario, \
+> ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/XSS';ARGS:texto, \
+> ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/SQL_INJECTION';ARGS:texto, \
+> ctl:ruleRemoveByTag='OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION';ARGS:texto?
+
+Hi Cristiano,
+
+I think you mean ctl:ruleRemoveTargetByTag, and you also must not specify the ?quotes? around the tag.
+The following should hopefully work:
+
+ctl:ruleRemoveTargetByTag=OWASP_CRS/WEB_ATTACK/SQL_INJECTION;ARGS:comentario
+
+Cheers!
+WH
+
+-- 
+Walter Hop | PGP key: https://lifeforms.nl/pgp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160802/703c0b44/attachment.html>
+
+From Malcolm.Allison at cass.govt.nz  Wed Aug  3 23:57:56 2016
+From: Malcolm.Allison at cass.govt.nz (Malcolm Allison [CASS])
+Date: Wed, 3 Aug 2016 23:57:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Information on rule 960038
+Message-ID: <D00F11CC38A0D04D8C1C63948086302C12D3EE0E@THEYREUS.hamlet.treasury.govt.nz>
+
+Hi,
+
+We are running modsecurtiy with Owasp CRS and I'm after some information on one of the included rules.
+
+Specifically I am after information on why this rule exists and what vulnerabilities it is protecting us from. Searching around I found this page for a different rule, which contains exactly the type of information I'm looking for...
+
+https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-960911
+
+I can't seem to find the corresponding page for rule 960038.
+
+>From what I can tell of the rule, in our case it is matching a header line that ends in 'via', but is case sensitive, so it doesn't match 'Via'. I would like to understand why this is case-sensitive and what the potential vulnerability is. Any and all pointers gratefully accepted.
+
+
+Regards,
+Malcolm.
+
+
+[UNCLASSIFIED]
+
+
+--
+                             CONFIDENTIALITY NOTICE
+The information in this email is confidential to the Treasury, intended only for the addressee(s), and may also be legally privileged.  If you are not an intended addressee:
+a.  please immediately delete this email and notify the Treasury by return email or telephone (64 4 472 2733);
+b.  any use, dissemination or copying of this email is strictly prohibited and may be unlawful.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160803/3824bfb3/attachment.html>
+
+From modsec at spam.lifeforms.nl  Tue Aug  9 19:10:32 2016
+From: modsec at spam.lifeforms.nl (Walter Hop)
+Date: Tue, 9 Aug 2016 21:10:32 +0200
+Subject: [Owasp-modsecurity-core-rule-set] PSA: v3.0.0-rc1 users must do a
+	new clone
+Message-ID: <54CDE56C-BD7C-4F71-9106-852200E21585@spam.lifeforms.nl>
+
+This is only relevant for people tracking the v3.0.0-rc1 branch of the CRS:
+
+If you have checked out the v3.0.0-rc1 branch, you must delete your clone and do a new clone of the repository.
+
+I have purged GeoLiteCity.dat from the v3.0.0-rc1 branch, as it has been replaced by an upgrade script (util/upgrade.py) which can automatically fetch and update the GeoIP database from MaxMind.
+
+This operation has rewritten Git history. If you continue using the old clone, the next time you pull it will merge the divergent histories, and you will get quite unexpected results. Don?t do this to yourself: move a copy of your old clone to a safe place and do a new clone!
+
+Cheers!
+WH
+
+-- 
+Walter Hop | PGP key: https://lifeforms.nl/pgp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160809/43006f0b/attachment.html>
+
+From jayroos at gmail.com  Fri Aug 12 19:36:17 2016
+From: jayroos at gmail.com (Jay Roos)
+Date: Fri, 12 Aug 2016 14:36:17 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+	OWASP_CRS/WEB_ATTACK/SQL_INJECTION id 981247 regex not
+	matching properly
+Message-ID: <CAEuYkgh3h3wWWF3ifVsYvc31o_0-Eq4yUWfzpdDpbyBRM-5eJA@mail.gmail.com>
+
+I have a case where the rule is matching an occurrence of the word
+"created" where it should only be looking for "create". I checked the regex
+in an online tester and it doesn't match there. I'm certainly not a regex
+expert, but I can't see why it's matching.
+
+I've modified a number of of targets to work around other false positives,
+but removing ARGS_NAMES or completely removing this rule seems like going
+too far. This looks like a bug to me.
+
+We're using the latest version from the repo as of 8/1/2016.
+
+Hopefully this is all of the relevant data:
+
+RULE:
+SecRule
+REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|!REQUEST_COOKIES:/_pk_ref/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
+"(?i:(?:[\d\W]\s+as\s*?[\"'`???\w]+\s*?from)|(?:^[\W\d]+\s*?(?:union|select|create(?!d)|rename|truncate|load|alter|delete|update|insert|desc))|(?:(?:select|create(?!d)|rename|truncate|load|alter|delete|update|insert|desc)\s+(?:(?:group_)concat|char|load_file)\s?\(?)|(?:end\s*?\);)|([\"'`???]\s+regexp\W)|(?:[\s(]load_file\s*?\())"
+"phase:2,capture,t:none,t:urlDecodeUni,block,msg:'Detects concatenated
+basic SQL injection and SQLLFI
+attempts',id:'981247',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',logdata:'Matched
+Data: %{TX.0} found within %{MATCHED_VAR_NAME}:
+%{MATCHED_VAR}',severity:'2',setvar:'tx.msg=%{rule.id
+}-%{rule.msg}',setvar:tx.sql_injection_score=+1,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{tx.msg}-OWASP_CRS/WEB_ATTACK/SQLI-%{matched_var_name}=%{tx.0}'"
+
+
+
+REQUEST:
+GET
+/ipac20/ipac.jsp?session=1471026P1M44G.142111&profile=dial&uri=search=TL~!Happy%20Valley%20[DVD%20videorecording]%20/&term=Happy%20Valley%20[DVD%20videorecording]%20/%20a%20Red%20Productions%20Production%20for%20BBC%20;%20written%20&%20created%20by%20Sally%20Wainwright%20;%20producer,%20Karen%20Lewis%20;%20directed%20by%20Sally%20Wainwright,%20Euros%20Lyn,%20Tim%20Fywell.&aspect=subtab69&menu=search&source=~!greatriver
+HTTP/1.1
+
+
+MESSAGE:
+Message: Access denied with code 403 (phase 2). [file
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "243"] [id "981247"] [msg "Detects concatenated basic SQL injection
+and SQLLFI attempts"] [data "Matched Data:  create found within ARGS_NAMES:
+created by Sally Wainwright ; producer, Karen Lewis ; directed by Sally
+Wainwright, Euros Lyn, Tim Fywell.:  created by Sally Wainwright ;
+producer, Karen Lewis ; directed by Sally Wainwright, Euros Lyn, Tim
+Fywell."] [severity "CRITICAL"] [tag "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]
+Apache-Error: [file "mod_access_compat.c"] [line 352] [level 3] AH01797:
+client denied by server configuration: %s%s
+Action: Intercepted (phase 2)
+Apache-Handler: proxy-server
+Stopwatch: 1471026250819223 222791 (- - -)
+Stopwatch2: 1471026250819223 222791; combined=217815, p1=212777, p2=4925,
+p3=0, p4=0, p5=112, sr=0, sw=1, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.7.7 (http://www.modsecurity.org/);
+OWASP_CRS/2.2.9.
+Server: Apache
+Engine-Mode: "ENABLED"
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160812/9e82a320/attachment.html>
+
+From christian.folini at netnea.com  Fri Aug 12 20:23:10 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 12 Aug 2016 22:23:10 +0200
+Subject: [Owasp-modsecurity-core-rule-set]
+ OWASP_CRS/WEB_ATTACK/SQL_INJECTION id 981247 regex not matching properly
+In-Reply-To: <CAEuYkgh3h3wWWF3ifVsYvc31o_0-Eq4yUWfzpdDpbyBRM-5eJA@mail.gmail.com>
+References: <CAEuYkgh3h3wWWF3ifVsYvc31o_0-Eq4yUWfzpdDpbyBRM-5eJA@mail.gmail.com>
+Message-ID: <20160812202310.GA22297@elias>
+
+Hello Jay,
+
+Thank you for your report. This is an interesting case.
+
+Your rule 981247 is mapped to 942360 in the upcoming CRS 3.0 release.
+And despite being updated slightly, the rule triggers on your request.
+
+It's quite a crazy request, I dare say. The issue is of course the
+parameter
+
+term=Happy%20Valley%20[DVD%20videorecording]%20/%20a%20Red%20Productions%20Production%20for%20BBC%20;%20written%20&%20created%20by%20Sally%20Wainwright%20;%20producer,%20Karen%20Lewis%20;%20directed%20by%20Sally%20Wainwright,%20Euros%20Lyn,%20Tim%20Fywell.
+
+That is
+
+term=Happy Valley [DVD videorecording] / a Red Productions Production for BBC
+; written & created by Sally Wainwright ; producer, Karen Lewis ;
+directed by Sally Wainwright, Euros Lyn, Tim Fywell.
+
+As you can see, there is a & in that parameter. Apache splits up the
+argument. Outside of term, there is thus an argument named:
+ created by Sally Wainwright...
+
+Note the initial space.
+
+This is obviously dynamic content and your client would be well-advised
+to encode the ampersand as well.
+
+The regex attempts to discover
+create
+and
+created
+
+I think this is correct and I do not think the regex should be altered.
+I understand you do not want to disable the rule altogether. So here is
+a proposal:
+
+Why don't you disable the rule for all ARGS_NAMES starting with
+a space character? Regex selection of ARGS names allows for this.
+That way you are safe the next time somebody enters a term like this.
+(As long as they accompany the ampersand with a space character.)
+
+Hope this helps,
+
+Christian
+
+
+-- 
+Productivity is less about time management than it is about 
+mind management.
+-- David Kadavy
+
+From mw at dasburo.com  Tue Aug 16 12:43:52 2016
+From: mw at dasburo.com (Marco Wagner)
+Date: Tue, 16 Aug 2016 14:43:52 +0200
+Subject: [Owasp-modsecurity-core-rule-set] false positives by wrong URL
+	Decoding ?
+In-Reply-To: <20822c85-93a1-f42c-6288-47b15ce225ed@dasburo.com>
+References: <20822c85-93a1-f42c-6288-47b15ce225ed@dasburo.com>
+Message-ID: <10d19b01-4046-4cf5-517c-9ec8f9a54a1c@dasburo.com>
+
+Hi @ all,
+
+I have a question you can read on stackoverflow regarding false 
+positives when greek or russian characters are used in the requests of 
+our web services.
+
+http://stackoverflow.com/questions/38974102/modsecurity-owasp-core-rule-set-unicode-false-positive 
+
+
+Would love to hear from you.
+
+PS: I subscribed to the list a few minutes ago, I also confirmed my email.
+
+Best regards,
+Marco Wagner
+
+From CSanders at trustwave.com  Wed Aug 17 02:44:17 2016
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 17 Aug 2016 02:44:17 +0000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1 Released
+Message-ID: <DM2PR0701MB13910D53A7E9C4DB7BD8A34DDB140@DM2PR0701MB1391.namprd07.prod.outlook.com>
+
+The OWASP Core Rule Set team is proud to announce the first of two planned release candidates for the upcoming OWASP ModSecurity Core Rule Set v3.0.0.
+
+
+
+This new release represents a huge step forward in terms of both capabilities and protections including:
+
+
+
+- A 95% reduction in false positives for a typical CRS deployment using the default configuration.
+
+- Extended effectiveness and detection capabilities in numerous areas; namely Remote Command Execution and PHP injections (Walter Hop).
+
+- A simple to use, adjustable paranoia level that allows users to tailor their ruleset experience.
+
+- The capability to allow existing sites to try out the Core Rules by enabling the rules for only limited percentage of requests (Christian Folini).
+
+Please see the CHANGES document for a detailed list of new features and improvements. (https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.0.0-rc1/CHANGES)
+
+
+
+Our desire is to see the Core Rules project as a baseline security feature, effectively fighting OWASP TOP 10 weaknesses with few side effects. As such we attempt to cut down on false positives as much as possible in the default install. This RC1 therefore provides an opportunity for individuals to provide feedback and to report any other issues they may face. This is no longer aimed at ModSecurity experts. This is the Core Rules for the rest of us.
+
+Please use the CRS GitHub (https://github.com/SpiderLabs/owasp-modsecurity-crs/releases/tag/v3.0.0-rc1) or the Core Rules mailing list to tell us about your experiences, including false positives or other issues with this release candidate. Our current timeline is to seek public feedback on RC1 for the next month, followed by an RC2 and subsequently a release.
+
+ For more information, please see the following blog post accompanying this release:
+
+https://www.trustwave.com/Resources/SpiderLabs-Blog/OWASP-ModSecurity-CRS-Version-3-0-RC1-Released/
+
+
+
+Sincerely Chaim Sanders, on behalf of the Core Rules Set development team.
+
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160817/973a3134/attachment.html>
+
+From christian.folini at netnea.com  Wed Aug 17 08:02:24 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 17 Aug 2016 10:02:24 +0200
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+ Released
+In-Reply-To: <DM2PR0701MB13910D53A7E9C4DB7BD8A34DDB140@DM2PR0701MB1391.namprd07.prod.outlook.com>
+References: <DM2PR0701MB13910D53A7E9C4DB7BD8A34DDB140@DM2PR0701MB1391.namprd07.prod.outlook.com>
+Message-ID: <20160817080224.GA18218@elias>
+
+Hi there,
+
+CRS3 has been in the making for several years. Ryan Barnett laid the
+base and instructed Chaim on how to work on the project. Last Winter,
+Chaim took Walter and me into the project and the development
+accelerated a big deal. Chaim and Walter invested their Summer holidays
+into this release and I was close to throwing the towel as I could not
+keep up anymore. This was also thanks to various other community members
+like @ygrek, Vladimir Ivanov, Franziska B?hler, No?l Zindel, Christian
+Peron (to name but a few) providing excellent pull requests and putting
+their fingers on nasty issues we could no longer ignore.
+
+But now the release candidate is out and ready for your testing.
+
+Download a tarball from
+https://github.com/SpiderLabs/owasp-modsecurity-crs/releases/tag/v3.0.0-rc1
+and start with a look into the INSTALL file.
+
+Chaim's blog post demonstrates the impressive reduction of false
+positives with an out of the box Wordpress installation. A few small
+ones remain, namely with requests that contain PHP code. 
+However, if you look at it from a production perspective, where the
+admin traffic is small in comparison with user traffic, then the
+percentage of requests causing false positives will be even lower
+than in Chaim's demo.
+
+We have introduced multiple Paranoia Levels. In default install, you
+run with Paranoia Level 1. This is the level which brings the desired
+security baseline with very little false positives. You can raise the
+Paranoia Level to 2, 3 or 4 to enable more aggressive rules. This will
+bring a higher security level but comes with the price of more false
+positives.
+
+You could argue, that the shifting of dozens of aggressive rules into
+higher Paranoia Levels leads to a reduction in detection capabilities.
+But that is not the case, actually. The support for libinjection
+rules and the great work by Walter Hop around Remote Command Execution
+and PHP Injections counter the effect. So a default CRS3 is a worthy
+successor of CRS2 and the Paranoia Mode allows to lock down high
+security sites with very, very aggressive rules what make it
+extremely tough to smuggle a request past the ruleset.
+
+The release notes speak of enabling the CRS for only a limited
+percentage of request to try out the rules on an existing service. The
+case is clear: You suspect ModSecurity to be a performance hog and
+rumour has it, the Core Rules will stall your service immediately. The
+new Sampling Mode permits to limit ModSecurity and the CRS requests at
+say 1% of the traffic. That way you can be sure, your server will
+continue to work and you have time to look at potential issues without
+much harm.  Afterwards, when you are confident that it works, you raise
+the percentage to 5%, 10%, 20%, 50%, and finally 100%, which naturally
+is the default sampling value. Please be aware, that any value below
+100% opens your site to malign attackers by disabling ModSecurity
+completely.
+
+With that being said, please give this release candidate a shot: Every
+issue we can resolve now, will no longer hamper the full release.
+This is especially true with false positives: Every false positive
+in the default install, which we are able to weed out, will simplify the
+life of countless sysadmins when the install the full release.
+
+Please submit your issues here on the Mailinglist or via the github
+issue tracker.
+
+Cheers,
+
+Christian
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From christian.folini at netnea.com  Fri Aug 19 19:26:05 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 19 Aug 2016 21:26:05 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on Apache 2.2
+Message-ID: <20160819192605.GA15693@elias>
+
+Dear all,
+
+We had the first major bug report for CRS3-RC1 today.
+https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/542
+
+The maximum line length of Apache 2.2 is too short for two of the
+new Remote Command Execution rules which come in at over 10K bytes.
+
+Expect a fix on github in the next few days; certainly for RC2.
+
+Meanwhile Apache 2.4 is doing great and github user @emphazer who
+discovered this bug reports of over 100 production machines running
+CRS3-RC1.
+
+But the list here has remained silent over the release. I see several
+possible reasons:
+- Nobody gives a shit
+- It fails so miserably on your server you removed it immediately and
+  you do not want to talk about CRS anymore
+- It worked like a charm without any false positives, so you forgot
+  about its existence instantly.
+
+Either way, some feedback would be nice. This is an opensource project.
+Chaim and Walter worked day and night for this, and if not even the
+project mailinglist has some positive or negative feedback, then I
+wonder why anybody is doing this at all.
+
+Best,
+
+Christian Folini
+
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From barry_pollard at hotmail.com  Fri Aug 19 21:01:56 2016
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Fri, 19 Aug 2016 21:01:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+ Apache 2.2
+In-Reply-To: <20160819192605.GA15693@elias>
+References: <20160819192605.GA15693@elias>
+Message-ID: <VI1PR06MB1471AF134636629397C79BF682160@VI1PR06MB1471.eurprd06.prod.outlook.com>
+
+Christian I think you missed possibly the two main reasons for lack of comments:
+
+1. People haven't had a chance to try it yet. It's been out 3 days! While you guys have spent a lot of time on this, and I honestly appreciate that, ModSecurity is not my full time job and while I personally do intend to have a look I've simply not had the time yet. I subscribe to this mailing list to keep abreast of changes, be aware of issues and help out when I can but that doesn't mean I'm going to jump immediately at any changes - particularly big ones like this.
+
+2. Is there a benefit in upgrading? Now before you take offence at that let me explain what I mean by that: I've invested a lot of time tuning the older CRS on the websites I look after to the point it doesn't false alert much. It works for me, I'm happy with it and it's not missing any features that CRS3 will give me AFAIK. Would installing ModSecurity have been easier if CRS3 was about then? Absolutely! And if adding ModSecurity to a new site going forward then I'll almost certainly go straight with version 3, but for me, one of the main benefits of this upgrade is the ease of installing it - as it shouldn't be full of false positives when installed with default settings like 2.9 and previous were. As I say, I've already got 2.9 working now, so that doesn't benefit me as much. I've also a certain amount of fear of time it would take to configure, and make me have to reimplement my tuning, for little extra benefit at this point. Do let me know if I'm missing something and you feel there's some big benefits to me that should make me jump this up my priority list.
+
+I think the work done here seems great. I think it seems to lay a good foundation for future development of the CRS. And I appreciate the time gone into it and the frustration the radio silence since release must feel like. I followed with interest the discussions on this but never actually installed the version 3 rules while they were being developed for above reasons so, for me, it's not as simple as upgrading to RC1 and giving further feedback.
+
+Will feedback when I get a chance to look and hopefully others, that have taken time to have a go with this, will give you some of the feedback you're looking for.
+
+Thanks,
+Barry
+
+> On 19 Aug 2016, at 20:39, Christian Folini <christian.folini at netnea.com> wrote:
+> 
+> Dear all,
+> 
+> We had the first major bug report for CRS3-RC1 today.
+> https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/542
+> 
+> The maximum line length of Apache 2.2 is too short for two of the
+> new Remote Command Execution rules which come in at over 10K bytes.
+> 
+> Expect a fix on github in the next few days; certainly for RC2.
+> 
+> Meanwhile Apache 2.4 is doing great and github user @emphazer who
+> discovered this bug reports of over 100 production machines running
+> CRS3-RC1.
+> 
+> But the list here has remained silent over the release. I see several
+> possible reasons:
+> - Nobody gives a shit
+> - It fails so miserably on your server you removed it immediately and
+>  you do not want to talk about CRS anymore
+> - It worked like a charm without any false positives, so you forgot
+>  about its existence instantly.
+> 
+> Either way, some feedback would be nice. This is an opensource project.
+> Chaim and Walter worked day and night for this, and if not even the
+> project mailinglist has some positive or negative feedback, then I
+> wonder why anybody is doing this at all.
+> 
+> Best,
+> 
+> Christian Folini
+> 
+> 
+> -- 
+> https://www.feistyduck.com/training/modsecurity-training-course
+> mailto:christian.folini at netnea.com
+> twitter: @ChrFolini
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From wbmilleriii at comcast.net  Fri Aug 19 23:05:50 2016
+From: wbmilleriii at comcast.net (Bill Miller)
+Date: Fri, 19 Aug 2016 18:05:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Initial report
+Message-ID: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+
+I was able to install CRS 3.0 on my Ubuntu Apache 2.4 system.
+
+After a few hours of troubleshooting, I have all the REQUESTs working 
+successfully except REQUEST-920-PROTOCOL-ENFORCEMENT.conf and 
+RESPONSE-950-DATA-LEAKAGES.conf.  They are causing Modsecurity to throw 
+syntax errors of the form "Found another rule with the same id".  The 
+rules in question are 920011 and 950020.
+
+This is early info and I've done no additional troubleshooting. Since I 
+am still running CRS 2.9, that may be where the conflict is.  Or some 
+other configuration problem on my side.
+
+Cheers,
+Bill
+
+From christian.folini at netnea.com  Sat Aug 20 03:10:04 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Sat, 20 Aug 2016 05:10:04 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+ Apache 2.2
+In-Reply-To: <VI1PR06MB1471AF134636629397C79BF682160@VI1PR06MB1471.eurprd06.prod.outlook.com>
+References: <20160819192605.GA15693@elias>
+	<VI1PR06MB1471AF134636629397C79BF682160@VI1PR06MB1471.eurprd06.prod.outlook.com>
+Message-ID: <20160820031004.GB15666@elias>
+
+Hi there,
+
+Thanks Barry. I certainly did not expect many people to jump into this
+immediately. It's a release candidate after all and there are many
+constraints for existing servers.
+
+I agree that a new service is better of starting with the CRS3
+immediately, than deploying CRS2 and migrating sooner or later.
+
+What felt bad was the radio silence here on the list. A thumbs up 
+would be nice. A "thanks for the RC. Looking forward to install it
+when I find the time" style message. I guess you get the idea.
+
+Ahoj,
+
+Christian
+
+
+
+
+On Fri, Aug 19, 2016 at 09:01:56PM +0000, Barry Pollard wrote:
+> Christian I think you missed possibly the two main reasons for lack of comments:
+> 
+> 1. People haven't had a chance to try it yet. It's been out 3 days! While you guys have spent a lot of time on this, and I honestly appreciate that, ModSecurity is not my full time job and while I personally do intend to have a look I've simply not had the time yet. I subscribe to this mailing list to keep abreast of changes, be aware of issues and help out when I can but that doesn't mean I'm going to jump immediately at any changes - particularly big ones like this.
+> 
+> 2. Is there a benefit in upgrading? Now before you take offence at that let me explain what I mean by that: I've invested a lot of time tuning the older CRS on the websites I look after to the point it doesn't false alert much. It works for me, I'm happy with it and it's not missing any features that CRS3 will give me AFAIK. Would installing ModSecurity have been easier if CRS3 was about then? Absolutely! And if adding ModSecurity to a new site going forward then I'll almost certainly go straight with version 3, but for me, one of the main benefits of this upgrade is the ease of installing it - as it shouldn't be full of false positives when installed with default settings like 2.9 and previous were. As I say, I've already got 2.9 working now, so that doesn't benefit me as much. I've also a certain amount of fear of time it would take to configure, and make me have to reimplement my tuning, for little extra benefit at this point. Do let me know if I'm missing something and y!
+>  ou feel there's some big benefits to me that should make me jump this up my priority list.
+> 
+> I think the work done here seems great. I think it seems to lay a good foundation for future development of the CRS. And I appreciate the time gone into it and the frustration the radio silence since release must feel like. I followed with interest the discussions on this but never actually installed the version 3 rules while they were being developed for above reasons so, for me, it's not as simple as upgrading to RC1 and giving further feedback.
+> 
+> Will feedback when I get a chance to look and hopefully others, that have taken time to have a go with this, will give you some of the feedback you're looking for.
+> 
+> Thanks,
+> Barry
+> 
+> > On 19 Aug 2016, at 20:39, Christian Folini <christian.folini at netnea.com> wrote:
+> > 
+> > Dear all,
+> > 
+> > We had the first major bug report for CRS3-RC1 today.
+> > https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/542
+> > 
+> > The maximum line length of Apache 2.2 is too short for two of the
+> > new Remote Command Execution rules which come in at over 10K bytes.
+> > 
+> > Expect a fix on github in the next few days; certainly for RC2.
+> > 
+> > Meanwhile Apache 2.4 is doing great and github user @emphazer who
+> > discovered this bug reports of over 100 production machines running
+> > CRS3-RC1.
+> > 
+> > But the list here has remained silent over the release. I see several
+> > possible reasons:
+> > - Nobody gives a shit
+> > - It fails so miserably on your server you removed it immediately and
+> >  you do not want to talk about CRS anymore
+> > - It worked like a charm without any false positives, so you forgot
+> >  about its existence instantly.
+> > 
+> > Either way, some feedback would be nice. This is an opensource project.
+> > Chaim and Walter worked day and night for this, and if not even the
+> > project mailinglist has some positive or negative feedback, then I
+> > wonder why anybody is doing this at all.
+> > 
+> > Best,
+> > 
+> > Christian Folini
+> > 
+> > 
+> > -- 
+> > https://www.feistyduck.com/training/modsecurity-training-course
+> > mailto:christian.folini at netnea.com
+> > twitter: @ChrFolini
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From christian.folini at netnea.com  Sat Aug 20 03:23:07 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Sat, 20 Aug 2016 05:23:07 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Initial report
+In-Reply-To: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+References: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+Message-ID: <20160820032307.GE15666@elias>
+
+Hi Bill,
+
+On Fri, Aug 19, 2016 at 06:05:50PM -0500, Bill Miller wrote:
+> I was able to install CRS 3.0 on my Ubuntu Apache 2.4 system.
+
+Cool. Thanks for reporting.
+
+> After a few hours of troubleshooting, I have all the REQUESTs
+> working successfully except REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+> and RESPONSE-950-DATA-LEAKAGES.conf.  They are causing Modsecurity
+> to throw syntax errors of the form "Found another rule with the same
+> id".  The rules in question are 920011 and 950020.
+> ...
+> Since I am still running CRS 2.9, that may be where the conflict is.
+
+These are rules from the optionalr_rules folder of CRS 2.2.x.
+
+The CRS3 INSTALL file warns against parallel installations. However,
+we support parallel installations with the base_rules of CRS2, but
+not with any additional optional_rules and experimental_rules. slr_rules
+would work though.
+
+Once you remove the said rules from your old rules files, the
+parallel install should work.
+
+For a more smooth transition, the official stance is to remove all
+the CRS2 rules before you deploy CRS3.
+
+Cheers,
+
+Christian
+
+
+-- 
+History teaches us that men and nations behave wisely once they have
+exhausted all other alternatives.
+-- Abba Eban
+
+From cmacallister at probono.net  Sat Aug 20 15:49:45 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Sat, 20 Aug 2016 15:49:45 +0000
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+ Apache 2.2
+In-Reply-To: <20160820031004.GB15666@elias>
+References: <20160819192605.GA15693@elias>
+	<VI1PR06MB1471AF134636629397C79BF682160@VI1PR06MB1471.eurprd06.prod.outlook.com>,
+	<20160820031004.GB15666@elias>
+Message-ID: <DM3PR18MB0908EC8F38349C78F0DA2D6CDE170@DM3PR18MB0908.namprd18.prod.outlook.com>
+
+Nice job, fellers! Can?t wait to try it on my dev server! But given my schedule, I think that will be in March.
+
+
+
+Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+
+
+
+From: Christian Folini<mailto:christian.folini at netnea.com>
+Sent: Friday, August 19, 2016 11:18 PM
+To: Barry Pollard<mailto:barry_pollard at hotmail.com>
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on Apache 2.2
+
+
+
+Hi there,
+
+Thanks Barry. I certainly did not expect many people to jump into this
+immediately. It's a release candidate after all and there are many
+constraints for existing servers.
+
+I agree that a new service is better of starting with the CRS3
+immediately, than deploying CRS2 and migrating sooner or later.
+
+What felt bad was the radio silence here on the list. A thumbs up
+would be nice. A "thanks for the RC. Looking forward to install it
+when I find the time" style message. I guess you get the idea.
+
+Ahoj,
+
+Christian
+
+
+
+
+On Fri, Aug 19, 2016 at 09:01:56PM +0000, Barry Pollard wrote:
+> Christian I think you missed possibly the two main reasons for lack of comments:
+>
+> 1. People haven't had a chance to try it yet. It's been out 3 days! While you guys have spent a lot of time on this, and I honestly appreciate that, ModSecurity is not my full time job and while I personally do intend to have a look I've simply not had the time yet. I subscribe to this mailing list to keep abreast of changes, be aware of issues and help out when I can but that doesn't mean I'm going to jump immediately at any changes - particularly big ones like this.
+>
+> 2. Is there a benefit in upgrading? Now before you take offence at that let me explain what I mean by that: I've invested a lot of time tuning the older CRS on the websites I look after to the point it doesn't false alert much. It works for me, I'm happy with it and it's not missing any features that CRS3 will give me AFAIK. Would installing ModSecurity have been easier if CRS3 was about then? Absolutely! And if adding ModSecurity to a new site going forward then I'll almost certainly go straight with version 3, but for me, one of the main benefits of this upgrade is the ease of installing it - as it shouldn't be full of false positives when installed with default settings like 2.9 and previous were. As I say, I've already got 2.9 working now, so that doesn't benefit me as much. I've also a certain amount of fear of time it would take to configure, and make me have to reimplement my tuning, for little extra benefit at this point. Do let me know if I'm missing something and!
+  y!
+>  ou feel there's some big benefits to me that should make me jump this up my priority list.
+>
+> I think the work done here seems great. I think it seems to lay a good foundation for future development of the CRS. And I appreciate the time gone into it and the frustration the radio silence since release must feel like. I followed with interest the discussions on this but never actually installed the version 3 rules while they were being developed for above reasons so, for me, it's not as simple as upgrading to RC1 and giving further feedback.
+>
+> Will feedback when I get a chance to look and hopefully others, that have taken time to have a go with this, will give you some of the feedback you're looking for.
+>
+> Thanks,
+> Barry
+>
+> > On 19 Aug 2016, at 20:39, Christian Folini <christian.folini at netnea.com> wrote:
+> >
+> > Dear all,
+> >
+> > We had the first major bug report for CRS3-RC1 today.
+> > https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/542
+> >
+> > The maximum line length of Apache 2.2 is too short for two of the
+> > new Remote Command Execution rules which come in at over 10K bytes.
+> >
+> > Expect a fix on github in the next few days; certainly for RC2.
+> >
+> > Meanwhile Apache 2.4 is doing great and github user @emphazer who
+> > discovered this bug reports of over 100 production machines running
+> > CRS3-RC1.
+> >
+> > But the list here has remained silent over the release. I see several
+> > possible reasons:
+> > - Nobody gives a shit
+> > - It fails so miserably on your server you removed it immediately and
+> >  you do not want to talk about CRS anymore
+> > - It worked like a charm without any false positives, so you forgot
+> >  about its existence instantly.
+> >
+> > Either way, some feedback would be nice. This is an opensource project.
+> > Chaim and Walter worked day and night for this, and if not even the
+> > project mailinglist has some positive or negative feedback, then I
+> > wonder why anybody is doing this at all.
+> >
+> > Best,
+> >
+> > Christian Folini
+> >
+> >
+> > --
+> > https://www.feistyduck.com/training/modsecurity-training-course
+> > mailto:christian.folini at netnea.com
+> > twitter: @ChrFolini
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160820/8731bc7e/attachment.html>
+
+From wbmilleriii at comcast.net  Sat Aug 20 22:00:29 2016
+From: wbmilleriii at comcast.net (Bill Miller)
+Date: Sat, 20 Aug 2016 17:00:29 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Initial report
+In-Reply-To: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+References: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+Message-ID: <b7ec495f-a6dc-9767-e81d-6df66a2d5ed5@comcast.net>
+
+Conflicts were with optional rules in CRS2.9, all resolved.
+
+Ran CRS3 for 24 hours on virtual machine with no problems.
+
+Just moved to production server to continue testing.
+
+On 08/19/2016 06:05 PM, Bill Miller wrote:
+> I was able to install CRS 3.0 on my Ubuntu Apache 2.4 system.
+>
+> After a few hours of troubleshooting, I have all the REQUESTs working 
+> successfully except REQUEST-920-PROTOCOL-ENFORCEMENT.conf and 
+> RESPONSE-950-DATA-LEAKAGES.conf.  They are causing Modsecurity to 
+> throw syntax errors of the form "Found another rule with the same 
+> id".  The rules in question are 920011 and 950020.
+>
+> This is early info and I've done no additional troubleshooting. Since 
+> I am still running CRS 2.9, that may be where the conflict is.  Or 
+> some other configuration problem on my side.
+>
+> Cheers,
+> Bill
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+From christian.folini at netnea.com  Sun Aug 21 07:53:32 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Sun, 21 Aug 2016 09:53:32 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Initial report
+In-Reply-To: <b7ec495f-a6dc-9767-e81d-6df66a2d5ed5@comcast.net>
+References: <61edfd20-8921-13f4-5d8d-3c675ac3ab72@comcast.net>
+	<b7ec495f-a6dc-9767-e81d-6df66a2d5ed5@comcast.net>
+Message-ID: <20160821075332.GB31278@elias>
+
+On Sat, Aug 20, 2016 at 05:00:29PM -0500, Bill Miller wrote:
+> Conflicts were with optional rules in CRS2.9, all resolved.
+> 
+> Ran CRS3 for 24 hours on virtual machine with no problems.
+> 
+> Just moved to production server to continue testing.
+
+Cool. Glad to hear it worked. Please keep up posted how you fare in
+prod. That fact you are (if I dare say) - _not_ a ModSec expert makes 
+your reports all the more valuable.
+
+Ahoj,
+
+Christian
+
+
+> 
+> On 08/19/2016 06:05 PM, Bill Miller wrote:
+> >I was able to install CRS 3.0 on my Ubuntu Apache 2.4 system.
+> >
+> >After a few hours of troubleshooting, I have all the REQUESTs
+> >working successfully except REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+> >and RESPONSE-950-DATA-LEAKAGES.conf.  They are causing Modsecurity
+> >to throw syntax errors of the form "Found another rule with the
+> >same id".  The rules in question are 920011 and 950020.
+> >
+> >This is early info and I've done no additional troubleshooting.
+> >Since I am still running CRS 2.9, that may be where the conflict
+> >is.  Or some other configuration problem on my side.
+> >
+> >Cheers,
+> >Bill
+> >_______________________________________________
+> >Owasp-modsecurity-core-rule-set mailing list
+> >Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From Jens.Schleusener at t-online.de  Sun Aug 21 10:48:32 2016
+From: Jens.Schleusener at t-online.de (Jens Schleusener)
+Date: Sun, 21 Aug 2016 12:48:32 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+	Apache 2.2
+In-Reply-To: <20160819192605.GA15693@elias>
+References: <20160819192605.GA15693@elias>
+Message-ID: <alpine.LSU.2.20.1608211233180.7430@schiller.dip.t-dialin.net>
+
+Hi Christian,
+
+> We had the first major bug report for CRS3-RC1 today.
+> https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/542
+>
+> The maximum line length of Apache 2.2 is too short for two of the
+> new Remote Command Execution rules which come in at over 10K bytes.
+>
+> Expect a fix on github in the next few days; certainly for RC2.
+>
+> Meanwhile Apache 2.4 is doing great and github user @emphazer who
+> discovered this bug reports of over 100 production machines running
+> CRS3-RC1.
+>
+> But the list here has remained silent over the release. I see several
+> possible reasons:
+> - Nobody gives a shit
+> - It fails so miserably on your server you removed it immediately and
+>  you do not want to talk about CRS anymore
+> - It worked like a charm without any false positives, so you forgot
+>  about its existence instantly.
+>
+> Either way, some feedback would be nice. This is an opensource project.
+> Chaim and Walter worked day and night for this, and if not even the
+> project mailinglist has some positive or negative feedback, then I
+> wonder why anybody is doing this at all.
+
+One reason for the "silence" may be also the very laborious log file 
+analysis.
+
+But to get just a first impression I found your script aliases collection at
+
+  https://github.com/Apache-Labor/labor/blob/master/bin/.apache-modsec.alias
+
+very useful.
+
+On the server that I manage (httpd 2.4.23, modsecurity 2.9.1) CRS3-RC1 is 
+now for nearly a month in use and it works very well (big thanks to the 
+CRS3 team!). Although the server may be not "typical" since it uses itself 
+neither PHP nor SQL but offers amongst others soure code browsing of FOSS 
+software that contains for e.g. PHP, SQL and HTML files here an example 
+output for 5 days (with roughly 200.000 page requests in total) using the 
+script alias "melidmsg" (entries fom some special self-written rules are 
+removed):
+
+cat modsec_audit.log.16081[5-9] | melidmsg | sort | uniq -c | sort -nr
+
+     347 921140 HTTP Header Injection Attack via headers
+     308 910000 Request from Known Malicious Client
+                (Based on previous traffic violations).
+     186 920350 Host header is a numeric IP address
+     105 932130 Remote Command Execution: Unix Shell Expression Found
+      73 920210 Multiple/Conflicting Connection Header Data Found.
+      59 920430 HTTP protocol version is not allowed by policy
+      50 920220 URL Encoding Abuse Attack Attempt
+      48 930110 Path Traversal Attack (/../)
+      43 911100 Method is not allowed by policy
+      37 942100 SQL Injection Attack Detected via libinjection
+      30 941130 XSS Filter - Category 3: Attribute Vector
+      22 920170 GET or HEAD Request with Body Content.
+      12 920330 Empty User Agent Header
+       9 920280 Request Missing a Host Header
+       8 933160 PHP Injection Attack: High-Risk PHP Function Call Found
+       8 913100 Found User-Agent associated with security scanner
+       5 933100 PHP Injection Attack: Opening/Closing Tag Found
+       1 942140 SQL Injection Attack: Common DB Names Detected
+       1 941120 XSS Filter - Category 2: Event Handler Vector
+       1 941100 XSS Attack Detected via libinjection
+       1 933130 PHP Injection Attack: Variables Found
+       1 932100 Remote Command Execution: Unix Command Injection
+       1 930100 Path Traversal Attack (/../)
+       1 920180 POST request missing Content-Length Header.
+       1 913110 Found request header associated with security scanner
+
+The rules 920300, 920310, 920320, 920440 and 933150 are deactivated and 
+the variable tx.inbound_anomaly_score_threshold was increased to 6 
+(default 5) to avoid some FPs (sometimes probably caused just by a "long" 
+Google Referer string?). The so CRS3-unmatched bad requests are hopefully 
+already matched by other specific Apache configuration rules (using the 
+mod_rewrite module) that are implemented on that server.
+
+The rule 920210 ("Multiple/Conflicting Connection Header Data Found") in 
+some cases seems to cause FPs (especially for the User-Agent 
+"Go-http-client/1.1" that sends erroneously a "Connection: close, close" 
+HTTP header).
+
+Regards
+
+Jens
+
+From Jens.Schleusener at t-online.de  Sun Aug 21 13:28:44 2016
+From: Jens.Schleusener at t-online.de (Jens Schleusener)
+Date: Sun, 21 Aug 2016 15:28:44 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] An "X-Forwarded-For" header
+	attack?
+Message-ID: <alpine.LSU.2.20.1608211435510.2219@schiller.dip.t-dialin.net>
+
+Hi,
+
+some days ago I changed for some hours the behavior of a proxy server in 
+front of an Apache httpd server so that an optional existing 
+"X-Forwarded-For" header are no longer removed from the incoming requests.
+
+And expeditiously I found in that period some few alarming log entries in 
+the Apache access_log (written principally in "combined" log format) like
+
+}__test|O:21:\"JDatabaseDriverMysqli\":3:{s:4:\"\\0\\0\\0a\";O:17:\"JSimplepieFactory\":0:{}s:21:\"\\0\\0\\0disconnectHandlers\";a:1:{i:0;a:2:{i:0;O:9:\"SimplePie\":5:{s:8:\"sanitize\";O:20:\"JDatabaseDriverMysql\":0:{}s:5:\"cache\";b:1;s:19:\"cache_name_function\";s:6:\"assert\";s:10:\"javascript\";i:9999;s:8:\"feed_url\";s:126:\"eval(base64_decode('ZWNobyBiYXNlNjRfZGVjb2RlKCdRM2hEZUdwSFFrRnViMjVRYkhWelIzUjBWa2hrUlE9PScpOw=='));JFactory::getConfig();exit\";}i:1;s:4:\"init\";}}s:13:\"\\0\\0\\0connection\";i:1;}\xc3\xb0\xc3\xbd\xc3\xbd\xc3\xbd, 
+151.8.xxx.yyy - - [18/Aug/2016:18:18:32 +0200] "GET /index.php/ HTTP/1.1" 500 - "-" "}__test|O:21:\"JDatabaseDriverMysqli\":3:{s:4:\"\\0\\0\\0a\";O:17:\"JSimplepieFactory\":0:{}s:21:\"\\0\\0\\0disconnectHandlers\";a:1:{i:0;a:2:{i:0;O:9:\"SimplePie\":5:{s:8:\"sanitize\";O:20:\"JDatabaseDriverMysql\":0:{}s:5:\"cache\";b:1;s:19:\"cache_name_function\";s:6:\"assert\";s:10:\"javascript\";i:9999;s:8:\"feed_url\";s:126:\"eval(base64_decode('ZWNobyBiYXNlNjRfZGVjb2RlKCdRM2hEZUdwSFFrRnViMjVRYkhWelIzUjBWa2hrUlE9PScpOw=='));JFactory::getConfig();exit\";}i:1;s:4:\"init\";}}s:13:\"\\0\\0\\0connection\";i:1;}\xc3\xb0\xc3\xbd\xc3\xbd\xc3\xbd"
+
+The log entry unexpectedly doesn't start with an IP but with a string 
+identical to the odd (misused) User-Agent string separated by a comma and 
+followed by an IP (the last two octets above was anonymized). So its looks 
+similar as if multiple IPs are logged for e.g. in case of involved proxies 
+with one or more IPs found in an optional existing "X-Forwarded-For" 
+header.
+
+And yes if the internal upstream proxy is involved on this server the log 
+format used has the "%h" (IP address) replaced by "%{X-Forwarded-For}i" 
+in order to log the requesting IP and not the known IP of the proxy. So I 
+assume either the original sender had misused the "X-Forwarded-For" header 
+field or one of the involved local instances had misinterpreted some 
+header variables.
+
+At first I wonder that the CRS3 rules didn't catch that suspicious string 
+but maybe that is related to the status code 500 ("internal error") so 
+modsecurity wasn't correctly involved.
+
+Naturally bad clients can add arbitrary "X-Forwarded-For" headers but 
+normally they will probably be ignored respectively not logged so that 
+they potential danger may be limited.
+
+In REQUEST-933-APPLICATION-ATTACK-PHP.conf I found a related pointer to 
+https://www.exploit-db.com/exploits/39033/ (X-Forwarded-For header) and a 
+similar attack directly accessing the Apache server was successfully 
+blocked by rule 933170 ("PHP Injection Attack: Serialized Object 
+Injection").
+
+To be on the safe side I have now nevertheless extended also some rules in 
+REQUEST-941-APPLICATION-ATTACK-XSS.conf (CRS3) by 
+"REQUEST_HEADERS:X-Forwarded-For".
+
+But probably better it may be to create a new specific rule that checks 
+"X-Forwarded-For" headers for acceptable respectively valid values. Here 
+is a first raw idea assuming only IPv4 and IPv6 addresses are allowed in 
+that header (not really tested, especially the IP address pattern is 
+improvable):
+
+SecRule &REQUEST_HEADERS:X-Forwarded-For "@eq 0" \
+  "id:941900,\
+   nolog,\
+   pass,\
+   t:none,\
+   skip:1"
+
+SecRule REQUEST_HEADERS:X-Forwarded-For "!@rx ^([1-9][0-9]{0,2}(\.[0-9]{1,3}){3}|[0-9a-f]{1,4}(:[0-9a-f]{0,4}){3,6}:[0-9a-f]{1,4})( 
+{0,2}, {0,2}([1-9][0-9]{0,2}(\.[0-9]{1,3}){3}|[0-9a-f]{1,4}(:[0-9a-f]{0,4}){3,6}:[0-9a-f]{1,4})){0,9}$" \
+  "id:941910,\
+   log,\
+   t:none,\
+   block,\
+   msg:'Forwarded-For header sanity check failed (not a valid list of IP addresses): %{REQUEST_HEADERS.X-Forwarded-For}'"
+
+Regards
+
+Jens
+
+From christian.folini at netnea.com  Mon Aug 22 05:35:51 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 22 Aug 2016 07:35:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+	Apache 2.2
+In-Reply-To: <alpine.LSU.2.20.1608211233180.7430@schiller.dip.t-dialin.net>
+References: <20160819192605.GA15693@elias>
+	<alpine.LSU.2.20.1608211233180.7430@schiller.dip.t-dialin.net>
+Message-ID: <20160822053551.GB12726@elias>
+
+Good morning Jens,
+
+On Sun, Aug 21, 2016 at 12:48:32PM +0200, Jens Schleusener wrote:
+> One reason for the "silence" may be also the very laborious log file
+> analysis.
+> 
+> But to get just a first impression I found your script aliases collection at
+> 
+>  https://github.com/Apache-Labor/labor/blob/master/bin/.apache-modsec.alias
+> 
+> very useful.
+
+Thanks. I should probably cover them in a blogpost. Right now they seem
+to be a bit of a secret to those who have read my (German) tutorials.
+
+> On the server that I manage (httpd 2.4.23, modsecurity 2.9.1)
+> CRS3-RC1 is now for nearly a month in use and it works very well
+> (big thanks to the CRS3 team!).
+
+Glad it works!
+
+> Although the server may be not
+> "typical" since it uses itself neither PHP nor SQL but offers
+> amongst others soure code browsing of FOSS software that contains
+> for e.g. PHP, SQL and HTML files here an example output for 5 days
+> (with roughly 200.000 page requests in total) using the script alias
+> "melidmsg" (entries fom some special self-written rules are
+> removed):
+> 
+> cat modsec_audit.log.16081[5-9] | melidmsg | sort | uniq -c | sort -nr
+
+I guess you are aware of the alias 'sucs' and use the sort-uniq-c-sort
+combination here to make it more comprehensive for the other readers.
+
+>     347 921140 HTTP Header Injection Attack via headers
+>     308 910000 Request from Known Malicious Client
+>                (Based on previous traffic violations).
+>     186 920350 Host header is a numeric IP address
+>     105 932130 Remote Command Execution: Unix Shell Expression Found
+> ...
+
+All in all, this is quite a big collection of alerts for 200K requests.
+Your site is special of course, but would this special content really
+affect the requests that much. Would not that be more a problem with
+the responses?
+
+There are a rules which point to a  real positive. But with many others,
+we might face false positives. Did you investigate further, or do you
+think they point to malign requests?
+
+> Found") in some cases seems to cause FPs (especially for the
+> User-Agent "Go-http-client/1.1" that sends erroneously a
+> "Connection: close, close" HTTP header).
+
+Would you please be so kind and open an issue on the github site for
+this false positive? Ideally including a full audit log entry for the
+request.
+
+Thank you for your detailed report.
+
+Cheers,
+
+Christian
+
+
+-- 
+If it could be proved that two plus two is five, then it could be 
+proved that five is not five, and then there would be no claim that 
+could not be proved, and math would be a lot of bunk.
+-- George Boolos
+
+From Jens.Schleusener at t-online.de  Mon Aug 22 09:39:59 2016
+From: Jens.Schleusener at t-online.de (Jens Schleusener)
+Date: Mon, 22 Aug 2016 11:39:59 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+	Apache 2.2
+In-Reply-To: <20160822053551.GB12726@elias>
+References: <20160819192605.GA15693@elias>
+	<alpine.LSU.2.20.1608211233180.7430@schiller.dip.t-dialin.net>
+	<20160822053551.GB12726@elias>
+Message-ID: <alpine.LSU.2.20.1608221025490.5093@schiller.dip.t-dialin.net>
+
+Hi Christian,
+
+> Good morning Jens,
+>
+> On Sun, Aug 21, 2016 at 12:48:32PM +0200, Jens Schleusener wrote:
+>> One reason for the "silence" may be also the very laborious log file
+>> analysis.
+>>
+>> But to get just a first impression I found your script aliases collection at
+>>
+>>  https://github.com/Apache-Labor/labor/blob/master/bin/.apache-modsec.alias
+>>
+>> very useful.
+>
+> Thanks. I should probably cover them in a blogpost. Right now they seem
+> to be a bit of a secret to those who have read my (German) tutorials.
+>
+>> On the server that I manage (httpd 2.4.23, modsecurity 2.9.1)
+>> CRS3-RC1 is now for nearly a month in use and it works very well
+>> (big thanks to the CRS3 team!).
+>
+> Glad it works!
+>
+>> Although the server may be not
+>> "typical" since it uses itself neither PHP nor SQL but offers
+>> amongst others soure code browsing of FOSS software that contains
+>> for e.g. PHP, SQL and HTML files here an example output for 5 days
+>> (with roughly 200.000 page requests in total) using the script alias
+>> "melidmsg" (entries fom some special self-written rules are
+>> removed):
+>>
+>> cat modsec_audit.log.16081[5-9] | melidmsg | sort | uniq -c | sort -nr
+>
+> I guess you are aware of the alias 'sucs' and use the sort-uniq-c-sort
+> combination here to make it more comprehensive for the other readers.
+
+A "small" yes (but I wanted to reverse the sort order for this post) and
+there is for e.g. also a related alias "melmsgs" in your collection that
+does it all with a single command.
+
+>>     347 921140 HTTP Header Injection Attack via headers
+>>     308 910000 Request from Known Malicious Client
+>>                (Based on previous traffic violations).
+>>     186 920350 Host header is a numeric IP address
+>>     105 932130 Remote Command Execution: Unix Shell Expression Found
+>> ...
+>
+> All in all, this is quite a big collection of alerts for 200K requests.
+> Your site is special of course, but would this special content really
+> affect the requests that much. Would not that be more a problem with
+> the responses?
+
+Sure, for e.g. if valued as meaningful the server tries to display a 
+requested HTML member file of an available software package in rendered 
+format but that leads sometimes to the mentioned errors like
+
+  105 932130 Remote Command Execution: Unix Shell Expression Found
+
+if for e.g. that file includes stylesheets like
+
+  ...common.css?_=${version}
+
+But that was the case only for one member file of one package that caused 
+all that 105 matches.
+
+> There are a rules which point to a  real positive. But with many others,
+> we might face false positives. Did you investigate further, or do you
+> think they point to malign requests?
+
+As said that is very laborious if there hundred of entries. Often one had 
+to analyze additionally the big Apache access log to find out the further 
+behaviour of an suspicious IP and classify the according requests as 
+"good" or "bad".
+
+Helpful would be a general program or script that can grep blocks of lines 
+given a main target pattern and two further patterns specifying the begin 
+and the end of the block. I just write a very primitive one that allows 
+for e.g. via
+
+  grep_blocks_by_sed -p 'id "921140"' \
+    -b '^--[0-9a-f]*-A--' -e '^--[0-9a-f]*-Z--' modsec_audit.log
+
+to extract all matching blocks related to a special rule ID (the number 
+of matches can be restricted by an option "-n N") and filter them
+appropriately further.
+
+So I found now that the 347 entries
+
+  347 921140 HTTP Header Injection Attack via headers
+
+belongs all to a single IP (probably a proxy) that adds to the end of the
+User-Agent header field a "\x0d".
+
+Also all the 59 entries
+
+  59 920430 HTTP protocol version is not allowed by policy
+
+are caused by a single client/bot (User-Agent: Java/1.6.0_04) that seems 
+to have misinterpreted responses of previously requested URLs and 
+requested now invalid URLs that the CRS3 rule seems to assign to the HTTP 
+protocol version.
+
+>> Found") in some cases seems to cause FPs (especially for the
+>> User-Agent "Go-http-client/1.1" that sends erroneously a
+>> "Connection: close, close" HTTP header).
+>
+> Would you please be so kind and open an issue on the github site for
+> this false positive? Ideally including a full audit log entry for the
+> request.
+
+Ok (but a little bit later).
+
+Jens
+
+From christian.folini at netnea.com  Mon Aug 22 10:46:16 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 22 Aug 2016 12:46:16 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CRS3-RC1 not working on
+	Apache 2.2
+In-Reply-To: <alpine.LSU.2.20.1608221025490.5093@schiller.dip.t-dialin.net>
+References: <20160819192605.GA15693@elias>
+	<alpine.LSU.2.20.1608211233180.7430@schiller.dip.t-dialin.net>
+	<20160822053551.GB12726@elias>
+	<alpine.LSU.2.20.1608221025490.5093@schiller.dip.t-dialin.net>
+Message-ID: <20160822104616.GA14936@elias>
+
+Hello,
+
+On Mon, Aug 22, 2016 at 11:39:59AM +0200, Jens Schleusener wrote:
+> As said that is very laborious if there hundred of entries. Often
+> one had to analyze additionally the big Apache access log to find
+> out the further behaviour of an suspicious IP and classify the
+> according requests as "good" or "bad".
+
+Yep. That's the problem exactly.
+
+> Helpful would be a general program or script that can grep blocks of
+> lines given a main target pattern and two further patterns
+> specifying the begin and the end of the block. I just write a very
+> primitive one that allows for e.g. via
+> 
+>  grep_blocks_by_sed -p 'id "921140"' \
+>    -b '^--[0-9a-f]*-A--' -e '^--[0-9a-f]*-Z--' modsec_audit.log
+
+You may want to look into csplit.
+
+Personally, I hardly work with the auditlog. I concentrate on the
+errorlog where I fetch ruleid, IPs and unique-ids. I grep for the IP
+and the unique id in the access-log and display sessions with the
+al-group of aliases in my alias-collection. Usually
+altimestatusmethodpath.
+
+Example:
+
+$> grep 941160 error.log | melip | while read IP; do \
+   echo "*** $IP ****"; \
+   grep $IP folinic.access-not-null | altimestatusmethodpath ; done 
+
+...
+*** 000.000.33.201 ****
+[2016-08-15 09:20:26.666687] 302 POST /de/node/35876/edit
+[2016-08-15 09:21:13.160125] 200 POST /de/system/ajax
+[2016-08-15 09:21:19.746708] 302 POST /de/node/35876/edit/de
+[2016-08-15 09:23:00.658298] 200 POST /de/system/ajax
+[2016-08-15 09:23:07.598479] 302 POST /de/node/35876/edit/fr
+[2016-08-15 09:23:52.093165] 200 POST /de/system/ajax
+[2016-08-15 09:23:58.916953] 302 POST /de/node/35876/edit/it
+[2016-08-15 09:24:54.378965] 200 POST /de/system/ajax
+[2016-08-15 09:25:00.475736] 302 POST /de/node/35876/edit/en-gb
+[2016-08-15 12:26:26.784170] 200 POST /de/plupload-handle-uploads?...
+[2016-08-15 12:26:28.898396] 200 GET /de/admin/content/file/...
+[2016-08-15 12:27:28.803916] 200 POST /de/media/ajax/field_header_...
+[2016-08-15 12:27:35.067760] 302 POST /de/node/36269/edit
+[2016-08-15 12:27:51.742488] 200 POST /de/media/ajax/field_header_...
+...
+
+That's a fairly coarse approach. But this example would give me a
+overview what the sessions involving violations of 941160 are up to.
+If I browse over the various IPs, I get a feeling for the application
+and what seems to be standard behaviour and what not.
+
+However, the reasonable approach is of course to look for false
+positives in traffic where you _know_ there is not attack traffic
+interwoven and every alert guaranteed to be a false positive. 
+That approach does not quite work out in the real world a lot of the 
+time, though.
+
+If you find stuff where you are sure it is a false positive, then please
+open github issues. Especially in the default install with paranoia
+level 1. In the higher paranoia levels you should anticipate more and
+more false positives.
+
+Ahoj,
+
+Christian
+
+
+-- 
+A great swindle of our time is the assumption that science has made
+religion obsolete. All science has damaged is the story of Adam and Eve
+and the story of Jonah and the Whale.
+-- Kurt Vonnegut
+
+From morris at eml.cc  Wed Aug 24 08:57:39 2016
+From: morris at eml.cc (Morris Taylor)
+Date: Wed, 24 Aug 2016 16:57:39 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution
+	rule for CRSv2 Users
+Message-ID: <1472029059.393469.704490393.5BC441EA@webmail.messagingengine.com>
+
+Hi there:
+
+   We have backported a rule from CRSv3 to CRSv2 for preventing web
+   applications from HTTP parameter pollution attacks. Followings are
+   the rules:
+
+SecRule ARGS_NAMES "." "phase:2, id:2001, rev:'2',
+ver:'OWASP_CRS/3.0.0', pass, nolog, tag:'application-multi',
+tag:'language-multi', tag:'platform-multi', tag:'attack-protocol',
+tag:'paranoia-level/3',
+tag:'CAPEC-460',setvar:'TX.paramcounter_%{MATCHED_VAR_NAME}=+1'"
+
+SecRule TX:/paramcounter_.*/ "@gt 1" "msg:'HTTP Parameter Pollution
+(%{TX.1})', chain, phase:2, id:2002, rev:'2', ver:'OWASP_CRS/3.0.0',
+maturity:'7', accuracy:'8', severity:'CRITICAL', block,
+tag:'application-multi',
+tag:'language-multi',tag:'platform-multi',tag:'attack-protocol',tag:'paranoia-level/3',tag:'CAPEC-460',logdata:'Matched
+Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'"
+    SecRule MATCHED_VARS_NAMES "TX:paramcounter_(.*)"
+    "capture,setvar:tx.msg=%{rule.msg},
+    setvar:tx.http_violation_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/HTTP_PARAMETER_POLLUTION-%{matched_var_name}=%{tx.0}"
+
+The differences between CRSv3 and the rules above are as following:
+1. Phase value are set to 2 instead of "request" to ensure the
+compatibility for ancient modsecurity users who are not using
+modsecurity with early request module enabled.
+2. Rule id is modified to suit our case. 
+3. Multiline rules is reformatted into one line per rule.
+4. Default action of the second rule is changed to block from pass,
+please be noted this change may cause some new alarms on your side.
+
+I have performed several simple test with modsecurity 2.8 on my side,
+and it works perfectly. I hope this sharing will help those who are also
+suffering in http parameter attacks and don't have enough time to patch
+their applications. Please correct me directly if you see anything is
+wrong here. Thanks!
+
+
+--
+BR, Morris
+
+From christian.folini at netnea.com  Wed Aug 24 10:50:40 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 24 Aug 2016 12:50:40 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Backport HTTP Parameter
+ Pollution rule for CRSv2 Users
+In-Reply-To: <1472029059.393469.704490393.5BC441EA@webmail.messagingengine.com>
+References: <1472029059.393469.704490393.5BC441EA@webmail.messagingengine.com>
+Message-ID: <20160824105040.GA8514@elias>
+
+Morris,
+
+This works as advertised. Thanks for sharing.
+
+If you are running it outside of the CRS, you may want to remove all
+the tags and the CRS-specific setvars.
+
+Ahoj,
+
+Christian
+
+On Wed, Aug 24, 2016 at 04:57:39PM +0800, Morris Taylor wrote:
+> Hi there:
+> 
+>    We have backported a rule from CRSv3 to CRSv2 for preventing web
+>    applications from HTTP parameter pollution attacks. Followings are
+>    the rules:
+> 
+> SecRule ARGS_NAMES "." "phase:2, id:2001, rev:'2',
+> ver:'OWASP_CRS/3.0.0', pass, nolog, tag:'application-multi',
+> tag:'language-multi', tag:'platform-multi', tag:'attack-protocol',
+> tag:'paranoia-level/3',
+> tag:'CAPEC-460',setvar:'TX.paramcounter_%{MATCHED_VAR_NAME}=+1'"
+> 
+> SecRule TX:/paramcounter_.*/ "@gt 1" "msg:'HTTP Parameter Pollution
+> (%{TX.1})', chain, phase:2, id:2002, rev:'2', ver:'OWASP_CRS/3.0.0',
+> maturity:'7', accuracy:'8', severity:'CRITICAL', block,
+> tag:'application-multi',
+> tag:'language-multi',tag:'platform-multi',tag:'attack-protocol',tag:'paranoia-level/3',tag:'CAPEC-460',logdata:'Matched
+> Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'"
+>     SecRule MATCHED_VARS_NAMES "TX:paramcounter_(.*)"
+>     "capture,setvar:tx.msg=%{rule.msg},
+>     setvar:tx.http_violation_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/HTTP_PARAMETER_POLLUTION-%{matched_var_name}=%{tx.0}"
+> 
+> The differences between CRSv3 and the rules above are as following:
+> 1. Phase value are set to 2 instead of "request" to ensure the
+> compatibility for ancient modsecurity users who are not using
+> modsecurity with early request module enabled.
+> 2. Rule id is modified to suit our case. 
+> 3. Multiline rules is reformatted into one line per rule.
+> 4. Default action of the second rule is changed to block from pass,
+> please be noted this change may cause some new alarms on your side.
+> 
+> I have performed several simple test with modsecurity 2.8 on my side,
+> and it works perfectly. I hope this sharing will help those who are also
+> suffering in http parameter attacks and don't have enough time to patch
+> their applications. Please correct me directly if you see anything is
+> wrong here. Thanks!
+> 
+> 
+> --
+> BR, Morris
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From steffen.hoehne at jmc-software.ch  Wed Aug 24 14:59:42 2016
+From: steffen.hoehne at jmc-software.ch (=?iso-8859-1?Q?Steffen_H=F6hne?=)
+Date: Wed, 24 Aug 2016 14:59:42 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1
+	SecRuleEngine DetectionOnly
+Message-ID: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+
+Hello guys
+
+thank you for this great solution :)
+
+Our system: Windows server 2012 standard x64 with iis
+Modsecurity 2.9.1 with the latest ruleset
+SecRuleEngine: DetectionOnly
+web.config: <ModSecurity enabled="true" configFile="C:\Program Files\ModSecurity IIS\modsecurity_iis.conf" />
+
+Problem: We have a login screen at our  nopcommerce webshop - with modecurity enabled and  DetectionOnly  it isn't possible to login.
+There is no warning log in the windows eventviewer. The login just redirect back to the login page.
+
+If I turn SecRuleEngine Off and recycle the apppool and try again ... tatatata it works :)
+
+Login URL is: http://admin.domain.tld/login?ReturnUrl=%2fadmin
+
+I think "SecRuleEngine DetectionOnly"  shouldn't block - just write an event.
+
+Do you have any soultion for me?
+
+Thank you
+
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://www.jmc-software.ch/> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160824/e3445efd/attachment.html>
+
+From CSanders at trustwave.com  Wed Aug 24 15:34:23 2016
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 24 Aug 2016 15:34:23 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity
+	2.9.1	SecRuleEngine DetectionOnly
+In-Reply-To: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+References: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+Message-ID: <DM2PR0701MB1391D43E8D12E1B48330E8A6DBEA0@DM2PR0701MB1391.namprd07.prod.outlook.com>
+
+This is very suspicious activity - I will boot up a test machine and verify it if I can - what version of IIS are you using? Are you using CRS?
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave| SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Steffen H?hne
+Sent: Wednesday, August 24, 2016 11:00 AM
+To: 'owasp-modsecurity-core-rule-set at lists.owasp.org'
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+Hello guys
+
+thank you for this great solution :)
+
+Our system: Windows server 2012 standard x64 with iis
+Modsecurity 2.9.1 with the latest ruleset
+SecRuleEngine: DetectionOnly
+web.config: <ModSecurity enabled="true" configFile="C:\Program Files\ModSecurity IIS\modsecurity_iis.conf" />
+
+Problem: We have a login screen at our  nopcommerce webshop - with modecurity enabled and  DetectionOnly  it isn't possible to login.
+There is no warning log in the windows eventviewer. The login just redirect back to the login page.
+
+If I turn SecRuleEngine Off and recycle the apppool and try again ... tatatata it works :)
+
+Login URL is: http://admin.domain.tld/login?ReturnUrl=%2fadmin
+
+I think "SecRuleEngine DetectionOnly"  shouldn't block - just write an event.
+
+Do you have any soultion for me?
+
+Thank you
+
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://scanmail.trustwave.com/?c=4062&d=87291xk-bECw0KTtqHdUQmJvRvkcBlUrb9ddFEQ1VA&s=5&u=http%3a%2f%2fwww%2ejmc-software%2ech%2f> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160824/4901cf33/attachment.html>
+
+From cmacallister at probono.net  Wed Aug 24 15:46:56 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Wed, 24 Aug 2016 15:46:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity
+	2.9.1	SecRuleEngine DetectionOnly
+In-Reply-To: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+References: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+Message-ID: <DM5PR18MB149843FCE621765D14ECFCCADEEA0@DM5PR18MB1498.namprd18.prod.outlook.com>
+
+Hi, Steffen, I've been having a similar problem with my connection being aborted when I turn the engine on for a particular site. No audit messages, but I haven't had a chance to try turning on the debug log. Most frustrating is that I run this same site in development and staging and it works fine with blocking on - just not in production. The only difference between production and staging is that in production the site has its own dedicated instance of the application server (ColdFusion on Tomcat).
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Steffen H?hne
+Sent: Wednesday, August 24, 2016 11:00 AM
+To: 'owasp-modsecurity-core-rule-set at lists.owasp.org' <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+Hello guys
+
+thank you for this great solution :)
+
+Our system: Windows server 2012 standard x64 with iis
+Modsecurity 2.9.1 with the latest ruleset
+SecRuleEngine: DetectionOnly
+web.config: <ModSecurity enabled="true" configFile="C:\Program Files\ModSecurity IIS\modsecurity_iis.conf" />
+
+Problem: We have a login screen at our  nopcommerce webshop - with modecurity enabled and  DetectionOnly  it isn't possible to login.
+There is no warning log in the windows eventviewer. The login just redirect back to the login page.
+
+If I turn SecRuleEngine Off and recycle the apppool and try again ... tatatata it works :)
+
+Login URL is: http://admin.domain.tld/login?ReturnUrl=%2fadmin
+
+I think "SecRuleEngine DetectionOnly"  shouldn't block - just write an event.
+
+Do you have any soultion for me?
+
+Thank you
+
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://www.jmc-software.ch/> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160824/d5c0a30d/attachment-0001.html>
+
+From christian.folini at netnea.com  Wed Aug 24 19:59:00 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 24 Aug 2016 21:59:00 +0200
+Subject: [Owasp-modsecurity-core-rule-set] false positives by wrong URL
+ Decoding ?
+In-Reply-To: <10d19b01-4046-4cf5-517c-9ec8f9a54a1c@dasburo.com>
+References: <20822c85-93a1-f42c-6288-47b15ce225ed@dasburo.com>
+	<10d19b01-4046-4cf5-517c-9ec8f9a54a1c@dasburo.com>
+Message-ID: <20160824195900.GA27733@elias>
+
+Hello Marco,
+
+Truth be told, ModSecurity and especially the Core Rules are not very 
+good at handling UTF8. Basic support is there, but it is really quite
+limited and the Core Rules bring you a lot of false positives with
+UTF-8 encoded requests.
+
+This might be less the case with the upcoming Core Rules 3 release, but
+I would not be surprised if that would continue to be a weak spot.
+
+The rule in question has been updated for Core Rules 3.0.
+It has the number 942330 now. The regex is now
+
+"(?i:(?:[\"'`]\s*?(x?or|div|like|between|and)\s*?[\"'`]?\d)|(?:\\\\x(?:23|27|3d))|(?:^.?[\"'`]$)|(?:(?:^[\"'`\\\\]*?(?:[\d\"'`]+|[^\"'`]+[\"'`]))+\s*?(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*?[\w\"'`][+&!@(),.-])|(?:[^\w\s]\w+\s*?[|-]\s*?[\"'`]\s*?\w)|(?:@\w+\s+(and|x?or|div|like|between|and)\s*?[\"'`\d]+)|(?:@[\w-]+\s(and|x?or|div|like|between|and)\s*?[^\w\s])|(?:[^\w\s:]\s*?\d\W+[^\w\s]\s*?[\"'`].)|(?:\Winformation_schema|table_name\W))"
+
+Would you be so kind and give this a shot.
+
+If you still get a false positive, when we need to open an issue
+on github and tag it with false positive.
+
+Sorry for the inconvenience (and the delay with responding).
+
+Ahoj,
+
+Christian
+
+
+
+On Tue, Aug 16, 2016 at 02:43:52PM +0200, Marco Wagner wrote:
+> Hi @ all,
+> 
+> I have a question you can read on stackoverflow regarding false
+> positives when greek or russian characters are used in the requests
+> of our web services.
+> 
+> http://stackoverflow.com/questions/38974102/modsecurity-owasp-core-rule-set-unicode-false-positive
+> 
+> 
+> Would love to hear from you.
+> 
+> PS: I subscribed to the list a few minutes ago, I also confirmed my email.
+> 
+> Best regards,
+> Marco Wagner
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From steffen.hoehne at jmc-software.ch  Thu Aug 25 06:41:12 2016
+From: steffen.hoehne at jmc-software.ch (=?iso-8859-1?Q?Steffen_H=F6hne?=)
+Date: Thu, 25 Aug 2016 06:41:12 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity
+	2.9.1	SecRuleEngine DetectionOnly
+In-Reply-To: <DM2PR0701MB1391D43E8D12E1B48330E8A6DBEA0@DM2PR0701MB1391.namprd07.prod.outlook.com>
+References: <1a3eb6b3b3d6424a96f8e224c5c15b71@JMC3112.jmcmail.ch>
+	<DM2PR0701MB1391D43E8D12E1B48330E8A6DBEA0@DM2PR0701MB1391.namprd07.prod.outlook.com>
+Message-ID: <33ca48a0cb2e4802b736ba513d955ca0@JMC3112.jmcmail.ch>
+
+Guys
+
+Something new with that problem.
+
+If I turn SecRequestBodyAccess off - it works without a problem.
+
+SecRuleEngine DetectionOnly and SecRequestBodyAccess On doesn't work.
+
+May that help you - but that's not a solution :-/
+
+Thanks
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://www.jmc-software.ch/> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+
+From: Chaim Sanders [mailto:CSanders at trustwave.com]
+Sent: Mittwoch, 24. August 2016 17:34
+To: Steffen H?hne <steffen.hoehne at jmc-software.ch>; 'owasp-modsecurity-core-rule-set at lists.owasp.org' <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+This is very suspicious activity - I will boot up a test machine and verify it if I can - what version of IIS are you using? Are you using CRS?
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave| SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Steffen H?hne
+Sent: Wednesday, August 24, 2016 11:00 AM
+To: 'owasp-modsecurity-core-rule-set at lists.owasp.org'
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+Hello guys
+
+thank you for this great solution :)
+
+Our system: Windows server 2012 standard x64 with iis
+Modsecurity 2.9.1 with the latest ruleset
+SecRuleEngine: DetectionOnly
+web.config: <ModSecurity enabled="true" configFile="C:\Program Files\ModSecurity IIS\modsecurity_iis.conf" />
+
+Problem: We have a login screen at our  nopcommerce webshop - with modecurity enabled and  DetectionOnly  it isn't possible to login.
+There is no warning log in the windows eventviewer. The login just redirect back to the login page.
+
+If I turn SecRuleEngine Off and recycle the apppool and try again ... tatatata it works :)
+
+Login URL is: http://admin.domain.tld/login?ReturnUrl=%2fadmin
+
+I think "SecRuleEngine DetectionOnly"  shouldn't block - just write an event.
+
+Do you have any soultion for me?
+
+Thank you
+
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://scanmail.trustwave.com/?c=4062&d=87291xk-bECw0KTtqHdUQmJvRvkcBlUrb9ddFEQ1VA&s=5&u=http%3a%2f%2fwww%2ejmc-software%2ech%2f> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160825/e9643af1/attachment.html>
+
+From steffen.hoehne at jmc-software.ch  Thu Aug 25 07:09:40 2016
+From: steffen.hoehne at jmc-software.ch (=?iso-8859-1?Q?Steffen_H=F6hne?=)
+Date: Thu, 25 Aug 2016 07:09:40 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS
+	ModSecurity	2.9.1	SecRuleEngine DetectionOnly SOULUTION
+Message-ID: <b2218ec6b7404420850b714274fe1442@JMC3112.jmcmail.ch>
+
+Found the solution: https://github.com/SpiderLabs/ModSecurity/issues/538
+
+add to modsecurity.conf
+# Configures the ability to use stream inspection for inbound request data in a re-allocable buffer.
+# For security reasons we are still buffering the stream.
+SecStreamInBodyInspection On
+
+
+That solve the problem for me.
+
+Thank you
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://www.jmc-software.ch/> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Steffen H?hne
+Sent: Donnerstag, 25. August 2016 08:41
+To: 'owasp-modsecurity-core-rule-set at lists.owasp.org' <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+Guys
+
+Something new with that problem.
+
+If I turn SecRequestBodyAccess off - it works without a problem.
+
+SecRuleEngine DetectionOnly and SecRequestBodyAccess On doesn't work.
+
+May that help you - but that's not a solution :-/
+
+Thanks
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://www.jmc-software.ch/> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+
+From: Chaim Sanders [mailto:CSanders at trustwave.com]
+Sent: Mittwoch, 24. August 2016 17:34
+To: Steffen H?hne <steffen.hoehne at jmc-software.ch<mailto:steffen.hoehne at jmc-software.ch>>; 'owasp-modsecurity-core-rule-set at lists.owasp.org' <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: RE: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+This is very suspicious activity - I will boot up a test machine and verify it if I can - what version of IIS are you using? Are you using CRS?
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave| SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Steffen H?hne
+Sent: Wednesday, August 24, 2016 11:00 AM
+To: 'owasp-modsecurity-core-rule-set at lists.owasp.org'
+Subject: [Owasp-modsecurity-core-rule-set] Windows IIS ModSecurity 2.9.1 SecRuleEngine DetectionOnly
+
+Hello guys
+
+thank you for this great solution :)
+
+Our system: Windows server 2012 standard x64 with iis
+Modsecurity 2.9.1 with the latest ruleset
+SecRuleEngine: DetectionOnly
+web.config: <ModSecurity enabled="true" configFile="C:\Program Files\ModSecurity IIS\modsecurity_iis.conf" />
+
+Problem: We have a login screen at our  nopcommerce webshop - with modecurity enabled and  DetectionOnly  it isn't possible to login.
+There is no warning log in the windows eventviewer. The login just redirect back to the login page.
+
+If I turn SecRuleEngine Off and recycle the apppool and try again ... tatatata it works :)
+
+Login URL is: http://admin.domain.tld/login?ReturnUrl=%2fadmin
+
+I think "SecRuleEngine DetectionOnly"  shouldn't block - just write an event.
+
+Do you have any soultion for me?
+
+Thank you
+
+
+Freundliche Gr?sse
+Steffen H?hne
+System Engineer
+--------------------------------------------------------------------------------------------------------------
+JMC Software AG * Riedstrasse 1 * 6343 Rotkreuz * Switzerland
+Phone: +41 41 799 02 12
+Internet: http://www.jmc-software.ch<http://scanmail.trustwave.com/?c=4062&d=87291xk-bECw0KTtqHdUQmJvRvkcBlUrb9ddFEQ1VA&s=5&u=http%3a%2f%2fwww%2ejmc-software%2ech%2f> * Email: sh at JMC-Software.ch<mailto:sh at JMC-Software.ch>
+--------------------------------------------------------------------------------------------------------------
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160825/0c7a3121/attachment-0001.html>
+
+From ken at pumastudios.com  Sat Aug 27 17:59:39 2016
+From: ken at pumastudios.com (Ken Brucker)
+Date: Sat, 27 Aug 2016 10:59:39 -0700
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1 Rules
+	930100, 930110
+In-Reply-To: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>
+Message-ID: <6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>
+
+I have V3 rules running in a test environment playing with how it interacts with WordPress. My early investigation is showing a few rules that need to be addressed to allow code, sql examples etc. to be included in a post, nothing overly surprising.
+
+I have a question about the construction of rules 930100 and 930110. These rules both examine REQUEST_BODY and REQUEST_HEADERS. Other rules, such as 930120 use ARGS and ARGS_NAMES, etc.
+
+The result is it's not possible to disable 930100 and 930110 for specific ARGS where the patterns would be acceptable.
+
+What is the motivation for the difference in how these rules are defined?
+
+-- Ken
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160827/a29af589/attachment.html>
+
+From gary.tam at ges.com.hk  Mon Aug 29 04:20:19 2016
+From: gary.tam at ges.com.hk (Gary Tam)
+Date: Mon, 29 Aug 2016 12:20:19 +0800
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+	Rules	930100, 930110
+In-Reply-To: <6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>
+	<6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>
+Message-ID: <0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>
+
+Dear Genius,
+
+ 
+
+ 
+
+I am a beginner in Owasp-modsecurity.  I have just done the modsecurity
+installation on my windows server (i.e. Windows 2008 with IIS 7.5).  It is
+observed that there is a windows event log error when enabled the
+"experimental_rules" as below: 
+
+ 
+
+Syntax error in config file C:\/Program Files/ModSecurity
+IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line
+34: Could not open geo database
+"/usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat": The
+system cannot find the path specified. 
+
+ 
+
+Of coz I know it is needed to emend the file path from linux to windows
+syntax, but i could not find the GeoLiteCity.dat in my windows server.
+Would you guys help to check and advise? 
+
+ 
+
+Many thanks! 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160829/3d748ef3/attachment.html>
+
+From wbmilleriii at comcast.net  Mon Aug 29 04:32:59 2016
+From: wbmilleriii at comcast.net (Bill Miller)
+Date: Sun, 28 Aug 2016 23:32:59 -0500
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+ Rules 930100, 930110
+In-Reply-To: <0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>
+	<6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>
+	<0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>
+Message-ID: <042c004d-7f36-0c57-8742-de762984aa94@comcast.net>
+
+You can download the database from here
+https://dev.maxmind.com/geoip/legacy/geolite/
+
+On 08/28/2016 11:20 PM, Gary Tam wrote:
+>
+> Dear Genius,
+>
+> I am a beginner in Owasp-modsecurity.  I have just done the 
+> modsecurity installation on my windows server (i.e. Windows 2008 with 
+> IIS 7.5).  It is observed that there is a windows event log error when 
+> enabled the ?experimental_rules? as below:
+>
+> *Syntax error in config file C:\/Program Files/ModSecurity 
+> IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, 
+> line 34: Could not open geo database 
+> "/usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat": 
+> The system cannot find the path specified. *
+>
+> Of coz I know it is needed to emend the file path from linux to 
+> windows syntax, but i could not find the GeoLiteCity.dat in my windows 
+> server.  Would you guys help to check and advise?
+>
+> Many thanks!
+>
+> Best Regards,
+>
+> **
+>
+> *Gary Tam*
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160828/84ebd685/attachment.html>
+
+From gary.tam at ges.com.hk  Mon Aug 29 06:23:49 2016
+From: gary.tam at ges.com.hk (Gary Tam)
+Date: Mon, 29 Aug 2016 14:23:49 +0800
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+	Rules 930100, 930110
+In-Reply-To: <042c004d-7f36-0c57-8742-de762984aa94@comcast.net>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>	<6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>	<0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>
+	<042c004d-7f36-0c57-8742-de762984aa94@comcast.net>
+Message-ID: <0c1601d201bd$e7b5e530$b721af90$@tam@ges.com.hk>
+
+Dear Bill,
+
+ 
+
+Thanks for your reply and information.  I have just downloaded the dasebase
+- GeoLiteCity.dat from http://dev.maxmind.com/geoip/legacy/geolite/ and
+updated in the config file (i.e. modsecurity_crs_61_ip_forensics.conf).  But
+it now shows another Syntax error as below:  
+
+ 
+
+Syntax error in config file C:\/Program Files/ModSecurity
+IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line
+34: SecGeoLookupDB takes one argument, database for geographical lookups
+module.
+
+ 
+
+line 34 of modsecurity_crs_61_ip_forensics.conf
+
+SecGeoLookupDb C:\Program Files\ModSecurity
+IIS\owasp_crs\base_rules\GeoLiteCity.dat
+
+ 
+
+ 
+
+Would you please help again?  Many thanks! 
+
+ 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+[mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf
+Of Bill Miller
+Sent: 29 August 2016 12:33
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+Rules 930100, 930110
+
+ 
+
+You can download the database from here 
+https://dev.maxmind.com/geoip/legacy/geolite/
+
+On 08/28/2016 11:20 PM, Gary Tam wrote:
+
+Dear Genius,
+
+ 
+
+ 
+
+I am a beginner in Owasp-modsecurity.  I have just done the modsecurity
+installation on my windows server (i.e. Windows 2008 with IIS 7.5).  It is
+observed that there is a windows event log error when enabled the
+"experimental_rules" as below: 
+
+ 
+
+Syntax error in config file C:\/Program Files/ModSecurity
+IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line
+34: Could not open geo database
+"/usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat": The
+system cannot find the path specified. 
+
+ 
+
+Of coz I know it is needed to emend the file path from linux to windows
+syntax, but i could not find the GeoLiteCity.dat in my windows server.
+Would you guys help to check and advise? 
+
+ 
+
+Many thanks! 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+ 
+
+ 
+
+
+
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160829/d8b16f0f/attachment-0001.html>
+
+From barry_pollard at hotmail.com  Mon Aug 29 06:47:29 2016
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Mon, 29 Aug 2016 06:47:29 +0000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0
+ RC1	Rules 930100, 930110
+In-Reply-To: <0c1601d201bd$e7b5e530$b721af90$@tam@ges.com.hk>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>
+	<6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>
+	<0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>
+	<042c004d-7f36-0c57-8742-de762984aa94@comcast.net>,
+	<0c1601d201bd$e7b5e530$b721af90$@tam@ges.com.hk>
+Message-ID: <VI1PR06MB1471BC840135F619CB70E9D782E10@VI1PR06MB1471.eurprd06.prod.outlook.com>
+
+Put quotes around it so it doesn't think the spaces are separate arguments?
+
+SecGeoLookupDb "C:\Program Files\ModSecurity IIS\owasp_crs\base_rules\GeoLiteCity.dat"
+
+Thanks,
+Barry
+
+On 29 Aug 2016, at 07:40, Gary Tam <gary.tam at ges.com.hk<mailto:gary.tam at ges.com.hk>> wrote:
+
+Dear Bill,
+
+Thanks for your reply and information.  I have just downloaded the dasebase - GeoLiteCity.dat from http://dev.maxmind.com/geoip/legacy/geolite/ and updated in the config file (i.e. modsecurity_crs_61_ip_forensics.conf).  But it now shows another Syntax error as below:
+
+Syntax error in config file C:\/Program Files/ModSecurity IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line 34: SecGeoLookupDB takes one argument, database for geographical lookups module.
+
+line 34 of modsecurity_crs_61_ip_forensics.conf
+SecGeoLookupDb C:\Program Files\ModSecurity IIS\owasp_crs\base_rules\GeoLiteCity.dat
+
+
+Would you please help again?  Many thanks!
+
+
+Best Regards,
+
+Gary Tam
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Bill Miller
+Sent: 29 August 2016 12:33
+To: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1 Rules 930100, 930110
+
+You can download the database from here
+https://dev.maxmind.com/geoip/legacy/geolite/
+On 08/28/2016 11:20 PM, Gary Tam wrote:
+Dear Genius,
+
+
+I am a beginner in Owasp-modsecurity.  I have just done the modsecurity installation on my windows server (i.e. Windows 2008 with IIS 7.5).  It is observed that there is a windows event log error when enabled the "experimental_rules" as below:
+
+Syntax error in config file C:\/Program Files/ModSecurity IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line 34: Could not open geo database "/usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat": The system cannot find the path specified.
+
+Of coz I know it is needed to emend the file path from linux to windows syntax, but i could not find the GeoLiteCity.dat in my windows server.  Would you guys help to check and advise?
+
+Many thanks!
+
+Best Regards,
+
+Gary Tam
+
+
+
+
+
+
+
+_______________________________________________
+
+Owasp-modsecurity-core-rule-set mailing list
+
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160829/977c8a35/attachment.html>
+
+From gary.tam at ges.com.hk  Mon Aug 29 07:41:03 2016
+From: gary.tam at ges.com.hk (Gary Tam)
+Date: Mon, 29 Aug 2016 15:41:03 +0800
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0
+	RC1	Rules 930100, 930110
+In-Reply-To: <VI1PR06MB1471BC840135F619CB70E9D782E10@VI1PR06MB1471.eurprd06.prod.outlook.com>
+References: <E51DF9E6-8F9E-4C75-ACD0-0F44C79E6EC8@pumastudios.com>	<6F5BA887-0DA1-447F-837D-9F5F92FA83DC@pumastudios.com>	<0be101d201ac$a726db70$f5749250$@tam@ges.com.hk>	<042c004d-7f36-0c57-8742-de762984aa94@comcast.net>,
+	<0c1601d201bd$e7b5e530$b721af90$@tam@ges.com.hk>
+	<VI1PR06MB1471BC840135F619CB70E9D782E10@VI1PR06MB1471.eurprd06.prod.outlook.com>
+Message-ID: <0c3001d201c8$b1d2e0c0$1578a240$@tam@ges.com.hk>
+
+Dear Barry,
+
+ 
+
+Yes, you are right.  I missed quoted the path.  It now works normally.  Many
+thanks.  
+
+ 
+
+Btw, would you please advise how to change the following path syntax from
+Linux to Windows?
+
+ 
+
+"exec:/usr/local/apache/conf/modsec_current/base_rules/osvdb.lua"
+
+ 
+
+I tried to changed it as below but all of them does not work.  
+
+ 
+
+"exec:c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua"
+
+"exec: c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua"
+
+"exec: "c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua""
+
+"exec: 'c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua'"
+
+"exec:"c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua""
+
+"exec:'c:\Program Files\ModSecurity IIS\owasp_crs\luaosvdb.lua'"
+
+ 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+From: Barry Pollard [mailto:barry_pollard at hotmail.com] 
+Sent: 29 August 2016 14:47
+To: Gary Tam
+Cc: Bill Miller; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+Rules 930100, 930110
+
+ 
+
+Put quotes around it so it doesn't think the spaces are separate arguments?
+
+ 
+
+SecGeoLookupDb "C:\Program Files\ModSecurity
+IIS\owasp_crs\base_rules\GeoLiteCity.dat"
+
+ 
+
+Thanks,
+
+Barry
+
+
+On 29 Aug 2016, at 07:40, Gary Tam <gary.tam at ges.com.hk> wrote:
+
+Dear Bill,
+
+ 
+
+Thanks for your reply and information.  I have just downloaded the dasebase
+- GeoLiteCity.dat from http://dev.maxmind.com/geoip/legacy/geolite/ and
+updated in the config file (i.e. modsecurity_crs_61_ip_forensics.conf).  But
+it now shows another Syntax error as below:  
+
+ 
+
+Syntax error in config file C:\/Program Files/ModSecurity
+IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line
+34: SecGeoLookupDB takes one argument, database for geographical lookups
+module.
+
+ 
+
+line 34 of modsecurity_crs_61_ip_forensics.conf
+
+SecGeoLookupDb C:\Program Files\ModSecurity
+IIS\owasp_crs\base_rules\GeoLiteCity.dat
+
+ 
+
+ 
+
+Would you please help again?  Many thanks! 
+
+ 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+[mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf
+Of Bill Miller
+Sent: 29 August 2016 12:33
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] OWASP CRS Version 3.0 RC1
+Rules 930100, 930110
+
+ 
+
+You can download the database from here 
+https://dev.maxmind.com/geoip/legacy/geolite/
+
+On 08/28/2016 11:20 PM, Gary Tam wrote:
+
+Dear Genius,
+
+ 
+
+ 
+
+I am a beginner in Owasp-modsecurity.  I have just done the modsecurity
+installation on my windows server (i.e. Windows 2008 with IIS 7.5).  It is
+observed that there is a windows event log error when enabled the
+"experimental_rules" as below: 
+
+ 
+
+Syntax error in config file C:\/Program Files/ModSecurity
+IIS/owasp_crs/experimental_rules/modsecurity_crs_61_ip_forensics.conf, line
+34: Could not open geo database
+"/usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat": The
+system cannot find the path specified. 
+
+ 
+
+Of coz I know it is needed to emend the file path from linux to windows
+syntax, but i could not find the GeoLiteCity.dat in my windows server.
+Would you guys help to check and advise? 
+
+ 
+
+Many thanks! 
+
+ 
+
+Best Regards,
+
+ 
+
+Gary Tam
+
+ 
+
+ 
+
+ 
+
+
+
+
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+ 
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160829/5daefe9a/attachment-0001.html>
+

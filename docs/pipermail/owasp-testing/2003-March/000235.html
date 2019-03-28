@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-TESTING] Testing Cookie predictability
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20Testing%20Cookie%20predictability&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000238.html">
+   <LINK REL="Next"  HREF="000236.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-TESTING] Testing Cookie predictability</H1>
+    <B>Dawes, Rogan (ZA - Johannesburg)</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20Testing%20Cookie%20predictability&In-Reply-To="
+       TITLE="[OWASP-TESTING] Testing Cookie predictability">rdawes at deloitte.co.za
+       </A><BR>
+    <I>Thu Mar 20 03:59:40 EST 2003</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000238.html">[OWASP-TESTING] Testing Copyright and Testing Serialization
+</A></li>
+        <LI>Next message: <A HREF="000236.html">[OWASP-TESTING] Back to work - Release 1
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#235">[ date ]</a>
+              <a href="thread.html#235">[ thread ]</a>
+              <a href="subject.html#235">[ subject ]</a>
+              <a href="author.html#235">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I have been doing some work on cookie analysis, and thought I'd share what
+I've done with the group.
+
+It is quite rough and ready at this point, but seems to be quite effective.
+
+Essentially, the method is:
+
+Collect a sample of cookies, by replaying a request however many times is
+desired. (The request can be taken from an Exodus proxy session, or simply a
+handcrafted request to the URL that generates the cookies)
+
+I typically do something like:
+
+for i in `seq 1 10000` ; do
+  cat cookierequest | nc server port | egrep &quot;^Date|Set-Cookie&quot; &gt;&gt; sample
+done
+
+cat sample | ./processcookie.pl &gt; baked
+
+(process cookie converts the date and time from the response to seconds from
+epoch, and outputs lines like:
+
+seconds:cookiename:cookievalue
+
+Which can then be grepped for a specific cookie if the app generates more
+than one)
+
+I then convert the cookie value to a number (typically a BIIIG number :-)
+using a Perl script that I have written.
+
+cat baked | grep cookiename | ./charset.pl &gt; values.dat
+
+Charset.pl basically looks at the characters that are in use for each
+position in the cookie, and uses that positional character set to convert
+the character to a number. E.g. the character &quot;C&quot; in a set &quot;ABC&quot; is
+equivalent to the number 2 in a base 3 system. The overall cookie value is
+calculated by the formula 
+
+The nice thing about this method is that, even if the character set is, say,
++-0-9A-Za-z (64 chars), if half of them are never used for whatever reason,
+they don't contribute to making the numbers larger than they need to be.
+
+$value += index($c[$n],$charset[$n]) * (length($charset[$n]) ** ($l - $n -
+1) )
+
+Where $n is the character position in the cookie, and $l is the length of
+the cookie
+
+I then take the output (values.dat), and plot it using gnuplot. Depending on
+the sample size, it is quite likely that you will see any patterns in the
+cookies, such as different sequences operating in parallel (e.g. the web
+server is talking to multiple instances of an application server in a
+round-robin/load-balanced schema)
+
+You can then filter your cookie sample (looking for repeated characters,
+etc) to focus on a particular sequence, and graph that individually to see
+the pattern in more detail. (charset.pl can also help here, as it can print
+out the character set for each position in the cookie. The smaller the
+character set for that position, the more likely it is that there is a
+pattern there)
+
+Finally, you can use strange.pl to look for &quot;strange attractors&quot; (See Michal
+Zalewski's work on TCP sequence number predictability), and plot that on a
+3d or 2d graph.
+
+
+
+
+Sample data, obfuscated to protect the innocent :-)
+
+Raw cookie dump
+===============
+Date: Wed, 12 Mar 2003 12:07:43 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:43 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=Rlqv0QtA30Q16cKKx1Rg; path=/; domain=.blah
+Date: Wed, 12 Mar 2003 12:07:43 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:43 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=wN3AcgdS16g6Qvool6wb; path=/; domain=.blah
+Date: Wed, 12 Mar 2003 12:07:44 GMT
+Date: Wed, 12 Mar 2003 12:07:45 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:45 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=qRx1DX760AXJySQQsJqq; path=/; domain=.blah
+
+Processed cookie output
+=======================
+1047470863:eBvm:9
+1047470863:o_ebId:Rlqv0QtA30Q16cKKx1Rg
+1047470863:eBvm:9
+1047470863:o_ebId:wN3AcgdS16g6Qvool6wb
+1047470865:eBvm:9
+1047470865:o_ebId:qRx1DX760AXJySQQsJqq
+1047470866:eBvm:9
+1047470866:o_ebId:wN3Acg9yJ6g6Qvool6wt
+1047470867:eBvm:9
+1047470867:o_ebId:qRx1DXq4uAXJySQQsJqc
+1047470868:eBvm:9
+1047470868:o_ebId:wN3AcgcxCLg6Qvool6wv
+
+As you can see, there are repeated strings in this sample &quot;g6Qvo&quot;, &quot;XJySQ&quot;.
+Picking one sequence to focus on, we get:
+
+Cookies for XJySQ
+=================
+1047470865:o_ebId:qRx1DX760AXJySQQsJqq
+1047470867:o_ebId:qRx1DXq4uAXJySQQsJqc
+1047470869:o_ebId:qRx1DXUUsUXJySQQsJp6
+1047470870:o_ebId:qRx1DsJhvUXJySQQsJp-
+1047470885:o_ebId:qRx1D+74gqXJySQQsJLc
+1047470890:o_ebId:qRx1DaJQe7XJySQQsJRL
+1047470895:o_ebId:qRx1Da7cg7XJySQQsJRw
+1047470898:o_ebId:qRx1DaDsRxXJySQQsJ0d
+1047470899:o_ebId:qRx1DaUhvUXJySQQsJ0q
+1047470905:o_ebId:qRx1US7GvmXJySQQsJDd
+1047470907:o_ebId:qRx1USqUsmXJySQQsc16
+1047470908:o_ebId:qRx1USD6zVXJySQQsc1L
+
+Which we can split into two parts, before and after the static string, and
+analyse separately.
+
+1047470865:o_ebId:qRx1DX760A
+1047470867:o_ebId:qRx1DXq4uA
+1047470869:o_ebId:qRx1DXUUsU
+1047470870:o_ebId:qRx1DsJhvU
+1047470885:o_ebId:qRx1D+74gq
+1047470890:o_ebId:qRx1DaJQe7
+1047470895:o_ebId:qRx1Da7cg7
+1047470898:o_ebId:qRx1DaDsRx
+1047470899:o_ebId:qRx1DaUhvU
+
+cat cookies* | ./processcookie.pl | grep -i ebId | grep XJySQ | cut -c1-28 |
+./charset.pl -f3 -d: -c &gt; sample.dat
+=================
+Overall Charset count is : 35
+Overall Charset is : 
++01467ADGJKNQRSUVXYZaceghlmpqsuvxyz
+
+charset[0] is 'q'
+charset[1] is 'Rs'
+charset[2] is '4QUx'
+charset[3] is '01DILRXqt'
+charset[4] is '7ADJKUVmqx'
+charset[5] is '+NSXYZapsy'
+charset[6] is '7ADJKUVmqx'
+charset[7] is '+46GQUchsx'
+charset[8] is '0QReglsuvz'
+charset[9] is '7ADJKUVmqx'
+
+Cookies with values associated with each
+========================================
+1047470865 o_ebId qRx1DX760A 810794
+1047470867 o_ebId qRx1DXq4uA 818764
+1047470869 o_ebId qRx1DXUUsU 816158
+1047470870 o_ebId qRx1DsJhvU 864378
+1047470885 o_ebId qRx1D+74gq 780741
+1047470890 o_ebId qRx1DaJQe7 844023
+1047470895 o_ebId qRx1Da7cg7 841233
+1047470898 o_ebId qRx1DaDsRx 843422
+1047470899 o_ebId qRx1DaUhvU 846378
+1047470905 o_ebId qRx1US7Gvm 1100980
+1047470907 o_ebId qRx1USqUsm 1109160
+
+Now use gnuplot to view again
+
+Plot &quot;sample.dat&quot; using 4 with line
+
+I've attached a sample PDF file containing some of the graphs that have been
+generated from these cookies
+
+For what it is worth, these cookies were generated by NewAtlanta's
+ServletExec, v3.0
+
+Use strange.pl to calculate 3d differences:
+
+    my $x = $seq[2] - $seq[3];
+    my $y = $seq[1] - $seq[2];
+    my $z = $seq[0] - $seq[1];
+
+3d differences from strange.pl
+==============================
+7970 -2606 48220
+-2606 48220 -83637
+48220 -83637 63282
+-83637 63282 -2790
+63282 -2790 2189
+-2790 2189 2956
+2189 2956 254602
+2956 254602 8180
+
+
+-- 
+&quot;Using encryption on the Internet is the equivalent of arranging an 
+armored car to deliver credit card information from someone living 
+in a cardboard box to someone living on a park bench.&quot;
+  - Eugene Spafford
+-- 
+Deloitte &amp; Touche Security Services Group
+Tel: +27(11)806-6216     Fax: +27(11)806-5202     Cell: +27(82)784-9498
+-- 
+NOTE: This e-mail message and its attachments are subject to the disclaimers
+      as published at: <A HREF="http://www.deloitte.co.za/disc.htm#emaildisc">http://www.deloitte.co.za/disc.htm#emaildisc</A>
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Cookies.pdf
+Type: application/octet-stream
+Size: 153222 bytes
+Desc: not available
+Url : <A HREF="http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment.obj">http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment.obj</A> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: strange.pl
+Type: application/octet-stream
+Size: 462 bytes
+Desc: not available
+Url : <A HREF="http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0001.obj">http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0001.obj</A> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: charset.pl
+Type: application/octet-stream
+Size: 4315 bytes
+Desc: not available
+Url : <A HREF="http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0002.obj">http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0002.obj</A> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: processcookie.pl
+Type: application/octet-stream
+Size: 665 bytes
+Desc: not available
+Url : <A HREF="http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0003.obj">http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0003.obj</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000238.html">[OWASP-TESTING] Testing Copyright and Testing Serialization
+</A></li>
+	<LI>Next message: <A HREF="000236.html">[OWASP-TESTING] Back to work - Release 1
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#235">[ date ]</a>
+              <a href="thread.html#235">[ thread ]</a>
+              <a href="subject.html#235">[ subject ]</a>
+              <a href="author.html#235">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

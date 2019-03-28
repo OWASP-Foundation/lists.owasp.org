@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Legitimate traffic being	blocked
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Legitimate%20traffic%20being%0A%09blocked&In-Reply-To=%3C54C84C45.6030009%40fosterclub.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001700.html">
+   <LINK REL="Next"  HREF="001702.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Legitimate traffic being	blocked</H1>
+    <B>Jacob Lear</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Legitimate%20traffic%20being%0A%09blocked&In-Reply-To=%3C54C84C45.6030009%40fosterclub.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Legitimate traffic being	blocked">jacob at fosterclub.com
+       </A><BR>
+    <I>Wed Jan 28 02:41:09 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001700.html">[Owasp-modsecurity-core-rule-set] Legitimate traffic being blocked
+</A></li>
+        <LI>Next message: <A HREF="001702.html">[Owasp-modsecurity-core-rule-set] problem executing external bash	script
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1701">[ date ]</a>
+              <a href="thread.html#1701">[ thread ]</a>
+              <a href="subject.html#1701">[ subject ]</a>
+              <a href="author.html#1701">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Chaim,
+
+thanks for the response. I actually did stumble across that blog post 
+and tried to write some exceptions to get things working. There are SO 
+many exceptions needed though! I think I will try removing the DEB/RPM 
+of ModSecurity and try installing it from source. That way I will be 
+able to install the most recent version of CRS.
+
+So far this is what I've written for exceptions. Am I doing it correctly??
+
+In modsecurity_crs_15_customerules.conf:
+SecRule REQUEST_FILENAME &quot;@rx /node/*/edit&quot; 
+&quot;phase:1,t:none,nolog,pass,ctl:ruleRemoveById=981173&quot;
+
+SecRule REQUEST_FILENAME &quot;@streq /civicrm/contribute/search&quot; 
+&quot;phase:1,t:none,nolog,pass,ctl:ruleRemoveById=981173&quot;
+
+SecRule REQUEST_FILENAME &quot;@streq /civicrm/ajax/inline&quot; 
+&quot;phase:1,t:none,nolog,pass,ctl:ruleRemoveById=981173&quot;
+
+
+In modsecurity_crs_48_local_exceptions.conf:
+SecRule REQUEST_FILENAME &quot;@rx /node/*/edit&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule TX:'/^960010/' &quot;@streq Item 1=1&quot; &quot;chain,t:none&quot;
+            SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule REQUEST_FILENAME &quot;@rx /node/*/edit&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule TX:'/^950109/' &quot;@streq Item 1=1&quot; &quot;chain,t:none&quot;
+            SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-2&quot;
+
+SecRule TX:'/^950901.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^960024.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^960024.*ARGS:metatags[title][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^960024.*ARGS:metatags[title][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^981257.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:metatags[dcterms.rights][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:metatags[dcterms.rights][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:metatags[copyright][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:metatags[copyright][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981243.*ARGS:metatags[dcterms.rights][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981243.*ARGS:metatags[dcterms.rights][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981243.*ARGS:metatags[copyright][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981243.*ARGS:metatags[copyright][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973300.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973304.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973333.*ARGS:body[und][0][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973302.*ARGS:metatags[dcterms.format][value]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973302.*ARGS:metatags[dcterms.format][default]/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule REQUEST_FILENAME &quot;@streq /modules/statistics/statistics.php&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule TX:'/^960010/' &quot;@streq Item 1=1&quot; &quot;chain,t:none&quot;
+            SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule REQUEST_FILENAME &quot;@streq /ckeditor/xss&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule TX:'/^960010/' &quot;@streq Item 1=1&quot; &quot;chain,t:none&quot;
+            SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule REQUEST_FILENAME &quot;@streq /ckeditor/xss&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule TX:'/^950109/' &quot;@streq Item 1=1&quot; &quot;chain,t:none&quot;
+            SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-2&quot;
+
+SecRule TX:'/^950901.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^960024.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^981173.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^981257.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981245.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973300.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973304.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^973333.*ARGS:text/' &quot;.*&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981172.*REQUEST_COOKIES:CHOCOLATECHIPSSL/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-3&quot;
+
+SecRule TX:'/^981247.*ARGS:crmasmSelect0/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981247.*ARGS:crmasmSelect1/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981247.*ARGS:crmasmSelect2/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981247.*ARGS:crmasmSelect3/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+SecRule TX:'/^981247.*ARGS:crmasmSelect4/' &quot;.*&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+     SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-5&quot;
+
+-- 
+
+Jacob Lear
+Web Administrator
+FosterClub, Inc.
+
+
+---
+This email has been checked for viruses by Avast antivirus software.
+<A HREF="http://www.avast.com">http://www.avast.com</A>
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001700.html">[Owasp-modsecurity-core-rule-set] Legitimate traffic being blocked
+</A></li>
+	<LI>Next message: <A HREF="001702.html">[Owasp-modsecurity-core-rule-set] problem executing external bash	script
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1701">[ date ]</a>
+              <a href="thread.html#1701">[ thread ]</a>
+              <a href="subject.html#1701">[ subject ]</a>
+              <a href="author.html#1701">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,552 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-testing] [Owasp-codereview]  Fwd: Code review Structure
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20%5BOwasp-codereview%5D%20%20Fwd%3A%20Code%20review%20Structure&In-Reply-To=45D97881108D41B18E6E34E94A2AE78D%40AI034">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001323.html">
+   <LINK REL="Next"  HREF="001329.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-testing] [Owasp-codereview]  Fwd: Code review Structure</H1>
+    <B>Jim Manico</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20%5BOwasp-codereview%5D%20%20Fwd%3A%20Code%20review%20Structure&In-Reply-To=45D97881108D41B18E6E34E94A2AE78D%40AI034"
+       TITLE="[Owasp-testing] [Owasp-codereview]  Fwd: Code review Structure">jim at manico.net
+       </A><BR>
+    <I>Thu Jan 18 04:14:45 EST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001323.html">[Owasp-testing] [Owasp-codereview] Fwd: Code review Structure
+</A></li>
+        <LI>Next message: <A HREF="001329.html">[Owasp-testing] [Owasp-codereview] Fwd: Code review Structure
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1333">[ date ]</a>
+              <a href="thread.html#1333">[ thread ]</a>
+              <a href="subject.html#1333">[ subject ]</a>
+              <a href="author.html#1333">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> but I think it would also be helpful to include best practice
+</I>recommendations.
+
+1) Never use Applets for enterprise application. Java .class files
+should never be deploying in untrusted environments. There, that was easy.
+
+2) Ok, so we are truly talking J2EE servers primarily for web
+application deployment (ok, this is OWASP afterall).
+
+2a) If someone starting talking about the importance of not using inner
+classes, I'm going to scream :) I see so many recomendations that truly
+have nothing to do with security. Sure, code quality is important be we
+want to give specific recomendations to code Java/J2EE apps
+
+Ok, starting with Input Validation:
+
+-        Ensure that all form, header, cookie and configuration data is validated on the server 
+
+-        Do not depend on any client-side input validation
+
+-        Accept only unproblematic characters (white list input validation) as opposed to rejecting bad characters.
+
+-        ***** (big one) Use regular expressions in a way that is configurable by an InfoSec professional and does not require programmer intervention. This provides InfoSec administrators the possibility to react to 0-minute exploits. 
+
+-        Identify the legal characters (often a regular expression) and reject all else
+
+-        Ensure that all input validation logic is placed in a centralized library that all programmers are forced to use
+
+My biggest concern is that the topics on Java at
+<A HREF="http://www.owasp.org/index.php/OWASP_Code_Review_Guide_Table_of_Contents">http://www.owasp.org/index.php/OWASP_Code_Review_Guide_Table_of_Contents</A>
+are not even close to the &quot;top 10&quot;:
+
+   1. Inner classes      bah &lt;<A HREF="http://www.owasp.org/index.php/Inner_classes">http://www.owasp.org/index.php/Inner_classes</A>&gt;
+   2. Class comparison            big deal if you control the namespace
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Class_comparison&amp;action=edit">http://www.owasp.org/index.php?title=Class_comparison&amp;action=edit</A>&gt;
+   3. Cloneable classes            yea this is good
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Cloneable_classes&amp;action=edit">http://www.owasp.org/index.php?title=Cloneable_classes&amp;action=edit</A>&gt;
+   4. Serializable classes             dont do it
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Serializable_classes&amp;action=edit">http://www.owasp.org/index.php?title=Serializable_classes&amp;action=edit</A>&gt;
+
+   5. Package scope and encapsulation                      nice, but not
+      top 10
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Package_scope_and_encapsulation&amp;action=edit">http://www.owasp.org/index.php?title=Package_scope_and_encapsulation&amp;action=edit</A>&gt;
+
+   6. Mutable objects                                             nice
+      but not top 10
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Mutable_objects&amp;action=edit">http://www.owasp.org/index.php?title=Mutable_objects&amp;action=edit</A>&gt;
+   7. Native Methods                     dont do it
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Native_Methods&amp;action=edit">http://www.owasp.org/index.php?title=Native_Methods&amp;action=edit</A>&gt;
+   8. Private methods &amp; circumvention                           dont use
+      applets or native methods, enough said
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Private_methods_%26_circumvention&amp;action=edit">http://www.owasp.org/index.php?title=Private_methods_%26_circumvention&amp;action=edit</A>&gt;
+
+   9. Static Fields                                       make access to
+      static threadsafe, but all the hype over statics being bad is
+      applet centric
+      &lt;<A HREF="http://www.owasp.org/index.php?title=Static_Fields&amp;action=edit">http://www.owasp.org/index.php?title=Static_Fields&amp;action=edit</A>&gt;
+
+
+So what do we really want to focus on here, gentlemen?
+
+- Jim
+
+
+Mark Roxberry wrote:
+&gt;<i> IMHO, I think if the guide is to have any worth, we need to be specific - general recommendations make a good opening section - but code quality is ultimately at the level of the code and the proper usage of the language in which that code was written.   I think, otherwise, we are talking about the items in a general sense that Jim outlined - it's good to know and reiterate &quot;Input Validation&quot; as a general term and broken access control examples in general terms, but I think it would also be helpful to include best practice recommendations.  For example, C++ code can use the strsafe.h functions (instead of the early more vulnerable functions, e.g. strcopy) or if using VS.NET use /clr:safe, you can compile with many restrictive security checks in place or whatever other components / libraries specific to the development environment.  I could list out many specific practices for each version of ASP.NET (C#, VB.NET, C++) / SQL Server, etc.  Another that comes to mind - in ADO.NET are we using datareaders and never closing the database connection, exposing the system to a DoS, even unintentionally?
+</I>&gt;<i>
+</I>&gt;<i> I'm sorry to ramble, but I think it is important to maybe hit the Top 5 for each language / environment.  Just my .02.
+</I>&gt;<i>
+</I>&gt;<i> Mark
+</I>&gt;<i>   ----- Original Message ----- 
+</I>&gt;<i>   From: Jim Manico 
+</I>&gt;<i>   To: Andrew van der Stock 
+</I>&gt;<i>   Cc: 'Mark Roxberry' ; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-codereview at lists.owasp.org</A> ; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A> ; 'Eoin' 
+</I>&gt;<i>   Sent: Wednesday, January 17, 2007 3:50 PM
+</I>&gt;<i>   Subject: Re: [Owasp-codereview] [Owasp-testing] Fwd: Code review Structure
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>   Noting that the LDAP server is unencrypted is part of a application infrastructure audit. Many very smart orginizations do this since encrypting LDAP is a HUUUUUGE hit, so they put LDAP in a private subnet and do a few other things to not have to encrypt LDAP. 
+</I>&gt;<i>
+</I>&gt;<i>   99% of the time during an audit, there are no requirements docs to match against code. So as part of my audit, I both build the proper documentation for the app, and write the remediation/audit document. How can you audit business processes if there are not requirement's to match them against?
+</I>&gt;<i>
+</I>&gt;<i>   When I do a code audit, I look for 3 main things: (And I'm doing mostly J2EE)
+</I>&gt;<i>
+</I>&gt;<i>   1) Input Validation - like a religion, I check all input data from users, config files, databases even (output sanitization), headers - every piece of data entering a software system needs to be centrally validated.
+</I>&gt;<i>   2) Authentication/Access control 
+</I>&gt;<i>   3) Session Management (when its custom)
+</I>&gt;<i>   4) Overall Code Quality
+</I>&gt;<i>
+</I>&gt;<i>   Then I run all code through Fortify or FindBugs and use that to find low-hanging fruit.
+</I>&gt;<i>
+</I>&gt;<i>   Manual review is clocking about 100 lines of code/hr when done with integrity, so most of my code reviews involve me creating large teams of auditors.
+</I>&gt;<i>
+</I>&gt;<i>   Management always disagrees with me some, so I just document my opinions and findings CLEARLY to protect myself, and let management make the call. 
+</I>&gt;<i>
+</I>&gt;<i>   - Jim
+</I>&gt;<i>
+</I>&gt;<i>   Andrew van der Stock wrote: 
+</I>&gt;<i> This is actually an important question which needs answering.
+</I>&gt;<i>
+</I>&gt;<i> Personally, I code review in terms of business function as this is the
+</I>&gt;<i> easiest way to demonstrate your value to your client. For example, if I tell
+</I>&gt;<i> them that their LDAP server connection is unencrypted, so what? I instead
+</I>&gt;<i> look at the use cases from the business requirements and ensure that they
+</I>&gt;<i> are properly demonstrated in the code, and if as a side bar to that process,
+</I>&gt;<i> I discover weaknesses, I will drop them in, so that:
+</I>&gt;<i>
+</I>&gt;<i> * The user login process may allow attackers to view all credentials and
+</I>&gt;<i> thus log in as anyone they want, including the LDAP manager. This destroys
+</I>&gt;<i> any credibility of logs, transactions and may allow widespread destruction
+</I>&gt;<i> or alteration of data.
+</I>&gt;<i>
+</I>&gt;<i> Now the business has a reason to fix my finding as it&#185;s related to a
+</I>&gt;<i> business process and asset they care about.
+</I>&gt;<i>
+</I>&gt;<i> This is why I&#185;m not convinced its necessary to have language specific
+</I>&gt;<i> chapters. Most of the information in those chapters applies will apply to
+</I>&gt;<i> all languages / frameworks. You can always jump over examples you&#185;re not
+</I>&gt;<i> interested in, or you can learn from the other language&#185;s issues to avoid
+</I>&gt;<i> them in your own. 
+</I>&gt;<i>
+</I>&gt;<i> Thanks,
+</I>&gt;<i> Andrew
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 1/12/07 10:25 AM, &quot;James Kist&quot; &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">kist at meridiansecurity.net</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>   What is the desired structure for the best practices section? How about
+</I>&gt;<i> something like this:
+</I>&gt;<i>  
+</I>&gt;<i> Vulnerability (with a link to the section that describes the vulnerability)
+</I>&gt;<i> Best practice 1 - Description (includes how and to what level the
+</I>&gt;<i> vulnerability is addressed by this best practice)
+</I>&gt;<i> Best practice 1 - Code example (if applicable)
+</I>&gt;<i> Best practice 2 - Description
+</I>&gt;<i> Best practice 2 - Code example (if applicable)
+</I>&gt;<i>  
+</I>&gt;<i> etc.
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> From: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing-bounces at lists.owasp.org</A>
+</I>&gt;<i> [mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing-bounces at lists.owasp.org</A>] On Behalf Of Eoin
+</I>&gt;<i> Sent: Thursday, January 11, 2007 10:45 AM
+</I>&gt;<i> To: Mark Roxberry
+</I>&gt;<i> Cc: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-codereview at lists.owasp.org</A>; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A>
+</I>&gt;<i> Subject: Re: [Owasp-testing] Fwd: Code review Structure
+</I>&gt;<i>
+</I>&gt;<i> Hi Mark,
+</I>&gt;<i> i believe there is a design section but it has not been touched yet:
+</I>&gt;<i>  
+</I>&gt;<i> <A HREF="http://www.owasp.org/index.php/OWASP_Code_Review_Guide_Table_of_Contents">http://www.owasp.org/index.php/OWASP_Code_Review_Guide_Table_of_Contents</A>
+</I>&gt;<i>  
+</I>&gt;<i> Designing for security (section).
+</I>&gt;<i>  
+</I>&gt;<i> You you consider putting a .NET design section within this.
+</I>&gt;<i>  
+</I>&gt;<i> Authoring the .NET best practice section would be great!! I'll put your name
+</I>&gt;<i> beside it.
+</I>&gt;<i> thanks,
+</I>&gt;<i> Eoin
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i> On 11/01/07, Mark Roxberry &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">me at markroxberry.net</A>&gt; wrote:
+</I>&gt;<i>      
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i> I'll do .NET Code Review Best Practices.
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i> Can I include Design Guidance as a section?  Or maybe we need to  consider
+</I>&gt;<i> Secure Application Design for an OWASP project (or do we have plans  for this
+</I>&gt;<i> already)?  An example, in ASP.NET &lt;<A HREF="http://asp.net/">http://asp.net/</A>&gt;  2.0, when do we
+</I>&gt;<i> recommend using the  MembershipProviders and integrating with .NET framework
+</I>&gt;<i> before rolling your  own access control system.  Design guidance would
+</I>&gt;<i> outline the  scenarios for each security design.  What do you think?
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i> I'll post a topic list by tomorrow.
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Regards,
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i> Mark
+</I>&gt;<i>  
+</I>&gt;<i>        
+</I>&gt;<i>  
+</I>&gt;<i> ----- Original Message -----
+</I>&gt;<i>  
+</I>&gt;<i> From: Eoin &lt;mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">eoin.keary at owasp.org</A>&gt;
+</I>&gt;<i>  
+</I>&gt;<i> To: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A>  &lt;mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A>&gt; ;
+</I>&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-codereview at lists.owasp.org</A>
+</I>&gt;<i>  
+</I>&gt;<i> Sent: Tuesday, January 09, 2007 10:47  AM
+</I>&gt;<i>  
+</I>&gt;<i> Subject: [Owasp-testing] Fwd: Code  review Structure
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i> Hi,
+</I>&gt;<i>  
+</I>&gt;<i> Below is the current structure of the code review guide.
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> If anyone would like to take on a section (improve a section/add  more info)
+</I>&gt;<i> please let me know and ill pen you in for it.
+</I>&gt;<i>  
+</I>&gt;<i> thanks,
+</I>&gt;<i>  
+</I>&gt;<i> Eoin
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Methodology  
+</I>&gt;<i>         Introduction  
+</I>&gt;<i>
+</I>&gt;<i> Steps and  Roles
+</I>&gt;<i>
+</I>&gt;<i> Code Review  Processes
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Design review 
+</I>&gt;<i> Designing for security
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Examples by Vulnerability
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>            
+</I>&gt;<i>         Buffer Overruns and  Overflows
+</I>&gt;<i>
+</I>&gt;<i> OS Injection  
+</I>&gt;<i>
+</I>&gt;<i> SQL Injection 
+</I>&gt;<i>
+</I>&gt;<i> Data  Validation
+</I>&gt;<i>
+</I>&gt;<i> Error Handling
+</I>&gt;<i>
+</I>&gt;<i> Logging issues
+</I>&gt;<i>
+</I>&gt;<i> The Secure Code  Environment
+</I>&gt;<i>
+</I>&gt;<i> Transaction  Analysis
+</I>&gt;<i>
+</I>&gt;<i> Authorization 
+</I>&gt;<i>
+</I>&gt;<i> Authentication
+</I>&gt;<i>
+</I>&gt;<i> Session  Integrity
+</I>&gt;<i>
+</I>&gt;<i> Cross Site Request  Forgery
+</I>&gt;<i>
+</I>&gt;<i> Cryptography  
+</I>&gt;<i>
+</I>&gt;<i> Dangerous HTTP  Methods
+</I>&gt;<i>
+</I>&gt;<i> Race  Conditions
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>            
+</I>&gt;<i>
+</I>&gt;<i> Language specific best practice
+</I>&gt;<i>
+</I>&gt;<i> Java  
+</I>&gt;<i>         Inner  classes
+</I>&gt;<i>
+</I>&gt;<i> Class  comparison
+</I>&gt;<i>
+</I>&gt;<i> Cloneable  classes
+</I>&gt;<i>
+</I>&gt;<i> Serializable  classes
+</I>&gt;<i>
+</I>&gt;<i> Package scope and  encapsulation
+</I>&gt;<i>
+</I>&gt;<i> Mutable  objects
+</I>&gt;<i>
+</I>&gt;<i> Private methods &amp;  circumvention
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>            
+</I>&gt;<i>
+</I>&gt;<i> .NET  
+</I>&gt;<i>
+</I>&gt;<i> PHP  
+</I>&gt;<i>
+</I>&gt;<i> Automating Code Reviews
+</I>&gt;<i>         Preface  
+</I>&gt;<i>
+</I>&gt;<i> Reasons for using automated  tools
+</I>&gt;<i>
+</I>&gt;<i> Education and cultural  change
+</I>&gt;<i>
+</I>&gt;<i> Tool Deployment  Model
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>            
+</I>&gt;<i>
+</I>&gt;<i> References  
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>   ----------------------------------------------------------------------------
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-codereview mailing list
+</I>&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-codereview at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-codereview">http://lists.owasp.org/mailman/listinfo/owasp-codereview</A>
+</I>&gt;<i>   
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-codereview mailing list
+</I>&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-codereview at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-codereview">http://lists.owasp.org/mailman/listinfo/owasp-codereview</A>
+</I>&gt;<i>   
+</I>
+-- 
+Best Regards,
+Jim Manico
+GIAC GSEC Professional, Sun Certified Java Programmer
+<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">jim at manico.net</A>
+808.652.3805
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="http://lists.owasp.org/pipermail/owasp-testing/attachments/20070117/b4731064/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-testing/attachments/20070117/b4731064/attachment-0001.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001323.html">[Owasp-testing] [Owasp-codereview] Fwd: Code review Structure
+</A></li>
+	<LI>Next message: <A HREF="001329.html">[Owasp-testing] [Owasp-codereview] Fwd: Code review Structure
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1333">[ date ]</a>
+              <a href="thread.html#1333">[ thread ]</a>
+              <a href="subject.html#1333">[ subject ]</a>
+              <a href="author.html#1333">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

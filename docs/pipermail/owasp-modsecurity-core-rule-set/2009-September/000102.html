@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] about one rule of SQL	injection
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20about%20one%20rule%20of%20SQL%0A%09injection&In-Reply-To=8A1B4B015C52A54886DF15E9A97C7FB9F7298E4D%40MONET.utopiasystems.net">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000101.html">
+   <LINK REL="Next"  HREF="000103.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] about one rule of SQL	injection</H1>
+    <B>Junyong Jiang</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20about%20one%20rule%20of%20SQL%0A%09injection&In-Reply-To=8A1B4B015C52A54886DF15E9A97C7FB9F7298E4D%40MONET.utopiasystems.net"
+       TITLE="[Owasp-modsecurity-core-rule-set] about one rule of SQL	injection">dreamice.jiang at gmail.com
+       </A><BR>
+    <I>Tue Sep 22 10:49:50 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000101.html">[Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+</A></li>
+        <LI>Next message: <A HREF="000103.html">[Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#102">[ date ]</a>
+              <a href="thread.html#102">[ thread ]</a>
+              <a href="subject.html#102">[ subject ]</a>
+              <a href="author.html#102">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This is my accesss log:
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] &quot;GET *
+product.asp?tp=0+0+0+1234* HTTP/1.1&quot; .....
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] &quot;GET *product.asp?tp=0+0+0+1234
+*HTTP/1.1&quot; .....&quot;-&quot; &quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1;
+.NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR
+3.5.21022)&quot;
+
+<A HREF="http://www.example.com/product.asp?tp=0+0+0+1234">http://www.example.com/product.asp?tp=0+0+0+1234</A>
+2009/9/22 Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Ryan.Barnett at breach.com</A>&gt;
+
+&gt;<i> Did you look at the debug log (level 9)? It will show you how the data
+</I>&gt;<i> looks after the transformation functions when the operator is applied.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Ryan C. Barnett
+</I>&gt;<i> Director of Application Security Research
+</I>&gt;<i> Breach Security, Inc.
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Ryan.Barnett at Breach.com</A>
+</I>&gt;<i> www.Breach.com &lt;<A HREF="http://www.breach.com/">http://www.breach.com/</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> Sent: Tue Sep 22 10:34:32 2009
+</I>&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+</I>&gt;<i>
+</I>&gt;<i> Dear all,
+</I>&gt;<i>
+</I>&gt;<i> I want write a modsecurity rule to detect such SQL injection like:
+</I>&gt;<i> <A HREF="http://www.example.com/product.asp?tp=0+0+0+1234">http://www.example.com/product.asp?tp=0+0+0+1234</A>
+</I>&gt;<i> the correct request is: <A HREF="http://www.example.com/product.asp?tp=1234">http://www.example.com/product.asp?tp=1234</A>
+</I>&gt;<i> I write the rule as:
+</I>&gt;<i> SecRule QUERY_STRING|ARGS|ARGS_NAMES|REQUEST_FILENAME &quot;0\+0&quot; \
+</I>&gt;<i>
+</I>&gt;<i>  &quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,msg:'sql
+</I>&gt;<i> injection',id:'410135',tag:'SQL_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+</I>&gt;<i>
+</I>&gt;<i> But it does not work. Could you explain that what is wrong with my rule?
+</I>&gt;<i>
+</I>&gt;<i> Thanks in advance.
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/a23a7586/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/a23a7586/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000101.html">[Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+</A></li>
+	<LI>Next message: <A HREF="000103.html">[Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#102">[ date ]</a>
+              <a href="thread.html#102">[ thread ]</a>
+              <a href="subject.html#102">[ subject ]</a>
+              <a href="author.html#102">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

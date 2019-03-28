@@ -1,0 +1,48 @@
+<tt>
+&lt;div&nbsp;dir=&quot;ltr&quot;&gt;&lt;div&gt;太田様&lt;/div&gt;&lt;div&gt;OWASP&nbsp;JAPANの皆様&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;亀田です。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;起動オプションの件、共有頂いた事象を元に&lt;/div&gt;&lt;div&gt;OWASP&nbsp;ZAPにて確認した結果を共有します。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;結論としては、現在のVer2.3.1では本エラーが発生していましたが、&lt;/div&gt;&lt;div&gt;海外コミュニティで指摘され、8月にパッチが充てられチケットがクローズされていました。&lt;/div&gt;&lt;div&gt;次期Ver2.4の先行版となるWeekly版(ZAP&nbsp;Weekly)では、通信が成功し違和感なく使用できることを確認済みです。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;また、Ver2.3.1においてもzap.batに「-Djsse.enableSNIExtension=false」を追加して動作確認出来ました。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;---------------------------------------------&lt;/div&gt;&lt;div&gt;・[参考情報]Java&nbsp;-&nbsp;HTTPS通信が失敗するようになる:&nbsp;javax.net.ssl.SSLProtocolException:&nbsp;handshake&nbsp;alert:&nbsp;unrecognized_name&lt;/div&gt;&lt;div&gt;&lt;a&nbsp;href=&quot;http://d.hatena.ne.jp/ttshiko/20121103/1351927402&quot;&gt;http://d.hatena.ne.jp/ttshiko/20121103/1351927402&lt;/a&gt;&lt;/div&gt;&lt;div&gt;　本事象の参考になった記事です。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;・ZAPコミュニティのディスカッション&lt;/div&gt;&lt;div&gt;Having&nbsp;problem&nbsp;with&nbsp;secure&nbsp;login&lt;/div&gt;&lt;div&gt;&lt;a&nbsp;href=&quot;https://groups.google.com/forum/#!topic/zaproxy-users/Y2YkRPPNi8E&quot;&gt;https://groups.google.com/forum/#!topic/zaproxy-users/Y2YkRPPNi8E&lt;/a&gt;&lt;/div&gt;&lt;div&gt;---------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;以上、よろしくお願いいたします。&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;gmail_extra&quot;&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;2014-12-01&nbsp;11:53&nbsp;GMT+09:00&nbsp;Toshiboumi&nbsp;Ohta&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:ohta@securesky-tech.com&quot;&nbsp;target=&quot;_blank&quot;&gt;ohta@securesky-tech.com&lt;/a&gt;&gt;&lt;/span&gt;:&lt;br&gt;&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex&quot;&gt;ML&nbsp;参加者各位&lt;br&gt;<br>
+&lt;br&gt;<br>
+太田＠セキュアスカイ・テクノロジー　です&lt;br&gt;<br>
+&lt;br&gt;<br>
+#&nbsp;facebook&nbsp;のグループに情報提供として投稿したところ、&lt;br&gt;<br>
+#&nbsp;ML&nbsp;にも投げるようリクエストをいただきましたので、&lt;br&gt;<br>
+#&nbsp;以下に情報共有させていただきます&lt;br&gt;<br>
+&lt;br&gt;<br>
+　先日の&nbsp;OWASP&nbsp;アジアツアー&nbsp;開催時に、twitter&nbsp;の中で&lt;br&gt;<br>
+&lt;br&gt;<br>
+「一部の&nbsp;Web&nbsp;サイトで&nbsp;burpSuite&nbsp;や&nbsp;ZAP&nbsp;で&nbsp;https&nbsp;が&lt;br&gt;<br>
+　うまくつながらない事がある」&lt;br&gt;<br>
+&lt;br&gt;<br>
+という話題が出ていました。&lt;br&gt;<br>
+&lt;br&gt;<br>
+　この問題は、おそらく最近の&nbsp;JRE&nbsp;のバージョンアップの際に&lt;br&gt;<br>
+ SNI&nbsp;Extension&nbsp;の実装がされたことが原因と思われます。&lt;br&gt;<br>
+&lt;br&gt;<br>
+　具体的には、Webアプリケーション側で&nbsp;https&nbsp;の&nbsp;SNI&nbsp;実装&lt;br&gt;<br>
+が甘いサイトへ接続しようとすると、JRE&nbsp;として&nbsp;https&nbsp;の&lt;br&gt;<br>
+セッションを開始しないわけです。&lt;br&gt;<br>
+&lt;br&gt;<br>
+　本来は、SNI&nbsp;Extension&nbsp;として正しい挙動をしているわけです&lt;br&gt;<br>
+が、このままでは&nbsp;local&nbsp;proxy&nbsp;が使えないことになってしまう&lt;br&gt;<br>
+ので、以下のサンプルのように&nbsp;CLI&nbsp;でオプション指定して、&lt;br&gt;<br>
+SNI&nbsp;Extension&nbsp;を抑止した状態で&nbsp;local&nbsp;proxy&nbsp;を起動することで、&lt;br&gt;<br>
+この問題を回避することができます。&lt;br&gt;<br>
+&lt;br&gt;<br>
+&quot;\Program&nbsp;Files&nbsp;(x86)\Java\jre7\bin\javaw.exe&quot;&nbsp;-Djsse.enableSNIExtension=false&nbsp;-Xmx1024m&nbsp;-jar&nbsp;\Users\whereYouLive\Documents\burpsuite\burpsuite_pro_v1.6.09.jar&lt;br&gt;<br>
+&lt;br&gt;<br>
+　上記「-Djsse.enableSNIExtension=false」が&nbsp;SNI&nbsp;Extension&lt;br&gt;<br>
+を抑止するオプションパラメータとなります。このサンプルは&nbsp;burpSuite&lt;br&gt;<br>
+での例となっていますが、ZAP&nbsp;の場合でも同様の設定ができると思います。&lt;br&gt;<br>
+&lt;br&gt;<br>
+以上、よろしくお願いします。&lt;br&gt;<br>
+&lt;span&nbsp;class=&quot;HOEnZb&quot;&gt;&lt;font&nbsp;color=&quot;#888888&quot;&gt;&lt;br&gt;<br>
+--&lt;br&gt;<br>
+Toshiboumi&nbsp;Ohta&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:ohta@securesky-tech.com&quot;&gt;ohta@securesky-tech.com&lt;/a&gt;&gt;&lt;br&gt;<br>
+ Secure&nbsp;Sky&nbsp;Technology&nbsp;Inc.&lt;br&gt;<br>
+ &nbsp;PMO&nbsp;Tsukasamachi&nbsp;2F,&nbsp;2-18-1,&nbsp;Tsukasamachi,&lt;br&gt;<br>
+ &nbsp;Chiyoda-ku,&nbsp;Tokyo,&nbsp;Japan &nbsp;/&nbsp;101-0048&lt;br&gt;<br>
+_______________________________________________&lt;br&gt;<br>
+Owasp-japan&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-japan@lists.owasp.org&quot;&gt;Owasp-japan@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-japan&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-japan&lt;/a&gt;&lt;br&gt;<br>
+&lt;/font&gt;&lt;/span&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;
+</tt>

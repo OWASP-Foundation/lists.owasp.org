@@ -1,0 +1,545 @@
+From grad1107 at di.uoa.gr  Fri Jan 27 07:57:43 2012
+From: grad1107 at di.uoa.gr (Emmanouil Prekas)
+Date: Fri, 27 Jan 2012 09:57:43 +0200
+Subject: [Owasp-appsensor-project] [Fwd: Appsensor log out error]
+Message-ID: <3044148af90a95855b837b9175bde58a.squirrel@webmail01.uoa.gr>
+
+Hello all
+When the command
+boolean
+result=org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(accountNumber);
+is running and has to log out the user i have this error
+
+DEBUG DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+/ExampleApplication/DefaultResponseAction] Response Action: Logging Out
+User 7282184250499158362
+FATAL DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+/ExampleApplication/DefaultResponseAction] INTRUSION - Multiple intrusions
+observed by AppSensorUser:bob45, UserID:7282184250499158362, Action:
+Logging out malicious account
+java.lang.NullPointerException
+	at
+org.owasp.esapi.reference.DefaultHTTPUtilities.getFirstCookie(DefaultHTTPUtilities.java:606)
+	at
+org.owasp.esapi.reference.DefaultHTTPUtilities.killCookie(DefaultHTTPUtilities.java:685)
+	at org.owasp.esapi.reference.DefaultUser.logout(DefaultUser.java:439)
+	at
+org.owasp.appsensor.reference.adapters.ESAPIASCurrentUser.logout(ESAPIASCurrentUser.java:77)
+	at
+org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.logout(DefaultResponseAction.java:167)
+	at
+org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.handleResponse(DefaultResponseAction.java:130)
+	at
+org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.takeSecurityAction(AppSensorIntrusionDetector.java:305)
+	at
+org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.addException(AppSensorIntrusionDetector.java:178)
+	at
+org.owasp.appsensor.errors.AppSensorException.<init>(AppSensorException.java:79)
+	at
+org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(AttackDetectorUtils.java:180)
+	at
+org.owasp.webgoat.lessons.BlindSqlInjection.createContent(BlindSqlInjection.java:193)
+	at
+org.owasp.webgoat.lessons.AbstractLesson.handleRequest(AbstractLesson.java:755)
+	at
+org.owasp.webgoat.lessons.BlindSqlInjection.handleRequest(BlindSqlInjection.java:375)
+	at org.owasp.webgoat.HammerHead.makeScreen(HammerHead.java:324)
+	at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:146)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:709)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:802)
+	at
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:237)
+	at
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:157)
+	at
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:214)
+	at
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:178)
+	at
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:126)
+	at
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:105)
+	at
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:107)
+	at
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:148)
+	at
+org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:825)
+	at
+org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.processConnection(Http11Protocol.java:731)
+	at
+org.apache.tomcat.util.net.PoolTcpEndpoint.processSocket(PoolTcpEndpoint.java:526)
+	at
+org.apache.tomcat.util.net.LeaderFollowerWorkerThread.runIt(LeaderFollowerWorkerThread.java:80)
+	at
+org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:684)
+	at java.lang.Thread.run(Thread.java:619)
+
+i used this command to see the cookie properly
+
+ESAPI.httpUtilities().addCookie(s.getResponse(), aCookie);
+
+but i have again the same problem.
+Any idea what i am missing?
+Thank you very much
+M.P.
+
+
+
+From jtmelton at gmail.com  Fri Jan 27 15:34:29 2012
+From: jtmelton at gmail.com (John Melton)
+Date: Fri, 27 Jan 2012 10:34:29 -0500
+Subject: [Owasp-appsensor-project] [Fwd: Appsensor log out error]
+In-Reply-To: <3044148af90a95855b837b9175bde58a.squirrel@webmail01.uoa.gr>
+References: <3044148af90a95855b837b9175bde58a.squirrel@webmail01.uoa.gr>
+Message-ID: <CAM8z=y+ZAvr2DtQSbM=1ebS_jeG1aJ2S4xoCWCBVcs95oec1nQ@mail.gmail.com>
+
+Hi,
+Looping in the esapi-dev list, b/c your NullPointerException is coming
+from ESAPI. My initial suspicion is that your ESAPI request object
+might not be getting set. The NPE is coming when the request object is
+being accessed to retrieve the cookie list and it's null. Are you
+setting the current ESAPI request somewhere in your app, ie. using one
+of the filters provided?
+Thanks,
+John
+
+On Fri, Jan 27, 2012 at 2:57 AM, Emmanouil Prekas <grad1107 at di.uoa.gr> wrote:
+> Hello all
+> When the command
+> boolean
+> result=org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(accountNumber);
+> is running and has to log out the user i have this error
+>
+> DEBUG DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+> /ExampleApplication/DefaultResponseAction] Response Action: Logging Out
+> User 7282184250499158362
+> FATAL DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+> /ExampleApplication/DefaultResponseAction] INTRUSION - Multiple intrusions
+> observed by AppSensorUser:bob45, UserID:7282184250499158362, Action:
+> Logging out malicious account
+> java.lang.NullPointerException
+> ? ? ? ?at
+> org.owasp.esapi.reference.DefaultHTTPUtilities.getFirstCookie(DefaultHTTPUtilities.java:606)
+> ? ? ? ?at
+> org.owasp.esapi.reference.DefaultHTTPUtilities.killCookie(DefaultHTTPUtilities.java:685)
+> ? ? ? ?at org.owasp.esapi.reference.DefaultUser.logout(DefaultUser.java:439)
+> ? ? ? ?at
+> org.owasp.appsensor.reference.adapters.ESAPIASCurrentUser.logout(ESAPIASCurrentUser.java:77)
+> ? ? ? ?at
+> org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.logout(DefaultResponseAction.java:167)
+> ? ? ? ?at
+> org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.handleResponse(DefaultResponseAction.java:130)
+> ? ? ? ?at
+> org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.takeSecurityAction(AppSensorIntrusionDetector.java:305)
+> ? ? ? ?at
+> org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.addException(AppSensorIntrusionDetector.java:178)
+> ? ? ? ?at
+> org.owasp.appsensor.errors.AppSensorException.<init>(AppSensorException.java:79)
+> ? ? ? ?at
+> org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(AttackDetectorUtils.java:180)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.BlindSqlInjection.createContent(BlindSqlInjection.java:193)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.AbstractLesson.handleRequest(AbstractLesson.java:755)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.BlindSqlInjection.handleRequest(BlindSqlInjection.java:375)
+> ? ? ? ?at org.owasp.webgoat.HammerHead.makeScreen(HammerHead.java:324)
+> ? ? ? ?at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:146)
+> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:709)
+> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:802)
+> ? ? ? ?at
+> org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:237)
+> ? ? ? ?at
+> org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:157)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:214)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:178)
+> ? ? ? ?at
+> org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:126)
+> ? ? ? ?at
+> org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:105)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:107)
+> ? ? ? ?at
+> org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:148)
+> ? ? ? ?at
+> org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:825)
+> ? ? ? ?at
+> org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.processConnection(Http11Protocol.java:731)
+> ? ? ? ?at
+> org.apache.tomcat.util.net.PoolTcpEndpoint.processSocket(PoolTcpEndpoint.java:526)
+> ? ? ? ?at
+> org.apache.tomcat.util.net.LeaderFollowerWorkerThread.runIt(LeaderFollowerWorkerThread.java:80)
+> ? ? ? ?at
+> org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:684)
+> ? ? ? ?at java.lang.Thread.run(Thread.java:619)
+>
+> i used this command to see the cookie properly
+>
+> ESAPI.httpUtilities().addCookie(s.getResponse(), aCookie);
+>
+> but i have again the same problem.
+> Any idea what i am missing?
+> Thank you very much
+> M.P.
+>
+>
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+
+From jtmelton at gmail.com  Sat Jan 28 15:29:54 2012
+From: jtmelton at gmail.com (John Melton)
+Date: Sat, 28 Jan 2012 10:29:54 -0500
+Subject: [Owasp-appsensor-project] [Fwd: Appsensor log out error]
+In-Reply-To: <0fe7e23532b3df9684637c1d2e57c20c.squirrel@webmail01.uoa.gr>
+References: <3044148af90a95855b837b9175bde58a.squirrel@webmail01.uoa.gr>
+	<CAM8z=y+ZAvr2DtQSbM=1ebS_jeG1aJ2S4xoCWCBVcs95oec1nQ@mail.gmail.com>
+	<0fe7e23532b3df9684637c1d2e57c20c.squirrel@webmail01.uoa.gr>
+Message-ID: <CAM8z=y+d5A7n6MPyrmhPHjic6r=rSh2xcSBqOKjxN5q8yQ=R_A@mail.gmail.com>
+
+Hi,
+Probably the easiest way is to configure a filter that has this line
+
+ESAPI.httpUtilities().setCurrentHTTP(request, response);
+
+set before the chain.doFilter(). There are a few example filters that
+come with ESAPI. A simple one is here:
+http://code.google.com/p/owasp-esapi-java/source/browse/trunk/src/main/java/org/owasp/esapi/filters/SecurityWrapper.java.
+You might try using that as a base for what you're doing.
+
+Thanks,
+John
+
+On Sat, Jan 28, 2012 at 4:05 AM, Emmanouil Prekas <grad1107 at di.uoa.gr> wrote:
+> Hello
+> How should i set the esapi request object what should i do?
+> Thank you very much
+> M.P.
+>
+>> Hi,
+>> Looping in the esapi-dev list, b/c your NullPointerException is coming
+>> from ESAPI. My initial suspicion is that your ESAPI request object
+>> might not be getting set. The NPE is coming when the request object is
+>> being accessed to retrieve the cookie list and it's null. Are you
+>> setting the current ESAPI request somewhere in your app, ie. using one
+>> of the filters provided?
+>> Thanks,
+>> John
+>>
+>> On Fri, Jan 27, 2012 at 2:57 AM, Emmanouil Prekas <grad1107 at di.uoa.gr>
+>> wrote:
+>>> Hello all
+>>> When the command
+>>> boolean
+>>> result=org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(accountNumber);
+>>> is running and has to log out the user i have this error
+>>>
+>>> DEBUG DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+>>> /ExampleApplication/DefaultResponseAction] Response Action: Logging Out
+>>> User 7282184250499158362
+>>> FATAL DefaultResponseAction - [SECURITY FAILURE bob45:null at unknown ->
+>>> /ExampleApplication/DefaultResponseAction] INTRUSION - Multiple
+>>> intrusions
+>>> observed by AppSensorUser:bob45, UserID:7282184250499158362, Action:
+>>> Logging out malicious account
+>>> java.lang.NullPointerException
+>>> ? ? ? ?at
+>>> org.owasp.esapi.reference.DefaultHTTPUtilities.getFirstCookie(DefaultHTTPUtilities.java:606)
+>>> ? ? ? ?at
+>>> org.owasp.esapi.reference.DefaultHTTPUtilities.killCookie(DefaultHTTPUtilities.java:685)
+>>> ? ? ? ?at
+>>> org.owasp.esapi.reference.DefaultUser.logout(DefaultUser.java:439)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.reference.adapters.ESAPIASCurrentUser.logout(ESAPIASCurrentUser.java:77)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.logout(DefaultResponseAction.java:167)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.intrusiondetection.reference.DefaultResponseAction.handleResponse(DefaultResponseAction.java:130)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.takeSecurityAction(AppSensorIntrusionDetector.java:305)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector.addException(AppSensorIntrusionDetector.java:178)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.errors.AppSensorException.<init>(AppSensorException.java:79)
+>>> ? ? ? ?at
+>>> org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(AttackDetectorUtils.java:180)
+>>> ? ? ? ?at
+>>> org.owasp.webgoat.lessons.BlindSqlInjection.createContent(BlindSqlInjection.java:193)
+>>> ? ? ? ?at
+>>> org.owasp.webgoat.lessons.AbstractLesson.handleRequest(AbstractLesson.java:755)
+>>> ? ? ? ?at
+>>> org.owasp.webgoat.lessons.BlindSqlInjection.handleRequest(BlindSqlInjection.java:375)
+>>> ? ? ? ?at org.owasp.webgoat.HammerHead.makeScreen(HammerHead.java:324)
+>>> ? ? ? ?at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:146)
+>>> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:709)
+>>> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:802)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:237)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:157)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:214)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:178)
+>>> ? ? ? ?at
+>>> org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:126)
+>>> ? ? ? ?at
+>>> org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:105)
+>>> ? ? ? ?at
+>>> org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:107)
+>>> ? ? ? ?at
+>>> org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:148)
+>>> ? ? ? ?at
+>>> org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:825)
+>>> ? ? ? ?at
+>>> org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.processConnection(Http11Protocol.java:731)
+>>> ? ? ? ?at
+>>> org.apache.tomcat.util.net.PoolTcpEndpoint.processSocket(PoolTcpEndpoint.java:526)
+>>> ? ? ? ?at
+>>> org.apache.tomcat.util.net.LeaderFollowerWorkerThread.runIt(LeaderFollowerWorkerThread.java:80)
+>>> ? ? ? ?at
+>>> org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:684)
+>>> ? ? ? ?at java.lang.Thread.run(Thread.java:619)
+>>>
+>>> i used this command to see the cookie properly
+>>>
+>>> ESAPI.httpUtilities().addCookie(s.getResponse(), aCookie);
+>>>
+>>> but i have again the same problem.
+>>> Any idea what i am missing?
+>>> Thank you very much
+>>> M.P.
+>>>
+>>>
+>>> _______________________________________________
+>>> Owasp-appsensor-project mailing list
+>>> Owasp-appsensor-project at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>
+>
+>
+
+From grad1107 at di.uoa.gr  Tue Jan 31 22:41:45 2012
+From: grad1107 at di.uoa.gr (Emmanouil Prekas)
+Date: Wed, 1 Feb 2012 00:41:45 +0200
+Subject: [Owasp-appsensor-project] Log in problem
+Message-ID: <0c694a3b5348b6d9f65560d71e0ec7ed.squirrel@webmail02.uoa.gr>
+
+I am trying to run this command
+
+User x=ESAPI.authenticator().getUser("bob666");
+//ESAPI.authenticator().setCurrentUser(x);
+try
+{
+ec.addElement(new P().addElement("Trying to log in the user: 
+"+x.getAccountName()));
+x.loginWithPassword("lalala123");
+System.out.println("\n\nSuccess login ");
+//chain.doFilter(s.getRequest(), s.getResponse());
+}
+catch (AuthenticationException e)
+{
+System.out.println("\n\nFail to log in user: "+e.getLocalizedMessage());
+ec.addElement(new P().addElement("Fail to log in user:"+e.getMessage()));
+}
+
+but i have this exception error
+
+WARN  AppSensorIntrusionDetector - [SECURITY FAILURE
+Anonymous:723077 at unknown ->
+127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Disabled user
+attempt to login: bob666
+org.owasp.esapi.errors.AuthenticationLoginException: Login failed
+	at
+org.owasp.esapi.reference.DefaultUser.loginWithPassword(DefaultUser.java:397)
+	at
+org.owasp.webgoat.lessons.BlindSqlInjection.createContent(BlindSqlInjection.java:155)
+	at
+org.owasp.webgoat.lessons.AbstractLesson.handleRequest(AbstractLesson.java:755)
+	at
+org.owasp.webgoat.lessons.BlindSqlInjection.handleRequest(BlindSqlInjection.java:363)
+	at org.owasp.webgoat.HammerHead.makeScreen(HammerHead.java:324)
+	at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:146)
+	at org.owasp.webgoat.HammerHead.doGet(HammerHead.java:105)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:689)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:802)
+	at
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:237)
+	at
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:157)
+	at
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:214)
+	at
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:178)
+	at
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:126)
+	at
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:105)
+	at
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:107)
+	at
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:148)
+	at
+org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:825)
+	at
+org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.processConnection(Http11Protocol.java:731)
+	at
+org.apache.tomcat.util.net.PoolTcpEndpoint.processSocket(PoolTcpEndpoint.java:526)
+	at
+org.apache.tomcat.util.net.LeaderFollowerWorkerThread.runIt(LeaderFollowerWorkerThread.java:80)
+	at
+org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:684)
+	at java.lang.Thread.run(Thread.java:619)
+INFO  AppSensorIntrusionDetector - [SECURITY FAILURE
+Anonymous:723077 at unknown ->
+127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Checking for
+user violation: EventCode: Total, Threshold: Total, Allowed Limit: 10,
+Total Events Recorded: 1
+DEBUG AppSensorIntrusionDetector - [SECURITY FAILURE
+Anonymous:723077 at unknown ->
+127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Total Overall
+Events Qualifying 1
+DEBUG AppSensorIntrusionDetector - [SECURITY FAILURE
+Anonymous:723077 at unknown ->
+127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Total Events
+Qualifying For Threshold 1
+INFO  AppSensorIntrusionDetector - [SECURITY FAILURE
+Anonymous:723077 at unknown ->
+127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] No Violation
+for id <0>
+
+
+Fail to log in user: Login failed
+
+any reason why i have this error?
+Thank you very much M.P.
+
+
+From jtmelton at gmail.com  Tue Jan 31 23:26:27 2012
+From: jtmelton at gmail.com (John Melton)
+Date: Tue, 31 Jan 2012 18:26:27 -0500
+Subject: [Owasp-appsensor-project] Log in problem
+In-Reply-To: <0c694a3b5348b6d9f65560d71e0ec7ed.squirrel@webmail02.uoa.gr>
+References: <0c694a3b5348b6d9f65560d71e0ec7ed.squirrel@webmail02.uoa.gr>
+Message-ID: <CAM8z=yJgsuxvgfnWq9DazFY6r7kOiP9T-4W+RK3M6SSJ88ZuvQ@mail.gmail.com>
+
+Based on the exception, you are trying to login with a disabled user
+which isn't allowed. There might be a couple causes. Either the user
+might be disabled to start with (try adding x.enable() after getting
+the user, but before login ... or you might be doing something "bad"
+and appsensor is disabling the user. It's tough to know, but based on
+your code, I'd think the first one. Try enabling the user before
+login.
+
+Thanks,
+John
+
+On Tue, Jan 31, 2012 at 5:41 PM, Emmanouil Prekas <grad1107 at di.uoa.gr> wrote:
+> I am trying to run this command
+>
+> User x=ESAPI.authenticator().getUser("bob666");
+> //ESAPI.authenticator().setCurrentUser(x);
+> try
+> {
+> ec.addElement(new P().addElement("Trying to log in the user:
+> "+x.getAccountName()));
+> x.loginWithPassword("lalala123");
+> System.out.println("\n\nSuccess login ");
+> //chain.doFilter(s.getRequest(), s.getResponse());
+> }
+> catch (AuthenticationException e)
+> {
+> System.out.println("\n\nFail to log in user: "+e.getLocalizedMessage());
+> ec.addElement(new P().addElement("Fail to log in user:"+e.getMessage()));
+> }
+>
+> but i have this exception error
+>
+> WARN ?AppSensorIntrusionDetector - [SECURITY FAILURE
+> Anonymous:723077 at unknown ->
+> 127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Disabled user
+> attempt to login: bob666
+> org.owasp.esapi.errors.AuthenticationLoginException: Login failed
+> ? ? ? ?at
+> org.owasp.esapi.reference.DefaultUser.loginWithPassword(DefaultUser.java:397)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.BlindSqlInjection.createContent(BlindSqlInjection.java:155)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.AbstractLesson.handleRequest(AbstractLesson.java:755)
+> ? ? ? ?at
+> org.owasp.webgoat.lessons.BlindSqlInjection.handleRequest(BlindSqlInjection.java:363)
+> ? ? ? ?at org.owasp.webgoat.HammerHead.makeScreen(HammerHead.java:324)
+> ? ? ? ?at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:146)
+> ? ? ? ?at org.owasp.webgoat.HammerHead.doGet(HammerHead.java:105)
+> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:689)
+> ? ? ? ?at javax.servlet.http.HttpServlet.service(HttpServlet.java:802)
+> ? ? ? ?at
+> org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:237)
+> ? ? ? ?at
+> org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:157)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:214)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:178)
+> ? ? ? ?at
+> org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:126)
+> ? ? ? ?at
+> org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:105)
+> ? ? ? ?at
+> org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:107)
+> ? ? ? ?at
+> org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:148)
+> ? ? ? ?at
+> org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:825)
+> ? ? ? ?at
+> org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.processConnection(Http11Protocol.java:731)
+> ? ? ? ?at
+> org.apache.tomcat.util.net.PoolTcpEndpoint.processSocket(PoolTcpEndpoint.java:526)
+> ? ? ? ?at
+> org.apache.tomcat.util.net.LeaderFollowerWorkerThread.runIt(LeaderFollowerWorkerThread.java:80)
+> ? ? ? ?at
+> org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:684)
+> ? ? ? ?at java.lang.Thread.run(Thread.java:619)
+> INFO ?AppSensorIntrusionDetector - [SECURITY FAILURE
+> Anonymous:723077 at unknown ->
+> 127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Checking for
+> user violation: EventCode: Total, Threshold: Total, Allowed Limit: 10,
+> Total Events Recorded: 1
+> DEBUG AppSensorIntrusionDetector - [SECURITY FAILURE
+> Anonymous:723077 at unknown ->
+> 127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Total Overall
+> Events Qualifying 1
+> DEBUG AppSensorIntrusionDetector - [SECURITY FAILURE
+> Anonymous:723077 at unknown ->
+> 127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] Total Events
+> Qualifying For Threshold 1
+> INFO ?AppSensorIntrusionDetector - [SECURITY FAILURE
+> Anonymous:723077 at unknown ->
+> 127.0.0.1:80/ExampleApplication/AppSensorIntrusionDetector] No Violation
+> for id <0>
+>
+>
+> Fail to log in user: Login failed
+>
+> any reason why i have this error?
+> Thank you very much M.P.
+>
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+

@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] URL Rewriting in CSRF Guard
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20URL%20Rewriting%20in%20CSRF%20Guard&In-Reply-To=OFAFF2A21A.E3E40208-ONC1257832.004825E7-C1257832.00489FC9%40swissre.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000036.html">
+   <LINK REL="Next"  HREF="000038.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] URL Rewriting in CSRF Guard</H1>
+    <B>Eric Sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20URL%20Rewriting%20in%20CSRF%20Guard&In-Reply-To=OFAFF2A21A.E3E40208-ONC1257832.004825E7-C1257832.00489FC9%40swissre.com"
+       TITLE="[Owasp-csrfguard] URL Rewriting in CSRF Guard">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Wed Feb  9 09:24:56 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000036.html">[Owasp-csrfguard] URL Rewriting in CSRF Guard
+</A></li>
+        <LI>Next message: <A HREF="000038.html">[Owasp-csrfguard] Django and Ruby on Rails Mimic CSRFGuard
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#37">[ date ]</a>
+              <a href="thread.html#37">[ thread ]</a>
+              <a href="subject.html#37">[ subject ]</a>
+              <a href="author.html#37">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Alex,
+
+&gt;<i> Could that be?
+</I>
+Yes - this is entirely possible. There are two ways CSRFGuard will
+redirect the use when the context is first initialize: default landing
+page and, if the default landing page is unspecified, an auto posting
+form to the same URI without any parameters.
+
+On a side note: I am planning on releasing a new ALPHA version which
+more correctly constructs the URI in this auto-posting form such that
+path parameters are not included.
+
+&gt;<i> Is there a workaround for my problem?
+</I>
+I'm sure there is a way to do this through configuration. Try setting
+your default landing page to a page for which CSRFGuard has no
+visibility. This is a page that either a) is not accessible to the
+Filter mapping and or b) a page that is marked as 'unprotected' in
+Owasp.CsrfGuard.properties. I'd be interested to see if these
+modifications affect your situation.
+
+Another work around is to disable URL rewriting in your application.
+This seems ideal from my perspective - as someone who has zero business
+context of your app and only a minor technical context :) URl rewriting
+has an associated security risk. Disabling URL rewriting should mitigate
+the risk of session identifier in the URL AND it *should* fix your
+CSRFGuard problem. Are you in a position where you can disable URL
+rewriting in your application?
+
+Perhaps the last thing I could try is allowing the user to optionally
+include params/sessionid in the request to the 'default landing page' by
+adding a couple more configuration capabilities in
+Owasp.CsrfGuard.properties. I'd prefer not to do this though as it
+increases the risk of users disclosing session ids and or increases the
+risk of a 'one time csrf attack' against a user who's csrf context has
+not yet been initialized and where the default landing page performs
+some operation (or, if not defined, the requested context/servlet path
+performs some operation).
+
+Winded response... hope that helps.
+
+-Eric
+
+On 2/9/11 8:13 AM, <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Alexander_Gempp at rcomext.com</A> wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> I've got a question regarding the Java version of the guard.
+</I>&gt;<i> 
+</I>&gt;<i> I tried using it without cookies. Looks like get stuck in a loop because 
+</I>&gt;<i> the dynamic form for redirecting to the 'default token landing page' 
+</I>&gt;<i> removes my session url. Could that be?
+</I>&gt;<i> 
+</I>&gt;<i> Is there a workaround for my problem?
+</I>&gt;<i> 
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Alex
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> This e-mail, including attachments, is intended for the person(s) or company named and may contain confidential and/or legally privileged information. Unauthorized disclosure, copying or use of this information may be unlawful and is prohibited. If you are not the intended recipient, please delete this message and notify the sender.
+</I>&gt;<i> All incoming and outgoing e-mail messages are stored in the Swiss Re Electronic Message Repository. If you do not wish the retention of potentially private e-mails by Swiss Re, we strongly advise you not to use the Swiss Re e-mail account for any private, non-business related communications.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000036.html">[Owasp-csrfguard] URL Rewriting in CSRF Guard
+</A></li>
+	<LI>Next message: <A HREF="000038.html">[Owasp-csrfguard] Django and Ruby on Rails Mimic CSRFGuard
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#37">[ date ]</a>
+              <a href="thread.html#37">[ thread ]</a>
+              <a href="subject.html#37">[ subject ]</a>
+              <a href="author.html#37">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] mod_security_crs 2.2.9 modsecurity_crs_48_local_exceptions.conf question
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20mod_security_crs%202.2.9%0A%20modsecurity_crs_48_local_exceptions.conf%20question&In-Reply-To=%3C20171021203902.pbrxt6ccq3ii7t56%40leander%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002497.html">
+   <LINK REL="Next"  HREF="002498.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] mod_security_crs 2.2.9 modsecurity_crs_48_local_exceptions.conf question</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20mod_security_crs%202.2.9%0A%20modsecurity_crs_48_local_exceptions.conf%20question&In-Reply-To=%3C20171021203902.pbrxt6ccq3ii7t56%40leander%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] mod_security_crs 2.2.9 modsecurity_crs_48_local_exceptions.conf question">christian.folini at netnea.com
+       </A><BR>
+    <I>Sat Oct 21 20:39:02 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002497.html">[Owasp-modsecurity-core-rule-set] mod_security_crs 2.2.9	modsecurity_crs_48_local_exceptions.conf question
+</A></li>
+        <LI>Next message: <A HREF="002498.html">[Owasp-modsecurity-core-rule-set] OWASP Top 10 RC2 is out -	ModSecurity and CRS are referenced
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2499">[ date ]</a>
+              <a href="thread.html#2499">[ thread ]</a>
+              <a href="subject.html#2499">[ subject ]</a>
+              <a href="author.html#2499">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+I see how this tuning approach via negative scoring is meant to work. However
+it is quite botched if you excuse my wording. It actually looks like a huge
+backdoor. All you need to do is an alert on 981172 and then submit a
+cookie Mycookie1/2/3/4 and then get a discount of -20 anomaly scoring point
+for each cookie. Bonus points: Each of the four cookies can be submitted more
+than once. That should have you covered for really crazy attacks.
+
+Also, your exception does not log at all, so I can not really tell if it
+triggered at all. Your &quot;H&quot; audit log blog only points to the rule 981172
+that was executed, but the way you handle it in the exceptions you did not
+attempt to suppress this alert, but attempted to reduce the score again
+post factum.
+
+Under the line, I think you need to start over from scratch. Also, life is
+much easier with CRS3 that has a ton less false positive. Namely the annoying
+rule 981172 has been banned into the rarely activated Paranoia Level 4.
+Unfortunately, CRS3 depends on ModSec 2.8.0 (unless you want to comment
+out two key rules by hand in the rule set).
+
+Ahoj,
+
+Christian
+
+
+On Fri, Oct 20, 2017 at 12:48:41PM +0200, devzero2000 wrote:
+&gt;<i>    Hi to all
+</I>&gt;<i> 
+</I>&gt;<i>      just updated a Centos 7.4 to mod_security_crs 2.2.9 and mod_security
+</I>&gt;<i>      2.7.3-5. In the
+</I>&gt;<i>      /etc/httpd/modsecurity.d/activated_rules/modsecurity_crs_48_local_exceptions.conf
+</I>&gt;<i>      file I have a rule like this that worked in earlier versions but no
+</I>&gt;<i>      longer.
+</I>&gt;<i> 
+</I>&gt;<i>      Any idea ?
+</I>&gt;<i> 
+</I>&gt;<i>      Thank you very much
+</I>&gt;<i> 
+</I>&gt;<i>      SecRule TX:'/^981172.*/'&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160; &quot;@rx .*&quot;
+</I>&gt;<i>      &quot;chain,phase:2,t:none,nolog,noauditlog,pass,msg:'WHITELISTING&#194;&#160; 
+</I>&gt;<i>      %{rule.id}: Allowed false positive %{TX:0}',severity:'6',id:450010&quot;
+</I>&gt;<i> 
+</I>&gt;<i>      SecRule
+</I>&gt;<i>      REQUEST_COOKIES:'/^(Mycookie1|Mycookie2|Mycookie3|Mycookie4)/'&#194;&#160;&#194;&#160;&#194;&#160;&#194;&#160;
+</I>&gt;<i>      &quot;!^$&quot;&#194;&#160;&#194;&#160; &quot;t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-20&quot;
+</I>&gt;<i> 
+</I>&gt;<i>      &#194;&#160;
+</I>&gt;<i> 
+</I>&gt;<i>      Log
+</I>&gt;<i> 
+</I>&gt;<i>      &#194;&#160;
+</I>&gt;<i> 
+</I>&gt;<i>      --9d781c6e-H--
+</I>&gt;<i> 
+</I>&gt;<i>      Message: Warning. Pattern match
+</I>&gt;<i>      &quot;([\\~\\!\\@\\#\\$\\%\\^\\&amp;\\*\\(\\)\\-\\+\\=\\{\\}\\[\\]\\|\\:\\;\&quot;\\'\\\xc2\xb4\\\xe2\x80\x99\\\xe2\x80\x98\\`\\&lt;\\&gt;].*?){8,}&quot;
+</I>&gt;<i>      at REQUEST_COOKIES:Mycookie1. [file
+</I>&gt;<i>      &quot;/etc/httpd/modsecurity.d/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+</I>&gt;<i>      [line &quot;157&quot;] [id &quot;981172&quot;] [rev &quot;2&quot;] [msg &quot;Restricted SQL Character
+</I>&gt;<i>      Anomaly Detection Alert - Total # of special characters exceeded&quot;] [data
+</I>&gt;<i>      &quot;Matched Data: + found within REQUEST_COOKIES:Mycookie1:
+</I>&gt;<i>      ve11n8OdWASErRyEZrw+29j8ihH2+RlST465bWRDDityPELrC/mXxSDAELEf1CSGT+knYFgt/3EWotqMvcFBiLlX0YDfDNxEnZ32pBzsp3B+45oPGeOc/lx16tGOY8Q+u1sfbcVEzHeNIpebO3DephHXQ3fz0v66Qh2Qc5umtNSPP4p4pVd7C3gxxuspE4wWJlN7uF2iwVxkm+VN1W6wRt4USriw9aQQX0Csz1wKQdMlK5nv/S+uK+QBA7OdVsfOK7BXVrrXkLo7J9GS9oGYrnrkzNZ5rzOZRyllaqYRVV2pnm0qrdEq0Fiont4Z2+iHYEpnSuQRJpGi+mAL+FMnI1TNOlxIAzOgwV0ENaKXOgyQe3JVHStFc5cVVCptTtkL&quot;]
+</I>&gt;<i>      [ver &quot;OWASP_CRS/2.2.9&quot;] [maturity &quot;9&quot;] [accuracy &quot;8&quot;] [tag
+</I>&gt;<i>      &quot;OWASP_CRS/WEB_ATTACK/SQL_INJECTION&quot;]
+</I>&gt;<i> 
+</I>&gt;<i>      Apache-Handler: proxy-server
+</I>&gt;<i> 
+</I>&gt;<i>      Stopwatch: 1508316101057039 22395601 (- - -)
+</I>&gt;<i> 
+</I>&gt;<i>      Stopwatch2: 1508316101057039 22395601; combined=49089, p1=638, p2=48093,
+</I>&gt;<i>      p3=3, p4=98, p5=177, sr=141, sw=80, l=0, gc=0
+</I>&gt;<i> 
+</I>&gt;<i>      Response-Body-Transformed: Dechunked
+</I>&gt;<i> 
+</I>&gt;<i>      Producer: ModSecurity for Apache/2.7.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;<i>      OWASP_CRS/2.2.9.
+</I>&gt;<i> 
+</I>&gt;<i>      Server: Apache
+</I>&gt;<i> 
+</I>&gt;<i>      Engine-Mode: &quot;ENABLED&quot;
+</I>
+&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+-- 
+ModSecurity courses Oct 2017 in London and Zurich
+<A HREF="https://www.feistyduck.com/training/modsecurity-training-course">https://www.feistyduck.com/training/modsecurity-training-course</A>
+<A HREF="https://www.feistyduck.com/books/modsecurity-handbook/">https://www.feistyduck.com/books/modsecurity-handbook/</A>
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+twitter: @ChrFolini
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002497.html">[Owasp-modsecurity-core-rule-set] mod_security_crs 2.2.9	modsecurity_crs_48_local_exceptions.conf question
+</A></li>
+	<LI>Next message: <A HREF="002498.html">[Owasp-modsecurity-core-rule-set] OWASP Top 10 RC2 is out -	ModSecurity and CRS are referenced
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2499">[ date ]</a>
+              <a href="thread.html#2499">[ thread ]</a>
+              <a href="subject.html#2499">[ subject ]</a>
+              <a href="author.html#2499">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,476 @@
+From christian.folini at time-machine.ch  Thu Nov 19 10:13:14 2015
+From: christian.folini at time-machine.ch (Christian Folini)
+Date: Thu, 19 Nov 2015 11:13:14 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+Message-ID: <20151119101314.GA15682@elias>
+
+Hi there,
+
+The rule 981173 was recently updated in the 2.9 core rule branch
+to reduce the uuid induced false positives for the rule.
+
+Uuids are indeed a major source of false positives on this rule,
+also in installations I know.
+
+The said update pulled in a request which raised the limit of
+acceptable number of special characters from 3 to 4. This is the
+rule as it stands now with "{5,}" meaning an alert is triggered when
+5 special chars are detected.
+
+https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/263
+
+SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){5,}" "phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'8',msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',capture,logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+
+I think coping with the uuid problem is a good idea. But raising
+the limit seems a poor handling of the false positives, when
+a whitelisting of the uuid pattern like
+
+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+or simpler
+^[0-9a-f-]{36}$
+
+would have been enough.
+
+It's true, that 981173 and it's ally 981172 are gone with the upcoming
+3.0.0 release. So maybe this little update is not very significant.
+But I think it is. 
+
+And I think 981173 and 981172 should stay. Not only because of SQLi, 
+But because they are the guardsmen doing a lot of dirty work for many 
+installations beyond SQLi. In many, many occasions, when there is something 
+amiss with a request, 981172 and 73 will issue an alert.
+The false positive rate is high, I admit. But in my experience, many 
+attackers managed to evade most other rules, but these two guardsmen 
+still alerted. Remember 981173 used to alert on the occurrence of 4
+special characters in a parameter. So I would argue, that the false negative 
+rate of 981172 and 981173 is lower than with other rules.
+
+The two rules come with an anomaly score of "warning". That's fair given
+the high false positive rate and still enough to examine their alarms.
+
+So I propose to include them into 3.0.0 as well. I think there is still
+some room in REQUEST-42-APPLICATION-ATTACK-SQLI.conf for these two
+guys. I plan to issue a pull request to accomplish this.
+
+It will take some feedback for this proposal to go through. So please give
+me some. Maybe we can improve the rules before the said pull request.
+
+Best,
+
+Christian Folini
+
+
+-- 
+The most dangerous thought that you can have as a creative person is
+to think that you know what you're doing. Because once you think you 
+know what you're doing you stop looking around for other ways of doing 
+things and you stop being able to see other ways of doing things. 
+You become blind.
+-- Bret Victor
+
+From CSanders at trustwave.com  Thu Nov 19 19:50:33 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Thu, 19 Nov 2015 19:50:33 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in
+ 3.0.0
+In-Reply-To: <20151119101314.GA15682@elias>
+References: <20151119101314.GA15682@elias>
+Message-ID: <DM2PR07MB416AD2197BCC27AA8DFF3C2DB1B0@DM2PR07MB416.namprd07.prod.outlook.com>
+
+Hey Christian,
+You hit the nail RIGHT on the head when you described why I allowed that previous pull to go through, it was because we don't see them in the 3.x ruleset so it seemed a minor fix to appease the given issue. Your fix is certainly more elegant.
+I am more than willing to accept a pull request for these in 3.x however I would say that we would probably surround them with option var checks that would by default be disabled such as (EnableStricterSQLChecks). If we do this we get the best of both worlds in terms of security minded folks like yourself who don't mind customizing rules and people just running the rules. We see this approach taken elsewhere in CRS (see the database specific rules) and it puts more emphasis on configuration, which I think is nice for newer folks. What do you think about that?
+
+I will say that when we push these rules historically to new clients (who aren't willing to change their code) these rules VERY VERY frequently required changing and this is why we chose to remove them from 3.x thinking that @detectXSS would pick up some of the slack.
+
+I do appreciate that you kept track of this :)
+
+-----Original Message-----
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Christian Folini
+Sent: Thursday, November 19, 2015 5:13 AM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+
+Hi there,
+
+The rule 981173 was recently updated in the 2.9 core rule branch to reduce the uuid induced false positives for the rule.
+
+Uuids are indeed a major source of false positives on this rule, also in installations I know.
+
+The said update pulled in a request which raised the limit of acceptable number of special characters from 3 to 4. This is the rule as it stands now with "{5,}" meaning an alert is triggered when
+5 special chars are detected.
+
+http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySS7s9Jh8Q&s=5&u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fowasp-modsecurity-crs%2fpull%2f263
+
+SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){5,}" "phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'8',msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',capture,logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+
+I think coping with the uuid problem is a good idea. But raising the limit seems a poor handling of the false positives, when a whitelisting of the uuid pattern like
+
+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+or simpler
+^[0-9a-f-]{36}$
+
+would have been enough.
+
+It's true, that 981173 and it's ally 981172 are gone with the upcoming
+3.0.0 release. So maybe this little update is not very significant.
+But I think it is.
+
+And I think 981173 and 981172 should stay. Not only because of SQLi, But because they are the guardsmen doing a lot of dirty work for many installations beyond SQLi. In many, many occasions, when there is something amiss with a request, 981172 and 73 will issue an alert.
+The false positive rate is high, I admit. But in my experience, many attackers managed to evade most other rules, but these two guardsmen still alerted. Remember 981173 used to alert on the occurrence of 4 special characters in a parameter. So I would argue, that the false negative rate of 981172 and 981173 is lower than with other rules.
+
+The two rules come with an anomaly score of "warning". That's fair given the high false positive rate and still enough to examine their alarms.
+
+So I propose to include them into 3.0.0 as well. I think there is still some room in REQUEST-42-APPLICATION-ATTACK-SQLI.conf for these two guys. I plan to issue a pull request to accomplish this.
+
+It will take some feedback for this proposal to go through. So please give me some. Maybe we can improve the rules before the said pull request.
+
+Best,
+
+Christian Folini
+
+
+--
+The most dangerous thought that you can have as a creative person is to think that you know what you're doing. Because once you think you know what you're doing you stop looking around for other ways of doing things and you stop being able to see other ways of doing things.
+You become blind.
+-- Bret Victor
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySa869E7_w&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From christian.folini at time-machine.ch  Fri Nov 20 14:20:30 2015
+From: christian.folini at time-machine.ch (Christian Folini)
+Date: Fri, 20 Nov 2015 15:20:30 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in
+ 3.0.0
+Message-ID: <20151120142030.GA28394@elias>
+
+Hello Chaim,
+
+Thank you for your swift response. I am glad to find an open hear for
+my concern.
+
+You are talking about a flag to be set in id:900024, right?
+So that would be 
+setvar:tx.strictsqlichecks=1
+?
+
+And 981173 would be more or less (halfway rewritten for 3.0.0, NOT
+TESTED) the following?
+SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){4,}" \
+	"msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',\
+	phase:2,\
+	id:'981173',\
+	rev:'2',\
+	ver:'OWASP_CRS/2.2.9',\
+	maturity:'9',\
+	accuracy:'8',\
+	t:none,\
+	t:urlDecodeUni,\
+	block,\
+	capture,\
+	tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',\
+	setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},\
+	setvar:tx.sql_injection_score=+1,\
+	setvar:'tx.msg=%{rule.msg}',\
+	setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0},\
+	logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',\
+	chain"
+	SecRule	TX:strictsqlichecks "@eq 1" "t:none,chain"
+		SecRule <PSEUDO: Handle UUID false positives>
+
+
+In the 2.x.x version, there are the optional and the base_rules. Now it
+is all in the same folder. But that's a design decision, right?
+
+But then, the way the rules in RESPONSE-51-DATA-LEAKAGES-SQL.conf are
+written, the rules are executed for every request, but alerts are only
+triggered if the tx.flag variables are set. Why did you construct it
+with that pattern?
+
+In the end, I don't mind too much. As long as 98117[23] come along into
+3.0.0. However given the wide scope of the strings triggering the rules,
+the name could be a bit wider than strictsqlichecks. How about 
+strictfreetextcheck
+strictevasionchecks
+strictinjectionchecks
+
+Additional idea:
+Why not define it as an integer value defaulting to 1. You can raise it
+to 2 or 3 or event 4. With 2 981173 is enabled as is. When you raise the
+integer value to 3, a new rule is enabled, that sets an even lower limit
+of special characters etc.
+
+What do you think?
+
+Best,
+
+Christian
+
+
+
+
+
+
+
+On Thu, Nov 19, 2015 at 07:50:33PM +0000, Chaim Sanders wrote:
+> Hey Christian,
+> You hit the nail RIGHT on the head when you described why I allowed that previous pull to go through, it was because we don't see them in the 3.x ruleset so it seemed a minor fix to appease the given issue. Your fix is certainly more elegant.
+> I am more than willing to accept a pull request for these in 3.x however I would say that we would probably surround them with option var checks that would by default be disabled such as (EnableStricterSQLChecks). If we do this we get the best of both worlds in terms of security minded folks like yourself who don't mind customizing rules and people just running the rules. We see this approach taken elsewhere in CRS (see the database specific rules) and it puts more emphasis on configuration, which I think is nice for newer folks. What do you think about that?
+> 
+> I will say that when we push these rules historically to new clients (who aren't willing to change their code) these rules VERY VERY frequently required changing and this is why we chose to remove them from 3.x thinking that @detectXSS would pick up some of the slack.
+> 
+> I do appreciate that you kept track of this :)
+> 
+> -----Original Message-----
+> From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Christian Folini
+> Sent: Thursday, November 19, 2015 5:13 AM
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+> 
+> Hi there,
+> 
+> The rule 981173 was recently updated in the 2.9 core rule branch to reduce the uuid induced false positives for the rule.
+> 
+> Uuids are indeed a major source of false positives on this rule, also in installations I know.
+> 
+> The said update pulled in a request which raised the limit of acceptable number of special characters from 3 to 4. This is the rule as it stands now with "{5,}" meaning an alert is triggered when
+> 5 special chars are detected.
+> 
+> http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySS7s9Jh8Q&s=5&u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fowasp-modsecurity-crs%2fpull%2f263
+> 
+> SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){5,}" "phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'8',msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',capture,logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+> 
+> I think coping with the uuid problem is a good idea. But raising the limit seems a poor handling of the false positives, when a whitelisting of the uuid pattern like
+> 
+> [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+> or simpler
+> ^[0-9a-f-]{36}$
+> 
+> would have been enough.
+> 
+> It's true, that 981173 and it's ally 981172 are gone with the upcoming
+> 3.0.0 release. So maybe this little update is not very significant.
+> But I think it is.
+> 
+> And I think 981173 and 981172 should stay. Not only because of SQLi, But because they are the guardsmen doing a lot of dirty work for many installations beyond SQLi. In many, many occasions, when there is something amiss with a request, 981172 and 73 will issue an alert.
+> The false positive rate is high, I admit. But in my experience, many attackers managed to evade most other rules, but these two guardsmen still alerted. Remember 981173 used to alert on the occurrence of 4 special characters in a parameter. So I would argue, that the false negative rate of 981172 and 981173 is lower than with other rules.
+> 
+> The two rules come with an anomaly score of "warning". That's fair given the high false positive rate and still enough to examine their alarms.
+> 
+> So I propose to include them into 3.0.0 as well. I think there is still some room in REQUEST-42-APPLICATION-ATTACK-SQLI.conf for these two guys. I plan to issue a pull request to accomplish this.
+> 
+> It will take some feedback for this proposal to go through. So please give me some. Maybe we can improve the rules before the said pull request.
+> 
+> Best,
+> 
+> Christian Folini
+> 
+> 
+> --
+> The most dangerous thought that you can have as a creative person is to think that you know what you're doing. Because once you think you know what you're doing you stop looking around for other ways of doing things and you stop being able to see other ways of doing things.
+> You become blind.
+> -- Bret Victor
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+> http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySa869E7_w&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set
+> 
+> ________________________________
+> 
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+-- 
+Christian Folini
+Ringstrasse 2
+CH-3639 Kiesen
++41 (0)31 301 60 71 (H)
++41 (0)79 220 23 76 (M)
+mailto:christian.folini at netnea.com (Business)
+mailto:christian.folini at time-machine.ch (Private)
+http://www.christian-folini.ch
+
+
+From christian.folini at netnea.com  Tue Nov 24 09:33:45 2015
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 24 Nov 2015 10:33:45 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in
+ 3.0.0
+Message-ID: <20151124093345.GA3657@elias>
+
+Chaim,
+
+I have not heard from you, but thought about this some more.
+The paranoia-rules in the 2.9.x line don't go out of my head.
+
+Why don't we introduce setvar:tx.paranoia with with an integer
+indicating the paranoia level?
+
+Starting paranoia=1, 981172/3 would be enabled. With 2, new rules with
+even stricter limits are executed etc.
+
+That way, the mechanism is completely open to host additional strict
+rules where the danger of false positives is higher than with the
+standard rules. The default is 0.
+
+If I do not hear from you, I will write a pull request implementing
+this idea for 3.0.0-dev.
+
+Ahoj,
+
+Christian
+
+
+On Fri, Nov 20, 2015 at 03:20:30PM +0100, Christian Folini wrote:
+> Hello Chaim,
+> 
+> Thank you for your swift response. I am glad to find an open hear for
+> my concern.
+> 
+> You are talking about a flag to be set in id:900024, right?
+> So that would be 
+> setvar:tx.strictsqlichecks=1
+> ?
+> 
+> And 981173 would be more or less (halfway rewritten for 3.0.0, NOT
+> TESTED) the following?
+> SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){4,}" \
+> 	"msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',\
+> 	phase:2,\
+> 	id:'981173',\
+> 	rev:'2',\
+> 	ver:'OWASP_CRS/2.2.9',\
+> 	maturity:'9',\
+> 	accuracy:'8',\
+> 	t:none,\
+> 	t:urlDecodeUni,\
+> 	block,\
+> 	capture,\
+> 	tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',\
+> 	setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},\
+> 	setvar:tx.sql_injection_score=+1,\
+> 	setvar:'tx.msg=%{rule.msg}',\
+> 	setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0},\
+> 	logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',\
+> 	chain"
+> 	SecRule	TX:strictsqlichecks "@eq 1" "t:none,chain"
+> 		SecRule <PSEUDO: Handle UUID false positives>
+> 
+> 
+> In the 2.x.x version, there are the optional and the base_rules. Now it
+> is all in the same folder. But that's a design decision, right?
+> 
+> But then, the way the rules in RESPONSE-51-DATA-LEAKAGES-SQL.conf are
+> written, the rules are executed for every request, but alerts are only
+> triggered if the tx.flag variables are set. Why did you construct it
+> with that pattern?
+> 
+> In the end, I don't mind too much. As long as 98117[23] come along into
+> 3.0.0. However given the wide scope of the strings triggering the rules,
+> the name could be a bit wider than strictsqlichecks. How about 
+> strictfreetextcheck
+> strictevasionchecks
+> strictinjectionchecks
+> 
+> Additional idea:
+> Why not define it as an integer value defaulting to 1. You can raise it
+> to 2 or 3 or event 4. With 2 981173 is enabled as is. When you raise the
+> integer value to 3, a new rule is enabled, that sets an even lower limit
+> of special characters etc.
+> 
+> What do you think?
+> 
+> Best,
+> 
+> Christian
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> On Thu, Nov 19, 2015 at 07:50:33PM +0000, Chaim Sanders wrote:
+> > Hey Christian,
+> > You hit the nail RIGHT on the head when you described why I allowed that previous pull to go through, it was because we don't see them in the 3.x ruleset so it seemed a minor fix to appease the given issue. Your fix is certainly more elegant.
+> > I am more than willing to accept a pull request for these in 3.x however I would say that we would probably surround them with option var checks that would by default be disabled such as (EnableStricterSQLChecks). If we do this we get the best of both worlds in terms of security minded folks like yourself who don't mind customizing rules and people just running the rules. We see this approach taken elsewhere in CRS (see the database specific rules) and it puts more emphasis on configuration, which I think is nice for newer folks. What do you think about that?
+> > 
+> > I will say that when we push these rules historically to new clients (who aren't willing to change their code) these rules VERY VERY frequently required changing and this is why we chose to remove them from 3.x thinking that @detectXSS would pick up some of the slack.
+> > 
+> > I do appreciate that you kept track of this :)
+> > 
+> > -----Original Message-----
+> > From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Christian Folini
+> > Sent: Thursday, November 19, 2015 5:13 AM
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> > Subject: [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+> > 
+> > Hi there,
+> > 
+> > The rule 981173 was recently updated in the 2.9 core rule branch to reduce the uuid induced false positives for the rule.
+> > 
+> > Uuids are indeed a major source of false positives on this rule, also in installations I know.
+> > 
+> > The said update pulled in a request which raised the limit of acceptable number of special characters from 3 to 4. This is the rule as it stands now with "{5,}" meaning an alert is triggered when
+> > 5 special chars are detected.
+> > 
+> > http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySS7s9Jh8Q&s=5&u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fowasp-modsecurity-crs%2fpull%2f263
+> > 
+> > SecRule ARGS_NAMES|ARGS|XML:/* "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){5,}" "phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'8',msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',capture,logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+> > 
+> > I think coping with the uuid problem is a good idea. But raising the limit seems a poor handling of the false positives, when a whitelisting of the uuid pattern like
+> > 
+> > [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+> > or simpler
+> > ^[0-9a-f-]{36}$
+> > 
+> > would have been enough.
+> > 
+> > It's true, that 981173 and it's ally 981172 are gone with the upcoming
+> > 3.0.0 release. So maybe this little update is not very significant.
+> > But I think it is.
+> > 
+> > And I think 981173 and 981172 should stay. Not only because of SQLi, But because they are the guardsmen doing a lot of dirty work for many installations beyond SQLi. In many, many occasions, when there is something amiss with a request, 981172 and 73 will issue an alert.
+> > The false positive rate is high, I admit. But in my experience, many attackers managed to evade most other rules, but these two guardsmen still alerted. Remember 981173 used to alert on the occurrence of 4 special characters in a parameter. So I would argue, that the false negative rate of 981172 and 981173 is lower than with other rules.
+> > 
+> > The two rules come with an anomaly score of "warning". That's fair given the high false positive rate and still enough to examine their alarms.
+> > 
+> > So I propose to include them into 3.0.0 as well. I think there is still some room in REQUEST-42-APPLICATION-ATTACK-SQLI.conf for these two guys. I plan to issue a pull request to accomplish this.
+> > 
+> > It will take some feedback for this proposal to go through. So please give me some. Maybe we can improve the rules before the said pull request.
+> > 
+> > Best,
+> > 
+> > Christian Folini
+> > 
+> > 
+> > --
+> > The most dangerous thought that you can have as a creative person is to think that you know what you're doing. Because once you think you know what you're doing you stop looking around for other ways of doing things and you stop being able to see other ways of doing things.
+> > You become blind.
+> > -- Bret Victor
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > http://scanmail.trustwave.com/?c=4062&d=habN1ipw_me0uz_Jn7rWtjU8vrdSXYQXySa869E7_w&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set
+> > 
+> > ________________________________
+> > 
+> > This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> 
+> -- 
+> Christian Folini
+> Ringstrasse 2
+> CH-3639 Kiesen
+> +41 (0)31 301 60 71 (H)
+> +41 (0)79 220 23 76 (M)
+> mailto:christian.folini at netnea.com (Business)
+> mailto:christian.folini at time-machine.ch (Private)
+> http://www.christian-folini.ch
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+

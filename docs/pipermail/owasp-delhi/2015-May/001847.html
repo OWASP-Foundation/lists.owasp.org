@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-Delhi] Salted hash implementation
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-Delhi%5D%20Salted%20hash%20implementation&In-Reply-To=%3CCAPHKmPO48FTu90tT22GN7BvgGL-SCmmr7ZM70kvF7Jdsdr75%2BQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001846.html">
+   <LINK REL="Next"  HREF="001848.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-Delhi] Salted hash implementation</H1>
+    <B>sanjay kumar</B> 
+    <A HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-Delhi%5D%20Salted%20hash%20implementation&In-Reply-To=%3CCAPHKmPO48FTu90tT22GN7BvgGL-SCmmr7ZM70kvF7Jdsdr75%2BQ%40mail.gmail.com%3E"
+       TITLE="[OWASP-Delhi] Salted hash implementation">sanjay1519841 at gmail.com
+       </A><BR>
+    <I>Tue May 19 12:53:22 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001846.html">[OWASP-Delhi] Salted hash implementation
+</A></li>
+        <LI>Next message: <A HREF="001848.html">[OWASP-Delhi] Salted hash implementation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1847">[ date ]</a>
+              <a href="thread.html#1847">[ thread ]</a>
+              <a href="subject.html#1847">[ subject ]</a>
+              <a href="author.html#1847">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I got another interesting article on &quot;
+<A HREF="https://wiki.mozilla.org/WebAppSec/Secure_Coding_Guidelines#Password_Storage">https://wiki.mozilla.org/WebAppSec/Secure_Coding_Guidelines#Password_Storage</A>
+&quot;.
+
+The idea here is NOT to store &quot;Simply Hashed Password&quot; &amp; &quot;Salt&quot;.
+
+As per the article:--
+
+Password Storage
+
+Separate from the password policy, we should have the following standards
+when it comes to storing passwords:
+
+   - Passwords stored in a database should using the hmac+bcrypt function.
+
+The purpose of hmac and bcrypt storage is as follows:
+
+   - bcrypt provides a hashing mechanism which can be configured to consume
+   sufficient time to prevent brute forcing of hash values even with many
+   computers
+   - bcrypt can be easily adjusted at any time to increase the amount of
+   work and thus provide protection against more powerful systems
+   - The nonce for the hmac value is designed to be stored on the file
+   system and not in the databases storing the password hashes. In the event
+   of a compromise of hash values due to SQL injection, the nonce will still
+   be an unknown value since it would not be compromised from the file system.
+   This significantly increases the complexity of brute forcing the
+   compromised hashes considering both bcrypt and a large unknown nonce value
+   - The hmac operation is simply used as a secondary defense in the event
+   there is a design weakness with bcrypt that could leak information about
+   the password or aid an attacker
+
+A sample of this code is here: <A HREF="https://github.com/fwenzel/django-sha2">https://github.com/fwenzel/django-sha2</A>
+
+Keep in mind that while bcrypt is secure you should still enforce good
+passwords. As slow as an algorithm may be if a password is &quot;123&quot; it still
+would only take a short amount of time before somebody figures it out.
+
+On Tue, May 19, 2015 at 4:03 PM, Sushil Nehra &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">sushil.nehra at gmail.com</A>&gt;
+wrote:
+
+&gt;<i> Dear Sanjay
+</I>&gt;<i>
+</I>&gt;<i> Salt is used in web app and also in Unix password files.
+</I>&gt;<i>
+</I>&gt;<i> 1.In webapp
+</I>&gt;<i>
+</I>&gt;<i> In web applications salted hash is used to secure the password from replay
+</I>&gt;<i> attack.
+</I>&gt;<i>
+</I>&gt;<i> Salt or any random number is generated at server and sent to browser.
+</I>&gt;<i> There hash is derived using the hash of password plus salt.
+</I>&gt;<i>
+</I>&gt;<i> Hash(hash(password))+salt)
+</I>&gt;<i>
+</I>&gt;<i> This is sent on net and received by webserver.
+</I>&gt;<i>
+</I>&gt;<i> Server already knows your salt . It gets the password or hash of password
+</I>&gt;<i> from database table. Then does operation. Hash(hash(password)+salt) it
+</I>&gt;<i> compares it with received hash from client ie browser.
+</I>&gt;<i>
+</I>&gt;<i> Does the authentication as usual.
+</I>&gt;<i>
+</I>&gt;<i> 2. In Unix password file salt is part of the password. See net for that.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Sushil kumar Nehra
+</I>&gt;<i> ------------------------------
+</I>&gt;<i> From: sanjay kumar &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">sanjay1519841 at gmail.com</A>&gt;
+</I>&gt;<i> Sent: &#8206;19-&#8206;05-&#8206;2015 13:35
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi at lists.owasp.org</A>
+</I>&gt;<i> Subject: [OWASP-Delhi] Salted hash implementation
+</I>&gt;<i>
+</I>&gt;<i> Does anyone knows how to use salted hash in web application.?
+</I>&gt;<i> Where to store salt?
+</I>&gt;<i>
+</I>&gt;<i> (Without using encryption)
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-delhi/attachments/20150519/6b638440/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-delhi/attachments/20150519/6b638440/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001846.html">[OWASP-Delhi] Salted hash implementation
+</A></li>
+	<LI>Next message: <A HREF="001848.html">[OWASP-Delhi] Salted hash implementation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1847">[ date ]</a>
+              <a href="thread.html#1847">[ thread ]</a>
+              <a href="subject.html#1847">[ subject ]</a>
+              <a href="author.html#1847">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-delhi">More information about the OWASP-Delhi
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] Additional Detection Points -	Violation of Security Log Integrity
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20Additional%20Detection%20Points%20-%0A%09Violation%20of%20Security%20Log%20Integrity&In-Reply-To=AANLkTilz0RO_FTukzdlWxwjxII_O5p1Ezbfl0M3Y_3LO%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000101.html">
+   <LINK REL="Next"  HREF="000106.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] Additional Detection Points -	Violation of Security Log Integrity</H1>
+    <B>Colin Watson</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20Additional%20Detection%20Points%20-%0A%09Violation%20of%20Security%20Log%20Integrity&In-Reply-To=AANLkTilz0RO_FTukzdlWxwjxII_O5p1Ezbfl0M3Y_3LO%40mail.gmail.com"
+       TITLE="[Owasp-appsensor-project] Additional Detection Points -	Violation of Security Log Integrity">colin.watson at owasp.org
+       </A><BR>
+    <I>Thu Jun 10 03:59:18 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000101.html">[Owasp-appsensor-project] Change to Detection Points - SE6	Change Of User Agent Mid Session
+</A></li>
+        <LI>Next message: <A HREF="000106.html">[Owasp-appsensor-project] Interesting article - sounds like	appsensor
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#80">[ date ]</a>
+              <a href="thread.html#80">[ thread ]</a>
+              <a href="subject.html#80">[ subject ]</a>
+              <a href="author.html#80">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Giri
+
+&gt;<i> Any real world examples for this case?
+</I>
+Some possibilities:
+
+1.  special characters embedded in logged data cause the data to
+overwrite a previous log entry
+2.  direct access to a logging database (e.g. SQLi, direct connect to
+management interface, compromised host, access by DBA) allows someone
+to delete some previous records
+3.  as above, but a record modified (e.g. a user ID changed)
+4.  as above, but fake entries added
+5.  a file log is deleted (e.g. using command injection or by direct
+server access)
+
+Remember &quot;attackers&quot; might be insiders too.
+
+By giving a unique ID, time-stamping and building in integrity checks
+of each record (e.g. a message digest) and its relationship with the
+previous record (another message digest?) allow additions, deletions
+and alterations to be identified.
+
+See also:
+
+a) NIST SP 800-92 Guide to Security Log Management,
+<A HREF="http://csrc.nist.gov/publications/nistpubs/800-92/SP800-92.pdf">http://csrc.nist.gov/publications/nistpubs/800-92/SP800-92.pdf</A>
+
+b) Tamper Detection in Audit Logs,
+<A HREF="http://www.cs.toronto.edu/vldb04/protected/eProceedings/contents/pdf/RS13P1.PDF">http://www.cs.toronto.edu/vldb04/protected/eProceedings/contents/pdf/RS13P1.PDF</A>
+
+c) Forensic Tamper Detection in SQL Server,
+<A HREF="http://www.sqlsecurity.com/images/tamper/tamperdetection.htm">http://www.sqlsecurity.com/images/tamper/tamperdetection.htm</A>
+
+Colin
+
+On 10 June 2010 03:51, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+&gt;<i> Giri,
+</I>&gt;<i> Take a peek at
+</I>&gt;<i> <A HREF="http://code.google.com/p/owasp-esapi-java/source/browse/trunk/src/main/java/org/owasp/esapi/reference/Log4JLogFactory.java">http://code.google.com/p/owasp-esapi-java/source/browse/trunk/src/main/java/org/owasp/esapi/reference/Log4JLogFactory.java</A>
+</I>&gt;<i> which does replacing of CR and LF characters to prevent log forging as a
+</I>&gt;<i> simple common example.
+</I>&gt;<i> John
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Jun 9, 2010 at 10:42 PM, giri vara prasad nambari
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">girinambari at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi Jhon/Colin,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Any real world examples for this case?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thank you,
+</I>&gt;&gt;<i> Giri
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Wed, Jun 9, 2010 at 9:52 PM, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> +1 for me
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Wed, Jun 9, 2010 at 10:39 AM, Colin Watson &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">colin.watson at owasp.org</A>&gt;
+</I>&gt;&gt;&gt;<i> wrote:
+</I>&gt;&gt;&gt;<i> &gt; John
+</I>&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;<i> &gt; On 9 June 2010 15:29, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i> &gt;&gt; is this presumably to catch log forging attempts?
+</I>&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;<i> &gt; Yes preventing insertion of entries and corruption of the log, but
+</I>&gt;&gt;&gt;<i> &gt; also prevention of record deletion and detection of changes to log
+</I>&gt;&gt;&gt;<i> &gt; entries. &#160;AppSensor will rely on the accuracy of &quot;log&quot; data to make
+</I>&gt;&gt;&gt;<i> &gt; decisions when thresholds are reached, and therefore I thought
+</I>&gt;&gt;&gt;<i> &gt; protecting this source data is important - a bit of self-protection.
+</I>&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;<i> &gt; Colin
+</I>&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Giri
+</I>&gt;&gt;<i> Sun Certified Java Prorgammer
+</I>&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000101.html">[Owasp-appsensor-project] Change to Detection Points - SE6	Change Of User Agent Mid Session
+</A></li>
+	<LI>Next message: <A HREF="000106.html">[Owasp-appsensor-project] Interesting article - sounds like	appsensor
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#80">[ date ]</a>
+              <a href="thread.html#80">[ thread ]</a>
+              <a href="subject.html#80">[ subject ]</a>
+              <a href="author.html#80">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

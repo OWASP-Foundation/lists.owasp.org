@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] SQL injection attack
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20SQL%20injection%20attack&In-Reply-To=%3CCAM8z%3DyLzbr-2mHsP7SW2JFU0uZdhhN%3Dc9NmOEHZPcpZLtVxF9A%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000342.html">
+   <LINK REL="Next"  HREF="000344.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] SQL injection attack</H1>
+    <B>John Melton</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20SQL%20injection%20attack&In-Reply-To=%3CCAM8z%3DyLzbr-2mHsP7SW2JFU0uZdhhN%3Dc9NmOEHZPcpZLtVxF9A%40mail.gmail.com%3E"
+       TITLE="[Owasp-appsensor-project] SQL injection attack">jtmelton at gmail.com
+       </A><BR>
+    <I>Sat Feb 11 15:09:56 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000342.html">[Owasp-appsensor-project] SQL injection attack
+</A></li>
+        <LI>Next message: <A HREF="000344.html">[Owasp-appsensor-project] SQL injection attack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#343">[ date ]</a>
+              <a href="thread.html#343">[ thread ]</a>
+              <a href="subject.html#343">[ subject ]</a>
+              <a href="author.html#343">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Agreed - this is a false negative. The sqli regex is far from
+complete, and is just a proof of concept at the moment, although it
+does detect certain things. It'll be an area that should get some love
+on the next release hopefully.
+
+On Sat, Feb 11, 2012 at 8:04 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">ryan.barnett at owasp.org</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> On Sat, Feb 11, 2012 at 5:16 AM, Emmanouil Prekas &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">grad1107 at di.uoa.gr</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hello all
+</I>&gt;&gt;<i> I have this input :
+</I>&gt;&gt;<i> station=101 OR 1=1
+</I>&gt;&gt;<i> When i am checking if it is sql injection command with the command
+</I>&gt;&gt;<i> boolean
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> verifyattack=org.owasp.appsensor.AttackDetectorUtils.verifySQLInjectionAttack(station);
+</I>&gt;&gt;<i> it returned false.
+</I>&gt;&gt;<i> I think it should return true. I am correct? What the problem is?
+</I>&gt;&gt;<i> Thank you very much
+</I>&gt;&gt;<i> M.P.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Here is the current SQL Injection attack strings from the
+</I>&gt;<i> appsensor.properties file -
+</I>&gt;<i>
+</I>&gt;<i> # This collection of strings is the SQL Injection attack pattern list
+</I>&gt;<i> sql.injection.attack.patterns=\\-\\-,\\;,\\/\\*,\\*\\/,\\@\\@,\\@,nchar,varchar,nvarchar,alter,cursor,delete,drop,exec,fetch,insert,kill,sysobjects,syscolumns
+</I>&gt;<i>
+</I>&gt;<i> As you can see, the attack payload you showed would not match any patterns
+</I>&gt;<i> here.
+</I>&gt;<i>
+</I>&gt;<i> We discussed SQL Injection a bit at the AppSensor Summit last September and
+</I>&gt;<i> the difference between WAF attack detections (negative security signature
+</I>&gt;<i> matching) and what AppSensor does. &#160;There is a balance here between accuracy
+</I>&gt;<i> and detection. &#160;To me, this is a false negative as this is obviously an
+</I>&gt;<i> attack attempt. &#160;I see two options -
+</I>&gt;<i>
+</I>&gt;<i> 1) Expand the sql.injection.attack.patterns list to include more patterns.
+</I>&gt;<i> 2) Utilize Detection Point RP2
+</I>&gt;<i> -&#160;<A HREF="https://www.owasp.org/index.php/AppSensor_DetectionPoints#RP2:_Suspicious_External_User_Behavior.">https://www.owasp.org/index.php/AppSensor_DetectionPoints#RP2:_Suspicious_External_User_Behavior.</A>
+</I>&gt;<i> &#160;If you have a ModSecurity WAF in front of an AppSensor host (proxying or
+</I>&gt;<i> doing mod_ajp) you can have ModSecurity export its attack detection alerts
+</I>&gt;<i> and add them into the request as new request headers. &#160;We call this &quot;Request
+</I>&gt;<i> Header Tagging&quot;
+</I>&gt;<i> -&#160;<A HREF="http://blog.spiderlabs.com/2010/10/advanced-topic-of-the-week-request-header-tagging.html">http://blog.spiderlabs.com/2010/10/advanced-topic-of-the-week-request-header-tagging.html</A>
+</I>&gt;<i>
+</I>&gt;<i> -Ryan
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000342.html">[Owasp-appsensor-project] SQL injection attack
+</A></li>
+	<LI>Next message: <A HREF="000344.html">[Owasp-appsensor-project] SQL injection attack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#343">[ date ]</a>
+              <a href="thread.html#343">[ thread ]</a>
+              <a href="subject.html#343">[ subject ]</a>
+              <a href="author.html#343">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

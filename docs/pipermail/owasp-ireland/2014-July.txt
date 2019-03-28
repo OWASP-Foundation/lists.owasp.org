@@ -1,0 +1,441 @@
+From fcerullo at owasp.org  Fri Jul 11 13:02:35 2014
+From: fcerullo at owasp.org (Fabio Cerullo)
+Date: Fri, 11 Jul 2014 14:02:35 +0100
+Subject: [Owasp-ireland] The problem with deprecated APIs...
+Message-ID: <CAE69ks5BHerhA-BncH-z7nJFq0L88c+ZSoy2w+N=+_J0_SPrKA@mail.gmail.com>
+
+Do you see any issues with the code below?
+
+[image: Inline image 1]
+
+You could find the answer here:
+http://stephensclafani.com/2014/07/08/hacking-facebooks-legacy-api-part-1-making-calls-on-behalf-of-any-user
+
+Have a good one everyone,
+
+Fabio
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140711/27994632/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: image.png
+Type: image/png
+Size: 28117 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140711/27994632/attachment-0001.png>
+
+From ismisepaul at gmail.com  Mon Jul 14 16:40:39 2014
+From: ismisepaul at gmail.com (Paul McCann)
+Date: Mon, 14 Jul 2014 17:40:39 +0100
+Subject: [Owasp-ireland] Use of Basic Authentication
+Message-ID: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+
+Hey everyone,
+
+I've seen basic auth being used with various web application APIs e.g. REST
+calls as a quick and well supported way of creating a session with a
+server. OWASP takes the stance that its a weak method but is acceptable to
+use as long as every request containing the "Authentication: Basic
+<base64-string>" header is never sent over HTTP. However, there is another
+fundamental problem with basic auth in which OWASP doesn't address (a least
+I can't find it) and that is you cannot logout if you're using basic auth
+as it wasn't designed to manage logging out.
+
+The basic auth credentials are cached by the browser and cannot be cleared
+by an application's logout function. At least not consistently across
+browsers;
+
+   - IE - there's a javascript function
+   document.execCommand('ClearAuthenticationCache', 'false') (I haven't tested
+   this)
+   - Firefox - Manually clear your recent history, clear the active logins
+   - Chrome - no way to clear
+
+
+After reading into this I think under no circumstances should anyone make
+use of basic auth because its broken by design. The root of the problem
+coming from the HTTP specification:
+"Existing HTTP clients and user agents typically retain authentication
+information indefinitely. HTTP/1.1. does not provide a method for a server
+to direct clients to discard these cached credentials. This is a
+significant defect that requires further extensions to HTTP."
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec15.html
+
+Has anyone come across this problem? Is there an OWASP guide/best practice
+around logging out when using basic auth or some piece that states basic
+auth is broken and should never be used?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140714/4353c8cc/attachment.html>
+
+From eoin.keary at owasp.org  Mon Jul 14 17:08:42 2014
+From: eoin.keary at owasp.org (Eoin Keary)
+Date: Mon, 14 Jul 2014 18:08:42 +0100
+Subject: [Owasp-ireland] Use of Basic Authentication
+In-Reply-To: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+References: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+Message-ID: <C9C5E5BA-B118-4973-9D0E-DE74A5F40652@owasp.org>
+
+Hey there...
+Is there a concept of a session in REST and therefore logging out?
+REST is stateless and hence no session / Logout.
+
+
+-ek
+
+
+Eoin Keary
+Owasp Global Board
++353 87 977 2988
+
+
+On 14 Jul 2014, at 17:40, Paul McCann <ismisepaul at gmail.com> wrote:
+
+> Hey everyone,
+> 
+> I've seen basic auth being used with various web application APIs e.g. REST calls as a quick and well supported way of creating a session with a server. OWASP takes the stance that its a weak method but is acceptable to use as long as every request containing the "Authentication: Basic <base64-string>" header is never sent over HTTP. However, there is another fundamental problem with basic auth in which OWASP doesn't address (a least I can't find it) and that is you cannot logout if you're using basic auth as it wasn't designed to manage logging out.
+> 
+> The basic auth credentials are cached by the browser and cannot be cleared by an application's logout function. At least not consistently across browsers;
+> IE - there's a javascript function document.execCommand('ClearAuthenticationCache', 'false') (I haven't tested this)
+> Firefox - Manually clear your recent history, clear the active logins
+> Chrome - no way to clear
+> 
+> After reading into this I think under no circumstances should anyone make use of basic auth because its broken by design. The root of the problem coming from the HTTP specification:
+> "Existing HTTP clients and user agents typically retain authentication information indefinitely. HTTP/1.1. does not provide a method for a server to direct clients to discard these cached credentials. This is a significant defect that requires further extensions to HTTP." http://www.w3.org/Protocols/rfc2616/rfc2616-sec15.html
+> 
+> Has anyone come across this problem? Is there an OWASP guide/best practice around logging out when using basic auth or some piece that states basic auth is broken and should never be used?
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-ireland mailing list
+> Owasp-ireland at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140714/6e4e933b/attachment.html>
+
+From eoin.keary at owasp.org  Mon Jul 14 17:14:00 2014
+From: eoin.keary at owasp.org (Eoin Keary)
+Date: Mon, 14 Jul 2014 18:14:00 +0100
+Subject: [Owasp-ireland] Use of Basic Authentication
+In-Reply-To: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+References: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+Message-ID: <36A47826-8360-4FCA-BFF5-BB705D3042CB@owasp.org>
+
+Paul, 
+This is from 2002 :)
+It is a hack which overwrites the basic auth header:
+https://www.mavensecurity.com/documents/BasicAuthLogOut.pdf
+
+Best to avoid the many pitfalls of Basic Auth id suggest but we don't always have such luxury :)
+
+
+Eoin Keary
+Owasp Global Board
++353 87 977 2988
+
+
+On 14 Jul 2014, at 17:40, Paul McCann <ismisepaul at gmail.com> wrote:
+
+> Hey everyone,
+> 
+> I've seen basic auth being used with various web application APIs e.g. REST calls as a quick and well supported way of creating a session with a server. OWASP takes the stance that its a weak method but is acceptable to use as long as every request containing the "Authentication: Basic <base64-string>" header is never sent over HTTP. However, there is another fundamental problem with basic auth in which OWASP doesn't address (a least I can't find it) and that is you cannot logout if you're using basic auth as it wasn't designed to manage logging out.
+> 
+> The basic auth credentials are cached by the browser and cannot be cleared by an application's logout function. At least not consistently across browsers;
+> IE - there's a javascript function document.execCommand('ClearAuthenticationCache', 'false') (I haven't tested this)
+> Firefox - Manually clear your recent history, clear the active logins
+> Chrome - no way to clear
+> 
+> After reading into this I think under no circumstances should anyone make use of basic auth because its broken by design. The root of the problem coming from the HTTP specification:
+> "Existing HTTP clients and user agents typically retain authentication information indefinitely. HTTP/1.1. does not provide a method for a server to direct clients to discard these cached credentials. This is a significant defect that requires further extensions to HTTP." http://www.w3.org/Protocols/rfc2616/rfc2616-sec15.html
+> 
+> Has anyone come across this problem? Is there an OWASP guide/best practice around logging out when using basic auth or some piece that states basic auth is broken and should never be used?
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-ireland mailing list
+> Owasp-ireland at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140714/75efd136/attachment.html>
+
+From fcerullo at owasp.org  Mon Jul 14 17:53:07 2014
+From: fcerullo at owasp.org (Fabio Cerullo)
+Date: Mon, 14 Jul 2014 18:53:07 +0100
+Subject: [Owasp-ireland] Use of Basic Authentication
+In-Reply-To: <36A47826-8360-4FCA-BFF5-BB705D3042CB@owasp.org>
+References: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+	<36A47826-8360-4FCA-BFF5-BB705D3042CB@owasp.org>
+Message-ID: <CAE69ks5OajAU8Y0zpTDe8iJ1O+hqMe1nVeRwKjMy8At_6wZgfA@mail.gmail.com>
+
+Paul,
+
+Thanks for your mail... great to see the mailing list with technical
+discussions!
+
+To my view, the only reasonable answer for new systems is not to use HTTP
+Basic Authentication.
+
+In cases where HTTP Basic Auth is already in place, here goes an article
+with code included which works with the majority of browsers. It basically
+relies on the user clicking a logout button and some javascript is executed
+that will clear out the existing set of credentials.
+
+*HTTPAuth Logout in Chrome, Firefox and IE with jQuery
+<http://patabugen.co.uk/2013/12/09/httpauth-logout-in-chrome-firefox-and-ie-with-jquery/>*
+
+Hope this helps.
+
+Regards,
+Fabio
+
+
+On Mon, Jul 14, 2014 at 6:14 PM, Eoin Keary <eoin.keary at owasp.org> wrote:
+
+> Paul,
+> This is from 2002 :)
+> It is a hack which overwrites the basic auth header:
+> https://www.mavensecurity.com/documents/BasicAuthLogOut.pdf
+>
+> Best to avoid the many pitfalls of Basic Auth id suggest but we don't
+> always have such luxury :)
+>
+>
+> Eoin Keary
+> Owasp Global Board
+> +353 87 977 2988
+>
+>
+> On 14 Jul 2014, at 17:40, Paul McCann <ismisepaul at gmail.com> wrote:
+>
+> Hey everyone,
+>
+> I've seen basic auth being used with various web application APIs e.g.
+> REST calls as a quick and well supported way of creating a session with a
+> server. OWASP takes the stance that its a weak method but is acceptable to
+> use as long as every request containing the "Authentication: Basic
+> <base64-string>" header is never sent over HTTP. However, there is another
+> fundamental problem with basic auth in which OWASP doesn't address (a least
+> I can't find it) and that is you cannot logout if you're using basic auth
+> as it wasn't designed to manage logging out.
+>
+> The basic auth credentials are cached by the browser and cannot be cleared
+> by an application's logout function. At least not consistently across
+> browsers;
+>
+>    - IE - there's a javascript function
+>    document.execCommand('ClearAuthenticationCache', 'false') (I haven't tested
+>    this)
+>    - Firefox - Manually clear your recent history, clear the active logins
+>    - Chrome - no way to clear
+>
+>
+> After reading into this I think under no circumstances should anyone make
+> use of basic auth because its broken by design. The root of the problem
+> coming from the HTTP specification:
+> "Existing HTTP clients and user agents typically retain authentication
+> information indefinitely. HTTP/1.1. does not provide a method for a server
+> to direct clients to discard these cached credentials. This is a
+> significant defect that requires further extensions to HTTP."
+> http://www.w3.org/Protocols/rfc2616/rfc2616-sec15.html
+>
+> Has anyone come across this problem? Is there an OWASP guide/best practice
+> around logging out when using basic auth or some piece that states basic
+> auth is broken and should never be used?
+>
+>
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-ireland mailing list
+> Owasp-ireland at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+>
+>
+> _______________________________________________
+> Owasp-ireland mailing list
+> Owasp-ireland at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140714/7c54a169/attachment-0001.html>
+
+From ismisepaul at gmail.com  Mon Jul 14 21:24:51 2014
+From: ismisepaul at gmail.com (Paul McCann)
+Date: Mon, 14 Jul 2014 22:24:51 +0100
+Subject: [Owasp-ireland] Use of Basic Authentication
+In-Reply-To: <CAE69ks5OajAU8Y0zpTDe8iJ1O+hqMe1nVeRwKjMy8At_6wZgfA@mail.gmail.com>
+References: <CACLZaY7N-cfox9ys0i-bOs5nDZYZtgCx35=V5iJc_J93GPAGoQ@mail.gmail.com>
+	<36A47826-8360-4FCA-BFF5-BB705D3042CB@owasp.org>
+	<CAE69ks5OajAU8Y0zpTDe8iJ1O+hqMe1nVeRwKjMy8At_6wZgfA@mail.gmail.com>
+Message-ID: <CACLZaY6v5E+jcqdO=9bz0EMtgpXo8Zs_ji_p0RAKh4E2=tpp7g@mail.gmail.com>
+
+Cheers guys,
+
+Just to clarify the problems I've seen with using basic auth, if an
+application utilises two methods to set up a session with the server to
+deal with two use cases;
+
+   1. When using a browser a form based login was utilised
+   2. When using the REST services directly basic auth was utilised.
+
+Take for instance a user logs into the application through a browser using
+the form based login. Once logged in the application makes asynchronous
+calls through the API to update the UI every couple of seconds in the
+background. This works fine until the session times out. Once the session
+times out the application presents the user with a login popup. This login
+popup is actually a basic auth login presented to the user because the
+asynchronous API calls running in the background don't have a session. The
+desired functionality is the user is not presented with this login but
+redirected back to the form based login page but it seems like a race
+condition is started and the basic auth wins every time. If the user logs
+in using this login popup a new session is created with the server. In the
+background what's actually happened is a "Authentication Basic:
+<b64-string>" has been added to the requests. The problem occurs when that
+user logs out. The cookie is destroyed but the browser caches the basic
+auth credentials. If a different user logs into the application through the
+form based login a session is set up but with every request the basic auth
+header is sent containing the previous users credentials. The second user
+can now use those credentials to impersonate the first user leading to
+horizontal or vertical privilege escalation.
+
+Thanks for the info guys I'll have a good read through it, I thought I'd
+raise this with you guys to see if anybody has seen this before. Personally
+I'd no idea there was no way to clear the basic auth header from browsers
+without hacking something together. In the future I'll be avoiding basic
+auth.
+
+
+On 14 July 2014 18:53, Fabio Cerullo <fcerullo at owasp.org> wrote:
+
+> Paul,
+>
+> Thanks for your mail... great to see the mailing list with technical
+> discussions!
+>
+> To my view, the only reasonable answer for new systems is not to use HTTP
+> Basic Authentication.
+>
+> In cases where HTTP Basic Auth is already in place, here goes an article
+> with code included which works with the majority of browsers. It basically
+> relies on the user clicking a logout button and some javascript is executed
+> that will clear out the existing set of credentials.
+>
+> *HTTPAuth Logout in Chrome, Firefox and IE with jQuery
+> <http://patabugen.co.uk/2013/12/09/httpauth-logout-in-chrome-firefox-and-ie-with-jquery/>*
+>
+> Hope this helps.
+>
+> Regards,
+> Fabio
+>
+>
+> On Mon, Jul 14, 2014 at 6:14 PM, Eoin Keary <eoin.keary at owasp.org> wrote:
+>
+>> Paul,
+>> This is from 2002 :)
+>> It is a hack which overwrites the basic auth header:
+>> https://www.mavensecurity.com/documents/BasicAuthLogOut.pdf
+>>
+>> Best to avoid the many pitfalls of Basic Auth id suggest but we don't
+>> always have such luxury :)
+>>
+>>
+>> Eoin Keary
+>> Owasp Global Board
+>> +353 87 977 2988
+>>
+>>
+>> On 14 Jul 2014, at 17:40, Paul McCann <ismisepaul at gmail.com> wrote:
+>>
+>> Hey everyone,
+>>
+>> I've seen basic auth being used with various web application APIs e.g.
+>> REST calls as a quick and well supported way of creating a session with a
+>> server. OWASP takes the stance that its a weak method but is acceptable to
+>> use as long as every request containing the "Authentication: Basic
+>> <base64-string>" header is never sent over HTTP. However, there is another
+>> fundamental problem with basic auth in which OWASP doesn't address (a least
+>> I can't find it) and that is you cannot logout if you're using basic auth
+>> as it wasn't designed to manage logging out.
+>>
+>> The basic auth credentials are cached by the browser and cannot be
+>> cleared by an application's logout function. At least not consistently
+>> across browsers;
+>>
+>>    - IE - there's a javascript function
+>>    document.execCommand('ClearAuthenticationCache', 'false') (I haven't tested
+>>    this)
+>>    - Firefox - Manually clear your recent history, clear the active
+>>    logins
+>>    - Chrome - no way to clear
+>>
+>>
+>> After reading into this I think under no circumstances should anyone make
+>> use of basic auth because its broken by design. The root of the problem
+>> coming from the HTTP specification:
+>> "Existing HTTP clients and user agents typically retain authentication
+>> information indefinitely. HTTP/1.1. does not provide a method for a server
+>> to direct clients to discard these cached credentials. This is a
+>> significant defect that requires further extensions to HTTP."
+>> http://www.w3.org/Protocols/rfc2616/rfc2616-sec15.html
+>>
+>> Has anyone come across this problem? Is there an OWASP guide/best
+>> practice around logging out when using basic auth or some piece that states
+>> basic auth is broken and should never be used?
+>>
+>>
+>>
+>>
+>>
+>>
+>> _______________________________________________
+>> Owasp-ireland mailing list
+>> Owasp-ireland at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+>>
+>>
+>> _______________________________________________
+>> Owasp-ireland mailing list
+>> Owasp-ireland at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-ireland
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140714/4422c49f/attachment.html>
+
+From fcerullo at owasp.org  Tue Jul 29 17:56:14 2014
+From: fcerullo at owasp.org (Fabio Cerullo)
+Date: Tue, 29 Jul 2014 18:56:14 +0100
+Subject: [Owasp-ireland] Instagram iOS session hijack
+Message-ID: <CAE69ks6UmhvuaL7c8KvLnxwjEyLqT2_z-E02u-SufVXwDuN7WQ@mail.gmail.com>
+
+And here we go again... Instagram makes API calls to non-HTTPS endpoints
+with session cookies in the request headers allowing full session hijack by
+a malicious actor. Full details below:
+
+https://gist.github.com/stevegraham/9a98627eebd6b09d4483
+
+Fabio
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-ireland/attachments/20140729/015445c2/attachment.html>
+

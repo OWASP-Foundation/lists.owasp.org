@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Setting tx.anomaly_score before including crs-setup.conf somehow works, should it?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20tx.anomaly_score%20before%0A%20including%20crs-setup.conf%20somehow%20works%2C%20should%20it%3F&In-Reply-To=%3Cea570189-e948-8c5f-1455-bc39fa3e4686%40apra.it%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="002511.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Setting tx.anomaly_score before including crs-setup.conf somehow works, should it?</H1>
+    <B>Cristian Mammoli</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20tx.anomaly_score%20before%0A%20including%20crs-setup.conf%20somehow%20works%2C%20should%20it%3F&In-Reply-To=%3Cea570189-e948-8c5f-1455-bc39fa3e4686%40apra.it%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Setting tx.anomaly_score before including crs-setup.conf somehow works, should it?">c.mammoli at apra.it
+       </A><BR>
+    <I>Mon Dec  4 13:21:39 UTC 2017</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="002511.html">[Owasp-modsecurity-core-rule-set] Setting tx.anomaly_score before including crs-setup.conf somehow works, should it?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2510">[ date ]</a>
+              <a href="thread.html#2510">[ thread ]</a>
+              <a href="subject.html#2510">[ subject ]</a>
+              <a href="author.html#2510">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi, I'm using CRS 3.0.2 on ModSec 2.9.2
+
+I'm including crs like this:
+
+[<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">root at waf01</A> ~]# tail -n 3 /etc/httpd/conf.d/000_mod_security.conf
+IncludeOptional /etc/httpd/modsecurity.d/*.conf
+IncludeOptional /etc/httpd/crs/crs-setup.conf
+IncludeOptional /etc/httpd/crs/rules/*.conf
+
+I'm using rules in modsecurity.d/ for custom rules and so on
+I would expect that setting tx.anomaly_score in a rule file in 
+modsecurity.d would make no sense, since the var get reset in 
+crs/rules/REQUEST-901-INITIALIZATION.conf (901200) which gets loaded 
+AFTER my rules.
+
+But it somehow works, for example this rule in 
+modsecurity.d/local_rules.conf
+
+# Spamhaus XBL (scoring)
+SecRule REMOTE_ADDR &quot;@rbl xbl.spamhaus.org&quot; \
+   &quot;msg:'Client IP in xbl.spamhaus.org.',\
+   severity:'CRITICAL',\
+   id:10003,\
+   phase:request,\
+   pass,\
+   t:none,\
+   tag:'application-multi',\
+   tag:'language-multi',\
+   tag:'platform-multi',\
+   tag:'attack-reputation-ip',\
+   setvar:'tx.msg=%{rule.msg}',\
+   setvar:tx.anomaly_score=+10,\
+setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{matched_var_name}=%{matched_var}
+
+The additional 10 points get counted in the final 
+TX:inbound_anomaly_score and causes the request to be rejected.
+
+This is _exactly_ what I want :) But as far as I understand it shouldn't 
+work or I don't get in which order the rules are included and evaluated
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="002511.html">[Owasp-modsecurity-core-rule-set] Setting tx.anomaly_score before including crs-setup.conf somehow works, should it?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2510">[ date ]</a>
+              <a href="thread.html#2510">[ thread ]</a>
+              <a href="subject.html#2510">[ subject ]</a>
+              <a href="author.html#2510">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

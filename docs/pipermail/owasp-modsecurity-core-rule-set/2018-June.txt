@@ -1,0 +1,314 @@
+From christian.folini at netnea.com  Fri Jun  8 14:11:25 2018
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 8 Jun 2018 16:11:25 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Registration for the Core Rule
+	Set community summit open
+Message-ID: <20180608141125.bo3gbccjyy2eddyh@leander>
+
+Hello,
+
+We have been planning to do an OWASP ModSecurity Core Rule Set community
+summit at the upcoming AppSecEU conference in London. The program is still
+in the making, but registrations is now open:
+
+https://coreruleset.org/20180607/registration-open-for-the-crs-community-summit-on-july-4/
+
+This is going to be on Wednesday July 4, at 4pm at the Queen Elisabeth II
+Center in central London. We plan to talk about CRS, the recent proposal for
+a rule Meta Language, roadmap of the project, your use cases and your burning
+questions. Afterwards we plan to go out and eat / drink together and we are
+very happy that cPanel agreed to sponsor that for us!
+
+Please note, that you do not have to register for AppSecEU to participate
+the our CRS summit.
+
+If there are any questions or if you think you have something to contribute
+to the program, then please get in touch with me directly.
+
+Best regards,
+
+Christian Folini
+
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+https://www.feistyduck.com/books/modsecurity-handbook/
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From quinn at strangecode.com  Sun Jun 17 07:19:11 2018
+From: quinn at strangecode.com (Quinn Comendant)
+Date: Sun, 17 Jun 2018 14:19:11 +0700
+Subject: [Owasp-modsecurity-core-rule-set] MSC_PCRE_LIMITS_EXCEEDED with
+	SecPcreMatchLimit 10000000
+Message-ID: <20180617141911363350.67e2871c@strangecode.com>
+
+I'm getting the famous MSC_PCRE_LIMITS_EXCEEDED error on a specific request, and not able to circumvent it by raising the SecPcreMatchLimit value; I've raised it to SecPcreMatchLimit 10000000 (ten million!) and it's still blocked.
+
+Looks to me like a broken regex. 
+
+1. So maybe this is a bug report. Can you guys confirm the issue, based on the data included below?
+
+2. How do I find which rule has the regex blocking this request? (I don't mean rule 200004, which blocks MSC_*, I mean the rule with the broken regex that caused too much recursion.
+
+error_log:
+[Fri Jun 15 23:26:43.506695 2018] [:error] [pid 22588] [client 1.2.3.4:54790] [client 1.2.3.4] ModSecurity: Access denied with code 403 (phase 2). Match of "streq 0" against "TX:MSC_PCRE_LIMITS_EXCEEDED" required. [file "/etc/httpd/conf.d/mod_security.conf"] [line "43"] [id "200004"] [msg "ModSecurity internal error flagged: TX:MSC_PCRE_LIMITS_EXCEEDED"] [hostname "www.example.com"] [uri "/cp/orders.php"] [unique_id "WyRLM2JpNbHeGYomo7lCxQAAAAU"], referer: https://www.example.com/order/new
+
+OS: 
+CentOS Linux release 7.5.1804 (Core)
+
+Software versions:
+httpd-2.4.6-80.el7.centos.x86_64
+mod_security-2.9.2-1.el7.x86_64
+mod_security_crs-2.2.9-1.el7.noarch
+
+Config:
+$ sudo grep -r SecPcreMatchLimit /etc/httpd
+/etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimit 10000000
+/etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimitRecursion 10000000
+
+Request:
+The request causing the error, as a curl command: https://pastebin.com/raw/fymAQtsJ
+
+curl 'https://www.example.com/order/confirm' -H 'Connection: keep-alive' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'Origin: https://www.example.com' -H 'Upgrade-Insecure-Requests: 1' -H 'DNT: 1' -H 'Content-Type: application/x-www-form-urlencoded' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8' -H 'Referer: https://www.example.com/order/new' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.9,es;q=0.8' -H 'Cookie: _prefs-login-username=%22%22; _session=sgj9tdvgrc26m57atct02niat3' --data 
+'csrf_token=1528995053-BrkRHVojxjfm5jmXVrK08SjLCo33daL2lHOPjosXweGZihQptAuqSwAKE6aNoWup&op=confirm&contdrugs-store=%5B%7B%22id%22%3A%221i75f9wlcaa2a6c7%22%2C%22ndc%22%3A%228576453101%22%2C%22description%22%3A%22TORGUGESIC-SA%22%2C%22strength%22%3A%222MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fwwk6yf2c487%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ftk3c0393b6a%22%2C%22ndc%22%3A%22856203310%22%2C%22description%22%3A%22TORBUTROL%22%2C%22strength%22%3A%2210MG%5C%5CML%22%2C%22dosage%22%3A%22Injection%22%2C%22packag
+ 
+e_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.5%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75eew2wa8940aa%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.29%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ezq4k0a504cd%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%223%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f28rfw2ed68a%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22T
+ 
+ablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2268%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f5nnbwc3419d%22%2C%22ndc%22%3A%22856202660%22%2C%22description%22%3A%22BUTORPHANOL%22%2C%22strength%22%3A%225MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2290%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ec40m257e4e4%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%226%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fzeyre2104f3%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%
+ 
+22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.65%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75g2unoy141ce6%22%2C%22ndc%22%3A%22409321312%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%224%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gviq9434b93c%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gztlgcfa0ae6%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosa
+ 
+ge%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75h329z80f8112%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75hdpo0u382057%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.06875%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75he25ro68cccb%22%2C%22ndc%22%3A%226516262710%22%2C%22description%22%3A%22TRAMADOL+HYDROCHLORIDE%22%2C%22strength%22%3A%2250+
+ 
+MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2250.75%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%5D&pharmwaste-store=%5B%5D&contdrugs_weight=8&pharmwaste_weight=0&box_h=5&box_l=5&box_w=5' --compressed
+
+
+From chaim at chaimsanders.com  Mon Jun 18 01:40:52 2018
+From: chaim at chaimsanders.com (Chaim Sanders)
+Date: Sun, 17 Jun 2018 21:40:52 -0400
+Subject: [Owasp-modsecurity-core-rule-set] MSC_PCRE_LIMITS_EXCEEDED with
+ SecPcreMatchLimit 10000000
+In-Reply-To: <20180617141911363350.67e2871c@strangecode.com>
+References: <20180617141911363350.67e2871c@strangecode.com>
+Message-ID: <CAE8hE=o2wiG+kVCC9zR2Qjf826V=jjBMZT-dOPK8oaygzd=i8w@mail.gmail.com>
+
+I'd start by checking the debug log, that should at least move you in the
+right direction. With a massive request like that i'm not surprised some
+PCRE limits are being hit :-)
+
+On Sun, Jun 17, 2018 at 3:32 AM Quinn Comendant <quinn at strangecode.com>
+wrote:
+
+> I'm getting the famous MSC_PCRE_LIMITS_EXCEEDED error on a specific
+> request, and not able to circumvent it by raising the SecPcreMatchLimit
+> value; I've raised it to SecPcreMatchLimit 10000000 (ten million!) and it's
+> still blocked.
+>
+> Looks to me like a broken regex.
+>
+> 1. So maybe this is a bug report. Can you guys confirm the issue, based on
+> the data included below?
+>
+> 2. How do I find which rule has the regex blocking this request? (I don't
+> mean rule 200004, which blocks MSC_*, I mean the rule with the broken regex
+> that caused too much recursion.
+>
+> error_log:
+> [Fri Jun 15 23:26:43.506695 2018] [:error] [pid 22588] [client
+> 1.2.3.4:54790] [client 1.2.3.4] ModSecurity: Access denied with code 403
+> (phase 2). Match of "streq 0" against "TX:MSC_PCRE_LIMITS_EXCEEDED"
+> required. [file "/etc/httpd/conf.d/mod_security.conf"] [line "43"] [id
+> "200004"] [msg "ModSecurity internal error flagged:
+> TX:MSC_PCRE_LIMITS_EXCEEDED"] [hostname "www.example.com"] [uri
+> "/cp/orders.php"] [unique_id "WyRLM2JpNbHeGYomo7lCxQAAAAU"], referer:
+> https://www.example.com/order/new
+>
+> OS:
+> CentOS Linux release 7.5.1804 (Core)
+>
+> Software versions:
+> httpd-2.4.6-80.el7.centos.x86_64
+> mod_security-2.9.2-1.el7.x86_64
+> mod_security_crs-2.2.9-1.el7.noarch
+>
+> Config:
+> $ sudo grep -r SecPcreMatchLimit /etc/httpd
+> /etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimit 10000000
+> /etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimitRecursion 10000000
+>
+> Request:
+> The request causing the error, as a curl command:
+> https://pastebin.com/raw/fymAQtsJ
+>
+> curl 'https://www.example.com/order/confirm' -H 'Connection: keep-alive'
+> -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'Origin:
+> https://www.example.com' -H 'Upgrade-Insecure-Requests: 1' -H 'DNT: 1' -H
+> 'Content-Type: application/x-www-form-urlencoded' -H 'User-Agent:
+> Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML,
+> like Gecko) Chrome/67.0.3396.87 Safari/537.36' -H 'Accept:
+> text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+> -H 'Referer: https://www.example.com/order/new' -H 'Accept-Encoding:
+> gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.9,es;q=0.8' -H
+> 'Cookie: _prefs-login-username=%22%22; _session=sgj9tdvgrc26m57atct02niat3'
+> --data
+>
+> 'csrf_token=1528995053-BrkRHVojxjfm5jmXVrK08SjLCo33daL2lHOPjosXweGZihQptAuqSwAKE6aNoWup&op=confirm&contdrugs-store=%5B%7B%22id%22%3A%221i75f9wlcaa2a6c7%22%2C%22ndc%22%3A%228576453101%22%2C%22description%22%3A%22TORGUGESIC-SA%22%2C%22strength%22%3A%222MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fwwk6yf2c487%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ftk3c0393b6a%22%2C%22ndc%22%3A%22856203310%22%2C%22description%22%3A%22TORBUTROL%22%2C%22strength%22%3A%2210MG%5C%5CML%22%2C%22dosage%22%3A%22Injection%22%2C%22packag
+>
+>
+> e_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.5%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75eew2wa8940aa%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.29%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ezq4k0a504cd%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%223%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f28rfw2ed68a%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22T
+>
+>
+> ablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2268%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f5nnbwc3419d%22%2C%22ndc%22%3A%22856202660%22%2C%22description%22%3A%22BUTORPHANOL%22%2C%22strength%22%3A%225MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2290%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ec40m257e4e4%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%226%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fzeyre2104f3%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%
+>
+>
+> 22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.65%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75g2unoy141ce6%22%2C%22ndc%22%3A%22409321312%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%224%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gviq9434b93c%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gztlgcfa0ae6%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosa
+>
+>
+> ge%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75h329z80f8112%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75hdpo0u382057%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.06875%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75he25ro68cccb%22%2C%22ndc%22%3A%226516262710%22%2C%22description%22%3A%22TRAMADOL+HYDROCHLORIDE%22%2C%22strength%22%3A%2250+
+>
+> MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2250.75%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%5D&pharmwaste-store=%5B%5D&contdrugs_weight=8&pharmwaste_weight=0&box_h=5&box_l=5&box_w=5'
+> --compressed
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+-- 
+-- 
+Chaim Sanders
+http://www.ChaimSanders.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180617/cec5ebef/attachment.html>
+
+From ehsan.mahdavi at gmail.com  Mon Jun 18 05:22:10 2018
+From: ehsan.mahdavi at gmail.com (Ehsan Mahdavi)
+Date: Mon, 18 Jun 2018 09:52:10 +0430
+Subject: [Owasp-modsecurity-core-rule-set] MSC_PCRE_LIMITS_EXCEEDED with
+ SecPcreMatchLimit 10000000
+In-Reply-To: <20180617141911363350.67e2871c@strangecode.com>
+References: <20180617141911363350.67e2871c@strangecode.com>
+Message-ID: <CAC7V=mxRdysPY4quuT9g3LhOrh1seC8On7udLY5PyW=tun2Yxg@mail.gmail.com>
+
+Hi
+Which version of modsecurity do you use?
+We experienced a lot of this with modsecurity_nginx_refactoring branch!
+
+good luck
+
+On Sun, Jun 17, 2018 at 12:03 PM Quinn Comendant <quinn at strangecode.com>
+wrote:
+
+> I'm getting the famous MSC_PCRE_LIMITS_EXCEEDED error on a specific
+> request, and not able to circumvent it by raising the SecPcreMatchLimit
+> value; I've raised it to SecPcreMatchLimit 10000000 (ten million!) and it's
+> still blocked.
+>
+> Looks to me like a broken regex.
+>
+> 1. So maybe this is a bug report. Can you guys confirm the issue, based on
+> the data included below?
+>
+> 2. How do I find which rule has the regex blocking this request? (I don't
+> mean rule 200004, which blocks MSC_*, I mean the rule with the broken regex
+> that caused too much recursion.
+>
+> error_log:
+> [Fri Jun 15 23:26:43.506695 2018] [:error] [pid 22588] [client
+> 1.2.3.4:54790] [client 1.2.3.4] ModSecurity: Access denied with code 403
+> (phase 2). Match of "streq 0" against "TX:MSC_PCRE_LIMITS_EXCEEDED"
+> required. [file "/etc/httpd/conf.d/mod_security.conf"] [line "43"] [id
+> "200004"] [msg "ModSecurity internal error flagged:
+> TX:MSC_PCRE_LIMITS_EXCEEDED"] [hostname "www.example.com"] [uri
+> "/cp/orders.php"] [unique_id "WyRLM2JpNbHeGYomo7lCxQAAAAU"], referer:
+> https://www.example.com/order/new
+>
+> OS:
+> CentOS Linux release 7.5.1804 (Core)
+>
+> Software versions:
+> httpd-2.4.6-80.el7.centos.x86_64
+> mod_security-2.9.2-1.el7.x86_64
+> mod_security_crs-2.2.9-1.el7.noarch
+>
+> Config:
+> $ sudo grep -r SecPcreMatchLimit /etc/httpd
+> /etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimit 10000000
+> /etc/httpd/conf.d/mod_security.conf:    SecPcreMatchLimitRecursion 10000000
+>
+> Request:
+> The request causing the error, as a curl command:
+> https://pastebin.com/raw/fymAQtsJ
+>
+> curl 'https://www.example.com/order/confirm' -H 'Connection: keep-alive'
+> -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'Origin:
+> https://www.example.com' -H 'Upgrade-Insecure-Requests: 1' -H 'DNT: 1' -H
+> 'Content-Type: application/x-www-form-urlencoded' -H 'User-Agent:
+> Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML,
+> like Gecko) Chrome/67.0.3396.87 Safari/537.36' -H 'Accept:
+> text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+> -H 'Referer: https://www.example.com/order/new' -H 'Accept-Encoding:
+> gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.9,es;q=0.8' -H
+> 'Cookie: _prefs-login-username=%22%22; _session=sgj9tdvgrc26m57atct02niat3'
+> --data
+>
+> 'csrf_token=1528995053-BrkRHVojxjfm5jmXVrK08SjLCo33daL2lHOPjosXweGZihQptAuqSwAKE6aNoWup&op=confirm&contdrugs-store=%5B%7B%22id%22%3A%221i75f9wlcaa2a6c7%22%2C%22ndc%22%3A%228576453101%22%2C%22description%22%3A%22TORGUGESIC-SA%22%2C%22strength%22%3A%222MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fwwk6yf2c487%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%221%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ftk3c0393b6a%22%2C%22ndc%22%3A%22856203310%22%2C%22description%22%3A%22TORBUTROL%22%2C%22strength%22%3A%2210MG%5C%5CML%22%2C%22dosage%22%3A%22Injection%22%2C%22packag
+>
+>
+> e_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.5%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75eew2wa8940aa%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.29%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ezq4k0a504cd%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%223%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f28rfw2ed68a%22%2C%22ndc%22%3A%226157008101%22%2C%22description%22%3A%22TUSSIGON%22%2C%22strength%22%3A%221.5+MG-5+MG%22%2C%22dosage%22%3A%22T
+>
+>
+> ablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2268%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75f5nnbwc3419d%22%2C%22ndc%22%3A%22856202660%22%2C%22description%22%3A%22BUTORPHANOL%22%2C%22strength%22%3A%225MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2290%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75ec40m257e4e4%22%2C%22ndc%22%3A%221169507021%22%2C%22description%22%3A%22KETAMINE+HCL%22%2C%22strength%22%3A%2210MG%2FML%22%2C%22dosage%22%3A%22Injection%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%226%22%2C%22quantity_units%22%3A%22full+packages%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75fzeyre2104f3%22%2C%22ndc%22%3A%22641228941%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%
+>
+>
+> 22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%222.65%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75g2unoy141ce6%22%2C%22ndc%22%3A%22409321312%22%2C%22description%22%3A%22DIAZEPAM%22%2C%22strength%22%3A%225+MG%2FML%22%2C%22dosage%22%3A%22Solution%22%2C%22package_size%22%3A%2210%22%2C%22units_of_measure%22%3A%22ml%22%2C%22quantity%22%3A%224%22%2C%22quantity_units%22%3A%22ml%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gviq9434b93c%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75gztlgcfa0ae6%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosa
+>
+>
+> ge%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75h329z80f8112%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.125%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75hdpo0u382057%22%2C%22ndc%22%3A%224945278751%22%2C%22description%22%3A%22TRAMADOL+HCL%22%2C%22strength%22%3A%22Powder%22%2C%22dosage%22%3A%22Powder%22%2C%22package_size%22%3A%221%22%2C%22units_of_measure%22%3A%22gm%22%2C%22quantity%22%3A%220.06875%22%2C%22quantity_units%22%3A%22gm%22%2C%22notes%22%3A%22%22%7D%2C%7B%22id%22%3A%221i75he25ro68cccb%22%2C%22ndc%22%3A%226516262710%22%2C%22description%22%3A%22TRAMADOL+HYDROCHLORIDE%22%2C%22strength%22%3A%2250+
+>
+> MG%22%2C%22dosage%22%3A%22Tablet%22%2C%22package_size%22%3A%22100%22%2C%22units_of_measure%22%3A%22ea%22%2C%22quantity%22%3A%2250.75%22%2C%22quantity_units%22%3A%22ea%22%2C%22notes%22%3A%22%22%7D%5D&pharmwaste-store=%5B%5D&contdrugs_weight=8&pharmwaste_weight=0&box_h=5&box_l=5&box_w=5'
+> --compressed
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180618/c83efca4/attachment-0001.html>
+
+From franziska.buehler.schmocker at gmail.com  Wed Jun 20 19:53:30 2018
+From: franziska.buehler.schmocker at gmail.com (Franziska Buehler)
+Date: Wed, 20 Jun 2018 21:53:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] The OWASP ModSecurity Core Rule
+	Set as Part of DevOps (CI Pipeline)
+Message-ID: <CALrdzmJ7tJoX0CBEPY0HfoSQqvVb+TfV0=i50qqsvJbtpYvCqw@mail.gmail.com>
+
+Hello,
+
+
+If you'd like to know how the OWASP ModSecurity Core Rule Set can easily
+and quickly be integrated into a DevOps pipeline,
+
+and if you'd like to know how a developer gets fast feedback on whether her
+applications's traffic does not trigger false positives after a code
+change,
+
+check out my new blog post on coreruleset.org:
+
+
+https://coreruleset.org/20180619/the-core-rule-set-as-part-of-devops-ci-pipeline/
+
+
+Best regards,
+
+Franziska B?hler
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180620/bd83b34a/attachment.html>
+

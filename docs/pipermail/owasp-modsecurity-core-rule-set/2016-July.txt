@@ -1,0 +1,430 @@
+From christian.folini at netnea.com  Wed Jul  6 07:44:48 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 6 Jul 2016 09:44:48 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Rule Writing Exercise: chaining
+Message-ID: <20160706074448.GA32539@elias>
+
+Hello,
+
+This message is going to the ModSec users ML and the CRS ML. It's a
+new rule idea I have for the CRS, but maybe the wider audience has a
+solution.
+
+It is fairly simple to do a rule which takes a parameter, runs a
+transformation and checks if the transformation changed anything.
+Here a simple example with t:lowercase on parameter a.
+
+SecRule ARGS:foo     "^."  "id:1001,phase:2,deny,\
+   msg:'%{MATCHED_VAR_NAME} : Transformation revealed difference',chain"
+   SecRule ARGS:foo  "!@streq %{MATCHED_VARS}"  "t:lowercase"
+
+I have tried to get this working for _all_ ARGS. Thus a generic rule
+working no matter what parameters are sent to the server. But to no
+avail.
+
+The problem is that chains are execute in the order of the rules,
+not the order of the parameters. In other words: First all the
+parameters are matched against the first SecRule. Then all the
+parameters are matched against the 2nd SecRule. A match on the first
+SecRule on parameter #1 will thus be overwritten by the match on
+parameter #2 when ModSec reaches the 2nd rule for parameter #1.
+This behaviour is a bit counterintuitive and it kills many interesting
+rule ideas (it probably also allows many interesting rule ideas, but
+who cares about things that work, if you can complain about things
+that don't). It's also killing this idea. Or let's say I have been
+grinding my teeth into this problem on and off for a few days and
+I have not found a solution.
+
+So the question is: Is there a way around this limitation?
+Can we create a SecRule as above that works for all parameters?
+
+Ahoj,
+
+Christian
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From sporkschivago at gmail.com  Mon Jul 18 23:48:11 2016
+From: sporkschivago at gmail.com (Spork Schivago)
+Date: Mon, 18 Jul 2016 19:48:11 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Problems with false positives.
+Message-ID: <CAEeNszZM-GTVNGsUatpQVGeZzncEJmCnPGhnS8sF0ZCiD87NMQ@mail.gmail.com>
+
+I hope this is the correct mailing list.   I lease a virtual private server
+(VPS) from GoDaddy and pay for cPanel.   I see in
+/usr/local/apache/logs/error_logs a lot of messages.   This is a big one
+that I see a lot of!
+
+[Mon Jul 18 19:19:34.821609 2016] [:error] [pid 6823] [client 127.0.0.1]
+ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "9"] [tag "Host: "] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"] [tag "WASCTC/WASC-21"]
+[tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+[uri "/"] [unique_id "V41kBmjudWkAABqnkC4AAAAE"]
+
+
+[Mon Jul 18 19:19:34.822806 2016] [:error] [pid 6823] [client 127.0.0.1]
+ModSecurity: Warning. Operator GE matched 5 at TX:inbound_anomaly_score.
+[file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/RESPONSE-80-CORRELATION.conf"]
+[line "35"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total
+Inbound Score: 5): Request Missing a User Agent Header"] [tag "Host: "]
+[tag "event-correlation"] [hostname "franklin.jetbbs.com"] [uri
+"/index.html"] [unique_id "V41kBmjudWkAABqnkC4AAAAE"]
+
+
+[Mon Jul 18 19:20:01.427810 2016] [:error] [pid 6819] [client 127.0.0.1]
+ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "283"] [id "960008"] [rev "2"] [msg "Request Missing a Host Header"]
+[severity "WARNING"] [ver "OWASP_CRS/3.0.0"] [maturity "9"] [accuracy "9"]
+[tag "Host: "] [tag "application-multi"] [tag "language-multi"] [tag
+"platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST"] [tag "WASCTC/WASC-21"]
+[tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+[uri "/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+
+
+[Mon Jul 18 19:20:01.427892 2016] [:error] [pid 6819] [client 127.0.0.1]
+ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "9"] [tag "Host: "] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"] [tag "WASCTC/WASC-21"]
+[tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+[uri "/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+
+
+[Mon Jul 18 19:20:01.428676 2016] [:error] [pid 6819] [client 127.0.0.1]
+ModSecurity: Warning. Operator GE matched 5 at TX:inbound_anomaly_score.
+[file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/RESPONSE-80-CORRELATION.conf"]
+[line "35"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total
+Inbound Score: 5): Request Missing a User Agent Header"] [tag "Host: "]
+[tag "event-correlation"] [hostname "franklin.jetbbs.com"] [uri
+"/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+
+
+[Mon Jul 18 19:20:34.546597 2016] [:error] [pid 6820] [client 127.0.0.1]
+ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+"REQUEST_HEADERS:User-Agent" required. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+"WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+"127.0.0.1"] [uri "/whm-server-status"] [unique_id
+"V41kQmjudWkAABqkc0UAAAAB"]
+
+
+[Mon Jul 18 19:21:34.542318 2016] [:error] [pid 6821] [client 127.0.0.1]
+ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+"REQUEST_HEADERS:User-Agent" required. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+"WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+"127.0.0.1"] [uri "/whm-server-status"] [unique_id
+"V41kfmjudWkAABqlx7cAAAAC"]
+
+
+[Mon Jul 18 19:22:34.564614 2016] [:error] [pid 6822] [client 127.0.0.1]
+ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+"REQUEST_HEADERS:User-Agent" required. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+"WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+"127.0.0.1"] [uri "/whm-server-status"] [unique_id
+"V41kumjudWkAABqmocAAAAAD"]
+
+
+[Mon Jul 18 19:22:51.937856 2016] [:error] [pid 6823] [client
+169.54.244.75] ModSecurity: Warning. Operator EQ matched 0 at
+REQUEST_HEADERS. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "9"] [tag "Host: ip-104-238-117-105.ip.secureserver.net"] [tag
+"application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag
+"attack-protocol"] [tag "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"]
+[tag "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+"ip-104-238-117-105.ip.secureserver.net"] [uri "/"] [unique_id
+"V41ky2judWkAABqnkC8AAAAE"]
+
+
+[Mon Jul 18 19:23:34.612950 2016] [:error] [pid 6819] [client 127.0.0.1]
+ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+"REQUEST_HEADERS:User-Agent" required. [file
+"/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+[line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+[accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+"language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+"WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+"127.0.0.1"] [uri "/whm-server-status"] [unique_id
+"V41k9mjudWkAABqjYU4AAAAA"]
+
+
+I believe this is a false positive.   I talked to cPanel support and I
+believe a cPanel script is checking /whm-server-status to make sure the
+server is up but there's maybe something wrong with the request header in
+the script or something.
+
+I'd like to safely figure out how to whitelist this, so I don't see the log
+filled with these error messages whenever 127.0.0.1 tries connecting to
+whm-server-status.   I think the answer lies within
+the /usr/local/apache/conf/modsec_vendor_configs/OWASP/
+rules/REQUEST-01-COMMON-EXCEPTIONS.conf   file but I'm not sure how to
+properly write a rule.   Can someone show me what I'd need to put in there?
+  Thank you!
+
+Ken
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160718/6b73ba3d/attachment.html>
+
+From christian.folini at netnea.com  Tue Jul 19 11:41:18 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 19 Jul 2016 13:41:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problems with false positives.
+In-Reply-To: <CAEeNszZM-GTVNGsUatpQVGeZzncEJmCnPGhnS8sF0ZCiD87NMQ@mail.gmail.com>
+References: <CAEeNszZM-GTVNGsUatpQVGeZzncEJmCnPGhnS8sF0ZCiD87NMQ@mail.gmail.com>
+Message-ID: <20160719114118.GD8069@elias>
+
+Hi Spork,
+
+This is really a standard and you should be able to find a solution
+online.
+
+This is the radical approach, which makes it go away:
+SecRuleRemoveById 960009
+
+Usually, I do not advocate RemoveById, but in this particular case
+I do it this way from time to time.
+
+Ahoj,
+
+Christian
+
+On Mon, Jul 18, 2016 at 07:48:11PM -0400, Spork Schivago wrote:
+> I hope this is the correct mailing list.   I lease a virtual private server
+> (VPS) from GoDaddy and pay for cPanel.   I see in
+> /usr/local/apache/logs/error_logs a lot of messages.   This is a big one
+> that I see a lot of!
+> 
+> [Mon Jul 18 19:19:34.821609 2016] [:error] [pid 6823] [client 127.0.0.1]
+> ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "9"] [tag "Host: "] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"] [tag "WASCTC/WASC-21"]
+> [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+> [uri "/"] [unique_id "V41kBmjudWkAABqnkC4AAAAE"]
+> 
+> 
+> [Mon Jul 18 19:19:34.822806 2016] [:error] [pid 6823] [client 127.0.0.1]
+> ModSecurity: Warning. Operator GE matched 5 at TX:inbound_anomaly_score.
+> [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/RESPONSE-80-CORRELATION.conf"]
+> [line "35"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total
+> Inbound Score: 5): Request Missing a User Agent Header"] [tag "Host: "]
+> [tag "event-correlation"] [hostname "franklin.jetbbs.com"] [uri
+> "/index.html"] [unique_id "V41kBmjudWkAABqnkC4AAAAE"]
+> 
+> 
+> [Mon Jul 18 19:20:01.427810 2016] [:error] [pid 6819] [client 127.0.0.1]
+> ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "283"] [id "960008"] [rev "2"] [msg "Request Missing a Host Header"]
+> [severity "WARNING"] [ver "OWASP_CRS/3.0.0"] [maturity "9"] [accuracy "9"]
+> [tag "Host: "] [tag "application-multi"] [tag "language-multi"] [tag
+> "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_HOST"] [tag "WASCTC/WASC-21"]
+> [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+> [uri "/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+> 
+> 
+> [Mon Jul 18 19:20:01.427892 2016] [:error] [pid 6819] [client 127.0.0.1]
+> ModSecurity: Warning. Operator EQ matched 0 at REQUEST_HEADERS. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "9"] [tag "Host: "] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"] [tag "WASCTC/WASC-21"]
+> [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname "franklin.jetbbs.com"]
+> [uri "/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+> 
+> 
+> [Mon Jul 18 19:20:01.428676 2016] [:error] [pid 6819] [client 127.0.0.1]
+> ModSecurity: Warning. Operator GE matched 5 at TX:inbound_anomaly_score.
+> [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/RESPONSE-80-CORRELATION.conf"]
+> [line "35"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total
+> Inbound Score: 5): Request Missing a User Agent Header"] [tag "Host: "]
+> [tag "event-correlation"] [hostname "franklin.jetbbs.com"] [uri
+> "/whm-server-status"] [unique_id "V41kIWjudWkAABqjYU0AAAAA"]
+> 
+> 
+> [Mon Jul 18 19:20:34.546597 2016] [:error] [pid 6820] [client 127.0.0.1]
+> ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+> "REQUEST_HEADERS:User-Agent" required. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+> "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+> "127.0.0.1"] [uri "/whm-server-status"] [unique_id
+> "V41kQmjudWkAABqkc0UAAAAB"]
+> 
+> 
+> [Mon Jul 18 19:21:34.542318 2016] [:error] [pid 6821] [client 127.0.0.1]
+> ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+> "REQUEST_HEADERS:User-Agent" required. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+> "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+> "127.0.0.1"] [uri "/whm-server-status"] [unique_id
+> "V41kfmjudWkAABqlx7cAAAAC"]
+> 
+> 
+> [Mon Jul 18 19:22:34.564614 2016] [:error] [pid 6822] [client 127.0.0.1]
+> ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+> "REQUEST_HEADERS:User-Agent" required. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+> "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+> "127.0.0.1"] [uri "/whm-server-status"] [unique_id
+> "V41kumjudWkAABqmocAAAAAD"]
+> 
+> 
+> [Mon Jul 18 19:22:51.937856 2016] [:error] [pid 6823] [client
+> 169.54.244.75] ModSecurity: Warning. Operator EQ matched 0 at
+> REQUEST_HEADERS. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "317"] [id "960009"] [rev "1"] [msg "Request Missing a User Agent
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "9"] [tag "Host: ip-104-238-117-105.ip.secureserver.net"] [tag
+> "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag
+> "attack-protocol"] [tag "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_UA"]
+> [tag "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+> "ip-104-238-117-105.ip.secureserver.net"] [uri "/"] [unique_id
+> "V41ky2judWkAABqnkC8AAAAE"]
+> 
+> 
+> [Mon Jul 18 19:23:34.612950 2016] [:error] [pid 6819] [client 127.0.0.1]
+> ModSecurity: Warning. Match of "pm AppleWebKit Android" against
+> "REQUEST_HEADERS:User-Agent" required. [file
+> "/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf"]
+> [line "299"] [id "960015"] [rev "3"] [msg "Request Missing an Accept
+> Header"] [severity "NOTICE"] [ver "OWASP_CRS/3.0.0"] [maturity "9"]
+> [accuracy "8"] [tag "Host: 127.0.0.1"] [tag "application-multi"] [tag
+> "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT"] [tag
+> "WASCTC/WASC-21"] [tag "OWASP_TOP_10/A7"] [tag "PCI/6.5.10"] [hostname
+> "127.0.0.1"] [uri "/whm-server-status"] [unique_id
+> "V41k9mjudWkAABqjYU4AAAAA"]
+> 
+> 
+> I believe this is a false positive.   I talked to cPanel support and I
+> believe a cPanel script is checking /whm-server-status to make sure the
+> server is up but there's maybe something wrong with the request header in
+> the script or something.
+> 
+> I'd like to safely figure out how to whitelist this, so I don't see the log
+> filled with these error messages whenever 127.0.0.1 tries connecting to
+> whm-server-status.   I think the answer lies within
+> the /usr/local/apache/conf/modsec_vendor_configs/OWASP/
+> rules/REQUEST-01-COMMON-EXCEPTIONS.conf   file but I'm not sure how to
+> properly write a rule.   Can someone show me what I'd need to put in there?
+>   Thank you!
+> 
+> Ken
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From christian.folini at netnea.com  Mon Jul 25 07:27:57 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 25 Jul 2016 09:27:57 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Video of Paranoia Mode
+	Presentation
+Message-ID: <20160725072757.GA12529@elias>
+
+Hello,
+
+Back in June, I presented the Core Rules and the new Paranoia Mode
+at the Area41 conference in Zurich, Switzerland. The video of my
+presentation is now online:
+
+https://www.youtube.com/watch?v=o25wJH169aA&index=23&list=PLv-PXy2JVvit4wCSlKLJsrKZHMUOekhEa
+
+The first half is an introduction into WAFs, ModSecurity and the
+Core rules. At minute 14 starts an on-stage demo of CRS Anomaly Scoring
+featuring Little Bobby Tables and limbo dancing storm troopers.
+
+The second half is dedicated to the Paranoia Mode presenting first
+results of a productive site running the early June development
+version of the CRS v3.0.0. There are no more dancing storm troopers -
+not even expensive watches - in this part of the presentation, but
+a lot of xkcd style graphs and numbers that really rock.
+
+A guy in the audience asked (not really understandable in the video) why
+there was such a small gap in the anomaly score between the higher
+paranoia levels. The reason was that the higher PL had not been
+populated in early June very much. This has changed in the meantime and
+the gap is widening now fast. In fact we have made huge steps since
+early June. Walter Hop's work on remote command execution is awesome
+(pull request pending) and Chaim is heading for a formal release
+candidate in the next few weeks.
+
+In case you like the presentation, I'd appreciate if you let me know.
+
+Best,
+
+Christian
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+

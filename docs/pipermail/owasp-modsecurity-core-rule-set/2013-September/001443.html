@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] CRS,	friendly blocking and 5xx statuses
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20CRS%2C%0A%09friendly%20blocking%20and%205xx%20statuses&In-Reply-To=%3CE3D7571C-0E4F-4D13-8D9E-575FF2B868F0%40spam.lifeforms.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001442.html">
+   <LINK REL="Next"  HREF="001444.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] CRS,	friendly blocking and 5xx statuses</H1>
+    <B>Walter Hop</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20CRS%2C%0A%09friendly%20blocking%20and%205xx%20statuses&In-Reply-To=%3CE3D7571C-0E4F-4D13-8D9E-575FF2B868F0%40spam.lifeforms.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] CRS,	friendly blocking and 5xx statuses">crs at spam.lifeforms.nl
+       </A><BR>
+    <I>Mon Sep  9 16:23:24 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001442.html">[Owasp-modsecurity-core-rule-set] Nginx with Mod_Security and basic	core rule set
+</A></li>
+        <LI>Next message: <A HREF="001444.html">[Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1443">[ date ]</a>
+              <a href="thread.html#1443">[ thread ]</a>
+              <a href="subject.html#1443">[ subject ]</a>
+              <a href="author.html#1443">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+Besides using own blocking rules, I am experimenting with the CRS in anomaly scoring mode. Since I like to keep most of the rules enabled and create narrow exceptions, I regularly get some false positives on the CRS and I really need to have a friendly 'blocked' page.
+
+What seems to work for me in most situations, was changing the following default action in modsecurity_crs_10_setup.conf:
+
+SecDefaultAction phase:2,pass,log,status:509
+
+I've used the friendly error trick from the ModSecurity handbook, so my config also includes:
+
+ErrorDocument 509 /modsecurity-errorpage/
+Alias /modsecurity-errorpage/ /opt/httpd/etc/apache22/mod_security2/errorpage/
+
+&lt;Directory &quot;/opt/httpd/etc/apache22/mod_security2/errorpage/&quot;&gt;
+Order allow,deny
+Allow from all
+&lt;/Directory&gt;
+
+In that dir, there's an index.php that sends a 403 header and some info. This appears to work fine for the CRS in most situations. Inbound blocking now displays the error page, and outbound blocking mostly seems to display it as well.
+
+There seems to be one slight problem involving scripts that send a 5xx response status. If I trigger rules such as 970901 or 970021 in modsecurity_crs_50_outbound.conf by calling a PHP script which returns a 5xx status, such as:
+
+&lt;?php
+header('HTTP/1.0 500 Error'); // The application is not available
+
+I don't get the friendly error page; instead I get Apache's default &quot;internal error&quot; page which says &quot;509 unused&quot;:
+
+The server encountered an internal error or misconfiguration and was unable to complete your request. [...] Additionally, a 509 unused error was encountered while trying to use an ErrorDocument to handle the request.
+
+That's even scarier than the default 403 Forbidden page! I'm puzzled why it would encounter a problem resolving the ErrorDocument, and I'm not sure where the problem is, since the trick works fine in other outbound blocking situations that get a 2xx status (such as open dirs).
+
+Is there a better way to use friendly blocking in combination with the CRS, which (hopefully) resolves the problem with scripts returning 5xx status?
+
+Cheers!
+WH
+
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130909/e2b0d4d6/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130909/e2b0d4d6/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001442.html">[Owasp-modsecurity-core-rule-set] Nginx with Mod_Security and basic	core rule set
+</A></li>
+	<LI>Next message: <A HREF="001444.html">[Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1443">[ date ]</a>
+              <a href="thread.html#1443">[ thread ]</a>
+              <a href="subject.html#1443">[ subject ]</a>
+              <a href="author.html#1443">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

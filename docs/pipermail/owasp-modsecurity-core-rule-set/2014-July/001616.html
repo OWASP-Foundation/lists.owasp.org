@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] OWASP CRS: Request-method and	content-type rules don't work
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20OWASP%20CRS%3A%20Request-method%20and%0A%09content-type%20rules%20don%27t%20work&In-Reply-To=%3C3F9075CE4D11A944AA6207B4D0ADC578C67BC3%40xmb-aln-x02.cisco.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001615.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] OWASP CRS: Request-method and	content-type rules don't work</H1>
+    <B>Ove Hansen -X (ohansen - TEKSYSTEMS at Cisco)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20OWASP%20CRS%3A%20Request-method%20and%0A%09content-type%20rules%20don%27t%20work&In-Reply-To=%3C3F9075CE4D11A944AA6207B4D0ADC578C67BC3%40xmb-aln-x02.cisco.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] OWASP CRS: Request-method and	content-type rules don't work">ohansen at cisco.com
+       </A><BR>
+    <I>Fri Jul 25 23:12:23 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001615.html">[Owasp-modsecurity-core-rule-set] What is client doing to trigger SQL Tautology?
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1616">[ date ]</a>
+              <a href="thread.html#1616">[ thread ]</a>
+              <a href="subject.html#1616">[ subject ]</a>
+              <a href="author.html#1616">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello all,
+
+I'm using mod_security 2.7.7 on nginx, and I have a problem with the OWASP CRS/2.2.9:
+
+The rules in modsecurity_crs_30_http_policy.conf that should allow GET, HEAD POST and options always triggers, even for a GET. Similarly, the rule for the Content-Type header won't allow &quot;application/json&quot;, even though that should be allowed. These rules have not been edited from their default:
+
+SecAction \
+  &quot;id:'900012', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json', \
+
+SecRule REQUEST_METHOD &quot;!@within %{tx.allowed_methods}&quot; &quot;phase:1,t:none,block,msg:'Method is not allowed by policy',logdata:'%{matched_var}',severity:'2',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960032',tag:'OWASP_CRS/POLICY/METHOD_NOT_ALLOWED',tag:'WASCTC/WASC-15',tag:'OWASP_TOP_10/A6',tag:'OWASP_AppSensor/RE1',tag:'PCI/12.1',logdata:'%{matched_var}',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/METHOD_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+
+SecRule REQUEST_METHOD &quot;!^(?:GET|HEAD|PROPFIND|OPTIONS)$&quot; &quot;phase:1,chain,t:none,block,msg:'Request content type is not allowed by policy',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960010',tag:'OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'2',logdata:'%{matched_var}'&quot;
+        SecRule REQUEST_HEADERS:Content-Type &quot;^([^;\s]+)&quot; &quot;chain,capture&quot;
+                SecRule TX:0 &quot;!^%{tx.allowed_request_content_type}$&quot; &quot;t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+
+If I try:
+
+curl -k <A HREF="https://nginx/v2.0">https://nginx/v2.0</A>
+
+I get:
+
+==&gt; modsec_debug.log &lt;==
+[25/Jul/2014:22:57:18 +0000] [/sid#1af8178][rid#1b1acf8][/v2.0][2] Warning. Match of &quot;within %{tx.allowed_methods}&quot; against &quot;REQUEST_METHOD&quot; required. [file &quot;/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf&quot;] [line &quot;31&quot;] [id &quot;960032&quot;] [rev &quot;2&quot;] [msg &quot;Method is not allowed by policy&quot;] [data &quot;GET&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/2.2.9&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;OWASP_CRS/POLICY/METHOD_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A6&quot;] [tag &quot;OWASP_AppSensor/RE1&quot;] [tag &quot;PCI/12.1&quot;]
+
+==&gt; access.log &lt;==
+10.154.96.140 - - [25/Jul/2014:22:57:18 +0000] &quot;GET /v2.0 HTTP/1.1&quot; 200 612 &quot;-&quot; &quot;curl/7.33.0&quot;
+
+==&gt; modsec_audit.log &lt;==
+10.154.96.140 -  [25/Jul/2014:22:57:18 +0000] &quot;GET /v2.0 HTTP/1.1&quot; 200 0 &quot;-&quot; &quot;-&quot; AcALAc5cA9ncAcAcucAcAcAc &quot;-&quot; /20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc 0 1231 md5:41b0733d42240146fc9df3f80ba8936d
+
+# more audit/20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc
+--b5d00648-A--
+[25/Jul/2014:22:57:18 +0000] AcALAc5cA9ncAcAcucAcAcAc 10.154.96.140 63740 127.0.0.1 80
+--b5d00648-B--
+GET /v2.0 HTTP/1.1
+Host: nginx
+User-Agent: curl/7.33.0
+Accept: */*
+
+--b5d00648-F--
+HTTP/1.1 200 OK
+Vary: X-Auth-Token
+Content-Type: application/json
+Content-Length: 612
+Connection: keep-alive
+
+--b5d00648-E--
+
+--b5d00648-H--
+Message: Warning. Match of &quot;within %{tx.allowed_methods}&quot; against &quot;REQUEST_METHOD&quot; required. [file &quot;/usr/local/nginx/conf/modsec/activated_rules/modsecu
+rity_crs_30_http_policy.conf&quot;] [line &quot;31&quot;] [id &quot;960032&quot;] [rev &quot;2&quot;] [msg &quot;Method is not allowed by policy&quot;] [data &quot;GET&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWAS
+P_CRS/2.2.9&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;OWASP_CRS/POLICY/METHOD_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A6&quot;] [tag &quot;OWASP_AppSe
+nsor/RE1&quot;] [tag &quot;PCI/12.1&quot;]
+Apache-Handler: IIS
+Stopwatch: 1406329038000190 555175 (- - -)
+Stopwatch2: 1406329038000190 555175; combined=1179, p1=365, p2=592, p3=5, p4=144, p5=73, sr=18, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for nginx (STABLE)/2.7.7 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); OWASP_CRS/2.2.9.
+Server: ModSecurity Standalone
+Engine-Mode: &quot;ENABLED&quot;
+
+--b5d00648-Z-
+
+
+If I try to request a content-tupe of application/json (which *should* be allowed), I get the following:
+
+[25/Jul/2014:23:04:05 +0000] [/sid#1af8178][rid#24f3f38][/v2.0/][2] Warning. Match of &quot;rx ^%{tx.allowed_request_content_type}$&quot; against &quot;TX:0&quot; required. [file &quot;/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf&quot;] [line &quot;64&quot;] [id &quot;960010&quot;] [rev &quot;2&quot;] [msg &quot;Request content type is not allowed by policy&quot;] [data &quot;application/json&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/2.2.9&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-20&quot;] [tag &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/EE2&quot;] [tag &quot;PCI/12.1&quot;]
+
+If anyone has any idea then I would be very grateful!!!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/dca61563/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/dca61563/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001615.html">[Owasp-modsecurity-core-rule-set] What is client doing to trigger SQL Tautology?
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1616">[ date ]</a>
+              <a href="thread.html#1616">[ thread ]</a>
+              <a href="subject.html#1616">[ subject ]</a>
+              <a href="author.html#1616">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

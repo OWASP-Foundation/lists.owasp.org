@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-cincinnati] WebGoat HTTP Splitting Attack Question
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20WebGoat%20HTTP%20Splitting%20Attack%20Question&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000090.html">
+   <LINK REL="Next"  HREF="000092.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-cincinnati] WebGoat HTTP Splitting Attack Question</H1>
+    <B>Zhou, Yan</B> 
+    <A HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20WebGoat%20HTTP%20Splitting%20Attack%20Question&In-Reply-To="
+       TITLE="[Owasp-cincinnati] WebGoat HTTP Splitting Attack Question">yzhou at medplus.com
+       </A><BR>
+    <I>Fri Jul 18 09:46:52 EDT 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000090.html">[Owasp-cincinnati] RSVP July 30th meeting updates/problems,	June Meeting Presentation Slides and Mailing List Subscriptions
+</A></li>
+        <LI>Next message: <A HREF="000092.html">[Owasp-cincinnati] WebGoat HTTP Splitting Attack Question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#91">[ date ]</a>
+              <a href="thread.html#91">[ thread ]</a>
+              <a href="subject.html#91">[ subject ]</a>
+              <a href="author.html#91">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>HI there, 
+
+ 
+
+Although I successfully completed HTTP Splitting Attack in WebGoat 5.2,
+I did not understand a step-by-step behavior of the attack.  I am using
+WebScarab to capture all request &amp; response to give me a better idea. 
+
+For example, what does the browser do with the 2nd &quot;made-up&quot; response?
+Here is what I did for testing. 
+
+ 
+
+First, I put in the query parameter exactly as is given in the hint:
+
+language=?foobar%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK
+%0d%0aContent- .........
+
+ 
+
+This is the response I got from server below:
+
+ 
+
+HTTP/1.1 302 Moved Temporarily
+
+Server: Apache-Coyote/1.1
+
+Location:
+<A HREF="http://localhost/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;langu">http://localhost/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;langu</A>
+age=language=?foobar%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%
+20OK%0d%0aLast-Modified:%20Wed,%2016%20Jul%202018%2012:55:46%20GMT%0d%0a
+Content-Type:%20text/html%0d%0aContent-Length:%2047%0d%0a%0d%0a&lt;html&gt;Ins
+ert undesireable content here&lt;/html&gt;
+
+Content-Type: text/html;charset=ISO-8859-1
+
+Content-length: 0
+
+Date: Wed, 16 Jul 2008 13:47:47 GMT
+
+ 
+
+Notice that the response does not appear to be split, the 2nd injected
+response is still part of the query parameter as shown in &quot;location&quot;
+header. Is this a display issue or am I missing something?
+
+ 
+
+The browser then generates the next GET request, everything I injected
+is now part of GET parameter (if the response is split, I would not see
+the injected content being part of the query parameter, right?)
+
+ 
+
+GET
+<A HREF="http://localhost:80/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;la">http://localhost:80/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;la</A>
+nguage=language=?foobar%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%202
+00%2
+&lt;<A HREF="http://localhost/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;lang">http://localhost/WebGoat/attack?Screen=2&amp;menu=100&amp;fromRedirect=yes&amp;lang</A>
+uage=language=?foobar%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200
+%252&gt; ...........
+
+ 
+
+Then, the response from server, the server should respond with the above
+GET request, right? But here is what I see, notice that is DIFFERENT
+from what I injected because of the additional headers. 
+
+ 
+
+HTTP/1.1 200 OK
+
+Server: Apache-Coyote/1.1
+
+Pragma: No-cache
+
+Cache-Control: no-cache
+
+Expires: Wed, 31 Dec 1969 19:00:00 EST
+
+Content-Type: text/html
+
+X-Transfer-Encoding: chunked
+
+Date: Fri, 18 Jul 2008 13:28:52 GMT
+
+Content-length: 45
+
+ 
+
+&lt;html&gt;Insert undesireable content here&lt;/html&gt;
+
+ 
+
+My questions are:
+
+1. I would hope to see two responses being split in the middle like
+this. I do not know if this is just a matter of displaying (since the
+attack was successful)
+
+ 
+
+        HTTP/1.1 200 OK
+        ...
+        Set-Cookie: author=Wiley Hacker
+        
+        HTTP/1.1 200 OK
+        ...
+
+ 
+
+2. why is not there a response to the 2nd GET request, but a similar
+response to my injected text?
+
+ 
+
+Thanks, 
+
+Yan Zhou
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+Confidentiality Notice: The information contained in this electronic transmission is confidential and may be legally privileged. It is intended only for the addressee(s) named above. If you are not an intended recipient, be aware that any disclosure, copying, distribution or use of the information contained in this transmission is prohibited and may be unlawful. If you have received this transmission in error, please notify us by telephone (513) 229-5500 or by email (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">postmaster at MedPlus.com</A>). After replying, please erase it from your computer system.
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-cincinnati/attachments/20080718/b56809cb/attachment.html">https://lists.owasp.org/pipermail/owasp-cincinnati/attachments/20080718/b56809cb/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000090.html">[Owasp-cincinnati] RSVP July 30th meeting updates/problems,	June Meeting Presentation Slides and Mailing List Subscriptions
+</A></li>
+	<LI>Next message: <A HREF="000092.html">[Owasp-cincinnati] WebGoat HTTP Splitting Attack Question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#91">[ date ]</a>
+              <a href="thread.html#91">[ thread ]</a>
+              <a href="subject.html#91">[ subject ]</a>
+              <a href="author.html#91">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">More information about the Owasp-cincinnati
+mailing list</a><br>
+</body></html>

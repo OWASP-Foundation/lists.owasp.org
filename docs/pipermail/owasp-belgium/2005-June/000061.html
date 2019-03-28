@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-belgium] FW: [OWASP-WEBSCARAB] New release of WebScarab
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-belgium%40lists.owasp.org?Subject=%5BOwasp-belgium%5D%20FW%3A%20%5BOWASP-WEBSCARAB%5D%20New%20release%20of%20WebScarab&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000062.html">
+   <LINK REL="Next"  HREF="000063.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-belgium] FW: [OWASP-WEBSCARAB] New release of WebScarab</H1>
+    <B>Sebastien Deleersnyder</B> 
+    <A HREF="mailto:owasp-belgium%40lists.owasp.org?Subject=%5BOwasp-belgium%5D%20FW%3A%20%5BOWASP-WEBSCARAB%5D%20New%20release%20of%20WebScarab&In-Reply-To="
+       TITLE="[Owasp-belgium] FW: [OWASP-WEBSCARAB] New release of WebScarab">sdl at ascure.com
+       </A><BR>
+    <I>Wed Jun 22 01:17:06 EDT 2005</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000062.html">[Owasp-belgium] FW: [OWASP-TESTING] Next stage
+</A></li>
+        <LI>Next message: <A HREF="000063.html">[Owasp-belgium] Interesting presentations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#61">[ date ]</a>
+              <a href="thread.html#61">[ thread ]</a>
+              <a href="subject.html#61">[ subject ]</a>
+              <a href="author.html#61">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi list,
+
+WebScarab is getting better!
+
+Regards,
+
+Seba 
+
+-----Original Message-----
+From: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-belgium">owasp-webscarab-admin at lists.sourceforge.net</A>
+[mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-belgium">owasp-webscarab-admin at lists.sourceforge.net</A>] On Behalf Of Rogan
+Dawes
+Sent: maandag 20 juni 2005 17:39
+To: OWASP WebScarab; OWASP Leaders
+Subject: [OWASP-WEBSCARAB] New release of WebScarab
+
+Hi folks,
+
+This is to announce that a new release of WebScarab has been uploaded to
+Sourceforge.
+
+&lt;<A HREF="https://sourceforge.net/project/showfiles.php?group_id=64424&amp;package_id">https://sourceforge.net/project/showfiles.php?group_id=64424&amp;package_id</A>
+=61823&gt;
+
+This is a major improvement, with 3 new plugins:
+
+* Fuzzer (at LAST!)
+* Search
+* Compare
+
+Fuzzer
+
+The fuzzer basically allows you to throw a combination of values at a
+server. It is still a little rough, but functionally, it works pretty
+well. The idea is that you configure the request method, the basic URL
+(without any parameters), the request version, any headers (e.g. a Host:
+
+header if you are using HTTP/1.1, etc. Don't configure cookies here!),
+and a list of Parameters.
+
+A Parameter is defined by its location (Path, Fragment, Query, Cookie,
+Body), its name (ignored for Path), type == String, Default value, Fuzz
+Priority, and a fuzz source.
+
+The default value is the value that will be submitted if no fuzz source
+is defined.
+
+The fuzz priority defines how the various fuzz sources are combined: if
+all the priorities are the same value, the number of queries submitted
+will be the number of items in the shortest fuzz source. If they are
+different values, the number of queries generated will be the product of
+the number of items in each level.
+
+An example would be if you had a list of usernames and passwords. If
+both username and password parameters had the same priority, usernames
+and passwords would be consumed in lock-step. If they had different
+priorities, EVERY password would be tried for each username.
+
+Parameters are processed in order, first path, then fragment, then
+query, then cookie, then body. The only content type supported for POST
+Requests is application/x-www-urlencoded, it does not support multi-part
+(although provision is made for parameters of different types, e.g. 
+File), or XML documents, etc. Multi-part and XML will be the next
+evolution.
+
+Search
+
+The search plugin allows you to execute arbitrary beanshell scripts to
+identify &quot;interesting&quot; conversations. You are provided with the request,
+response, and origin (originating plugin) of the conversation, and can
+use the class methods to return a true or false value. A true value
+indicates an interesting conversation that should be displayed, and a
+false value indicates that the conversation should not be displayed.
+
+An example might be something like:
+
+response.getContent() != null &amp;&amp; new
+String(response.getContent()).matches(&quot;(?s).*[Ee](rror|xception).*&quot;)
+
+which makes sure that the response HAS content (byte[]), before checking
+to see if a String constructed from that content contains any of the
+strings: Error, error, Exception, exception. The (?s) instructs the Java
+Regex algorithm to perform a multi-line match, i.e. enables the period
+to match a linefeed character.
+
+BeanShell also does automatic JavaBean introspection, so in fact, the
+call to response.getContent() could also be written as
+&quot;response.content&quot;, with BeanShell using the getters and setters
+appropriately.
+
+For details of the class methods available, please consult the JavaDocs
+(included in the installer build) for
+org.owasp.webscarab.model.(Request|Response). Origin is simply a String
+matching the plugin name.
+
+Compare
+
+This plugin takes a &quot;base conversation&quot; selected from the drop down
+list, tokenizes it into words, and then executes a Levenshtein Edit
+Distance algorithm on the results. The Distance figure calculated is
+thus the number of words which should be added/changed/removed to
+transform the &quot;base conversation&quot; into the relevant conversation in the
+table. Selecting a conversation in the table will show both responses
+side by side, for visual inspection. If anyone knows of a nice
+embeddable Java &quot;diff viewer component&quot;, under the GPL or LGPL, please
+let me know. Ideally, it should highlight the places that differ, which
+this plugin currently does not do.
+
+There are various other improvements, such as the ability to prevent
+conversations from being added to the list, or being analysed by the
+various plugins. This is implemented in the form of a Scripting Hook,
+accessible via Tools -&gt; Script Manager.
+
+e.g: The following snippet prevents images and css resources from being
+added to the conversation list.
+
+request = conversation.getRequest();
+url = request.getURL().toString();
+if (url.matches(&quot;($i).*\.(gif|jpg|css)$&quot;))
+     conversation.setCancelled(true);
+
+If you have any trouble with this new release, or any comments/feature
+requests, etc, please mail the webscarab mailing list: 
+<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-belgium">owasp-webscarab at lists.sourceforge.net</A>
+
+Have fun with it!
+
+Rogan
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. <A HREF="http://ads.osdn.com/?ad_id=7477&amp;alloc_id=16492&amp;op=click">http://ads.osdn.com/?ad_id=7477&amp;alloc_id=16492&amp;op=click</A>
+_______________________________________________
+Owasp-webscarab mailing list
+<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-belgium">Owasp-webscarab at lists.sourceforge.net</A>
+<A HREF="https://lists.sourceforge.net/lists/listinfo/owasp-webscarab">https://lists.sourceforge.net/lists/listinfo/owasp-webscarab</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000062.html">[Owasp-belgium] FW: [OWASP-TESTING] Next stage
+</A></li>
+	<LI>Next message: <A HREF="000063.html">[Owasp-belgium] Interesting presentations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#61">[ date ]</a>
+              <a href="thread.html#61">[ thread ]</a>
+              <a href="subject.html#61">[ subject ]</a>
+              <a href="author.html#61">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-belgium">More information about the Owasp-belgium
+mailing list</a><br>
+</body></html>

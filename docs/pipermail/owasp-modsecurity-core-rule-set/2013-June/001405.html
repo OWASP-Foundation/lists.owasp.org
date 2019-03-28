@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Request%20content%20type%20is%20not%0A%20allowed%20by%20policy&In-Reply-To=%3CCDD5F6B4.A84B6%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001404.html">
+   <LINK REL="Next"  HREF="001406.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Request%20content%20type%20is%20not%0A%20allowed%20by%20policy&In-Reply-To=%3CCDD5F6B4.A84B6%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Jun  6 12:54:14 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001404.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+        <LI>Next message: <A HREF="001406.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1405">[ date ]</a>
+              <a href="thread.html#1405">[ thread ]</a>
+              <a href="subject.html#1405">[ subject ]</a>
+              <a href="author.html#1405">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+From: Aniyan Rajan &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">aniyan.rajan6 at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">aniyan.rajan6 at gmail.com</A>&gt;&gt;
+Date: Wednesday, June 5, 2013 8:25 AM
+To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: Re: [Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+
+Josh,
+
+
+Editing the CRS rules directly is not recommended as it makes upgrading the rules much harder. Furthermore, its probably a good idea to upgrade ModSecurity to the latest version as there was recently a DoS related vulnerability patched. Once you are running a more recent version, your options for handling false positives becomes significantly more flexible as well, see:
+<A HREF="http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html">http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html</A>
+
+
+I know that using the latest version is better, but I have some practical difficulties to upgrade at the moment. Will do that only after 6 months.
+
+On ModSec 2.5.12, you can simply white-list the offending rule/s by including something like the following *before* you include the offending CRS rules.
+
+&lt;Location /iredadmin/login&gt;
+  SecRuleRemoveById 960010
+&lt;/Location&gt;
+
+
+This solution is fine for me. I gave this in apache.conf as follows. But it is not working (still forbidden).
+
+Is it Location or LocationMatch ? Thanks.
+
+
+&lt;IfModule security2_module&gt;
+          &lt;Location /iredadmin/login/&gt;
+            SecRuleRemoveById 960010
+          &lt;/Location&gt;
+
+          Include modsecurity_crs/modsecurity_crs_10_setup.conf
+          Include modsecurity_crs/activated_rules/*.conf
+
+&lt;/IfModule&gt;
+
+
+The reason this does not work is because rule ID 960010 runs in phase:1 and by placing the SecRuleRemoveById directive within an Apache scope location, it won't execute until the end of phase:2.
+
+You might want to do this instead in a custom rules file that runs before the other rules -
+
+SecRule REQUEST_FILENAME &quot;@beginsWith /iredadmin/login/&quot; &quot;phase:1,id:123,t:none,nolog,pass,ctl:ruleRemoveById=960010&quot;
+
+-Ryan
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/e8f9dfaa/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130606/e8f9dfaa/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001404.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+	<LI>Next message: <A HREF="001406.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1405">[ date ]</a>
+              <a href="thread.html#1405">[ thread ]</a>
+              <a href="subject.html#1405">[ subject ]</a>
+              <a href="author.html#1405">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] &lt;Location&gt; works with one rule, but not the other
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%3CLocation%3E%20works%20with%20one%0A%20rule%2C%20but%20not%20the%20other&In-Reply-To=q2q8c1870621004192327if743e925yf13d06be053bc1a6%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000369.html">
+   <LINK REL="Next"  HREF="000371.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] &lt;Location&gt; works with one rule, but not the other</H1>
+    <B>Ryan Cowell</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%3CLocation%3E%20works%20with%20one%0A%20rule%2C%20but%20not%20the%20other&In-Reply-To=q2q8c1870621004192327if743e925yf13d06be053bc1a6%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] &lt;Location&gt; works with one rule, but not the other">ryan at truepath.com
+       </A><BR>
+    <I>Tue Apr 20 13:56:01 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000369.html">[Owasp-modsecurity-core-rule-set] FCkeditor and modsecurity v257
+</A></li>
+        <LI>Next message: <A HREF="000371.html">[Owasp-modsecurity-core-rule-set] modsecurity and RPC google web	tool kit
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#370">[ date ]</a>
+              <a href="thread.html#370">[ thread ]</a>
+              <a href="subject.html#370">[ subject ]</a>
+              <a href="author.html#370">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think I may have placed the rule before the rule was set.  I was 
+placing the rule in httpd-security2.conf (line 2 below).  It worked for 
+the &lt;Directory&gt; and &lt;Location&gt; rules but not for the SecRule 
+REQUEST_URI... line.  I copied the line (and commented it out in the 
+original file) to extra/httpd-exclude-secrules2.conf (line 4 below), 
+which I believe to load last, please correct me if I am wrong.  Placing 
+the rule here still did not work.  I also tried changing from 
+REQUEST_URI to REQUEST_FILENAME but that change did not work either.
+_
+FROM hsphere/local/config/httpd2/httpd.conf_
+
+&lt;IfModule security2_module&gt;
+       Include /hsphere/local/config/httpd2/modsecurity-core-rules/*.conf
+       Include /hsphere/local/config/httpd2/extra/httpd-security2.conf
+       Include /hsphere/local/config/httpd2/gotrootrules2/*.conf
+       Include 
+/hsphere/local/config/httpd2/extra/httpd-exclude-secrules2.conf
+&lt;/IfModule&gt;
+
+The rule in question is currently - the rules are on a single line but 
+may get wrapped in the email.
+SecRule REQUEST_FILENAME &quot;^/contact\_cgi\.php$&quot; 
+&quot;log,auditlog,pass,ctl:ruleRemoveById=950801,msg:'RC 20100420 - not an 
+easy app - contact_cgi.php'&quot;
+
+This was the original rule that I tried to use.
+SecRule REQUEST_URI &quot;/contact_cgi.php&quot; 
+&quot;log,auditlog,pass,ctl:ruleRemoveById=950801,msg:'RC 20100420 - not an 
+easy app - contact_cgi.php'&quot;
+
+I have another question...  what is the &quot;local 48 exceptions file&quot;?  Is 
+it a specific file that may be missing in our installation or is it a 
+generic name for a user added exclusion file?  
+httpd-exclude-secrules2.conf in my case.
+
+Thanks.
+Ryan
+
+On 04/19/2010 11:27 PM, Jamuse wrote:
+&gt;<i> Did you place the above rule before the 950801 rule is set?
+</I>&gt;<i>
+</I>&gt;<i> - J
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Apr 20, 2010 at 2:56 AM, Ryan Cowell &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan at truepath.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan at truepath.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I thought I had a working rule (below) but found out today that it was
+</I>&gt;<i>     still blocking the users from sending the form and gave the error
+</I>&gt;<i>     message below but did not include the customized message.  Any ideas?
+</I>&gt;<i>
+</I>&gt;<i>     SecRule REQUEST_URI &quot;/contact_cgi.php&quot; \
+</I>&gt;<i>      &quot;log,pass,ctl:ruleRemoveById=950801,msg:'RC 20100413 -
+</I>&gt;<i>     contact_cgi.php'&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [Mon Apr 19 10:49:24 2010] [error] [client xx.xxx.xxx.x] ModSecurity:
+</I>&gt;<i>     Access denied with code 400 (phase 2). Invalid UTF-8 encoding: invalid
+</I>&gt;<i>     byte value in character at ARGS:submit. [offset &quot;0&quot;] [file
+</I>&gt;<i>     &quot;/hsphere/local/config/httpd2/modsecurity-core-rules/modsecurity_crs_20_protocol_violations.conf&quot;]
+</I>&gt;<i>     [line &quot;67&quot;] [id &quot;950801&quot;] [msg &quot;UTF8 Encoding Abuse Attack Attempt&quot;]
+</I>&gt;<i>     [severity &quot;WARNING&quot;] [hostname &quot;domain.org &lt;<A HREF="http://domain.org">http://domain.org</A>&gt;&quot;]
+</I>&gt;<i>     [uri &quot;/contact_cgi.php&quot;]
+</I>&gt;<i>     [unique_id &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">S8yXpM at eCgMAAFXLPtEAAAAC</A>&quot;]
+</I>&gt;<i>
+</I>&gt;<i>     Thanks,
+</I>&gt;<i>     Ryan
+</I>&gt;<i>
+</I>&gt;<i>     On 04/13/2010 06:05 AM, Ryan Barnett wrote:
+</I>&gt;<i>     &gt; On Monday 12 April 2010 17:24:50 Ryan Cowell wrote:
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt;&gt; The commented line did not work, but as far as I can tell, the
+</I>&gt;<i>     syntax
+</I>&gt;<i>     &gt;&gt; should be correct.  Rather than disabling the rule entirely, we
+</I>&gt;<i>     would
+</I>&gt;<i>     &gt;&gt; like to maintain a log entry while letting specific files
+</I>&gt;<i>     function as
+</I>&gt;<i>     &gt;&gt; expected.  The second line was entered as a temporary fix and
+</I>&gt;<i>     it does
+</I>&gt;<i>     &gt;&gt; ignore the rule for this file.
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt;&gt; &lt;Location /contact_cgi.php&gt;
+</I>&gt;<i>     &gt;&gt;         #SecRuleUpdateActionById 950801 &quot;log,auditlog,pass,msg:'RC
+</I>&gt;<i>     &gt;&gt; 20100409 - phpBB contact_cgi.php'&quot;
+</I>&gt;<i>     &gt;&gt;         SecRuleRemoveById 950801
+</I>&gt;<i>     &gt;&gt; &lt;/Location&gt;
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt;&gt; Thanks for any help.
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt;&gt; Ryan
+</I>&gt;<i>     &gt;&gt; __
+</I>&gt;<i>     &gt;&gt;
+</I>&gt;<i>     &gt; Hey Ryan,
+</I>&gt;<i>     &gt; What CRS version are you using?  An example audit log entry
+</I>&gt;<i>     would help.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; A general recommendation is that instead of using Apache scope
+</I>&gt;<i>     directives (Location) you
+</I>&gt;<i>     &gt; can simply specify the proper URL with a standard SecRule
+</I>&gt;<i>     REQUEST_URI... and then use the
+</I>&gt;<i>     &gt; ctl action to disable the rule.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; If you are using CRS v2+ then you can address these issues in a
+</I>&gt;<i>     local 48 exceptions file
+</I>&gt;<i>     &gt; that can correct the anomaly score for specific URLs.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; -Ryan
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt;
+</I>&gt;<i>
+</I>&gt;<i>     --
+</I>&gt;<i>     =================
+</I>&gt;<i>     Ryan Cowell
+</I>&gt;<i>     Truepath
+</I>&gt;<i>     (760) 480-8791
+</I>&gt;<i>     <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan at truepath.com</A> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan at truepath.com</A>&gt;
+</I>&gt;<i>     =================
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i>     <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+-- 
+=================
+Ryan Cowell
+Truepath
+(760) 480-8791
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan at truepath.com</A>
+=================
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100420/b2c8f3d9/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100420/b2c8f3d9/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000369.html">[Owasp-modsecurity-core-rule-set] FCkeditor and modsecurity v257
+</A></li>
+	<LI>Next message: <A HREF="000371.html">[Owasp-modsecurity-core-rule-set] modsecurity and RPC google web	tool kit
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#370">[ date ]</a>
+              <a href="thread.html#370">[ thread ]</a>
+              <a href="subject.html#370">[ subject ]</a>
+              <a href="author.html#370">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

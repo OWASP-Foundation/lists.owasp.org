@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20a%20question%20about%0A%09TX%3A%27/REGEXP/%27%20syntax&In-Reply-To=CAN%2BtBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000932.html">
+   <LINK REL="Next"  HREF="000934.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax</H1>
+    <B>Josh Amishav-Zlatin</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20a%20question%20about%0A%09TX%3A%27/REGEXP/%27%20syntax&In-Reply-To=CAN%2BtBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax">jamuse at gmail.com
+       </A><BR>
+    <I>Sun Dec  4 08:24:30 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000932.html">[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax
+</A></li>
+        <LI>Next message: <A HREF="000934.html">[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#933">[ date ]</a>
+              <a href="thread.html#933">[ thread ]</a>
+              <a href="subject.html#933">[ subject ]</a>
+              <a href="author.html#933">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sun, Dec 4, 2011 at 3:13 PM, Tzury Bar Yochay
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">tzury.by at reguluslabs.com</A>&gt; wrote:
+&gt;<i> Thanks a lot Josh,
+</I>&gt;<i>
+</I>&gt;<i> In fact, I assumed so, but that means, TX is not only indexed by 0-9, rather
+</I>&gt;<i> with strings as well.
+</I>&gt;<i> Is this documented anywhere? Or am I missing a key principle in here?
+</I>
+The TX collection is meant for transient data, i.e. its only available
+until the transaction is complete. The TX:0-TX:9 syntax allows you to
+access data captured via the capture action. However, not all data in
+the TX collection is captured data, e.g. the anomaly scores in the
+CRS.
+
+--
+ - Josh
+
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Sun, Dec 4, 2011 at 3:08 PM, Josh Amishav-Zlatin &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at gmail.com</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sun, Dec 4, 2011 at 2:49 PM, Tzury Bar Yochay
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">tzury.by at reguluslabs.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; Hi,
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I wonder what is the meaning of rules in the following structure:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; &#160; &#160; &amp;TX:'/REGEXP/'
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi Tzury,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Like any other collection, you can limit the search inside that
+</I>&gt;&gt;<i> collection via regex. For example, if you wanted to check there is at
+</I>&gt;&gt;<i> least one variable whose name includes the string Tzury inside the TX
+</I>&gt;&gt;<i> collection you could write:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule &amp;TX:'/Tzury/' &quot;@eq 1&quot; &quot;phase:2,t:none,allow&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> &#160;- Josh
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; since '&amp;' is the counter operator, and as far as I know, at least
+</I>&gt;&gt;<i> &gt; according&#160;to &quot;ModSecurity Handboo&quot; by &quot;Ivan Ristic&quot;, TX is used to
+</I>&gt;&gt;<i> &gt; capture
+</I>&gt;&gt;<i> &gt; data and it range from 0 to 9.
+</I>&gt;&gt;<i> &gt; So I would expect a numeric parameter rather than a regular expression
+</I>&gt;&gt;<i> &gt; (e.g.
+</I>&gt;&gt;<i> &gt; TX:0, TX:1, etc.).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Those are found all over files under '/slr_rules'.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; examples:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; &#160; &#160; SecRule &amp;TX:'/RFI.*ARGS:pathForArdeaCore/' &quot;@gt 0&quot;
+</I>&gt;&gt;<i> &gt; &#160; &#160; SecRule &amp;TX:'/RFI.*ARGS:page_include/' &quot;@gt 0&quot;
+</I>&gt;&gt;<i> &gt; &#160; &#160; SecRule &amp;TX:'/RFI.*ARGS:LibDir/' &quot;@gt 0&quot;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; and many more...
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000932.html">[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax
+</A></li>
+	<LI>Next message: <A HREF="000934.html">[Owasp-modsecurity-core-rule-set] a question about	TX:'/REGEXP/' syntax
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#933">[ date ]</a>
+              <a href="thread.html#933">[ thread ]</a>
+              <a href="subject.html#933">[ subject ]</a>
+              <a href="author.html#933">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

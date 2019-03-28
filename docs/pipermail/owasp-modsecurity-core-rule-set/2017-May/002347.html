@@ -1,0 +1,380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Issues	with	tx.restricted_extensions
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Issues%0A%09with%09tx.restricted_extensions&In-Reply-To=%3CDB6PR0902MB219794A2D05469522178EA8682EF0%40DB6PR0902MB2197.eurprd09.prod.outlook.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002346.html">
+   <LINK REL="Next"  HREF="002348.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Issues	with	tx.restricted_extensions</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Issues%0A%09with%09tx.restricted_extensions&In-Reply-To=%3CDB6PR0902MB219794A2D05469522178EA8682EF0%40DB6PR0902MB2197.eurprd09.prod.outlook.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Issues	with	tx.restricted_extensions">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Tue May  9 18:59:53 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002346.html">[Owasp-modsecurity-core-rule-set] Issues with	tx.restricted_extensions
+</A></li>
+        <LI>Next message: <A HREF="002348.html">[Owasp-modsecurity-core-rule-set] Issues	with	tx.restricted_extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2347">[ date ]</a>
+              <a href="thread.html#2347">[ thread ]</a>
+              <a href="subject.html#2347">[ subject ]</a>
+              <a href="author.html#2347">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Rule 920440 looks to be in two parts but basically is this:
+
+
+    SecRule REQUEST_BASENAME &quot;\.(.*)$&quot; &quot;id:920440,chain,block...etc.&quot;
+SecRule TX:EXTENSION &quot;@within %{tx.restricted_extensions}&quot; &quot;...&quot;
+
+This basically says is there a dot in the request basename?
+And, if so, is the Extension of that request a restricted one?
+
+When you are running this:
+
+SecRuleUpdateActionById 920440 &quot;deny,ctl:ruleEngine=On&quot;
+
+
+You are overwriting the whole &quot;action&quot; part of first rule in this chain - and removing the &quot;chain&quot; part of this, so breaking the chain and splitting this into two rules:
+
+    SecRule REQUEST_BASENAME &quot;\.(.*)$&quot; &quot;id:920440,deny,ctl:ruleEngine=On&quot;
+    SecRule TX:EXTENSION &quot;@within %{tx.restricted_extensions}&quot; &quot;...&quot;
+
+
+Effectively you're ignoring the second rule in the chain completely, so EVERY request with a dot in the basename is suddenly matching.
+
+
+I'd imagine if you did something like this, to keep this as a chained rule, then it should work:
+
+
+SecRuleUpdateActionById 920440 &quot;deny,chain,ctl:ruleEngine=On&quot;
+
+
+Though not tried this myself admittedly.
+
+
+In fact the ModSecurity Reference Manual (<A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecRuleUpdateActionById">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecRuleUpdateActionById</A>) does state:
+
+
+Note : If the target rule is a chained rule, you must currently specify chain in the SecRuleUpdateActionById action list as well. This will be fixed in a future version.
+
+
+Hope that helps,
+
+Barry
+
+
+
+
+________________________________
+From: owasp-modsecurity-core-rule-set-bounces+barry_pollard=<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">hotmail.com at lists.owasp.org</A> &lt;owasp-modsecurity-core-rule-set-bounces+barry_pollard=<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">hotmail.com at lists.owasp.org</A>&gt; on behalf of Thayyile kandy, Subin : CSO GIS &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">sthayyilekan at BarclaycardUS.com</A>&gt;
+Sent: 09 May 2017 17:27:30
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: [Owasp-modsecurity-core-rule-set] Issues with tx.restricted_extensions
+
+
+Hello
+
+Im having some issues with some of my requests being blocked based on extension , I do not have .php or .html on my restricted extensions list.
+Has anyone come across this before ?
+
+This happens when I run in  detection mode by default and turn on blocking using
+
+SecRuleUpdateActionById 920440 &quot;deny,ctl:ruleEngine=On&quot;
+
+<A HREF="http://localhost">http://localhost</A> /forms.php  (works fine)
+<A HREF="http://localhost">http://localhost</A> /forms.php?  (blocked by : [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.php&quot;] )
+<A HREF="http://localhost">http://localhost</A> /forms.php?id=0  (blocked by : [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.php&quot;] )
+<A HREF="http://localhost">http://localhost</A> /forms.html  (works fine)
+<A HREF="http://localhost">http://localhost</A> /forms.html?  (blocked by : [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.html&quot;] )
+<A HREF="http://localhost">http://localhost</A> /forms.html?id=0  (blocked by : [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.html&quot;] )
+
+
+debug logs
+-------------
+
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Recipe: Invoking rule b6536900; [file &quot;/etc/modsecurity/modsecurity/owasp-modsecurity-crs-3.0-master/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+
+[line &quot;1031&quot;] [id &quot;920430&quot;] [rev &quot;2&quot;].
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][5] Rule b6536900:
+
+SecRule &quot;REQUEST_PROTOCOL&quot; &quot;!@within %{tx.allowed_http_versions}&lt;mailto:!@within%20%25%7btx.allowed_http_versions%7d&gt;&quot;
+
+&quot;phase:request,nolog,auditlog,t:none,block,msg:'HTTP protocol version is not allowed by policy',severity:CRITICAL,rev:2,ver:OWASP_CRS/3.0.0,maturity:9,accuracy:9,id:920430,tag:application-multi,tag:language-multi,tag:platform-multi,tag:attack-protocol,tag:OWASP_CRS/POLICY/PROTOCOL_NOT_ALLOWED,tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A6,tag:PCI/6.5.10,logdata:%{matched_var},setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/PROTOCOL_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Transformation completed in 0 usec.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Executing operator &quot;!within&quot; with param &quot;%{tx.allowed_http_versions}&quot; against REQUEST_PROTOCOL.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Target value: &quot;HTTP/1.1&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Resolved macro %{tx.allowed_http_versions} to: HTTP/1.0 HTTP/1.1 HTTP/2 HTTP/2.0
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Operator completed in 6 usec.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Rule returned 0.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] No match, not chained -&gt; mode NEXT_RULE.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Recipe: Invoking rule b652be08; [file &quot;/etc/modsecurity/modsecurity/owasp-modsecurity-crs-3.0-master/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+
+[line &quot;1058&quot;] [id &quot;920440&quot;] [rev &quot;2&quot;].
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][5] Rule b652be08: SecRule &quot;REQUEST_BASENAME&quot; &quot;@rx \\.(.*)$&lt;<A HREF="file:///\\.(.*">file:///\\.(.*</A>)$&gt;&quot; &quot;phase:request,nolog,auditlog,chain,capture,t:none,t:urlDecodeUni,t:lowercase,msg:'URL
+
+file extension is restricted by policy',severity:CRITICAL,rev:2,ver:OWASP_CRS/3.0.0,maturity:9,accuracy:9,id:920440,logdata:%{TX.0},tag:application-multi,tag:language-multi,tag:platform-multi,tag:attack-protocol,tag:OWASP_CRS/POLICY/EXT_RESTRICTED,tag:WASCTC/WASC-15,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,setvar:tx.extension=.%{tx.1}/,deny,ctl:ruleEngine=On&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] T (0) urlDecodeUni: &quot;forms.php&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] T (0) lowercase: &quot;forms.php&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Transformation completed in 12 usec.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Executing operator &quot;rx&quot; with param &quot;\\.(.*)$&lt;<A HREF="file:///\\.(.*">file:///\\.(.*</A>)$&gt;&quot; against REQUEST_BASENAME.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Target value: &quot;forms.php&quot;
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Added regex subexpression to TX.0: .php
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Added regex subexpression to TX.1: php
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Operator completed in 11 usec.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Setting variable: tx.extension=.%{tx.1}/
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Resolved macro %{tx.1} to: php
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Set variable &quot;tx.extension&quot; to &quot;.php/&quot;.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Ctl: Set ruleEngine to On.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Rule returned 1.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Match, intercepted -&gt; returning.
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Resolved macro %{TX.0} to: .php
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][9] Resolved macro %{TX.0} to: .php
+
+[08/May/2017:11:27:18 --0500]
+
+[localhost/sid#b6968228][rid#b69c8058][/forms.php][4] Access denied with code 403 (phase 2). Pattern match &quot;\\.(.*)$&lt;<A HREF="file:///\\.(.*">file:///\\.(.*</A>)$&gt;&quot; at REQUEST_BASENAME.
+
+[file &quot;/etc/modsecurity/modsecurity/owasp-modsecurity-crs-3.0-master/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+
+[line &quot;1058&quot;] [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.php&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag &quot;OWASP_CRS/POLICY/EXT_RESTRICTED&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/6.5.10&quot;]
+
+
+
+
+audit logs
+------------
+
+
+--54296d51-A--
+
+[08/May/2017:11:28:14 --0500] WRCcnn8AAQEAAAt0ypkAAAAE 127.0.0.1 36183
+
+127.0.0.1 80
+
+--54296d51-B--
+
+GET /forms.html? HTTP/1.1
+
+Host: localhost
+
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:16.0) Gecko/20100101 Firefox/16.0
+
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+
+Accept-Language: en-US,en;q=0.5
+
+Accept-Encoding: gzip, deflate
+
+Connection: keep-alive
+
+
+
+--54296d51-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 286
+
+Keep-Alive: timeout=5, max=100
+
+Connection: Keep-Alive
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+
+--54296d51-H--
+
+Message: Access denied with code 403 (phase 2). [file &quot;/etc/modsecurity/modsecurity/owasp-modsecurity-crs-3.0-master/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+
+[line &quot;1058&quot;] [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.html&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag &quot;OWASP_CRS/POLICY/EXT_RESTRICTED&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/6.5.10&quot;]
+
+Action: Intercepted (phase 2)
+
+Stopwatch: 1494260894110924 11283 (- - -)
+
+Stopwatch2: 1494260894110924 11283; combined=6030, p1=2122, p2=3429, p3=0, p4=0, p5=479, sr=14, sw=0, l=0, gc=0
+
+Producer: ModSecurity for Apache/2.9.1 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); OWASP_CRS/3.0.0.
+
+Server: Apache/2.4.7 (Ubuntu)
+
+Engine-Mode: &quot;ENABLED&quot;
+
+
+
+--54296d51-Z--
+
+
+audit log when in detection mode  ( please note this is in case of an extension that is in the list )
+
+
+
+--8092f761-A--
+[09/May/2017:13:39:38 +0000] WRHGmawSZJUAADb7nuwAAAHN 40.77.167.66 54957 10.176.10.21 4464
+--8092f761-B--
+GET /activate.com?domainCPC=HCL&amp;legacy=true HTTP/1.1
+
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:16.0) Gecko/20100101 Firefox/16.0
+
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+
+Accept-Language: en-US,en;q=0.5
+
+Accept-Encoding: gzip, deflate
+
+Connection: keep-alive
+
+--8092f761-F--
+HTTP/1.1 404 Not Found
+Content-Type: text/html;charset=UTF-8
+Content-Language: en-US
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+
+--8092f761-H--
+Message: String match within &quot;.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/&quot; at TX:extension. [file &quot;/etc/modsecurity/modsecurity/owasp-modsecurity-crs-3.0-master/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;] [line &quot;1058&quot;] [id &quot;920440&quot;] [rev &quot;2&quot;] [msg &quot;URL file extension is restricted by policy&quot;] [data &quot;.com&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag &quot;OWASP_CRS/POLICY/EXT_RESTRICTED&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/6.5.10&quot;]
+Apache-Handler: proxy-server
+Stopwatch: 1494337177995510 28864 (- - -)
+Stopwatch2: 1494337177995510 28864; combined=1228, p1=291, p2=865, p3=1, p4=2, p5=69, sr=32, sw=0, l=0, gc=0
+Producer: ModSecurity for Apache/2.9.1 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); OWASP_CRS/3.0.0.
+Server: Apache
+Engine-Mode: &quot;DETECTION_ONLY&quot;
+
+--8092f761-Z--
+
+
+Thanks
+Subin
+
+
+Barclaycard
+
+www.barclaycardus.com&lt;<A HREF="http://www.barclaycardus.com">http://www.barclaycardus.com</A>&gt;
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170509/9882cc19/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170509/9882cc19/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002346.html">[Owasp-modsecurity-core-rule-set] Issues with	tx.restricted_extensions
+</A></li>
+	<LI>Next message: <A HREF="002348.html">[Owasp-modsecurity-core-rule-set] Issues	with	tx.restricted_extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2347">[ date ]</a>
+              <a href="thread.html#2347">[ thread ]</a>
+              <a href="subject.html#2347">[ subject ]</a>
+              <a href="author.html#2347">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

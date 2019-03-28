@@ -1,0 +1,576 @@
+From mlfisher_56 at hotmail.com  Sun Aug  2 23:35:44 2015
+From: mlfisher_56 at hotmail.com (Mitchell Fisher)
+Date: Sun, 2 Aug 2015 23:35:44 +0000
+Subject: [Owasp-webgoat] WebGoat 6.1 (Unstable Repos) Status
+In-Reply-To: <SNT151-W6773C473C486CDC326890C91880@phx.gbl>
+References: <CAJREbOUkoUJVJ8h3GTz-5nxidaTLgoGdxW8=_BteuHx1Tbsi0Q@mail.gmail.com>,
+	<SNT151-W6773C473C486CDC326890C91880@phx.gbl>
+Message-ID: <SNT151-W1E79436CB24B7C2BA72F191880@phx.gbl>
+
+
+
+
+
+
+I cloned the Unstable 6.1 to my Windows desktop Sunday evening, built the source with Maven, got the jar to run, logged in as guest, and got back "Invalid Session" into Chrome.
+ 
+I ran the webgoat-container-6.1.0-war.exec.jar in \target.
+ 
+The exceptions overflowed my command window, the most recent one I can see is:
+ 
+Aug 02, 2015 6:05:00 PM org.apache.catalina.core.ApplicationDispatcher invoke
+SEVERE: Servlet.service() for servlet WebGoat threw exception
+java.lang.NullPointerException
+        at org.owasp.webgoat.session.WebSession.returnConnection(WebSession.java
+:247)
+        at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:205)
+        at org.owasp.webgoat.HammerHead.doGet(HammerHead.java:107)
+ 
+In webgoat_main.log I see:
+ 
+ 2015-08-02 18:05:00,363 [http-bio-8080-exec-5] DEBUG org.owasp.webgoat.session.Course  - Loading plugins into cache
+ 2015-08-02 18:05:00,592 [http-bio-8080-exec-5] ERROR org.owasp.webgoat.HammerHead  - Error handling request
+ org.owasp.webgoat.plugins.PluginLoadingFailure: Property file detected, but unable to copy the properties
+ at org.owasp.webgoat.plugins.Plugin.copyProperties(Plugin.java:101)
+ at org.owasp.webgoat.plugins.Plugin.loadFiles(Plugin.java:80)
+ at org.owasp.webgoat.plugins.GlobalProperties.loadProperties(GlobalProperties.java:18)
+ at org.owasp.webgoat.session.Course.loadLessonFromPlugin(Course.java:302)
+ at org.owasp.webgoat.session.Course.loadCourses(Course.java:339)
+ at org.owasp.webgoat.session.WebSession.<init>(WebSession.java:239)
+ at org.owasp.webgoat.HammerHead.updateSession(HammerHead.java:394)
+ at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:132)
+ 
+In the future should I report this kind of thing under Issues, esp. once I know what I am doing?
+ 
+-Mitch
+ 
+> Date: Tue, 28 Jul 2015 08:22:33 -0400
+> From: webgoat at owasp.org
+> To: owasp-webgoat at lists.owasp.org
+> Subject: [Owasp-webgoat] WebGoat 6.1 (Unstable Repos) Status
+> 
+> The 6.1 (Unstable - WebGoat and WebGoat-Lessons) release is working again.
+> The UI is a bit rough in areas especially around navigation and lesson
+> rendering.  There is still some functionality that has not been hooked back
+> up like cookies, lesson completion, ....  We also have some browser
+> specific issues like chrome renders better than safari, if you experience
+> some rendering problems try a different browser until we get it all sorted.
+> 
+> The majority of the plugin architecture is completed and works well.  Each
+> lesson is now self contained and easier to see all the parts and pieces
+> like lesson specific code, internationalization strings, lesson plans, and
+> lesson solutions.
+> 
+> If you are building the 6.1 release, please pay attention to the README, as
+> it will not build properly without building the webgoat-classloader first.
+> 
+> T*he WebGoat-Legacy release is still the preferred release for users.  *
+> 
+> -- 
+> Bruce Mayhew
+> OWASP WebGoat Project Lead
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+ 		 	   		   		 	   		  
+
+From jason.white at owasp.org  Mon Aug  3 01:27:19 2015
+From: jason.white at owasp.org (Jason White)
+Date: Sun, 02 Aug 2015 21:27:19 -0400
+Subject: [Owasp-webgoat] WebGoat Package Errors
+In-Reply-To: <SNT151-W867ADAA9F090978B0F5DB691880@phx.gbl>
+References: <SNT151-W867ADAA9F090978B0F5DB691880@phx.gbl>
+Message-ID: <55BEC377.80108@owasp.org>
+
+Mitchell,
+
+Here's the run down of what I have been doing (including list in case
+others have input).  For background, I develop/test with
+a stand-alone tomcat on Linux. Also, our build is a bit of a moving
+target right now (which we are working to improve). I'm including the
+list in case someone there wants to chime in or can benefit. Also cc'ing
+Nanne as he can correct me if I mis-step below.
+
+0) cd into the /webgoat-classloader and mvn clean install
+1) mvn clean package << in webgoat 'container'* directory
+2) mvn install << I think you can optionally just run 'mvn clean
+install' and it should satisfy both steps here, but I often end up
+running them discreetly
+3) You should now be able to cd into the lessons project and
+$ mvn clean package
+4) You should be able to copy lesson jars into the webapp ...
+.e.g.
+$cp xpath-injection/target/xpath-injection-1.0.jar
+$TOMCAT_HOME/webapps/$WEBGOAT_DIR/plugin_lessons/
+5) I find that when running tomcat stand-alone as I do, I have to create
+the $TOMCAT_HOME/webapps/$WEBGOAT_DIR/plugin_extracted directory
+manually anytime I fully redeploy the 'container' application.
+
+* The idea of 'container' and 'core' etc. is going to shuffle a little
+(part of the effort to improve build process). There should be an email
+coming to the list soon about that.
+
+HTH,
+Jason
+
+
+On 08/02/2015 05:31 PM, Mitchell Fisher wrote:
+> Hi Jason, can I ask you a side question, likely a newbie question?
+>  
+> I imported the web goat source into Eclipse using import from file
+> system into the project's >src folder, and all of the files get the
+> error in the package declaration:
+>  
+> *package*_org.owasp.webgoat_;
+>  
+> '/The declared package "org.owasp.webgoat" does not match the expected
+> package "src.main.java.org.owasp.webgoat"/'
+>  
+> What did I likely do wrong?  I find it interesting that maven can
+> generate the jar from the same source, so I am guessing it knows the way
+> around this, but I have not figured out how it does it yet.
+>  
+> In the interim while getting my source glitches fixed, I think I should
+> set up an environment where I can download nightly builds and do some
+> testing to contribute that way.  Will work on that next.
+>  
+> -Mitch
+
+From mlfisher_56 at hotmail.com  Tue Aug  4 15:41:45 2015
+From: mlfisher_56 at hotmail.com (Mitchell Fisher)
+Date: Tue, 4 Aug 2015 15:41:45 +0000
+Subject: [Owasp-webgoat] 6.1 plugin_extracted Folder Not Created
+In-Reply-To: <SNT151-W1E79436CB24B7C2BA72F191880@phx.gbl>
+References: <CAJREbOUkoUJVJ8h3GTz-5nxidaTLgoGdxW8=_BteuHx1Tbsi0Q@mail.gmail.com>,
+	, <SNT151-W6773C473C486CDC326890C91880@phx.gbl>,
+	<SNT151-W1E79436CB24B7C2BA72F191880@phx.gbl>
+Message-ID: <SNT151-W6FDEDBF9E777D4BD85EF391760@phx.gbl>
+
+I overlooked the error message:
+ 
+"Caused by: java.nio.file.NoSuchFileException: c:\GitHub\WebGoat\target\.extract\
+webapps\WebGoat\plugin_extracted\i18n"
+ 
+The problem is that the plugin_extracted folder was not created, so when it tried to create the \i18n sub-folder, or access the properties file in that sub-folder, it failed.  I start each run with target\ empty.
+ 
+I manually created the plugin-extracted\ folder under WebGoat\, but not the i18n\ folder, and now WebGoat continues after login.
+ 
+Where in the process should the plugin_extracted folder be created, and is this only an issue for Windows?
+ 
+-Mitch
+ 
+> From: mlfisher_56 at hotmail.com
+> To: owasp-webgoat at lists.owasp.org
+> Date: Sun, 2 Aug 2015 23:35:44 +0000
+> Subject: Re: [Owasp-webgoat] WebGoat 6.1 (Unstable Repos) Status
+> 
+> 
+> 
+> 
+> 
+> 
+> I cloned the Unstable 6.1 to my Windows desktop Sunday evening, built the source with Maven, got the jar to run, logged in as guest, and got back "Invalid Session" into Chrome.
+>  
+> I ran the webgoat-container-6.1.0-war.exec.jar in \target.
+>  
+> The exceptions overflowed my command window, the most recent one I can see is:
+>  
+> Aug 02, 2015 6:05:00 PM org.apache.catalina.core.ApplicationDispatcher invoke
+> SEVERE: Servlet.service() for servlet WebGoat threw exception
+> java.lang.NullPointerException
+>         at org.owasp.webgoat.session.WebSession.returnConnection(WebSession.java
+> :247)
+>         at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:205)
+>         at org.owasp.webgoat.HammerHead.doGet(HammerHead.java:107)
+>  
+> In webgoat_main.log I see:
+>  
+>  2015-08-02 18:05:00,363 [http-bio-8080-exec-5] DEBUG org.owasp.webgoat.session.Course  - Loading plugins into cache
+>  2015-08-02 18:05:00,592 [http-bio-8080-exec-5] ERROR org.owasp.webgoat.HammerHead  - Error handling request
+>  org.owasp.webgoat.plugins.PluginLoadingFailure: Property file detected, but unable to copy the properties
+>  at org.owasp.webgoat.plugins.Plugin.copyProperties(Plugin.java:101)
+>  at org.owasp.webgoat.plugins.Plugin.loadFiles(Plugin.java:80)
+>  at org.owasp.webgoat.plugins.GlobalProperties.loadProperties(GlobalProperties.java:18)
+>  at org.owasp.webgoat.session.Course.loadLessonFromPlugin(Course.java:302)
+>  at org.owasp.webgoat.session.Course.loadCourses(Course.java:339)
+>  at org.owasp.webgoat.session.WebSession.<init>(WebSession.java:239)
+>  at org.owasp.webgoat.HammerHead.updateSession(HammerHead.java:394)
+>  at org.owasp.webgoat.HammerHead.doPost(HammerHead.java:132)
+>  
+> In the future should I report this kind of thing under Issues, esp. once I know what I am doing?
+>  
+> -Mitch
+>  
+> > Date: Tue, 28 Jul 2015 08:22:33 -0400
+> > From: webgoat at owasp.org
+> > To: owasp-webgoat at lists.owasp.org
+> > Subject: [Owasp-webgoat] WebGoat 6.1 (Unstable Repos) Status
+> > 
+> > The 6.1 (Unstable - WebGoat and WebGoat-Lessons) release is working again.
+> > The UI is a bit rough in areas especially around navigation and lesson
+> > rendering.  There is still some functionality that has not been hooked back
+> > up like cookies, lesson completion, ....  We also have some browser
+> > specific issues like chrome renders better than safari, if you experience
+> > some rendering problems try a different browser until we get it all sorted.
+> > 
+> > The majority of the plugin architecture is completed and works well.  Each
+> > lesson is now self contained and easier to see all the parts and pieces
+> > like lesson specific code, internationalization strings, lesson plans, and
+> > lesson solutions.
+> > 
+> > If you are building the 6.1 release, please pay attention to the README, as
+> > it will not build properly without building the webgoat-classloader first.
+> > 
+> > T*he WebGoat-Legacy release is still the preferred release for users.  *
+> > 
+> > -- 
+> > Bruce Mayhew
+> > OWASP WebGoat Project Lead
+> > _______________________________________________
+> > Owasp-webgoat mailing list
+> > Owasp-webgoat at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+>  		 	   		   		 	   		  
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+ 		 	   		  
+
+From dm at corp.io  Tue Aug 11 23:58:09 2015
+From: dm at corp.io (Doug Morato)
+Date: Tue, 11 Aug 2015 23:58:09 +0000
+Subject: [Owasp-webgoat] Significant Git Repository Changes
+Message-ID: <DM3PR12MB0746ABC7A44990413DFF27C7D57F0@DM3PR12MB0746.namprd12.prod.outlook.com>
+
+Hello WebGoaters !
+
+I am very pleased to announce that, after collaborative efforts from  community and amazing work from Nanne Baars, a "repository organization" improvement request that was proposed and approved on the last "Core Contributors" conference call has now been officially committed to Github's Unstable Repository / Master Branch [1] .
+
+The changed implemented consisted into moving the "src" directory one-level down, transforming WebGoat into a multi-level maven project.
+
+This was proposed and implemented in order to support the effort of decoupling the Core / Container / Classloader / Lessons modules of WebGoat, which  will allow easier development and improvement of the different modules of WebGoat independently. Additionally, this will enable us to start publishing WebGoat components to the Maven Central repository, once WebGoat 6.1 reaches a stable point.
+
+The new directory structure is as follows:
+
+WebGoat/
+                - webgoat-container
+                - webgoat-classloader
+                - webgoat-release
+
+For code contributors -> **** You must perform a git pull (or rebase) before you continue working on the source code ****
+
+Running Webgoat:
+mvn clean install
+                mvn -pl webgoat-container tomcat7:run
+
+Nanne was also kind enough to integrate with the Travis CI [2] service which is available on Github. This will ensure that after a check-in, a build is run, so before a pull request is merged, we could know if the build is stable.
+
+Over the next few weeks, we will be improving the Build Process (and deployable artifact creation), the Wiki Documentation and the Jira Ticketing System ( for sprint planning and defect/enhancement requests tracking).
+
+For those who would like to contribute (with coding, documentation or any other task), please feel free to contact us.
+For all those who already contributed to the project, THANK YOU.  Major props to nbaars | misfir3 | mayhew64 | jwayman .
+
+[1] https://github.com/WebGoat/WebGoat
+
+[2] https://travis-ci.org/WebGoat/WebGoat
+
+--
+// Doug Morato |dm at corp.io | +1 (305)923-4898
+
+
+From jason.white at owasp.org  Fri Aug 14 02:13:32 2015
+From: jason.white at owasp.org (Jason White)
+Date: Thu, 13 Aug 2015 22:13:32 -0400
+Subject: [Owasp-webgoat] help needed
+In-Reply-To: <CA+2Eh=sAr9vPpiFZYVhwX9zU4vQfKrzbnVwQv-Q-kEOT1ftJCg@mail.gmail.com>
+References: <CA+2Eh=uYayAbGDct+rHuB8onmaW-951c8Ngm8o6bXniEpxENGg@mail.gmail.com>	<CAL1HEEDqD4Jt0S2MMUx87=ZFT9SLe2NG7yc4kMzhFav3CVuXJQ@mail.gmail.com>
+	<CA+2Eh=sAr9vPpiFZYVhwX9zU4vQfKrzbnVwQv-Q-kEOT1ftJCg@mail.gmail.com>
+Message-ID: <55CD4ECC.3000406@owasp.org>
+
+OK, the migration is done (see Doug's earlier email ... and Kudos again
+to Nanne). I updated and just made one more pull/merge with the Cookies
+Table/view re-enabled. Params, integrating this LessonInfo Service, then
+some more menu work and some testing and clean-up.
+
+As to issue management, we have been using JIRA (webgoat.atlassian.net,
+will need to create you an account there). I have been very bad at it
+myself as I've gotten used to just jumping in and handling most stuff
+hands-on.  When I look at the decision between coding and working in
+JIRA, I head for the code (for better or worse).  I'm asking the core
+group what they think of moving issue management to github (and would be
+curious of what new folks signing on think in that regard).
+
+The one item that I can use help with currently that I have not put up
+as a ticket yet is to:
+Create a (we'll call it for now) LessonInfo Service to return basic info
+about the lesson. Some would be redundant now, but could enable more
+efficient (lazy) loading in the future. However, there is also a real
+need for pulling the lesson title with the client-side routing via
+Backbone now.
+
+For starters (and this may be all we need) I'd like to create that
+service which returns:
+
+{
+  lessonTitle:_TITLE_,
+  numberHints:_#_,
+  hasSource: T||F,
+  hasSolution: T||F,
+  hasPlan: T||F
+}
+
+Look at the HintService as a starting point
+
+You'll want to fork this:
+https://github.com/WebGoat/WebGoat
+... and issue pull requests when you have a change. We can go into
+minutia  off-list, but I'm posting this reply on-list as I think there's
+some benefit to others.
+
+Cheers,
+Jason
+
+On 08/11/2015 05:38 PM, Adamson dela Cruz wrote:
+> Jason,
+> 
+> Thanks for your reply. I just joined the mailing list. Will wait for
+> that code change then let me know when its time.
+> 
+> Regards,
+> Adam
+> 
+> On Wed, Aug 12, 2015 at 5:04 AM, Jason White <jason.white at owasp.org
+> <mailto:jason.white at owasp.org>> wrote:
+> 
+>     Adam,
+> 
+>     Thanks. Have some significant changes coming in the repo/code base.
+>     Probably best to read you fully in after those happen. Are you on
+>     the mailing list?
+> 
+>     Cheers,
+>     Jason
+> 
+>     On Aug 10, 2015 6:34 PM, "Adamson dela Cruz" <adamson at delacruz.co.nz
+>     <mailto:adamson at delacruz.co.nz>> wrote:
+> 
+>         Hi,
+> 
+>         Raising my hand up here. I'm good at js (angular,jquery), has
+>         good experience using bootstrap, html and css. Although my
+>         strength is on the backend, I am a full stack developer with 16
+>         years of experience.
+> 
+>         I would like to know what sort of commitment do you need from me
+>         if you choose to let me help with this (how many hours a week
+>         and what scope of work).
+> 
+>         Looking forward to this.
+> 
+>         Regards,
+>         Adam
+> 
+>         -- 
+>         *Adamson dela Cruz*
+>         Director
+>         ADAMSON DELA CRUZ CONSULTING LTD.
+>         Mobile: +64212447795 <tel:%2B64212447795>
+> 
+> 
+> 
+> 
+> -- 
+> *Adamson dela Cruz*
+> Director
+> ADAMSON DELA CRUZ CONSULTING LTD.
+> Mobile: +64212447795
+> www.delacruz.co.nz <http://www.delacruz.co.nz>
+
+From adamson at delacruz.co.nz  Mon Aug 17 01:37:10 2015
+From: adamson at delacruz.co.nz (Adamson dela Cruz)
+Date: Mon, 17 Aug 2015 13:37:10 +1200
+Subject: [Owasp-webgoat] help needed
+In-Reply-To: <55CD4ECC.3000406@owasp.org>
+References: <CA+2Eh=uYayAbGDct+rHuB8onmaW-951c8Ngm8o6bXniEpxENGg@mail.gmail.com>
+	<CAL1HEEDqD4Jt0S2MMUx87=ZFT9SLe2NG7yc4kMzhFav3CVuXJQ@mail.gmail.com>
+	<CA+2Eh=sAr9vPpiFZYVhwX9zU4vQfKrzbnVwQv-Q-kEOT1ftJCg@mail.gmail.com>
+	<55CD4ECC.3000406@owasp.org>
+Message-ID: <CA+2Eh=v-=Cev=YmRaWfvi990OHP5a-rnXzBiWj1i+q3dtTYNEQ@mail.gmail.com>
+
+Ok thanks. Will familiarize myself with the code base and start work on it.
+
+Regards,
+Adam
+
+On Fri, Aug 14, 2015 at 2:13 PM, Jason White <jason.white at owasp.org> wrote:
+
+> OK, the migration is done (see Doug's earlier email ... and Kudos again
+> to Nanne). I updated and just made one more pull/merge with the Cookies
+> Table/view re-enabled. Params, integrating this LessonInfo Service, then
+> some more menu work and some testing and clean-up.
+>
+> As to issue management, we have been using JIRA (webgoat.atlassian.net,
+> will need to create you an account there). I have been very bad at it
+> myself as I've gotten used to just jumping in and handling most stuff
+> hands-on.  When I look at the decision between coding and working in
+> JIRA, I head for the code (for better or worse).  I'm asking the core
+> group what they think of moving issue management to github (and would be
+> curious of what new folks signing on think in that regard).
+>
+> The one item that I can use help with currently that I have not put up
+> as a ticket yet is to:
+> Create a (we'll call it for now) LessonInfo Service to return basic info
+> about the lesson. Some would be redundant now, but could enable more
+> efficient (lazy) loading in the future. However, there is also a real
+> need for pulling the lesson title with the client-side routing via
+> Backbone now.
+>
+> For starters (and this may be all we need) I'd like to create that
+> service which returns:
+>
+> {
+>   lessonTitle:_TITLE_,
+>   numberHints:_#_,
+>   hasSource: T||F,
+>   hasSolution: T||F,
+>   hasPlan: T||F
+> }
+>
+> Look at the HintService as a starting point
+>
+> You'll want to fork this:
+> https://github.com/WebGoat/WebGoat
+> ... and issue pull requests when you have a change. We can go into
+> minutia  off-list, but I'm posting this reply on-list as I think there's
+> some benefit to others.
+>
+> Cheers,
+> Jason
+>
+> On 08/11/2015 05:38 PM, Adamson dela Cruz wrote:
+> > Jason,
+> >
+> > Thanks for your reply. I just joined the mailing list. Will wait for
+> > that code change then let me know when its time.
+> >
+> > Regards,
+> > Adam
+> >
+> > On Wed, Aug 12, 2015 at 5:04 AM, Jason White <jason.white at owasp.org
+> > <mailto:jason.white at owasp.org>> wrote:
+> >
+> >     Adam,
+> >
+> >     Thanks. Have some significant changes coming in the repo/code base.
+> >     Probably best to read you fully in after those happen. Are you on
+> >     the mailing list?
+> >
+> >     Cheers,
+> >     Jason
+> >
+> >     On Aug 10, 2015 6:34 PM, "Adamson dela Cruz" <adamson at delacruz.co.nz
+> >     <mailto:adamson at delacruz.co.nz>> wrote:
+> >
+> >         Hi,
+> >
+> >         Raising my hand up here. I'm good at js (angular,jquery), has
+> >         good experience using bootstrap, html and css. Although my
+> >         strength is on the backend, I am a full stack developer with 16
+> >         years of experience.
+> >
+> >         I would like to know what sort of commitment do you need from me
+> >         if you choose to let me help with this (how many hours a week
+> >         and what scope of work).
+> >
+> >         Looking forward to this.
+> >
+> >         Regards,
+> >         Adam
+> >
+> >         --
+> >         *Adamson dela Cruz*
+> >         Director
+> >         ADAMSON DELA CRUZ CONSULTING LTD.
+> >         Mobile: +64212447795 <tel:%2B64212447795>
+> >
+> >
+> >
+> >
+> > --
+> > *Adamson dela Cruz*
+> > Director
+> > ADAMSON DELA CRUZ CONSULTING LTD.
+> > Mobile: +64212447795
+> > www.delacruz.co.nz <http://www.delacruz.co.nz>
+>
+
+
+
+-- 
+*Adamson dela Cruz*
+Director
+ADAMSON DELA CRUZ CONSULTING LTD.
+Mobile: +64212447795
+www.delacruz.co.nz
+
+From dm at corp.io  Thu Aug 20 20:03:39 2015
+From: dm at corp.io (Doug Morato)
+Date: Thu, 20 Aug 2015 20:03:39 +0000
+Subject: [Owasp-webgoat] Some updates about project direction and
+	Communication
+Message-ID: <DF97593B-42F9-4534-863A-5B11F698E54B@corp.io>
+
+Hello WebGoaters,
+
+I would like to provide some information regarding decisions made during the last "Core Contributors" conference call on 08/14/15:
+    * Agreed to using TravisCI for our development branch automated builds.
+    * Agreed to using Github Issues to track bug/defects and feature requests.
+    * Agreed to using version-SNAPSHOT for development builds.
+    * Agreed to release next version of WebGoat as version 7.0, given the signifant contribution and changes that happend in the current cycle
+    * Agreed to start using Maven Central to push WebGoat artifacts.
+    * Defined target date for 7.0 release to be just before OWASP AppSec USA conference. As of know, targeted release date is 09/15/15
+
+Now, we would liketo foster the communication between developers, comunity and users.
+
+OWASP has recently started using the " https://slack.com " service for communication and made a tenant available for our use.
+
+Slack provides an "IRC" style of comunication, with history, search and some other goodies, completely free !
+
+You can request a free invite to access the OWASP SLACK tenant at: http://owasp.herokuapp.com/
+
+Once you get your invite, you will be able to join the conversation at https://owasp.slack.com/ . You can also use a Slack Client or your plain old IRC client.
+
+Several channels are available, but we created a #project-webgoat channel. I look forward to talk to you there !
+
+If you have any pending code changes, please try to create a pull request soon, as we are approaching our target release date.
+
+As always, thank you for all the great work and feedback.
+
+Till next week!
+?
+// Doug Morato | dm at corp.io<mailto:dm at corp.io> | +1 (305)923-4898
+
+From jason.white at owasp.org  Fri Aug 21 01:00:33 2015
+From: jason.white at owasp.org (Jason White)
+Date: Thu, 20 Aug 2015 21:00:33 -0400
+Subject: [Owasp-webgoat] WebGoat UI issue status
+Message-ID: <55D67831.7090200@owasp.org>
+
+A number of folks have offered to help with the WebGoat UI work.  Moving
+issue management to github has simplified things a bit.  I have now put
+in a number of issues there:
+
+https://github.com/WebGoat/WebGoat/issues ...
+some are labeled with 'help wanted' (may label more that way) and 7.0
+release.
+
+I also cleaned up some old/deprecated files (still some more cleaning to
+do).
+
+Feel free to jump in and grab an issue.
+
+Cheers,
+Jason
+

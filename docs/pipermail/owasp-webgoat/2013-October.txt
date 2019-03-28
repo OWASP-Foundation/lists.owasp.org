@@ -1,0 +1,52 @@
+From praiserock at gmail.com  Mon Oct  7 18:46:51 2013
+From: praiserock at gmail.com (John Scott)
+Date: Mon, 7 Oct 2013 14:46:51 -0400
+Subject: [Owasp-webgoat] SQL Injection Lab
+Message-ID: <CAGDRRCd0fm7HGGS_WtQsKAPaWQaEKx2c0E4CtjRnW53ZVgOXkA@mail.gmail.com>
+
+Hi all,
+
+Up front, I'm not a programmer.  That said, I've run into a problem and
+could use some help.
+
+I'm a student and the class uses Web Goat 5.3 RC1 for labs.  I downloaded
+web goat zip file and have it running on Windows.  I'm using Kali to
+execute the labs.
+
+On Stage 2: Parameterized Query #1 I've run into a problem.  I need to edit
+a file (login.java) to prevent sql injection attacks against the password
+field from Stage 1.  The login.java file I've found is at
+WebGoat-5.3_RC1\tomcat\webapps\webgoat\WEB-INF\classes\java\org\owasp\webgoat\lessons\SQLInjection
+(extracted out on Windows filesystem).
+
+I changed the lines as mentioned below.
+
+Found line:
+String query = "SELECT * FROM employee WHERE userid = " + userId + " and
+password = '" + password + "'";
+
+and changed to:
+String query = "SELECT * FROM employee WHERE userid = ? and password = ?";
+
+changed these lines:
+Statement answer_statement = WebSession.getConnection(s)
+.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+ResultSet answer_results = answer_statement.executeQuery(query);
+
+to this:
+PreparedStatement answer_statement = WebSession.getConnection(s)
+.prepareStatement( query,    ResultSet.TYPE_SCROLL_INSENSITIVE,
+ResultSet.CONCUR_READ_ONLY);
+answer_statement.setString(1, userId);
+answer_statement.setString(2, password);
+ResultSet answer_results = answer_statement.executeQuery();
+
+
+Bounced the webgoat server and tried Stage 2. If what I read is correct and
+my code mod is correct, this should prevent the sql injection, but it
+doesn't.
+
+Can you provide some direction as to what I'm getting wrong here?
+
+Thanks.
+

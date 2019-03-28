@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not blocking requests
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20CRS%202.1.1%20Brute%20Force%20rules%0A%20not%20blocking%20requests&In-Reply-To=AANLkTin913rNZx5cr%2BOrmgK-PPMHAh5_z_oekOhQhkNL%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000655.html">
+   <LINK REL="Next"  HREF="000657.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not blocking requests</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20CRS%202.1.1%20Brute%20Force%20rules%0A%20not%20blocking%20requests&In-Reply-To=AANLkTin913rNZx5cr%2BOrmgK-PPMHAh5_z_oekOhQhkNL%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not blocking requests">RBarnett at trustwave.com
+       </A><BR>
+    <I>Sun Mar 20 09:56:04 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000655.html">[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not	blocking requests
+</A></li>
+        <LI>Next message: <A HREF="000657.html">[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not blocking requests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#656">[ date ]</a>
+              <a href="thread.html#656">[ thread ]</a>
+              <a href="subject.html#656">[ subject ]</a>
+              <a href="author.html#656">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Are your protected URLs that you define in the 10 file setvars full paths to the login page(s)?  The check in the brute force file checks these variables against the REQUEST_FILENAME of the current transaction. You sanitized your example configs (/protected_url) so I am not sure if you defined a filename or a directory.
+
+An audit log entry would help.
+
+On Mar 20, 2011, at 5:51 AM, Yonah Russ &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp at yonahruss.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp at yonahruss.com</A>&gt;&gt; wrote:
+
+Hi,
+
+I'm using 2.5.13 with CRS 2.1.1
+I've configured the following:
+
+SecAction &quot;phase:1,t:none,nolog,pass, \
+setvar:'tx.brute_force_protected_urls=/protected_url /protected_url2', \
+setvar:'tx.brute_force_burst_time_slice=60', \
+setvar:'tx.brute_force_counter_threshold=5', \
+setvar:'tx.brute_force_block_timeout=300'&quot;
+
+When I test, all the requests get through and not even a message in the logs :(
+Here is an excerpt from the debug log:
+...
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Setting variable: tx.brute_force_protected_urls=/protected_url /protected_url2
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Set variable &quot;tx.brute_force_protected_urls&quot; to &quot;/protected_url /protected_url2&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Setting variable: tx.brute_force_burst_time_slice=60
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Set variable &quot;tx.brute_force_burst_time_slice&quot; to &quot;60&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Setting variable: tx.brute_force_counter_threshold=5
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Set variable &quot;tx.brute_force_counter_threshold&quot; to &quot;5&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Setting variable: tx.brute_force_block_timeout=300
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Set variable &quot;tx.brute_force_block_timeout&quot; to &quot;300&quot;.
+...
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Creating collection (name &quot;global&quot;, key &quot;global&quot;).
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Recorded original collection variable: global.UPDATE_COUNTER = &quot;0&quot;
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Added collection &quot;global&quot; to the list.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Resolved macro %{remote_addr} to: 192.168.1.1
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Resolved macro %{tx.ua_hash} to: 3dcbbff145dcf13aa6287b931eb296b39b7541ee
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;__expire_KEY&quot;, value &quot;1300615158&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;KEY&quot;, value &quot;192.168.1.1_3dcbbff145dcf13aa6287b931eb296b39b7541ee&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;TIMEOUT&quot;, value &quot;3600&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;__key&quot;, value &quot;192.168.1.1_3dcbbff145dcf13aa6287b931eb296b39b7541ee&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;__name&quot;, value &quot;ip&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;CREATE_TIME&quot;, value &quot;1300607334&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;UPDATE_COUNTER&quot;, value &quot;75&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;dos_counter&quot;, value &quot;75&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Read variable: name &quot;LAST_UPDATE_TIME&quot;, value &quot;1300611558&quot;.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Retrieved collection (name &quot;ip&quot;, key &quot;192.168.1.1_3dcbbff145dcf13aa6287b931eb296b39b7541ee&quot;).
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] Recorded original collection variable: ip.UPDATE_COUNTER = &quot;75&quot;
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Added collection &quot;ip&quot; to the list.
+...
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][5&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;] Rule 240d78: SecRule &quot;IP:BRUTE_FORCE_BLOCK&quot; &quot;@eq 1&quot; &quot;phase:1,log,noauditlog,chain,block,msg:'Brute Force Attack Identified from %{remote_addr} (%{tx.brute_force_block_counter} hits since last alert)',setvar:ip.brute_force_block_counter=+1&quot;
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Rule returned 0.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] No match, chained -&gt; mode NEXT_CHAIN.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Recipe: Invoking rule 244cd8; [file &quot;/opt/www/conf/modsecurity_crs/base_rules/modsecurity_crs_11_brute_force.conf&quot;] [line &quot;27&quot;].
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][5&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;] Rule 244cd8: SecRule &quot;IP:BRUTE_FORCE_BLOCK&quot; &quot;@eq 1&quot; &quot;phase:1,noauditlog,block,nolog,setvar:ip.brute_force_block_counter=+1&quot;
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Rule returned 0.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][9&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][9</A>&gt;] No match, not chained -&gt; mode NEXT_RULE.
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Recipe: Invoking rule 250338; [file &quot;/opt/www/conf/modsecurity_crs/base_rules/modsecurity_crs_11_dos_protection.conf&quot;] [line &quot;11&quot;].
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][5&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][5</A>&gt;] Rule 250338: SecRule &quot;IP:DOS_BLOCK&quot; &quot;@eq 1&quot; &quot;phase:1,log,noauditlog,chain,drop,msg:'Denial of Service (DoS) Attack Identified from %{remote_addr} (%{tx.dos_block_counter} hits since last alert)',setvar:ip.dos_block_counter=+1&quot;
+[20/Mar/2011:09:15:56 +0000] [&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;www.site.com/sid#12b7778][rid#19211a0][/protected_url][4&lt;<A HREF="http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4">http://www.site.com/sid#12b7778][rid#19211a0][/protected_url][4</A>&gt;] Rule returned 0.
+
+From what I can see, the request never hits the section of rules which should start counting the requests to the protected url. Instead, it skips to the next ruleset?
+Thanks in advance,
+Yonah
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000655.html">[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not	blocking requests
+</A></li>
+	<LI>Next message: <A HREF="000657.html">[Owasp-modsecurity-core-rule-set] CRS 2.1.1 Brute Force rules not blocking requests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#656">[ date ]</a>
+              <a href="thread.html#656">[ thread ]</a>
+              <a href="subject.html#656">[ subject ]</a>
+              <a href="author.html#656">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

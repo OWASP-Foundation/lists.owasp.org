@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-Ireland] Web services - DV Auth or Auth DV???
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-ireland%40lists.owasp.org?Subject=%5BOWASP-Ireland%5D%20Web%20services%20-%20DV%20Auth%20or%20Auth%20DV%3F%3F%3F&In-Reply-To=E1DfvZl-0006R8-DC%40sc8-sf-mx2.sourceforge.net">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000061.html">
+   <LINK REL="Next"  HREF="000064.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-Ireland] Web services - DV Auth or Auth DV???</H1>
+    <B>Eoin.Keary at allianz.ie</B> 
+    <A HREF="mailto:owasp-ireland%40lists.owasp.org?Subject=%5BOWASP-Ireland%5D%20Web%20services%20-%20DV%20Auth%20or%20Auth%20DV%3F%3F%3F&In-Reply-To=E1DfvZl-0006R8-DC%40sc8-sf-mx2.sourceforge.net"
+       TITLE="[OWASP-Ireland] Web services - DV Auth or Auth DV???">Eoin.Keary at allianz.ie
+       </A><BR>
+    <I>Wed Jun  8 05:38:04 EDT 2005</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000061.html">[OWASP-Ireland] Web services - DV Auth or Auth DV???
+</A></li>
+        <LI>Next message: <A HREF="000064.html">[OWASP-Ireland] Web services - DV Auth or Auth DV???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#62">[ date ]</a>
+              <a href="thread.html#62">[ thread ]</a>
+              <a href="subject.html#62">[ subject ]</a>
+              <a href="author.html#62">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi John,
+I was chatting to Dr Tony Palmer of Vordel about this last week.
+The first thing from the point of not doing any extra CPU time for 
+unauthenticated requests to the authenticate.
+One solution is not to have the UserId and password &quot;In band&quot;, inside the 
+SOAP message so we auth then DV. Use Out of Band credentials (in the HTTP 
+request as opposed to the XML message)
+
+Using a SAX parser instead of a DOM to do  initial parsing would also help 
+performance.
+Some of the Vordel suite of solutions can actually talk to the firewall to 
+block suspected rogue requests.
+
+An XML schema on both sides of the transaction is also a good idea if 
+possible, but it cant be guaranteed that the requesting  entity shall use 
+the schema to validate their request and can not be relied on in its 
+entirety.
+
+Anyways, We (Ireland OWASP) hope to have Dr Palmer (or one of his 
+colleagues) give us a presentation on Webservices security at the next 
+OWASP meeting.
+
+Eoin
+
+
+
+
+
+
+
+
+Eoin Keary
+Contractor
+Allianz Ireland
+IT Security (Tech Admin)
+Security Projects Division
+Dir: + 353-1-613-3490
+Mob: + 353-87-904-1922
+Mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">eoin.keary at allianz.ie</A>
+Ph  01 6133490
+
+
+
+
+&quot;John Marmelstein&quot; &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">marmelstein at eircom.net</A>&gt; 
+Sent by: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">owasp-ireland-admin at lists.sourceforge.net</A>
+06/08/2005 08:06 AM
+Please respond to
+&lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">marmelstein at eircom.net</A>&gt;
+
+
+To
+<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">owasp-ireland at lists.sourceforge.net</A>, <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">owasp-chapters at lists.sourceforge.net</A>
+cc
+
+Subject
+Re: [OWASP-Ireland] Web services - DV Auth or Auth DV???
+
+
+
+
+
+
+
+Hello All,
+(first posting from a 'top ten' adopter)
+
+I suggest that authentication is the one to do first. But, there are 
+arguments on both sides. The advantage of authentication is that it can 
+reduce the risk of malicious data attack. An attacker may send a payload 
+aimed at doing damage during the xml parsing or data-validation utility 
+(DV). I know that the DV is made with the intention of being resistant to 
+this, but complex messages might be hard to validate safely. This is in 
+contrast to messages received from html forms, which can be safely 
+validated if they are all text strings.
+
+Going further, there's a case for splitting the validation process. First, 
+a 'sanity check' on the message. Then, authenticate. Finally, proper 
+validation. For example; 
+1- Check that is valid XML or SOAP. Maybe some broadly 
+application-specific stuff, such as checking that the message only has 
+text elements, no non-parse 'CDATA' bits. Or, that it is smaller than a 
+certain size. 
+2- Authenticate username/password
+3- Application-specific data validation.
+This may sound over-elaborate, but I don't think it's too bad. A typical 
+environment might have a dedicated web-server (Apache, perhaps) in front 
+of an Application Server (WebLogic, perhaps). The 'step 1' above could be 
+efficiently done in the Apache, and a category of bad messages blocked 
+within the DMZ. The same basic sanity check should work for many or all 
+applications. Then again, this step can also be done by many firewall 
+products, so may not be worth getting into.
+
+bye,
+John M
+__________________
+John Marmelstein
+www.StrongPoint.ie
+
+
+&gt;<i>&quot;Eoin Keary&quot; &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">eoinkeary at hotmail.com</A>&gt; wrote:
+</I>&gt;<i> Hi,
+</I>&gt;<i> Just I'd throw this out so see opinion:
+</I>&gt;<i> 
+</I>&gt;<i> A webservice:
+</I>&gt;<i> Uses HTTPS. The Payload (SOAP) is in the HTTP Header.
+</I>&gt;<i> The password and UserId are also in the HTTP header as header 
+</I>parameters.
+&gt;<i> (We can see the obvious issues here already?!#!?)
+</I>&gt;<i> 
+</I>&gt;<i> So,
+</I>&gt;<i> The service needs a requester to be authenticated.
+</I>&gt;<i> So sneding SOAP request (Over HTTPS) to this service gives us &quot;Access 
+</I>&gt;<i> Denied&quot; as I put in an incorrect password...ok so far
+</I>&gt;<i> Sending a modified request which the XML schema does not like (malformed 
+</I>&gt;<i> request for example) gives us a Data validation error....So DV is done &gt; 
+</I>before authentication.
+&gt;<i> 
+</I>&gt;<i> Which should come first in the case of webservices...?
+</I>&gt;<i> DV or Auth.
+</I>&gt;<i> If DV is first we may be able to do a DoS by sending 1000's of requests, 
+</I>&gt;<i> each one needing to be DV'ed. (Webservices are prone to DOS attacks).
+</I>&gt;<i> By doing Auth first, we need to DV the userId and password, Authenticate 
+</I>and 
+&gt;<i> then continue with the DV, which is complex....
+</I>&gt;<i> 
+</I>&gt;<i> Anyone have any ideas which should be first, the &quot;chicken or the egg&quot;?
+</I>&gt;<i> I have my own opinions but what do you good people think?
+</I>
+
+
+
+_________________________________________________________________
+eircom broadband is now up to four times faster than before.
+Phone 1850 73 00 73 or visit <A HREF="http://home.eircom.net/broadbandoffer">http://home.eircom.net/broadbandoffer</A>
+
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you 
+shotput
+a projector? How fast can you ride your desk chair down the office luge 
+track?
+If you want to score the big prize, get to know the little guy. 
+Play to win an NEC 61&quot; plasma display: <A HREF="http://www.necitguy.com/?r=20">http://www.necitguy.com/?r=20</A>
+_______________________________________________
+OWASP-Ireland mailing list
+<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-ireland">OWASP-Ireland at lists.sourceforge.net</A>
+<A HREF="https://lists.sourceforge.net/lists/listinfo/owasp-ireland">https://lists.sourceforge.net/lists/listinfo/owasp-ireland</A>
+
+
+
+******************************************************************************
+This email and any files transmitted with it are confidential and 
+intended solely for the use of the individual or entity to whom 
+they are addressed. If you have received this email in error please 
+contact the Helpdesk at 3955.
+*******************************************************************************
+
+
+
+
+
+
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Allianz Ireland p.l.c. and Allianz Corporate Ireland p.l.c. are companies of the Allianz Group, Europe's leading global insurer and provider of financial services. 
+For more information on our products and services log on to www.allianz.ie or call us on (01)613 3000.
+
+The information transmitted is intended only for the person or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of, or taking of any action or reliance upon, this information by persons or entities other than the intended recipient is prohibited. If you have received this in error, please contact the sender and delete the material from your computer.
+
+Allianz Ireland p.l.c. trading as Allianz is regulated by the Irish Financial Services Regulatory Authority (IFSRA). 
+Allianz Corporate Ireland p.l.c. trading as Allianz is regulated by the Irish Financial Services Regulatory Authority (IFSRA).
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="http://lists.owasp.org/pipermail/owasp-ireland/attachments/20050608/10c09ba2/attachment.html">http://lists.owasp.org/pipermail/owasp-ireland/attachments/20050608/10c09ba2/attachment.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000061.html">[OWASP-Ireland] Web services - DV Auth or Auth DV???
+</A></li>
+	<LI>Next message: <A HREF="000064.html">[OWASP-Ireland] Web services - DV Auth or Auth DV???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#62">[ date ]</a>
+              <a href="thread.html#62">[ thread ]</a>
+              <a href="subject.html#62">[ subject ]</a>
+              <a href="author.html#62">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-ireland">More information about the Owasp-ireland
+mailing list</a><br>
+</body></html>

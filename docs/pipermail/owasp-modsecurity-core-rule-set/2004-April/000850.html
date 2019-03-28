@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CA728B8E.2FAF4%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000849.html">
+   <LINK REL="Next"  HREF="000851.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?</H1>
+    <B>Paul McGarry</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CA728B8E.2FAF4%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?">paul at paulmcgarry.com
+       </A><BR>
+    <I>Tue Apr  6 00:37:08 EDT 2004</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000849.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+        <LI>Next message: <A HREF="000851.html">[Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the	Week: (Updated) Exception Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#850">[ date ]</a>
+              <a href="thread.html#850">[ thread ]</a>
+              <a href="subject.html#850">[ subject ]</a>
+              <a href="author.html#850">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Aug 18, 2011 at 11:40 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+
+&gt;&gt;<i>I think previously I have ended up disabling many the PHP-IDS based
+</I>&gt;&gt;<i>rules because of the false positives.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>Is there some difference between how PHP-IDS executes the rules and
+</I>&gt;&gt;<i>how modsecurity treats them?
+</I>
+&gt;&gt;<i>Similarly
+</I>&gt;&gt;<i>3 Orchard Street
+</I>&gt;&gt;<i>on the PHP_IDS demo is fine and
+</I>&gt;&gt;<i><A HREF="http://testing/index.php?street=3+Orchard+Street">http://testing/index.php?street=3+Orchard+Street</A>
+</I>&gt;&gt;<i>gives me warnings (981248 on &quot;3 Or&quot; and 981242 on &quot;3 Orc&quot;)
+</I>&gt;<i>
+</I>&gt;<i> The rule that triggered is not a converted PHPIDS rule but rather one that
+</I>&gt;<i> we developed as part of the SQL Injection Challenge analysis. &#160;This
+</I>&gt;<i> particular rule is trying to identify common SQL Operators. &#160;Examples here
+</I>
+Sorry, I probably didn't help there by jumping to a different rule ID
+for my first example.
+The second example (quoted above) did also use PHP IDS related rules
+which trigger in modsec but not on the PHP IDS demo site I think, I'll
+constrain discussion to the 981242 rule for now, which in the current
+release version is:
+
+======
+SecRule REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+&quot;(?i:(?:(\&quot;|'|`|&#180;|&#8217;|&#8216;)\s*x?or|div|like|between|and\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;)?\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\&quot;|'|`|&#180;|&#8217;|&#8216;)$)|(?:(?:^[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\\\\]*(?:[\d(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+|[^(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+(\&quot;|'|`|&#180;|&#8217;|&#8216;)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\&quot;|'|`|&#180;|&#8217;|&#8216;)[+&amp;!@(),.-])|(?:[^\w\s]\w+\s*[|-]\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;)\s*\w)|(?:@\w+\s+(and|x?or|div|like|between|and)\s*[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\d]+)|(?:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;).)|(?:\Winformation_schema|table_name\W))&quot;
+&quot;phase:2,capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,block,msg:'Detects
+classic SQL injection probings
+1/2',id:'981242',tag:'WEB_ATTACK/SQLI',tag:'WEB_ATTACK/ID',tag:'WEB_ATTACK/LFI',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.id}-%{rule.msg}',setvar:tx.anomaly_score=+6,setvar:'tx.%{tx.msg}-WEB_ATTACK/SQLI-%{matched_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/ID-%{matched_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/LFI-%{matched_var_name}=%{tx.0}'&quot;
+======
+
+If I understand the rule correctly it is really 8 separate,
+independent tests in one rule.
+Effectively:
+
+(?i:(\&quot;|'|`|&#180;|&#8217;|&#8216;)\s*x?or|div|like|between|and\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;)?\d)
+(?i:\\\\x(?:23|27|3d))
+(?i:^.?(\&quot;|'|`|&#180;|&#8217;|&#8216;)$)
+(?:(?:^[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\\\\]*(?:[\d(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+|[^(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+(\&quot;|'|`|&#180;|&#8217;|&#8216;)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\&quot;|'|`|&#180;|&#8217;|&#8216;)[+&amp;!@(),.-])
+(?i:[^\w\s]\w+\s*[|-]\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;)\s*\w)
+(?i:@\w+\s+(and|x?or|div|like|between|and)\s*[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\d]+)
+(?i:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\&quot;|'|`|&#180;|&#8217;|&#8216;).)
+(?i:\Winformation_schema|table_name\W)
+
+are all evaluated independently.
+
+What are the advantages to combining these into one rule?
+
+&gt;<i>From my perspective there are some obvious downsides eg:
+</I>1) Makes the rule more opaque when trying to understand it.
+2) Makes determining exactly what a particular exception is caused by
+more difficult.
+3) Makes rule removal more risky, ie if I need remove the rule
+(perhaps to allow &quot;3 Orchard&quot; which the 4th regex picks up) then I
+forgo a bunch of other checks that may still be useful.
+It would seem to me that the simpler the rules can be the more
+oversight of the rules there will be from people interested in the
+area. A lot of the posts to the list seem to be of the &quot;how do I
+disable X&quot; sort, perhaps because they take one look at the rule and
+put it in the too hard basket. They might be more inclined to try and
+improve them if they are more readily understandable.
+
+
+Specifically for the 4th regex which is one I have butted up against:
+
+(?:(?:^[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\\\\]*(?:[\d(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+|[^(\&quot;|'|`|&#180;|&#8217;|&#8216;)]+(\&quot;|'|`|&#180;|&#8217;|&#8216;)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\&quot;|'|`|&#180;|&#8217;|&#8216;)[+&amp;!@(),.-])
+
+
+1) Some of the () grouping in the regex seems to obfuscate rather than
+assist understanding, ie are the following the same (I am certainly
+not a regex expert):
+^[(\&quot;|'|`|&#180;|&#8217;|&#8216;)\\\\]*
+^[\&quot;'`&#180;&#8217;&#8216;\\\\]*
+
+2) What are the four \ in the same class, doesn't it just produce two
+literal \ in the class the second one being redundant?
+
+3) Is the &quot;x?x?&quot; intentional? If so why and should other areas only
+checking for xor also check for xxor?
+
+4) Is it wise to try and handle word operators (or, and, not) in the
+same rule code as symbol operators || and &amp;&amp;?
+I think this might be the underlying root of my false positive as SQL
+parsers will likely deal with them differently.
+Ie no SQL parser (I hope) is going to see &quot;3 Orchard&quot; and interpret
+the c as the start of a new word, whereas &quot;3 ||chard&quot; likely would and
+could lead to exploitation (perhaps &quot;3 Ortrue&quot; and &quot;3 ||true&quot; is a
+clearer example).
+It seems that tighter regexs with less false positives could be
+written if lexically different operators were treated separately.
+
+Paul
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000849.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+	<LI>Next message: <A HREF="000851.html">[Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the	Week: (Updated) Exception Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#850">[ date ]</a>
+              <a href="thread.html#850">[ thread ]</a>
+              <a href="subject.html#850">[ subject ]</a>
+              <a href="author.html#850">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

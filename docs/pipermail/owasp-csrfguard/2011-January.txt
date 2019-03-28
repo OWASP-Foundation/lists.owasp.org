@@ -1,0 +1,6540 @@
+From nikesh.chaturvedi at wipro.com  Thu Jan 27 09:18:45 2011
+From: nikesh.chaturvedi at wipro.com (nikesh.chaturvedi at wipro.com)
+Date: Thu, 27 Jan 2011 19:48:45 +0530
+Subject: [Owasp-csrfguard] Problem in using CSRF 3
+Message-ID: <9A42F0A3D4DD9947A20DC1B3281CA94AD9984A@DEL-GGN-MBX01.wipro.com>
+
+Hi All,
+
+ 
+
+I am trying to integrate CSRF 3 into my application on Spring
+Framework.Below are the steps which I done for configuring it:-
+
+ 
+
+ 
+
+1)      Placed Owasp.CsrfGuard.js, Owasp.CsrfGuard.properties and
+CSRFGuard-2.0.jar files in respective folders.
+
+ 
+
+2)      Configure Web.xml
+
+ 
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app id="WebApp_ID" version="2.5"
+xmlns="http://java.sun.com/xml/ns/javaee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+ 
+
+      <display-name>FINGate</display-name>
+
+ 
+
+      <description>FINGate Portal</description>
+
+      
+
+      <context-param>
+
+            <param-name>webAppRootKey</param-name>
+
+            <param-value>FINGate.root</param-value>
+
+      </context-param>
+
+      
+
+      <context-param>
+
+            <param-name>log4jConfigLocation</param-name>
+
+ 
+<param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+s</param-value>
+
+      </context-param>
+
+      
+
+      <context-param>
+
+            <param-name>contextConfigLocation</param-name>
+
+            <param-value>
+
+                  /WEB-INF/FINGate-portal-servlet.xml
+
+                  /WEB-INF/FINGate-portal-service.xml
+
+            </param-value>
+
+      </context-param>
+
+      
+
+      <listener>
+
+            <listener-class>
+
+                  org.springframework.web.context.ContextLoaderListener
+
+            </listener-class>
+
+      </listener>
+
+ 
+
+      <listener>
+
+ 
+<listener-class>org.springframework.web.context.request.RequestContextLi
+stener</listener-class>
+
+  </listener>
+
+      
+
+      <listener>
+
+            <listener-class>
+
+                  org.springframework.web.util.Log4jConfigListener
+
+            </listener-class>
+
+            
+
+      </listener>
+
+ 
+
+      <servlet>
+
+           <servlet-name>JavaScriptServlet</servlet-name>
+
+ 
+<servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-cl
+ass>
+
+           <init-param>
+
+               <param-name>source-file</param-name>
+
+               <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+
+           </init-param>
+
+           <init-param>
+
+               <param-name>inject-into-forms</param-name>
+
+               <param-value>true</param-value>
+
+           </init-param>
+
+           <init-param>
+
+               <param-name>inject-into-attributes</param-name>
+
+               <param-value>true</param-value>
+
+           </init-param>
+
+          <init-param>
+
+               <param-name>domain-strict</param-name>
+
+               <param-value>false</param-value>
+
+          </init-param>
+
+          <init-param>
+
+               <param-name>referer-pattern</param-name>
+
+               <param-value>.*localhost.*</param-value>
+
+          </init-param>
+
+      </servlet>
+
+ 
+
+      <servlet>
+
+            <servlet-name>FINGate-portal</servlet-name>
+
+            <servlet-class>
+
+                  org.springframework.web.servlet.DispatcherServlet
+
+            </servlet-class>
+
+            <load-on-startup>2</load-on-startup>
+
+      </servlet>
+
+ 
+
+      <servlet>
+
+      <servlet-name>InitLog</servlet-name>
+
+      <servlet-class>com.fiu.fingate.common.util.InitLog</servlet-class>
+
+      <init-param>
+
+            <param-name>log4j-init-file</param-name>
+
+ 
+<param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+s</param-value>
+
+      </init-param>
+
+    <load-on-startup>1</load-on-startup>
+
+  </servlet>
+
+      
+
+      <servlet-mapping>
+
+           <servlet-name>JavaScriptServlet</servlet-name>
+
+           <url-pattern>/JavaScriptServlet</url-pattern>
+
+      </servlet-mapping>
+
+ 
+
+      <servlet-mapping>
+
+            <servlet-name>FINGate-portal</servlet-name>
+
+            <url-pattern>*.do</url-pattern>
+
+      </servlet-mapping>
+
+ 
+
+      <session-config>
+
+            <session-timeout>15</session-timeout>
+
+      </session-config>
+
+ 
+
+      <welcome-file-list>
+
+            <welcome-file>index.jsp</welcome-file>
+
+      </welcome-file-list>
+
+      
+
+      <filter>
+
+            <filter-name>CSRFGuard</filter-name>
+
+ 
+<filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+
+            <init-param>
+
+                  <param-name>config</param-name>
+
+ 
+<param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+
+            </init-param>
+
+            <init-param>
+
+                  <param-name>print-config</param-name>
+
+                  <param-value>true</param-value>
+
+            </init-param>
+
+      </filter>
+
+      
+
+      <filter>
+
+      <filter-name>Foo</filter-name>
+
+ 
+<filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+
+      <init-param>
+
+      <param-name>targetBean</param-name>
+
+      <param-value>FingateFilter</param-value>
+
+      </init-param>
+
+      </filter>
+
+      
+
+      <filter-mapping>
+
+            <filter-name>CSRFGuard</filter-name>
+
+            <url-pattern>*.do</url-pattern>
+
+      </filter-mapping>
+
+      
+
+      <filter-mapping>
+
+      <filter-name>Foo</filter-name>
+
+      <url-pattern>*.do</url-pattern>
+
+      </filter-mapping>
+
+ 
+
+      <jsp-config>
+
+      <taglib>
+
+      <taglib-uri>BreadCrumbTags</taglib-uri>
+
+      <taglib-location>/WEB-INF/taglib37.tld</taglib-location>
+
+   </taglib>
+
+      </jsp-config>
+
+ 
+
+      </web-app>
+
+ 
+
+3)configure Owasp.CsrfGuard.properties  properties file
+
+ 
+
+# The OWASP CSRFGuard Project, BSD License
+
+# Eric Sheridan (eric.sheridan at owasp.org), Copyright (c) 2010 
+
+# All rights reserved.
+
+#
+
+# Redistribution and use in source and binary forms, with or without
+
+# modification, are permitted provided that the following conditions are
+met:
+
+#
+
+#     1. Redistributions of source code must retain the above copyright
+notice,
+
+#        this list of conditions and the following disclaimer.
+
+#     2. Redistributions in binary form must reproduce the above
+copyright
+
+#        notice, this list of conditions and the following disclaimer in
+the
+
+#        documentation and/or other materials provided with the
+distribution.
+
+#     3. Neither the name of OWASP nor the names of its contributors may
+be used
+
+#        to endorse or promote products derived from this software
+without specific
+
+#        prior written permission.
+
+#
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS"
+
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE
+
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE
+
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+BE LIABLE
+
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES
+
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES;
+
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON
+
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT
+
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS
+
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ 
+
+# Logger
+
+#
+
+# The logger property (org.owasp.csrfguard.Logger) defines the qualified
+class name of 
+
+# the object responsible for processing all log messages produced by
+CSRFGuard. The default
+
+# CSRFGuard logger is org.owasp.csrfguard.log.ConsoleLogger. This class
+logs all messages
+
+# to System.out which JavaEE application servers redirect to a vendor
+specific log file.
+
+# Developers can customize the logging behavior of CSRFGuard by
+implementing the
+
+# org.owasp.csrfguard.log.ILogger interface and setting the logger
+property to the new
+
+# logger's qualified class name. The following configuration snippet
+instructs OWASP CSRFGuard
+
+# to capture all log messages to the console:
+
+#
+
+# org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+
+ 
+
+# New Token Landing Page
+
+#
+
+# The new token landing page property
+(org.owasp.csrfguard.NewTokenLandingPage) defines
+
+# where to send a user if the token is being generated for the first
+time. CSRFGuard will
+
+# redirect the user to the current page without any parameters if the
+property is not specified.
+
+# Preventing the protected application from consuming a request whose
+session does not yet
+
+# have a CSRF token through the use of a redirect prevents the execution
+of a one-time CSRF
+
+# attack. The following configuration snippet instructs OWASP CSRFGuard
+to redirect the user to
+
+# /Owasp.CsrfGuard.Test/index.html when they visit a protected resource
+without having a
+
+# corresponding CSRF token present in the HttpSession object:
+
+#
+
+#
+org.owasp.csrfguard.NewTokenLandingPage=/Owasp.CsrfGuard.Test/index.html
+
+org.owasp.csrfguard.NewTokenLandingPage=/FINGate/newPassword.do
+
+ 
+
+# Unique Per-Page Tokens
+
+#
+
+# The unique token per-page property (org.owasp.csrfguard.TokenPerPage)
+is a boolean value that
+
+# determines if CSRFGuard should make use of unique per-page (i.e. URI)
+prevention tokens as
+
+# opposed to unique per-session prevention tokens. When a user requests
+a protected resource,
+
+# CSRFGuard will determine if a page specific token has been previously
+generated. If a page
+
+# specific token has not yet been previously generated, CSRFGuard will
+verify the request was
+
+# submitted with the per-session token intact. After verifying the
+presence of the per-session token,
+
+# CSRFGuard will create a page specific token that is required for all
+subsequent requests to the
+
+# associated resource. The per-session CSRF token can only be used when
+requesting a resource for
+
+# the first time. All subsequent requests must have the per-page token
+intact or the request will
+
+# be treated as a CSRF attack. Use of the unique token per page property
+is currently experimental
+
+# but provides a significant amount of improved security. Consider the
+exposure of a CSRF token using
+
+# the legacy unique per-session model. Exposure of this token
+facilitates the attacker's ability to
+
+# carry out a CSRF attack against the victim's active session for any
+resource exposed by the web
+
+# application. Now consider the exposure of a CSRF token using the
+experimental unique token per-page
+
+# model. Exposure of this token would only allow the attacker to carry
+out a CSRF attack against the
+
+# victim's active session for a small subset of resources exposed by the
+web application. Use of the
+
+# unique token per-page property is a strong defense in depth strategy
+significantly reducing the
+
+# impact of exposed CSRF prevention tokens. The following configuration
+snippet instructs OWASP
+
+# CSRFGuard to utilize the unique token per-page model:
+
+#
+
+# org.owasp.csrfguard.TokenPerPage=true
+
+org.owasp.csrfguard.TokenPerPage=true
+
+ 
+
+# Token Rotation
+
+#
+
+# The rotate token property (org.owasp.csrfguard.Rotate) is a boolean
+value that determines if
+
+# CSRFGuard should generate and utilize a new token after verifying the
+previous token. Rotation
+
+# helps minimize the window of opportunity an attacker has to leverage
+the victim's stolen token
+
+# in a targeted CSRF attack. However, this functionality generally
+causes navigation problems in
+
+# most applications. Specifically, the 'Back' button in the browser will
+often cease to function
+
+# properly. When a user hits the 'Back' button and interacts with the
+HTML, the browser may submit
+
+# an old token causing CSRFGuard to incorrectly believe this request is
+a CSRF attack in progress
+
+# (i.e. a 'false positive'). Users can prevent this scenario by
+preventing the caching of HTML pages
+
+# containing FORM submissions using the cache-control header. However,
+this may also introduce
+
+# performance problems as the browser will have to request HTML on a
+more frequent basis. The following
+
+# configuration snippet disables token rotation:
+
+#
+
+# org.owasp.csrfguard.Rotate=false
+
+ 
+
+# Ajax and XMLHttpRequest Support
+
+#
+
+# The Ajax property (org.owasp.csrfguard.Ajax) is a boolean value that
+indicates whether or not OWASP
+
+# CSRFGuard should support the injection and verification of unique
+per-session prevention tokens for
+
+# XMLHttpRequests. To leverage Ajax support, the user must not only set
+this property to true but must
+
+# also reference the JavaScript DOM Manipulation code using a script
+element. This dynamic script will
+
+# override the send method of the XMLHttpRequest object to ensure the
+submission of an X-Requested-With
+
+# header name value pair coupled with the submission of a custom header
+name value pair for each request.
+
+# The name of the custom header is the value of the token name property
+and the value of the header is
+
+# always the unique per-session token value. This custom header is
+analogous to the HTTP parameter name
+
+# value pairs submitted via traditional GET and POST requests. If the
+X-Requested-With header was sent
+
+# in the HTTP request, then CSRFGuard will look for the presence and
+ensure the validity of the unique
+
+# per-session token in the custom header name value pair. Note that
+verification of these headers takes
+
+# precedence over verification of the CSRF token supplied as an HTTP
+parameter. More specifically,
+
+# CSRFGuard does not verify the presence of the CSRF token if the Ajax
+support property is enabled and
+
+# the corresponding X-Requested-With and custom headers are embedded
+within the request. The following
+
+# configuration snippet instructs OWASP CSRFGuard to support Ajax
+requests by verifying the presence and
+
+# correctness of the X-Requested-With and custom headers:
+
+#
+
+# org.owasp.csrfguard.Ajax=true
+
+org.owasp.csrfguard.Ajax=true
+
+ 
+
+# Unprotected Pages:
+
+#
+
+# The unprotected pages property (org.owasp.csrfguard.unprotected.*)
+defines a series of pages that
+
+# should not be protected by CSRFGuard. Such configurations are useful
+when the CsrfGuardFilter is
+
+# aggressively mapped (ex: /*). The syntax of the property name is
+org.owasp.csrfguard.unprotected.[PageName],
+
+# where PageName is some arbitrary identifier that can be used to
+reference a resource. The syntax of
+
+# defining the uri of unprotected pages is the same as the syntax used
+by the JavaEE container for uri mapping.
+
+# Specifically, CSRFGuard will identify the first match (if any) between
+the requested uri and an unprotected
+
+# page in order of declaration. Match criteria is as follows:
+
+#
+
+# Case 1: exact match between request uri and unprotected page
+
+# Case 2: longest path prefix match, beginning / and ending /*
+
+# Case 3: extension match, beginning *.
+
+# Default: requested resource must be validated by CSRFGuard
+
+#
+
+# The following code snippet illustrates the three use cases over four
+examples. The first two examples
+
+# (Tag and JavaScriptServlet) look for direct URI matches. The third
+example (Html) looks for all resources
+
+# ending in a .html extension. The last example (Public) looks for all
+resources prefixed with the URI path /MySite/Public/*.
+
+#
+
+# org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+
+#
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test/
+JavaScriptServlet
+
+# org.owasp.csrfguard.unprotected.Html=*.html
+
+org.owasp.csrfguard.unprotected.Public=/FINGate/checkNewPassword.do
+
+ 
+
+#org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test
+/JavaScriptServlet
+
+#org.owasp.csrfguard.unprotected.Ajax=/Owasp.CsrfGuard.Test/ajax.html
+
+#org.owasp.csrfguard.unprotected.Error=/Owasp.CsrfGuard.Test/error.html
+
+#org.owasp.csrfguard.unprotected.Index=/Owasp.CsrfGuard.Test/index.html
+
+#org.owasp.csrfguard.unprotected.JavaScript=/Owasp.CsrfGuard.Test/javasc
+ript.html
+
+#org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+
+ 
+
+# Actions: Responding to Attacks
+
+#
+
+# The actions directive (org.owasp.csrfguard.action.*) gives the user
+the ability to specify one or more
+
+# actions that should be invoked when a CSRF attack is detected. Every
+action must implement the
+
+# org.owasp.csrfguard.action.IAction interface either directly or
+indirectly through the
+
+# org.owasp.csrfguard.action.AbstractAction helper class. Many actions
+accept parameters that can be specified
+
+# along with the action class declaration. These parameters are consumed
+at runtime and impact the behavior of
+
+# the associated action.
+
+#
+
+# The syntax for defining and configuring CSRFGuard actions is
+relatively straight forward. Let us assume we wish
+
+# to redirect the user to a default page when a CSRF attack is detected.
+A redirect action already exists within
+
+# the CSRFGuard bundle and is available via the class name
+org.owasp.csrfguard.actions.Redirect. In order to enable
+
+# this action, we capture the following declaration in the
+Owasp.CsrfGuard.properties file:
+
+#
+
+# syntax: org.owasp.csrfguard.action.[actionName]=[className]
+
+org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.Cs
+rfController
+
+#
+org.owasp.csrfguard.action.class.Redirect=com.fiu.fingate.controller.com
+mon.CsrfController
+
+#
+
+# The aforementioned directive declares an action called "Redirect"
+(i.e. [actionName]) referencing the Java class
+
+# "org.owasp.csrfguard.actions.Redirect" (i.e. [className]). Anytime a
+CSRF attack is detected, the Redirect action
+
+# will be executed. You may be asking yourself, "but how do I specify
+where the user is redirected?"; this is where
+
+# action parameters come into play. In order to specify the redirect
+location, we capture the following declaration
+
+# in the Owasp.CsrfGuard.properties file:
+
+#
+
+# syntax:
+org.owasp.csrfguard.action.[actionName].[parameterName]=[parameterValue]
+
+   org.owasp.csrfguard.action.Redirect.ErrorPage=/FINGate/newPassword.do
+
+#
+
+# The aforementioned directive declares an action parameter called
+"ErrorPage" (i.e. [parameterName]) with the value
+
+# of "/Owasp.CsrfGuard.Test/error.html" (i.e. [parameterValue]) for the
+action "Redirect" (i.e. [actionName]). The
+
+# Redirect action expects the "ErrorPage" parameter to be defined and
+will redirect the user to this location when
+
+# an attack is detected.
+
+#
+
+#org.owasp.csrfguard.action.Empty=org.owasp.csrfguard.action.Empty
+
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+
+org.owasp.csrfguard.action.Log.Message=potential cross-site request
+forgery (CSRF) attack thwarted (user:%user, ip:%remote_ip,
+uri:%request_uri)
+
+#org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invali
+date
+
+#org.owasp.csrfguard.action.class.Redirect=org.owasp.csrfguard.actions.R
+edirect
+
+#org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.C
+srfController
+
+#org.owasp.csrfguard.action.Redirect.Page=/index.jsp
+
+#org.owasp.csrfguard.action.RequestAttribute=org.owasp.csrfguard.action.
+RequestAttribute
+
+#org.owasp.csrfguard.action.RequestAttribute.AttributeName=Owasp_CsrfGua
+rd_Exception_Key
+
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+
+#org.owasp.csrfguard.action.SessionAttribute=org.owasp.csrfguard.action.
+SessionAttribute
+
+#org.owasp.csrfguard.action.SessionAttribute.AttributeName=Owasp_CsrfGua
+rd_Exception_Key
+
+ 
+
+# Token Name
+
+#
+
+# The token name property (org.owasp.csrfguard.TokenName) defines the
+name of the HTTP parameter
+
+# to contain the value of the OWASP CSRFGuard token for each request.
+The following configuration
+
+# snippet sets the CSRFGuard token parameter name to the value
+OWASP_CSRFTOKEN:
+
+#
+
+# org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+
+ 
+
+# Session Key
+
+#
+
+# The session key property (org.owasp.csrfguard.SessionKey) defines the
+string literal used to save
+
+# and lookup the CSRFGuard token from the session. This value is used by
+the filter and the tag
+
+# libraries to retrieve and set the token value in the session.
+Developers can use this key to
+
+# programmatically lookup the token within their own code. The following
+configuration snippet sets
+
+# the session key to the value OWASP_CSRFTOKEN:
+
+#
+
+# org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+
+ 
+
+# Token Length
+
+#
+
+# The token length property (org.owasp.csrfguard.TokenLength) defines
+the number of characters that
+
+# should be found within the CSRFGuard token. Note that characters are
+delimited by dashes (-) in groups
+
+# of four. For cosmetic reasons, users are encourage to ensure the token
+length is divisible by four.
+
+# The following configuration snippet sets the token length property to
+32 characters:
+
+#
+
+# org.owasp.csrfguard.TokenLength=32
+
+org.owasp.csrfguard.TokenLength=32
+
+ 
+
+# Pseudo-random Number Generator
+
+#
+
+# The pseudo-random number generator property (org.owasp.csrfguard.PRNG)
+defines what PRNG should be used
+
+# to generate the OWASP CSRFGuard token. Always ensure this value
+references a cryptographically strong
+
+# pseudo-random number generator algorithm. The following configuration
+snippet sets the pseudo-random number
+
+# generator to SHA1PRNG:
+
+#
+
+# org.owasp.csrfguard.PRNG=SHA1PRNG
+
+org.owasp.csrfguard.PRNG=SHA1PRNG
+
+ 
+
+ 
+
+4)Inserted javascript tag in fingatehome.jsp
+
+ 
+
+ 
+
+<html>
+
+<head>
+
+      <title>Welcome to FIU-IND</title>
+
+      <meta http-equiv="PRAGMA" content="NO-CACHE" ></meta>
+
+      <meta http-equiv="Expires" content="-1" ></meta>
+
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8"
+/>
+
+      <%@ taglib prefix="spring"
+uri="http://www.springframework.org/tags" %>
+
+      <%@ taglib prefix="form"
+uri="http://www.springframework.org/tags/form" %>
+
+      <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+      <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+
+ 
+
+      
+
+            <link href="${channelBean.context}/css/fiu.css"
+rel="stylesheet" type="text/css">
+
+            <script language="JavaScript"
+src="${channelBean.context}/js/pupdate.js"></script>
+
+            <script language="JavaScript"
+src="${channelBean.context}/js/fingate.js"></script>
+
+            <script
+src="${channelBean.context}/JavaScriptServlet"></script>
+
+            
+
+</head>
+
+ 
+
+<body topmargin="0" leftmargin="0" bgcolor="#e1e1e1">
+
+ 
+
+<TABLE cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" border="0"
+width="1003" align="center">
+
+      <TR>
+
+            <TD valign="top">
+
+      <jsp:include page="/jsp/common/fiuheader.jsp"></jsp:include>
+
+            </td>
+
+      </tr>
+
+      <tr>
+
+            <td>
+
+                  <!-- Menu Starts here -->
+
+      <jsp:include page="/jsp/common/fiumenu.jsp"></jsp:include>
+
+   
+
+                  <!-- Menu Ends here -->
+
+            </td>
+
+      </tr>
+
+      <tr>
+
+            <td valign="top" class="minheight">
+
+                  <!-- Body Starts here -->
+
+                  <TABLE cellpadding="0" cellspacing="0" border="0"
+width="1003" align="center">
+
+                  <tr>
+
+                  <jsp:include
+page="/jsp/common/loginWelcomeHeader.jsp"></jsp:include>
+
+<!--                    <td class="leftpanel" valign="middle"><span
+class="welcome">Welcome,
+<B>${sessionBean.loggedInUserName}</B></span></td>-->
+
+                        <td class="rightpanel" valign="top">
+
+                              <TABLE cellpadding="0" cellspacing="0"
+border="0" width="100%">
+
+                              <TR>
+
+                                    <TD class="breadcrums"><B>&nbsp;</B>
+<span class="ornglink">&nbsp;</span>&nbsp;</TD>
+
+                                    <jsp:include
+page="/jsp/common/logoutHeader.jsp"></jsp:include>
+
+                                    
+
+<!--                                <TD class="logindetails"
+align="right">-->
+
+<!--                                      <span class="lastlogin">Last
+Login: ${sessionBean.lastLogin} hrs</span> |-->
+
+<!--                                      <span class="logout"><a
+href="https://10.24.235.231/pkmslogout?filename=logout.html">Logout</a><
+/span>-->
+
+<!--                                </TD>-->
+
+                              </TR>
+
+                              </TABLE>
+
+                        </td>
+
+                  </tr>
+
+                  <TR>
+
+                        <TD colspan="2" valign="top">
+
+                              <TABLE cellpadding="0" cellspacing="0"
+bgcolor="#FFFFFF" border="0" width="100%" align="center"
+class="rlpadding">
+
+                              <TR>
+
+                                    <TD valign="top"><!-- Column 1 -->
+
+                                          <TABLE cellpadding="0"
+cellspacing="0" bgcolor="#FFFFFF" border="0" width="100%">
+
+                                                <TR>
+
+                                                      <TD valign="top">
+
+                                                            <TABLE
+class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+
+                                                            <TR>
+
+                                                                  <TD
+colspan="2"
+background="${channelBean.context}/images/menu_heading_bg.gif"><img
+src="${channelBean.context}/images/menu_heading.gif" title="Message
+Inbox"></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="messages" width="150"><a href="#">Messages</a><span
+class="newmssg">(Unread)</span></TD>
+
+                                                                  <TD
+><a href="${channelBean.context}/messages/messageInbox.do">
+
+                                                                  
+
+                                             <c:if
+test="${(unreadHome!=null)&&(unreadHome!=0)}" >
+
+                                                                        
+
+                                             <span
+class="messages">(${unreadHome})</span>
+
+                                                                  
+
+                                             </c:if>  
+
+                                                                  
+
+                                             </a></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="secmessages"><a href="#">Secure Messages</a><span
+class="newmssg">(Unread)</span></TD>
+
+                                                                  <TD
+><a href="${channelBean.context}/messages/secureMessageInbox.do">
+
+                                                                  
+
+                                            <c:if
+test="${(unreadSecureMessage1!=null)&&(unreadSecureMessage1!=0)}" >
+
+                                                                  
+
+                                            <span
+class="messages">(${unreadSecureMessage1})</span>
+
+                                                                  
+
+                                             </c:if>  
+
+                                                                  
+
+                                              </a></TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </TD>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td><img
+src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td valign="top">
+
+                                                            <TABLE
+class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+
+                                                            <TR>
+
+                                                                  <TD
+colspan="2"
+background="${channelBean.context}/images/menu_heading_bg.gif"><img
+src="${channelBean.context}/images/reports_heading.gif"
+title="Reports"></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="reports_link" width="150"><a href="#">Rejected Reports</a></TD>
+
+                                                                  <TD
+class="reports_link"><a href="#">(1)</a></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="reports_link" width="150">Overdue Reports</TD>
+
+                                                                  <TD
+class="reports_link">(2)</TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="reports_link" width="150">Additional Information</TD>
+
+                                                                  <TD
+class="reports_link">(2)</TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td><img
+src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td valign="top">
+
+                                                            <TABLE
+class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+
+                                                            <TR>
+
+                                                                  <TD
+colspan="2"
+background="${channelBean.context}/images/menu_heading_bg.gif"><img
+src="${channelBean.context}/images/approval_heading.gif"
+title="Approvals Pending"></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="reports_link" width="150"><a href="#">New User</a></TD>
+
+                                                                  <TD
+class="reports_link"><a href="#">(2)</a></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="reports_link">Profile Change</TD>
+
+                                                                  <TD
+class="reports_link">(2)</TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </TR>
+
+                                          </TABLE>
+
+                                    </TD>
+
+                                    <TD valign="top"><!-- Column 2 -->
+
+                                          <TABLE cellpadding="0"
+cellspacing="0" bgcolor="#FFFFFF">
+
+                                                <TR>
+
+                                                      <TD valign="top">
+
+                                                            <TABLE
+class="alerttable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+width="240">
+
+                                                            <TR>
+
+                                                                  <TD
+background="${channelBean.context}/images/alert_heading_bg.gif"><img
+src="${channelBean.context}/images/alert_heading.gif"
+title="Alerts"></TD>
+
+                                                            </tr>
+
+
+                                                           <tr>
+
+                                                                  
+
+ 
+<c:forEach items="${UserDetailsCommand.alertList}" var="loginBean"
+varStatus="status" begin="0" end="0">
+
+
+ 
+<c:set var="alertId" scope="page" value="${loginBean.alertId}"/>
+
+                                                                  
+
+ 
+<TD class="alertmssgbrickred" valign="top">
+
+ 
+<c:out value="${loginBean.alertMessage}" /></TD>
+
+                                                                  
+
+ 
+</c:forEach>                                                            
+
+                                                            </tr>
+
+                                                            <tr>
+
+                                                                  <TD
+class="alertmore" valign="top">
+
+ 
+<a href="resources/listAlerts.do">more</a>
+
+                                                                  </TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td><img
+src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td>
+
+                                                            <TABLE
+class="tiptable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+width="240">
+
+                                                            <TR>
+
+                                                                  <TD
+background="${channelBean.context}/images/tip_heading_bg.gif"><img
+src="${channelBean.context}/images/tip_heading.gif" title="Tips"></TD>
+
+                                                            </TR>
+
+                                                            <TR>
+
+ 
+<c:forEach items="${UserDetailsCommand.tipList}" var="loginBean"
+varStatus="status" begin="0" end="0">
+
+
+ 
+<c:set var="tipsId" scope="page" value="${loginBean.tipsId}"/>
+
+                                                                  
+
+ 
+<TD class="tipmssg">
+
+ 
+<c:out value="${loginBean.tipsDetail}" /></TD>
+
+                                                                  
+
+ 
+</c:forEach>
+
+                                                            </TR>
+
+                                                            <TR>
+
+                                                                  <TD
+class="more" valign="top"><a href="resources/listTips.do">more</a></TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td><img
+src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td>
+
+
+                                                            <TABLE
+class="eventtable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+width="240">
+
+                                                            <TR>
+
+                                                                  <TD
+colspan="2"
+background="${channelBean.context}/images/events_heading_bg.gif"><img
+src="${channelBean.context}/images/events_heading.gif"
+title="Events"></TD>
+
+                                                            </TR>
+
+                                                            <c:forEach
+items="${UserDetailsCommand.eventList}" var="loginBean"
+varStatus="status" begin="0" end="2">
+
+                                                            <TR>
+
+ 
+
+
+                                                                  <c:set
+var="eventId" scope="page" value="${loginBean.eventId}"/>
+
+                                                                  <TD
+class="eventdatetop" valign="top"><c:out
+value="${loginBean.eventStartDate}" /></TD>
+
+                                                                  <TD
+class="eventdateblue"><c:out value="${loginBean.eventName}" /></TD>
+
+                                                                  
+
+                                                                  
+
+ 
+</TR></c:forEach>
+
+                                                            <TR>
+
+                                                                  <TD
+class="more" valign="top" colspan="2"><a
+href="resources/listEvents.do">more</a></TD>
+
+                                                            </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </tr>
+
+                                          </table>
+
+
+                                    </TD>
+
+                                    <TD valign="top"><!-- Column 3 -->
+
+                                          <TABLE class="menutable"
+cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="275">
+
+                                                <tr>
+
+                                                      <td
+background="${channelBean.context}/images/resources_heading_bg.gif"><img
+src="${channelBean.context}/images/resources_heading.gif"
+title="Resources"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td
+class="resource_subhead">Downloads</td>
+
+                                                </tr>
+
+                                                <c:forEach
+items="${UserDetailsCommand.colDownloadList}" var="loginBean"
+varStatus="status" begin="0" end="2">
+
+                                                            <TR>
+
+
+                                                                  <TD
+class="resource_download_detail"><c:out value="${loginBean.topic}"
+/></TD>
+
+                                                            </TR>
+
+                                                </c:forEach>
+
+                                                
+
+                                                <TR>
+
+                                                      <TD
+class="res_more" valign="top" colspan="2"><a
+href="resources/listDownloads.do">more</a></TD>
+
+                                                </TR>
+
+                                                <tr>
+
+                                                      <td
+class="resource_subhead">FAQs</td>
+
+                                                </tr>
+
+                                                <c:forEach
+items="${UserDetailsCommand.faqList}" var="loginBean" varStatus="status"
+begin="0" end="2">
+
+                                                            <TR>
+
+
+                                                                  <TD
+class="resource_download_detail">
+
+                                                                  
+
+                                                                  
+
+                                                                  <c:out
+value="${loginBean.topic}" /></TD>
+
+                                                            </TR>
+
+                                                </c:forEach>
+
+                                                <TR>
+
+                                                      <TD
+class="res_more" valign="top" colspan="2"><a
+href="resources/listFAQ.do">more</a></TD>
+
+                                                </TR>
+
+ 
+
+                                                <tr>
+
+                                                      <td
+class="resource_subhead">Problems & Solutions</td>
+
+                                                </tr>
+
+                                                <c:forEach
+items="${UserDetailsCommand.problemList}" var="loginBean"
+varStatus="status" begin="0" end="2">
+
+                                                            <TR>
+
+
+                                                                  <TD
+class="resource_download_detail">
+
+                                                                  
+
+                                                                  
+
+                                                                  <c:out
+value="${loginBean.topic}" /></TD>
+
+                                                            </TR>
+
+                                                </c:forEach>
+
+                                                <TR>
+
+                                                      <TD
+class="res_more" valign="top" colspan="2"><a
+href="resources/listProblemSolution.do">more</a></TD>
+
+                                                </TR>
+
+                                                <tr>
+
+                                                      <td
+class="resource_subhead">Discussion Forums</td>
+
+                                                </tr>
+
+                                                <c:forEach
+items="${UserDetailsCommand.discussionForumList}" var="loginBean"
+varStatus="status" begin="0" end="2">
+
+                                                            <TR>
+
+
+                                                                  <c:set
+var="categoryId" scope="page" value="${loginBean.forumCategoryName}"/>
+
+                                                                  
+
+                                                                  <TD
+class="resource_download_detail">
+
+                                                                  
+
+                                                                  
+
+                                                                  <c:out
+value="${loginBean.forumCategoryName}" /></TD>
+
+                                                            </TR>
+
+                                                </c:forEach>
+
+                                                <TR>
+
+                                                      <TD
+class="res_more" valign="top" colspan="2"><a
+href="resources/listDiscussionForumCategory.do">more</a></TD>
+
+                                                </TR>
+
+                                          </table>
+
+                                    </TD>
+
+                                    <TD valign="top"><!-- Column 4 -->
+
+                                          <TABLE class="menutable"
+cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="251">
+
+                                                <tr>
+
+                                                      <td
+background="${channelBean.context}/images/currentpoll_heading_bg.gif"><i
+mg src="${channelBean.context}/images/currentpoll_heading.gif"
+title="Current Survey"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td
+class="currentpolls" valign="top">
+
+                                                      <jsp:include
+page="/jsp/common/fiuCurrentPoll.jsp"></jsp:include>
+
+<!--                                                        <table
+cellpadding="0" cellspacing="0" width="100%" border="0">-->
+
+<!--                                                        -->
+
+<!--
+<tr>-->
+
+<!--
+<td class="arrow" valign="top"><img
+src="${channelBean.context}/images/poll_arrow.gif"></td>-->
+
+<!--
+<td colspan="6" class="pollQ" valign="top"><c:out
+value="${UserDetailsCommand.currentPollDetailsBean.pollQuestion}"/></td>
+-->
+
+<!--
+</tr>-->
+
+<!--
+<c:forEach
+items="${UserDetailsCommand.currentPollDetailsBean.optionList}"
+var="pollOptionBean" varStatus="status">-->
+
+<!--
+<tr>-->
+
+<!--
+<td class="customPoll" valign="top">&nbsp;</td>-->
+
+<!--
+<td class="customPoll" valign="top" width="10"><input type="radio"
+name="optionId" value="${pollOptionBean.optionId}"><c:out
+value="${pollOptionBean.option}" /></td>-->
+
+<!--
+</tr>-->
+
+<!--
+</c:forEach>-->
+
+<!--
+<tr>-->
+
+<!--
+<td colspan="6" style="padding-right:25px;" align="right"><a
+href="#"><img src="${channelBean.context}/images/submit.gif"
+title="Submit" border="0"
+onclick="submitPolls('submitPoll.do')"></a></td>-->
+
+<!--
+</tr>-->
+
+<!--                                                        </table>-->
+
+                                                      </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td valign="top"
+background="${channelBean.context}/images/prev_poll_heading_bg.gif"><img
+src="${channelBean.context}/images/prev_poll_heading.gif"
+title="Previous Survey Results"></td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td valign="top"
+class="prev_poll">
+
+                                                            <TABLE
+cellpadding="0" cellspacing="0" width="100%" border="0">
+
+                                                                  <tr>
+
+ 
+<c:if test="${not empty
+UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+
+ 
+<td class="arrow" valign="top">
+
+ 
+<img src="${channelBean.context}/images/poll_arrow.gif">
+
+ 
+</td>
+
+ 
+<td colspan="2" class="pollQ" valign="top">
+
+ 
+<c:out
+value="${UserDetailsCommand.previousPollDetailsBean.pollQuestion}"/>
+
+ 
+</td>
+
+ 
+</c:if>
+
+                                                                        
+
+                                                                  </tr>
+
+                                                                  <TR>
+
+ 
+<TD colspan="3">
+
+ 
+<c:if test="${not empty
+UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+
+<!--
+<img src="${channelBean.context}/images/pie.gif" title="Result Pie
+Chart">-->
+
+ 
+<c:forEach
+items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+var="pollOptionBean" varStatus="status">
+
+ 
+<c:set var="totalResponse"
+value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+scope="page"/>
+
+ 
+<c:set var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+scope="page"/>
+
+ 
+<c:set var="val" value="${(pollResponse*100)/totalResponse}" />
+
+ 
+<c:if test="${status.count=='1'}">
+
+ 
+<c:set var="paramOption1" value="${pollOptionBean.option}"
+scope="page"/>
+
+ 
+<c:set var="paramValue1" value="${val}" scope="page"/>
+
+ 
+</c:if>
+
+ 
+<c:if test="${status.count=='2'}">
+
+ 
+<c:set var="paramOption2" value="${pollOptionBean.option}"
+scope="page"/>
+
+ 
+<c:set var="paramValue2" value="${val}" scope="page"/>
+
+ 
+</c:if>
+
+ 
+<c:if test="${status.count=='3'}">
+
+ 
+<c:set var="paramOption3" value="${pollOptionBean.option}"
+scope="page"/>
+
+ 
+<c:set var="paramValue3" value="${val}" scope="page"/>
+
+ 
+</c:if>
+
+ 
+<c:if test="${status.count=='4'}">
+
+ 
+<c:set var="paramOption4" value="${pollOptionBean.option}"
+scope="page"/>
+
+ 
+<c:set var="paramValue4" value="${val}" scope="page"/>
+
+ 
+</c:if>
+
+ 
+</c:forEach>
+
+ 
+<jsp:include page="/jsp/common/pieChart.jsp">
+
+ 
+<jsp:param name="paramOption1" value="${paramOption1}" />
+
+ 
+<jsp:param name="paramValue1" value="${paramValue1}" />
+
+ 
+<jsp:param name="paramOption2" value="${paramOption2}" />
+
+ 
+<jsp:param name="paramValue2" value="${paramValue2}" />
+
+ 
+<jsp:param name="paramOption3" value="${paramOption3}" />
+
+ 
+<jsp:param name="paramValue3" value="${paramValue3}" />
+
+ 
+<jsp:param name="paramOption4" value="${paramOption4}" />
+
+ 
+<jsp:param name="paramValue4" value="${paramValue4}" />
+
+ 
+</jsp:include>
+
+ 
+</c:if>
+
+ 
+</TD>
+
+<!--
+<TD valign="top" width="50%">-->
+
+<!--
+<TABLE cellpadding="2" cellspacing="0" border="0" width="100%">-->
+
+<!--
+<c:forEach
+items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+var="pollOptionBean" varStatus="status">-->
+
+<!--
+<TR>-->
+
+<!--
+<c:if test="${status.count=='1'}">-->
+
+<!--
+<TD valign="top" class="color"><img
+src="${channelBean.context}/images/yes.gif"></TD>-->
+
+<!--
+</c:if>-->
+
+<!--
+<c:if test="${status.count=='2'}">-->
+
+<!--
+<TD valign="top" class="color"><img
+src="${channelBean.context}/images/no.gif"></TD>-->
+
+<!--
+</c:if>-->
+
+<!--
+<c:if test="${status.count=='3'}">-->
+
+<!--
+<TD valign="top" class="color"><img
+src="${channelBean.context}/images/mayb.gif"></TD>-->
+
+<!--
+</c:if>-->
+
+<!--
+<c:if test="${status.count=='4'}">-->
+
+<!--
+<TD valign="top" class="color"><img
+src="${channelBean.context}/images/idc.gif"></TD>-->
+
+<!--
+</c:if>-->
+
+<!--
+<TD valign="top" class="pollmarks"><c:out
+value="${pollOptionBean.option}" /></TD>-->
+
+<!--
+</TR>-->
+
+<!--
+</c:forEach>-->
+
+<!--
+</TABLE>-->
+
+<!--
+</TD>-->
+
+                                                                  </TR>
+
+                                                            </TABLE>
+
+                                                      </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                      <td
+class="results">
+
+                                                      <c:forEach
+items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+var="pollOptionBean" varStatus="status">
+
+                                                      <span
+class="title">
+
+<!--                                                  <c:out
+value="${pollOptionBean.option}" />-->
+
+                                                      </span>
+
+<!--                                                  <c:set
+var="totalResponse"
+value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+scope="page"/>-->
+
+<!--                                                  <c:set
+var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+scope="page"/>-->
+
+<!--                                                  <c:set var="val"
+value="${(pollResponse*100)/totalResponse}" />-->
+
+<!--                                                  <fmt:setLocale
+value="en_US"/>-->
+
+<!--                                                  <span
+class="percentage"><fmt:formatNumber value="${val}" type="number"
+maxFractionDigits="0"/>%</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+
+                                                      </c:forEach>
+
+                                                      </td>
+
+                                                </tr>
+
+                                          </table>
+
+                                    </TD>
+
+                              </TR>
+
+                              </TABLE>
+
+                        </TD>
+
+                  </TR>
+
+                  <tr>
+
+                        <td colspan="2" class="data"><br></td>
+
+                  </tr>
+
+                  <tr>
+
+                        <td colspan="2">
+
+                              <TABLE cellpadding="0" cellspacing="0"
+bgcolor="#FFFFFF" border="0" width="1003" align="center">
+
+                                    <TR>
+
+                                          <TD class="footerlinks"><a
+href="#">Sitemap</a> | <a href="#">Disclaimer</a></TD>
+
+                                          <TD
+class="footer">&copy;Copyright 2010 FIU-IND. All Rights Reserved.</TD>
+
+                                    </TR>
+
+                              </TABLE>
+
+                        </td>
+
+                  </tr>
+
+                  </TABLE>
+
+                  <!-- Body Ends here -->
+
+            </td>
+
+      </tr>
+
+</table>
+
+</body>
+
+</html>
+
+ 
+
+ 
+
+But the problem is when I click on any link in fingatehome.jsp it is
+giving potential cross-site request forgery (CSRF) attack thwarted.
+
+ 
+
+Can anyone tell me what wrong I am doing as it is not allowing me to
+access any of my webpage.I want to apply security for all my application
+web pages.But I don't know how to use it.
+
+ 
+
+Thanks and regards
+
+Nikesh
+
+
+Please do not print this email unless it is absolutely necessary. 
+
+The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments. 
+
+WARNING: Computer viruses can be transmitted via email. The recipient should check this email and any attachments for the presence of viruses. The company accepts no liability for any damage caused by any virus transmitted by this email. 
+
+www.wipro.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110127/237f259d/attachment-0001.html 
+
+From eric.sheridan at owasp.org  Thu Jan 27 15:57:17 2011
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Thu, 27 Jan 2011 15:57:17 -0500
+Subject: [Owasp-csrfguard] Problem in using CSRF 3
+In-Reply-To: <9A42F0A3D4DD9947A20DC1B3281CA94AD9984A@DEL-GGN-MBX01.wipro.com>
+References: <9A42F0A3D4DD9947A20DC1B3281CA94AD9984A@DEL-GGN-MBX01.wipro.com>
+Message-ID: <4D41DC2D.1030801@owasp.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Thanks for trying out CSRFGuard 3.0! I'm really in need of feedback and
+hope to push it to BETA status in late February. Here are a few comments
+that may address or help better identify your problem:
+
+1. Is your application running on localhost? If not, the
+JavaScriptServlet will not properly respond to your JavaScript requests
+as the referer header will not match .*localhost.* (see
+'referer-pattern' in init-param). Now the referer header may not be sent
+with the request, either, which would cause problems. In this event, try
+removing the 'referer-pattern' init-param completely.
+2. See if you are still having problems when setting
+org.owasp.csrfguard.TokenPerPage to false in Owasp.CsrfGuard.properties
+3. See if you are still having problems when setting
+org.owasp.csrfguard.Ajax to false in Owasp.CsrfGuard.properties.
+4. Does CsrfGuard try and redirect you to anywhere? I noticed you
+created a "Redirect" action but did not specify the page (i.e.
+"Redirect.Page=/csrf.jsp").
+
+Unfortunately this is a bit tough to debug remotely. I'd look at any
+console logs that may provide more info about the sequence of operations
+going on and corresponding traffic. Hook up a HTTP proxy. When you click
+the link, do you see a token sent in the request? Do you get any errors
+in your browser's JavaScript console (i.e. possible bug in JS code)?
+
+I'll try to push another ALPHA release of CSRFGuard containing a few
+minor updates for you to try as well.
+
+- -Eric
+
+
+On 1/27/11 9:18 AM, nikesh.chaturvedi at wipro.com wrote:
+> Hi All,
+> 
+>  
+> 
+> I am trying to integrate CSRF 3 into my application on Spring
+> Framework.Below are the steps which I done for configuring it:-
+> 
+>  
+> 
+>  
+> 
+> 1)      Placed Owasp.CsrfGuard.js, Owasp.CsrfGuard.properties and
+> CSRFGuard-2.0.jar files in respective folders.
+> 
+>  
+> 
+> 2)      Configure Web.xml
+> 
+>  
+> 
+> <?xml version="1.0" encoding="UTF-8"?>
+> 
+> <web-app id="WebApp_ID" version="2.5"
+> xmlns="http://java.sun.com/xml/ns/javaee"
+> xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+> xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+> http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+> 
+>  
+> 
+>       <display-name>FINGate</display-name>
+> 
+>  
+> 
+>       <description>FINGate Portal</description>
+> 
+>       
+> 
+>       <context-param>
+> 
+>             <param-name>webAppRootKey</param-name>
+> 
+>             <param-value>FINGate.root</param-value>
+> 
+>       </context-param>
+> 
+>       
+> 
+>       <context-param>
+> 
+>             <param-name>log4jConfigLocation</param-name>
+> 
+>  
+> <param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+> s</param-value>
+> 
+>       </context-param>
+> 
+>       
+> 
+>       <context-param>
+> 
+>             <param-name>contextConfigLocation</param-name>
+> 
+>             <param-value>
+> 
+>                   /WEB-INF/FINGate-portal-servlet.xml
+> 
+>                   /WEB-INF/FINGate-portal-service.xml
+> 
+>             </param-value>
+> 
+>       </context-param>
+> 
+>       
+> 
+>       <listener>
+> 
+>             <listener-class>
+> 
+>                   org.springframework.web.context.ContextLoaderListener
+> 
+>             </listener-class>
+> 
+>       </listener>
+> 
+>  
+> 
+>       <listener>
+> 
+>  
+> <listener-class>org.springframework.web.context.request.RequestContextLi
+> stener</listener-class>
+> 
+>   </listener>
+> 
+>       
+> 
+>       <listener>
+> 
+>             <listener-class>
+> 
+>                   org.springframework.web.util.Log4jConfigListener
+> 
+>             </listener-class>
+> 
+>             
+> 
+>       </listener>
+> 
+>  
+> 
+>       <servlet>
+> 
+>            <servlet-name>JavaScriptServlet</servlet-name>
+> 
+>  
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-cl
+> ass>
+> 
+>            <init-param>
+> 
+>                <param-name>source-file</param-name>
+> 
+>                <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+> 
+>            </init-param>
+> 
+>            <init-param>
+> 
+>                <param-name>inject-into-forms</param-name>
+> 
+>                <param-value>true</param-value>
+> 
+>            </init-param>
+> 
+>            <init-param>
+> 
+>                <param-name>inject-into-attributes</param-name>
+> 
+>                <param-value>true</param-value>
+> 
+>            </init-param>
+> 
+>           <init-param>
+> 
+>                <param-name>domain-strict</param-name>
+> 
+>                <param-value>false</param-value>
+> 
+>           </init-param>
+> 
+>           <init-param>
+> 
+>                <param-name>referer-pattern</param-name>
+> 
+>                <param-value>.*localhost.*</param-value>
+> 
+>           </init-param>
+> 
+>       </servlet>
+> 
+>  
+> 
+>       <servlet>
+> 
+>             <servlet-name>FINGate-portal</servlet-name>
+> 
+>             <servlet-class>
+> 
+>                   org.springframework.web.servlet.DispatcherServlet
+> 
+>             </servlet-class>
+> 
+>             <load-on-startup>2</load-on-startup>
+> 
+>       </servlet>
+> 
+>  
+> 
+>       <servlet>
+> 
+>       <servlet-name>InitLog</servlet-name>
+> 
+>       <servlet-class>com.fiu.fingate.common.util.InitLog</servlet-class>
+> 
+>       <init-param>
+> 
+>             <param-name>log4j-init-file</param-name>
+> 
+>  
+> <param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+> s</param-value>
+> 
+>       </init-param>
+> 
+>     <load-on-startup>1</load-on-startup>
+> 
+>   </servlet>
+> 
+>       
+> 
+>       <servlet-mapping>
+> 
+>            <servlet-name>JavaScriptServlet</servlet-name>
+> 
+>            <url-pattern>/JavaScriptServlet</url-pattern>
+> 
+>       </servlet-mapping>
+> 
+>  
+> 
+>       <servlet-mapping>
+> 
+>             <servlet-name>FINGate-portal</servlet-name>
+> 
+>             <url-pattern>*.do</url-pattern>
+> 
+>       </servlet-mapping>
+> 
+>  
+> 
+>       <session-config>
+> 
+>             <session-timeout>15</session-timeout>
+> 
+>       </session-config>
+> 
+>  
+> 
+>       <welcome-file-list>
+> 
+>             <welcome-file>index.jsp</welcome-file>
+> 
+>       </welcome-file-list>
+> 
+>       
+> 
+>       <filter>
+> 
+>             <filter-name>CSRFGuard</filter-name>
+> 
+>  
+> <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+> 
+>             <init-param>
+> 
+>                   <param-name>config</param-name>
+> 
+>  
+> <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+> 
+>             </init-param>
+> 
+>             <init-param>
+> 
+>                   <param-name>print-config</param-name>
+> 
+>                   <param-value>true</param-value>
+> 
+>             </init-param>
+> 
+>       </filter>
+> 
+>       
+> 
+>       <filter>
+> 
+>       <filter-name>Foo</filter-name>
+> 
+>  
+> <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+> 
+>       <init-param>
+> 
+>       <param-name>targetBean</param-name>
+> 
+>       <param-value>FingateFilter</param-value>
+> 
+>       </init-param>
+> 
+>       </filter>
+> 
+>       
+> 
+>       <filter-mapping>
+> 
+>             <filter-name>CSRFGuard</filter-name>
+> 
+>             <url-pattern>*.do</url-pattern>
+> 
+>       </filter-mapping>
+> 
+>       
+> 
+>       <filter-mapping>
+> 
+>       <filter-name>Foo</filter-name>
+> 
+>       <url-pattern>*.do</url-pattern>
+> 
+>       </filter-mapping>
+> 
+>  
+> 
+>       <jsp-config>
+> 
+>       <taglib>
+> 
+>       <taglib-uri>BreadCrumbTags</taglib-uri>
+> 
+>       <taglib-location>/WEB-INF/taglib37.tld</taglib-location>
+> 
+>    </taglib>
+> 
+>       </jsp-config>
+> 
+>  
+> 
+>       </web-app>
+> 
+>  
+> 
+> 3)configure Owasp.CsrfGuard.properties  properties file
+> 
+>  
+> 
+> # The OWASP CSRFGuard Project, BSD License
+> 
+> # Eric Sheridan (eric.sheridan at owasp.org), Copyright (c) 2010 
+> 
+> # All rights reserved.
+> 
+> #
+> 
+> # Redistribution and use in source and binary forms, with or without
+> 
+> # modification, are permitted provided that the following conditions are
+> met:
+> 
+> #
+> 
+> #     1. Redistributions of source code must retain the above copyright
+> notice,
+> 
+> #        this list of conditions and the following disclaimer.
+> 
+> #     2. Redistributions in binary form must reproduce the above
+> copyright
+> 
+> #        notice, this list of conditions and the following disclaimer in
+> the
+> 
+> #        documentation and/or other materials provided with the
+> distribution.
+> 
+> #     3. Neither the name of OWASP nor the names of its contributors may
+> be used
+> 
+> #        to endorse or promote products derived from this software
+> without specific
+> 
+> #        prior written permission.
+> 
+> #
+> 
+> # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> "AS IS"
+> 
+> # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> THE
+> 
+> # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> PURPOSE
+> 
+> # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+> BE LIABLE
+> 
+> # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> CONSEQUENTIAL DAMAGES
+> 
+> # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> SERVICES;
+> 
+> # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+> CAUSED AND ON
+> 
+> # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+> TORT
+> 
+> # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+> OF THIS
+> 
+> # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> 
+>  
+> 
+> # Logger
+> 
+> #
+> 
+> # The logger property (org.owasp.csrfguard.Logger) defines the qualified
+> class name of 
+> 
+> # the object responsible for processing all log messages produced by
+> CSRFGuard. The default
+> 
+> # CSRFGuard logger is org.owasp.csrfguard.log.ConsoleLogger. This class
+> logs all messages
+> 
+> # to System.out which JavaEE application servers redirect to a vendor
+> specific log file.
+> 
+> # Developers can customize the logging behavior of CSRFGuard by
+> implementing the
+> 
+> # org.owasp.csrfguard.log.ILogger interface and setting the logger
+> property to the new
+> 
+> # logger's qualified class name. The following configuration snippet
+> instructs OWASP CSRFGuard
+> 
+> # to capture all log messages to the console:
+> 
+> #
+> 
+> # org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+> 
+> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+> 
+>  
+> 
+> # New Token Landing Page
+> 
+> #
+> 
+> # The new token landing page property
+> (org.owasp.csrfguard.NewTokenLandingPage) defines
+> 
+> # where to send a user if the token is being generated for the first
+> time. CSRFGuard will
+> 
+> # redirect the user to the current page without any parameters if the
+> property is not specified.
+> 
+> # Preventing the protected application from consuming a request whose
+> session does not yet
+> 
+> # have a CSRF token through the use of a redirect prevents the execution
+> of a one-time CSRF
+> 
+> # attack. The following configuration snippet instructs OWASP CSRFGuard
+> to redirect the user to
+> 
+> # /Owasp.CsrfGuard.Test/index.html when they visit a protected resource
+> without having a
+> 
+> # corresponding CSRF token present in the HttpSession object:
+> 
+> #
+> 
+> #
+> org.owasp.csrfguard.NewTokenLandingPage=/Owasp.CsrfGuard.Test/index.html
+> 
+> org.owasp.csrfguard.NewTokenLandingPage=/FINGate/newPassword.do
+> 
+>  
+> 
+> # Unique Per-Page Tokens
+> 
+> #
+> 
+> # The unique token per-page property (org.owasp.csrfguard.TokenPerPage)
+> is a boolean value that
+> 
+> # determines if CSRFGuard should make use of unique per-page (i.e. URI)
+> prevention tokens as
+> 
+> # opposed to unique per-session prevention tokens. When a user requests
+> a protected resource,
+> 
+> # CSRFGuard will determine if a page specific token has been previously
+> generated. If a page
+> 
+> # specific token has not yet been previously generated, CSRFGuard will
+> verify the request was
+> 
+> # submitted with the per-session token intact. After verifying the
+> presence of the per-session token,
+> 
+> # CSRFGuard will create a page specific token that is required for all
+> subsequent requests to the
+> 
+> # associated resource. The per-session CSRF token can only be used when
+> requesting a resource for
+> 
+> # the first time. All subsequent requests must have the per-page token
+> intact or the request will
+> 
+> # be treated as a CSRF attack. Use of the unique token per page property
+> is currently experimental
+> 
+> # but provides a significant amount of improved security. Consider the
+> exposure of a CSRF token using
+> 
+> # the legacy unique per-session model. Exposure of this token
+> facilitates the attacker's ability to
+> 
+> # carry out a CSRF attack against the victim's active session for any
+> resource exposed by the web
+> 
+> # application. Now consider the exposure of a CSRF token using the
+> experimental unique token per-page
+> 
+> # model. Exposure of this token would only allow the attacker to carry
+> out a CSRF attack against the
+> 
+> # victim's active session for a small subset of resources exposed by the
+> web application. Use of the
+> 
+> # unique token per-page property is a strong defense in depth strategy
+> significantly reducing the
+> 
+> # impact of exposed CSRF prevention tokens. The following configuration
+> snippet instructs OWASP
+> 
+> # CSRFGuard to utilize the unique token per-page model:
+> 
+> #
+> 
+> # org.owasp.csrfguard.TokenPerPage=true
+> 
+> org.owasp.csrfguard.TokenPerPage=true
+> 
+>  
+> 
+> # Token Rotation
+> 
+> #
+> 
+> # The rotate token property (org.owasp.csrfguard.Rotate) is a boolean
+> value that determines if
+> 
+> # CSRFGuard should generate and utilize a new token after verifying the
+> previous token. Rotation
+> 
+> # helps minimize the window of opportunity an attacker has to leverage
+> the victim's stolen token
+> 
+> # in a targeted CSRF attack. However, this functionality generally
+> causes navigation problems in
+> 
+> # most applications. Specifically, the 'Back' button in the browser will
+> often cease to function
+> 
+> # properly. When a user hits the 'Back' button and interacts with the
+> HTML, the browser may submit
+> 
+> # an old token causing CSRFGuard to incorrectly believe this request is
+> a CSRF attack in progress
+> 
+> # (i.e. a 'false positive'). Users can prevent this scenario by
+> preventing the caching of HTML pages
+> 
+> # containing FORM submissions using the cache-control header. However,
+> this may also introduce
+> 
+> # performance problems as the browser will have to request HTML on a
+> more frequent basis. The following
+> 
+> # configuration snippet disables token rotation:
+> 
+> #
+> 
+> # org.owasp.csrfguard.Rotate=false
+> 
+>  
+> 
+> # Ajax and XMLHttpRequest Support
+> 
+> #
+> 
+> # The Ajax property (org.owasp.csrfguard.Ajax) is a boolean value that
+> indicates whether or not OWASP
+> 
+> # CSRFGuard should support the injection and verification of unique
+> per-session prevention tokens for
+> 
+> # XMLHttpRequests. To leverage Ajax support, the user must not only set
+> this property to true but must
+> 
+> # also reference the JavaScript DOM Manipulation code using a script
+> element. This dynamic script will
+> 
+> # override the send method of the XMLHttpRequest object to ensure the
+> submission of an X-Requested-With
+> 
+> # header name value pair coupled with the submission of a custom header
+> name value pair for each request.
+> 
+> # The name of the custom header is the value of the token name property
+> and the value of the header is
+> 
+> # always the unique per-session token value. This custom header is
+> analogous to the HTTP parameter name
+> 
+> # value pairs submitted via traditional GET and POST requests. If the
+> X-Requested-With header was sent
+> 
+> # in the HTTP request, then CSRFGuard will look for the presence and
+> ensure the validity of the unique
+> 
+> # per-session token in the custom header name value pair. Note that
+> verification of these headers takes
+> 
+> # precedence over verification of the CSRF token supplied as an HTTP
+> parameter. More specifically,
+> 
+> # CSRFGuard does not verify the presence of the CSRF token if the Ajax
+> support property is enabled and
+> 
+> # the corresponding X-Requested-With and custom headers are embedded
+> within the request. The following
+> 
+> # configuration snippet instructs OWASP CSRFGuard to support Ajax
+> requests by verifying the presence and
+> 
+> # correctness of the X-Requested-With and custom headers:
+> 
+> #
+> 
+> # org.owasp.csrfguard.Ajax=true
+> 
+> org.owasp.csrfguard.Ajax=true
+> 
+>  
+> 
+> # Unprotected Pages:
+> 
+> #
+> 
+> # The unprotected pages property (org.owasp.csrfguard.unprotected.*)
+> defines a series of pages that
+> 
+> # should not be protected by CSRFGuard. Such configurations are useful
+> when the CsrfGuardFilter is
+> 
+> # aggressively mapped (ex: /*). The syntax of the property name is
+> org.owasp.csrfguard.unprotected.[PageName],
+> 
+> # where PageName is some arbitrary identifier that can be used to
+> reference a resource. The syntax of
+> 
+> # defining the uri of unprotected pages is the same as the syntax used
+> by the JavaEE container for uri mapping.
+> 
+> # Specifically, CSRFGuard will identify the first match (if any) between
+> the requested uri and an unprotected
+> 
+> # page in order of declaration. Match criteria is as follows:
+> 
+> #
+> 
+> # Case 1: exact match between request uri and unprotected page
+> 
+> # Case 2: longest path prefix match, beginning / and ending /*
+> 
+> # Case 3: extension match, beginning *.
+> 
+> # Default: requested resource must be validated by CSRFGuard
+> 
+> #
+> 
+> # The following code snippet illustrates the three use cases over four
+> examples. The first two examples
+> 
+> # (Tag and JavaScriptServlet) look for direct URI matches. The third
+> example (Html) looks for all resources
+> 
+> # ending in a .html extension. The last example (Public) looks for all
+> resources prefixed with the URI path /MySite/Public/*.
+> 
+> #
+> 
+> # org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+> 
+> #
+> org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test/
+> JavaScriptServlet
+> 
+> # org.owasp.csrfguard.unprotected.Html=*.html
+> 
+> org.owasp.csrfguard.unprotected.Public=/FINGate/checkNewPassword.do
+> 
+>  
+> 
+> #org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test
+> /JavaScriptServlet
+> 
+> #org.owasp.csrfguard.unprotected.Ajax=/Owasp.CsrfGuard.Test/ajax.html
+> 
+> #org.owasp.csrfguard.unprotected.Error=/Owasp.CsrfGuard.Test/error.html
+> 
+> #org.owasp.csrfguard.unprotected.Index=/Owasp.CsrfGuard.Test/index.html
+> 
+> #org.owasp.csrfguard.unprotected.JavaScript=/Owasp.CsrfGuard.Test/javasc
+> ript.html
+> 
+> #org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+> 
+>  
+> 
+> # Actions: Responding to Attacks
+> 
+> #
+> 
+> # The actions directive (org.owasp.csrfguard.action.*) gives the user
+> the ability to specify one or more
+> 
+> # actions that should be invoked when a CSRF attack is detected. Every
+> action must implement the
+> 
+> # org.owasp.csrfguard.action.IAction interface either directly or
+> indirectly through the
+> 
+> # org.owasp.csrfguard.action.AbstractAction helper class. Many actions
+> accept parameters that can be specified
+> 
+> # along with the action class declaration. These parameters are consumed
+> at runtime and impact the behavior of
+> 
+> # the associated action.
+> 
+> #
+> 
+> # The syntax for defining and configuring CSRFGuard actions is
+> relatively straight forward. Let us assume we wish
+> 
+> # to redirect the user to a default page when a CSRF attack is detected.
+> A redirect action already exists within
+> 
+> # the CSRFGuard bundle and is available via the class name
+> org.owasp.csrfguard.actions.Redirect. In order to enable
+> 
+> # this action, we capture the following declaration in the
+> Owasp.CsrfGuard.properties file:
+> 
+> #
+> 
+> # syntax: org.owasp.csrfguard.action.[actionName]=[className]
+> 
+> org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.Cs
+> rfController
+> 
+> #
+> org.owasp.csrfguard.action.class.Redirect=com.fiu.fingate.controller.com
+> mon.CsrfController
+> 
+> #
+> 
+> # The aforementioned directive declares an action called "Redirect"
+> (i.e. [actionName]) referencing the Java class
+> 
+> # "org.owasp.csrfguard.actions.Redirect" (i.e. [className]). Anytime a
+> CSRF attack is detected, the Redirect action
+> 
+> # will be executed. You may be asking yourself, "but how do I specify
+> where the user is redirected?"; this is where
+> 
+> # action parameters come into play. In order to specify the redirect
+> location, we capture the following declaration
+> 
+> # in the Owasp.CsrfGuard.properties file:
+> 
+> #
+> 
+> # syntax:
+> org.owasp.csrfguard.action.[actionName].[parameterName]=[parameterValue]
+> 
+>    org.owasp.csrfguard.action.Redirect.ErrorPage=/FINGate/newPassword.do
+> 
+> #
+> 
+> # The aforementioned directive declares an action parameter called
+> "ErrorPage" (i.e. [parameterName]) with the value
+> 
+> # of "/Owasp.CsrfGuard.Test/error.html" (i.e. [parameterValue]) for the
+> action "Redirect" (i.e. [actionName]). The
+> 
+> # Redirect action expects the "ErrorPage" parameter to be defined and
+> will redirect the user to this location when
+> 
+> # an attack is detected.
+> 
+> #
+> 
+> #org.owasp.csrfguard.action.Empty=org.owasp.csrfguard.action.Empty
+> 
+> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+> 
+> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+> forgery (CSRF) attack thwarted (user:%user, ip:%remote_ip,
+> uri:%request_uri)
+> 
+> #org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invali
+> date
+> 
+> #org.owasp.csrfguard.action.class.Redirect=org.owasp.csrfguard.actions.R
+> edirect
+> 
+> #org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.C
+> srfController
+> 
+> #org.owasp.csrfguard.action.Redirect.Page=/index.jsp
+> 
+> #org.owasp.csrfguard.action.RequestAttribute=org.owasp.csrfguard.action.
+> RequestAttribute
+> 
+> #org.owasp.csrfguard.action.RequestAttribute.AttributeName=Owasp_CsrfGua
+> rd_Exception_Key
+> 
+> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+> 
+> #org.owasp.csrfguard.action.SessionAttribute=org.owasp.csrfguard.action.
+> SessionAttribute
+> 
+> #org.owasp.csrfguard.action.SessionAttribute.AttributeName=Owasp_CsrfGua
+> rd_Exception_Key
+> 
+>  
+> 
+> # Token Name
+> 
+> #
+> 
+> # The token name property (org.owasp.csrfguard.TokenName) defines the
+> name of the HTTP parameter
+> 
+> # to contain the value of the OWASP CSRFGuard token for each request.
+> The following configuration
+> 
+> # snippet sets the CSRFGuard token parameter name to the value
+> OWASP_CSRFTOKEN:
+> 
+> #
+> 
+> # org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+> 
+> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+> 
+>  
+> 
+> # Session Key
+> 
+> #
+> 
+> # The session key property (org.owasp.csrfguard.SessionKey) defines the
+> string literal used to save
+> 
+> # and lookup the CSRFGuard token from the session. This value is used by
+> the filter and the tag
+> 
+> # libraries to retrieve and set the token value in the session.
+> Developers can use this key to
+> 
+> # programmatically lookup the token within their own code. The following
+> configuration snippet sets
+> 
+> # the session key to the value OWASP_CSRFTOKEN:
+> 
+> #
+> 
+> # org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+> 
+> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+> 
+>  
+> 
+> # Token Length
+> 
+> #
+> 
+> # The token length property (org.owasp.csrfguard.TokenLength) defines
+> the number of characters that
+> 
+> # should be found within the CSRFGuard token. Note that characters are
+> delimited by dashes (-) in groups
+> 
+> # of four. For cosmetic reasons, users are encourage to ensure the token
+> length is divisible by four.
+> 
+> # The following configuration snippet sets the token length property to
+> 32 characters:
+> 
+> #
+> 
+> # org.owasp.csrfguard.TokenLength=32
+> 
+> org.owasp.csrfguard.TokenLength=32
+> 
+>  
+> 
+> # Pseudo-random Number Generator
+> 
+> #
+> 
+> # The pseudo-random number generator property (org.owasp.csrfguard.PRNG)
+> defines what PRNG should be used
+> 
+> # to generate the OWASP CSRFGuard token. Always ensure this value
+> references a cryptographically strong
+> 
+> # pseudo-random number generator algorithm. The following configuration
+> snippet sets the pseudo-random number
+> 
+> # generator to SHA1PRNG:
+> 
+> #
+> 
+> # org.owasp.csrfguard.PRNG=SHA1PRNG
+> 
+> org.owasp.csrfguard.PRNG=SHA1PRNG
+> 
+>  
+> 
+>  
+> 
+> 4)Inserted javascript tag in fingatehome.jsp
+> 
+>  
+> 
+>  
+> 
+> <html>
+> 
+> <head>
+> 
+>       <title>Welcome to FIU-IND</title>
+> 
+>       <meta http-equiv="PRAGMA" content="NO-CACHE" ></meta>
+> 
+>       <meta http-equiv="Expires" content="-1" ></meta>
+> 
+>       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"
+> />
+> 
+>       <%@ taglib prefix="spring"
+> uri="http://www.springframework.org/tags" %>
+> 
+>       <%@ taglib prefix="form"
+> uri="http://www.springframework.org/tags/form" %>
+> 
+>       <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+> 
+>       <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+> 
+>  
+> 
+>       
+> 
+>             <link href="${channelBean.context}/css/fiu.css"
+> rel="stylesheet" type="text/css">
+> 
+>             <script language="JavaScript"
+> src="${channelBean.context}/js/pupdate.js"></script>
+> 
+>             <script language="JavaScript"
+> src="${channelBean.context}/js/fingate.js"></script>
+> 
+>             <script
+> src="${channelBean.context}/JavaScriptServlet"></script>
+> 
+>             
+> 
+> </head>
+> 
+>  
+> 
+> <body topmargin="0" leftmargin="0" bgcolor="#e1e1e1">
+> 
+>  
+> 
+> <TABLE cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" border="0"
+> width="1003" align="center">
+> 
+>       <TR>
+> 
+>             <TD valign="top">
+> 
+>       <jsp:include page="/jsp/common/fiuheader.jsp"></jsp:include>
+> 
+>             </td>
+> 
+>       </tr>
+> 
+>       <tr>
+> 
+>             <td>
+> 
+>                   <!-- Menu Starts here -->
+> 
+>       <jsp:include page="/jsp/common/fiumenu.jsp"></jsp:include>
+> 
+>    
+> 
+>                   <!-- Menu Ends here -->
+> 
+>             </td>
+> 
+>       </tr>
+> 
+>       <tr>
+> 
+>             <td valign="top" class="minheight">
+> 
+>                   <!-- Body Starts here -->
+> 
+>                   <TABLE cellpadding="0" cellspacing="0" border="0"
+> width="1003" align="center">
+> 
+>                   <tr>
+> 
+>                   <jsp:include
+> page="/jsp/common/loginWelcomeHeader.jsp"></jsp:include>
+> 
+> <!--                    <td class="leftpanel" valign="middle"><span
+> class="welcome">Welcome,
+> <B>${sessionBean.loggedInUserName}</B></span></td>-->
+> 
+>                         <td class="rightpanel" valign="top">
+> 
+>                               <TABLE cellpadding="0" cellspacing="0"
+> border="0" width="100%">
+> 
+>                               <TR>
+> 
+>                                     <TD class="breadcrums"><B>&nbsp;</B>
+> <span class="ornglink">&nbsp;</span>&nbsp;</TD>
+> 
+>                                     <jsp:include
+> page="/jsp/common/logoutHeader.jsp"></jsp:include>
+> 
+>                                     
+> 
+> <!--                                <TD class="logindetails"
+> align="right">-->
+> 
+> <!--                                      <span class="lastlogin">Last
+> Login: ${sessionBean.lastLogin} hrs</span> |-->
+> 
+> <!--                                      <span class="logout"><a
+> href="https://10.24.235.231/pkmslogout?filename=logout.html">Logout</a><
+> /span>-->
+> 
+> <!--                                </TD>-->
+> 
+>                               </TR>
+> 
+>                               </TABLE>
+> 
+>                         </td>
+> 
+>                   </tr>
+> 
+>                   <TR>
+> 
+>                         <TD colspan="2" valign="top">
+> 
+>                               <TABLE cellpadding="0" cellspacing="0"
+> bgcolor="#FFFFFF" border="0" width="100%" align="center"
+> class="rlpadding">
+> 
+>                               <TR>
+> 
+>                                     <TD valign="top"><!-- Column 1 -->
+> 
+>                                           <TABLE cellpadding="0"
+> cellspacing="0" bgcolor="#FFFFFF" border="0" width="100%">
+> 
+>                                                 <TR>
+> 
+>                                                       <TD valign="top">
+> 
+>                                                             <TABLE
+> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> colspan="2"
+> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+> src="${channelBean.context}/images/menu_heading.gif" title="Message
+> Inbox"></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="messages" width="150"><a href="#">Messages</a><span
+> class="newmssg">(Unread)</span></TD>
+> 
+>                                                                   <TD
+>> <a href="${channelBean.context}/messages/messageInbox.do">
+> 
+>                                                                   
+> 
+>                                              <c:if
+> test="${(unreadHome!=null)&&(unreadHome!=0)}" >
+> 
+>                                                                         
+> 
+>                                              <span
+> class="messages">(${unreadHome})</span>
+> 
+>                                                                   
+> 
+>                                              </c:if>  
+> 
+>                                                                   
+> 
+>                                              </a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="secmessages"><a href="#">Secure Messages</a><span
+> class="newmssg">(Unread)</span></TD>
+> 
+>                                                                   <TD
+>> <a href="${channelBean.context}/messages/secureMessageInbox.do">
+> 
+>                                                                   
+> 
+>                                             <c:if
+> test="${(unreadSecureMessage1!=null)&&(unreadSecureMessage1!=0)}" >
+> 
+>                                                                   
+> 
+>                                             <span
+> class="messages">(${unreadSecureMessage1})</span>
+> 
+>                                                                   
+> 
+>                                              </c:if>  
+> 
+>                                                                   
+> 
+>                                               </a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </TD>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td><img
+> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td valign="top">
+> 
+>                                                             <TABLE
+> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> colspan="2"
+> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+> src="${channelBean.context}/images/reports_heading.gif"
+> title="Reports"></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="reports_link" width="150"><a href="#">Rejected Reports</a></TD>
+> 
+>                                                                   <TD
+> class="reports_link"><a href="#">(1)</a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="reports_link" width="150">Overdue Reports</TD>
+> 
+>                                                                   <TD
+> class="reports_link">(2)</TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="reports_link" width="150">Additional Information</TD>
+> 
+>                                                                   <TD
+> class="reports_link">(2)</TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td><img
+> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td valign="top">
+> 
+>                                                             <TABLE
+> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> colspan="2"
+> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+> src="${channelBean.context}/images/approval_heading.gif"
+> title="Approvals Pending"></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="reports_link" width="150"><a href="#">New User</a></TD>
+> 
+>                                                                   <TD
+> class="reports_link"><a href="#">(2)</a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="reports_link">Profile Change</TD>
+> 
+>                                                                   <TD
+> class="reports_link">(2)</TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </TR>
+> 
+>                                           </TABLE>
+> 
+>                                     </TD>
+> 
+>                                     <TD valign="top"><!-- Column 2 -->
+> 
+>                                           <TABLE cellpadding="0"
+> cellspacing="0" bgcolor="#FFFFFF">
+> 
+>                                                 <TR>
+> 
+>                                                       <TD valign="top">
+> 
+>                                                             <TABLE
+> class="alerttable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+> width="240">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> background="${channelBean.context}/images/alert_heading_bg.gif"><img
+> src="${channelBean.context}/images/alert_heading.gif"
+> title="Alerts"></TD>
+> 
+>                                                             </tr>
+> 
+> 
+>                                                            <tr>
+> 
+>                                                                   
+> 
+>  
+> <c:forEach items="${UserDetailsCommand.alertList}" var="loginBean"
+> varStatus="status" begin="0" end="0">
+> 
+> 
+>  
+> <c:set var="alertId" scope="page" value="${loginBean.alertId}"/>
+> 
+>                                                                   
+> 
+>  
+> <TD class="alertmssgbrickred" valign="top">
+> 
+>  
+> <c:out value="${loginBean.alertMessage}" /></TD>
+> 
+>                                                                   
+> 
+>  
+> </c:forEach>                                                            
+> 
+>                                                             </tr>
+> 
+>                                                             <tr>
+> 
+>                                                                   <TD
+> class="alertmore" valign="top">
+> 
+>  
+> <a href="resources/listAlerts.do">more</a>
+> 
+>                                                                   </TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td><img
+> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td>
+> 
+>                                                             <TABLE
+> class="tiptable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+> width="240">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> background="${channelBean.context}/images/tip_heading_bg.gif"><img
+> src="${channelBean.context}/images/tip_heading.gif" title="Tips"></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>  
+> <c:forEach items="${UserDetailsCommand.tipList}" var="loginBean"
+> varStatus="status" begin="0" end="0">
+> 
+> 
+>  
+> <c:set var="tipsId" scope="page" value="${loginBean.tipsId}"/>
+> 
+>                                                                   
+> 
+>  
+> <TD class="tipmssg">
+> 
+>  
+> <c:out value="${loginBean.tipsDetail}" /></TD>
+> 
+>                                                                   
+> 
+>  
+> </c:forEach>
+> 
+>                                                             </TR>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="more" valign="top"><a href="resources/listTips.do">more</a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td><img
+> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td>
+> 
+> 
+>                                                             <TABLE
+> class="eventtable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+> width="240">
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> colspan="2"
+> background="${channelBean.context}/images/events_heading_bg.gif"><img
+> src="${channelBean.context}/images/events_heading.gif"
+> title="Events"></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             <c:forEach
+> items="${UserDetailsCommand.eventList}" var="loginBean"
+> varStatus="status" begin="0" end="2">
+> 
+>                                                             <TR>
+> 
+>  
+> 
+> 
+>                                                                   <c:set
+> var="eventId" scope="page" value="${loginBean.eventId}"/>
+> 
+>                                                                   <TD
+> class="eventdatetop" valign="top"><c:out
+> value="${loginBean.eventStartDate}" /></TD>
+> 
+>                                                                   <TD
+> class="eventdateblue"><c:out value="${loginBean.eventName}" /></TD>
+> 
+>                                                                   
+> 
+>                                                                   
+> 
+>  
+> </TR></c:forEach>
+> 
+>                                                             <TR>
+> 
+>                                                                   <TD
+> class="more" valign="top" colspan="2"><a
+> href="resources/listEvents.do">more</a></TD>
+> 
+>                                                             </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                           </table>
+> 
+> 
+>                                     </TD>
+> 
+>                                     <TD valign="top"><!-- Column 3 -->
+> 
+>                                           <TABLE class="menutable"
+> cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="275">
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> background="${channelBean.context}/images/resources_heading_bg.gif"><img
+> src="${channelBean.context}/images/resources_heading.gif"
+> title="Resources"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="resource_subhead">Downloads</td>
+> 
+>                                                 </tr>
+> 
+>                                                 <c:forEach
+> items="${UserDetailsCommand.colDownloadList}" var="loginBean"
+> varStatus="status" begin="0" end="2">
+> 
+>                                                             <TR>
+> 
+> 
+>                                                                   <TD
+> class="resource_download_detail"><c:out value="${loginBean.topic}"
+> /></TD>
+> 
+>                                                             </TR>
+> 
+>                                                 </c:forEach>
+> 
+>                                                 
+> 
+>                                                 <TR>
+> 
+>                                                       <TD
+> class="res_more" valign="top" colspan="2"><a
+> href="resources/listDownloads.do">more</a></TD>
+> 
+>                                                 </TR>
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="resource_subhead">FAQs</td>
+> 
+>                                                 </tr>
+> 
+>                                                 <c:forEach
+> items="${UserDetailsCommand.faqList}" var="loginBean" varStatus="status"
+> begin="0" end="2">
+> 
+>                                                             <TR>
+> 
+> 
+>                                                                   <TD
+> class="resource_download_detail">
+> 
+>                                                                   
+> 
+>                                                                   
+> 
+>                                                                   <c:out
+> value="${loginBean.topic}" /></TD>
+> 
+>                                                             </TR>
+> 
+>                                                 </c:forEach>
+> 
+>                                                 <TR>
+> 
+>                                                       <TD
+> class="res_more" valign="top" colspan="2"><a
+> href="resources/listFAQ.do">more</a></TD>
+> 
+>                                                 </TR>
+> 
+>  
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="resource_subhead">Problems & Solutions</td>
+> 
+>                                                 </tr>
+> 
+>                                                 <c:forEach
+> items="${UserDetailsCommand.problemList}" var="loginBean"
+> varStatus="status" begin="0" end="2">
+> 
+>                                                             <TR>
+> 
+> 
+>                                                                   <TD
+> class="resource_download_detail">
+> 
+>                                                                   
+> 
+>                                                                   
+> 
+>                                                                   <c:out
+> value="${loginBean.topic}" /></TD>
+> 
+>                                                             </TR>
+> 
+>                                                 </c:forEach>
+> 
+>                                                 <TR>
+> 
+>                                                       <TD
+> class="res_more" valign="top" colspan="2"><a
+> href="resources/listProblemSolution.do">more</a></TD>
+> 
+>                                                 </TR>
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="resource_subhead">Discussion Forums</td>
+> 
+>                                                 </tr>
+> 
+>                                                 <c:forEach
+> items="${UserDetailsCommand.discussionForumList}" var="loginBean"
+> varStatus="status" begin="0" end="2">
+> 
+>                                                             <TR>
+> 
+> 
+>                                                                   <c:set
+> var="categoryId" scope="page" value="${loginBean.forumCategoryName}"/>
+> 
+>                                                                   
+> 
+>                                                                   <TD
+> class="resource_download_detail">
+> 
+>                                                                   
+> 
+>                                                                   
+> 
+>                                                                   <c:out
+> value="${loginBean.forumCategoryName}" /></TD>
+> 
+>                                                             </TR>
+> 
+>                                                 </c:forEach>
+> 
+>                                                 <TR>
+> 
+>                                                       <TD
+> class="res_more" valign="top" colspan="2"><a
+> href="resources/listDiscussionForumCategory.do">more</a></TD>
+> 
+>                                                 </TR>
+> 
+>                                           </table>
+> 
+>                                     </TD>
+> 
+>                                     <TD valign="top"><!-- Column 4 -->
+> 
+>                                           <TABLE class="menutable"
+> cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="251">
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> background="${channelBean.context}/images/currentpoll_heading_bg.gif"><i
+> mg src="${channelBean.context}/images/currentpoll_heading.gif"
+> title="Current Survey"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="currentpolls" valign="top">
+> 
+>                                                       <jsp:include
+> page="/jsp/common/fiuCurrentPoll.jsp"></jsp:include>
+> 
+> <!--                                                        <table
+> cellpadding="0" cellspacing="0" width="100%" border="0">-->
+> 
+> <!--                                                        -->
+> 
+> <!--
+> <tr>-->
+> 
+> <!--
+> <td class="arrow" valign="top"><img
+> src="${channelBean.context}/images/poll_arrow.gif"></td>-->
+> 
+> <!--
+> <td colspan="6" class="pollQ" valign="top"><c:out
+> value="${UserDetailsCommand.currentPollDetailsBean.pollQuestion}"/></td>
+> -->
+> 
+> <!--
+> </tr>-->
+> 
+> <!--
+> <c:forEach
+> items="${UserDetailsCommand.currentPollDetailsBean.optionList}"
+> var="pollOptionBean" varStatus="status">-->
+> 
+> <!--
+> <tr>-->
+> 
+> <!--
+> <td class="customPoll" valign="top">&nbsp;</td>-->
+> 
+> <!--
+> <td class="customPoll" valign="top" width="10"><input type="radio"
+> name="optionId" value="${pollOptionBean.optionId}"><c:out
+> value="${pollOptionBean.option}" /></td>-->
+> 
+> <!--
+> </tr>-->
+> 
+> <!--
+> </c:forEach>-->
+> 
+> <!--
+> <tr>-->
+> 
+> <!--
+> <td colspan="6" style="padding-right:25px;" align="right"><a
+> href="#"><img src="${channelBean.context}/images/submit.gif"
+> title="Submit" border="0"
+> onclick="submitPolls('submitPoll.do')"></a></td>-->
+> 
+> <!--
+> </tr>-->
+> 
+> <!--                                                        </table>-->
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td valign="top"
+> background="${channelBean.context}/images/prev_poll_heading_bg.gif"><img
+> src="${channelBean.context}/images/prev_poll_heading.gif"
+> title="Previous Survey Results"></td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td valign="top"
+> class="prev_poll">
+> 
+>                                                             <TABLE
+> cellpadding="0" cellspacing="0" width="100%" border="0">
+> 
+>                                                                   <tr>
+> 
+>  
+> <c:if test="${not empty
+> UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+> 
+>  
+> <td class="arrow" valign="top">
+> 
+>  
+> <img src="${channelBean.context}/images/poll_arrow.gif">
+> 
+>  
+> </td>
+> 
+>  
+> <td colspan="2" class="pollQ" valign="top">
+> 
+>  
+> <c:out
+> value="${UserDetailsCommand.previousPollDetailsBean.pollQuestion}"/>
+> 
+>  
+> </td>
+> 
+>  
+> </c:if>
+> 
+>                                                                         
+> 
+>                                                                   </tr>
+> 
+>                                                                   <TR>
+> 
+>  
+> <TD colspan="3">
+> 
+>  
+> <c:if test="${not empty
+> UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+> 
+> <!--
+> <img src="${channelBean.context}/images/pie.gif" title="Result Pie
+> Chart">-->
+> 
+>  
+> <c:forEach
+> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+> var="pollOptionBean" varStatus="status">
+> 
+>  
+> <c:set var="totalResponse"
+> value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+> scope="page"/>
+> 
+>  
+> <c:set var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+> scope="page"/>
+> 
+>  
+> <c:set var="val" value="${(pollResponse*100)/totalResponse}" />
+> 
+>  
+> <c:if test="${status.count=='1'}">
+> 
+>  
+> <c:set var="paramOption1" value="${pollOptionBean.option}"
+> scope="page"/>
+> 
+>  
+> <c:set var="paramValue1" value="${val}" scope="page"/>
+> 
+>  
+> </c:if>
+> 
+>  
+> <c:if test="${status.count=='2'}">
+> 
+>  
+> <c:set var="paramOption2" value="${pollOptionBean.option}"
+> scope="page"/>
+> 
+>  
+> <c:set var="paramValue2" value="${val}" scope="page"/>
+> 
+>  
+> </c:if>
+> 
+>  
+> <c:if test="${status.count=='3'}">
+> 
+>  
+> <c:set var="paramOption3" value="${pollOptionBean.option}"
+> scope="page"/>
+> 
+>  
+> <c:set var="paramValue3" value="${val}" scope="page"/>
+> 
+>  
+> </c:if>
+> 
+>  
+> <c:if test="${status.count=='4'}">
+> 
+>  
+> <c:set var="paramOption4" value="${pollOptionBean.option}"
+> scope="page"/>
+> 
+>  
+> <c:set var="paramValue4" value="${val}" scope="page"/>
+> 
+>  
+> </c:if>
+> 
+>  
+> </c:forEach>
+> 
+>  
+> <jsp:include page="/jsp/common/pieChart.jsp">
+> 
+>  
+> <jsp:param name="paramOption1" value="${paramOption1}" />
+> 
+>  
+> <jsp:param name="paramValue1" value="${paramValue1}" />
+> 
+>  
+> <jsp:param name="paramOption2" value="${paramOption2}" />
+> 
+>  
+> <jsp:param name="paramValue2" value="${paramValue2}" />
+> 
+>  
+> <jsp:param name="paramOption3" value="${paramOption3}" />
+> 
+>  
+> <jsp:param name="paramValue3" value="${paramValue3}" />
+> 
+>  
+> <jsp:param name="paramOption4" value="${paramOption4}" />
+> 
+>  
+> <jsp:param name="paramValue4" value="${paramValue4}" />
+> 
+>  
+> </jsp:include>
+> 
+>  
+> </c:if>
+> 
+>  
+> </TD>
+> 
+> <!--
+> <TD valign="top" width="50%">-->
+> 
+> <!--
+> <TABLE cellpadding="2" cellspacing="0" border="0" width="100%">-->
+> 
+> <!--
+> <c:forEach
+> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+> var="pollOptionBean" varStatus="status">-->
+> 
+> <!--
+> <TR>-->
+> 
+> <!--
+> <c:if test="${status.count=='1'}">-->
+> 
+> <!--
+> <TD valign="top" class="color"><img
+> src="${channelBean.context}/images/yes.gif"></TD>-->
+> 
+> <!--
+> </c:if>-->
+> 
+> <!--
+> <c:if test="${status.count=='2'}">-->
+> 
+> <!--
+> <TD valign="top" class="color"><img
+> src="${channelBean.context}/images/no.gif"></TD>-->
+> 
+> <!--
+> </c:if>-->
+> 
+> <!--
+> <c:if test="${status.count=='3'}">-->
+> 
+> <!--
+> <TD valign="top" class="color"><img
+> src="${channelBean.context}/images/mayb.gif"></TD>-->
+> 
+> <!--
+> </c:if>-->
+> 
+> <!--
+> <c:if test="${status.count=='4'}">-->
+> 
+> <!--
+> <TD valign="top" class="color"><img
+> src="${channelBean.context}/images/idc.gif"></TD>-->
+> 
+> <!--
+> </c:if>-->
+> 
+> <!--
+> <TD valign="top" class="pollmarks"><c:out
+> value="${pollOptionBean.option}" /></TD>-->
+> 
+> <!--
+> </TR>-->
+> 
+> <!--
+> </c:forEach>-->
+> 
+> <!--
+> </TABLE>-->
+> 
+> <!--
+> </TD>-->
+> 
+>                                                                   </TR>
+> 
+>                                                             </TABLE>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                                 <tr>
+> 
+>                                                       <td
+> class="results">
+> 
+>                                                       <c:forEach
+> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+> var="pollOptionBean" varStatus="status">
+> 
+>                                                       <span
+> class="title">
+> 
+> <!--                                                  <c:out
+> value="${pollOptionBean.option}" />-->
+> 
+>                                                       </span>
+> 
+> <!--                                                  <c:set
+> var="totalResponse"
+> value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+> scope="page"/>-->
+> 
+> <!--                                                  <c:set
+> var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+> scope="page"/>-->
+> 
+> <!--                                                  <c:set var="val"
+> value="${(pollResponse*100)/totalResponse}" />-->
+> 
+> <!--                                                  <fmt:setLocale
+> value="en_US"/>-->
+> 
+> <!--                                                  <span
+> class="percentage"><fmt:formatNumber value="${val}" type="number"
+> maxFractionDigits="0"/>%</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+> 
+>                                                       </c:forEach>
+> 
+>                                                       </td>
+> 
+>                                                 </tr>
+> 
+>                                           </table>
+> 
+>                                     </TD>
+> 
+>                               </TR>
+> 
+>                               </TABLE>
+> 
+>                         </TD>
+> 
+>                   </TR>
+> 
+>                   <tr>
+> 
+>                         <td colspan="2" class="data"><br></td>
+> 
+>                   </tr>
+> 
+>                   <tr>
+> 
+>                         <td colspan="2">
+> 
+>                               <TABLE cellpadding="0" cellspacing="0"
+> bgcolor="#FFFFFF" border="0" width="1003" align="center">
+> 
+>                                     <TR>
+> 
+>                                           <TD class="footerlinks"><a
+> href="#">Sitemap</a> | <a href="#">Disclaimer</a></TD>
+> 
+>                                           <TD
+> class="footer">&copy;Copyright 2010 FIU-IND. All Rights Reserved.</TD>
+> 
+>                                     </TR>
+> 
+>                               </TABLE>
+> 
+>                         </td>
+> 
+>                   </tr>
+> 
+>                   </TABLE>
+> 
+>                   <!-- Body Ends here -->
+> 
+>             </td>
+> 
+>       </tr>
+> 
+> </table>
+> 
+> </body>
+> 
+> </html>
+> 
+>  
+> 
+>  
+> 
+> But the problem is when I click on any link in fingatehome.jsp it is
+> giving potential cross-site request forgery (CSRF) attack thwarted.
+> 
+>  
+> 
+> Can anyone tell me what wrong I am doing as it is not allowing me to
+> access any of my webpage.I want to apply security for all my application
+> web pages.But I don't know how to use it.
+> 
+>  
+> 
+> Thanks and regards
+> 
+> Nikesh
+> 
+> 
+> Please do not print this email unless it is absolutely necessary. 
+> 
+> The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments. 
+> 
+> WARNING: Computer viruses can be transmitted via email. The recipient should check this email and any attachments for the presence of viruses. The company accepts no liability for any damage caused by any virus transmitted by this email. 
+> 
+> www.wipro.com
+> 
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.16 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQQcBAEBAgAGBQJNQdwnAAoJEBWErF92qiG2pGkf/2m7u+F9Fkz+/bnYqNLiXS9i
+lR0mGQI2ma7XD/nSO023gtdk1+5tbc2J84mm7qregP5svvH3PO25liv5gOdm9A/a
+nvPyn6Zl2zFNXZxCmG1vZL+1hfgmnuTZxpCtPCQNnjnXYKgUAbEB4OKL6Qb44EuX
+vBlI8r3Xck+GQZKRWTzPXlBIXwSll9C7okhvzMW0yheKXIY/CNNM9j5Du76rKctN
+x6ln5i9PpyE7EzJeAqDpfBeo2eVK3AnyPF/UwdDVnXMLU81zcemYPczkUzK9Uov9
+Xmur2btXbiemcohWGef8qLTs06QKc2wJCK/MpsdRzp0NQSAe+Xt4qkcma4tA/oHN
+NI4q1r0rRisrEISTe7iAsRFiFYALdFodyBugkJ8k8KhuX8zbo/tFszgGxj/BgbDI
+CwybSwThS4Rm123/b4czHjjvpIN6tpakyzbmJJVMmt9iftiaJd0wapNPlJMBPdXK
+TfiCu8Xe4ejK7Ynt5eNcW9Hs8Zm4PmGNXbpCTD+bRoGbayiQqYDc950AC3FFRTNV
++QGO44GUmXzmYaMEEJK4KTN+gfibN0scAZuHmAJBGAZ4EUiiw83oL7shPFUQ+hOQ
+v1rX5XMnU1YuDojT09Usw5uNDuWNKX7nvt3af5/ZgvtKfX8wbNmncFH4W4JnstD3
+f3O7wfBWPKh43BKMx9TOXRl0jheGoOFKhr/p3hLS/heq+E0A2ZlpIDxhWBx2RViG
+XNTTBL0l2J6M/3HIlGdj42pTlluPDGi/WRzwhXJerygf0bl1bKhUs1ULQdmNIaM5
+g1872x3az3enKsHvKJhc9VFw+U4FOynbIBW5ROGVzkuZBS6jTPCGhBjeoudtpUws
+QzwjvTUQh7fKduNk5oIOLLYIv82fbfdxvv7yoajwdHzycqOJZJPZYHFFGYdLOw7o
+nFgsxyBnx9Ue7PSVKx52Ke/FISwv7iNdlCcFPR7K1WVgjS452T0XzztgJBvdL7ck
+3YjVKOrufdhvjss4okio5LzCIqJ/YjA2t5JXiFJL6MM535bzVJZirBmJJE9nxNkD
+bxpDO01fxtlkCVD232RYZnx0+O/6qCAmAs76OlEMvB6nsdVmLHLhsFiiqDBA4yzT
+nwrAR+oblfcq6RNU0ptco8jeXgz5d9qusfufWJri/g0jAncRkSPoPVhGNKLDJpV/
+dyQKx7Q4FnsIziCmkmnWfRCIlWAjLshpiERM4X3i2wkJdZZHEYljn+gBTpLQj3ZF
+Bc2tdto6+B2QoKeEJDITlEvej+H9i0hTyXFoEMvL5k6ZqWryx8BGkC5oi++oJMm9
+GTOl3pWbR7bvkwPvPpYFmP8R2W9AddptKHFPzIbKyPDarQXz0WstGXQe9x9qBQs=
+=iqnk
+-----END PGP SIGNATURE-----
+
+From eric.sheridan at owasp.org  Thu Jan 27 16:52:22 2011
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Thu, 27 Jan 2011 16:52:22 -0500
+Subject: [Owasp-csrfguard] Problem in using CSRF 3
+In-Reply-To: <4D41DC2D.1030801@owasp.org>
+References: <9A42F0A3D4DD9947A20DC1B3281CA94AD9984A@DEL-GGN-MBX01.wipro.com>
+	<4D41DC2D.1030801@owasp.org>
+Message-ID: <4D41E916.1040304@owasp.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+>> 1. Is your application running on localhost? If not, the
+>> JavaScriptServlet will not properly respond to your JavaScript requests
+>> as the referer header will not match .*localhost.* (see
+>> 'referer-pattern' in init-param). Now the referer header may not be sent
+>> with the request, either, which would cause problems. In this event, try
+>> removing the 'referer-pattern' init-param completely.
+
+Actually I was wrong on the second half of that guidance. The
+'referer-pattern' is required. Removing it will break the servlet. I'm
+going to treat that as a bug and push an update. I don't think you
+should be forced to use that feature, especially given the inconsistency
+of sending the referer header in various browsers/channels.
+
+Testing code now and will push an updated ALPHA release within the next
+couple days.
+
+- -Eric
+
+On 1/27/11 3:57 PM, Eric Sheridan wrote:
+> Thanks for trying out CSRFGuard 3.0! I'm really in need of feedback and
+> hope to push it to BETA status in late February. Here are a few comments
+> that may address or help better identify your problem:
+> 
+> 1. Is your application running on localhost? If not, the
+> JavaScriptServlet will not properly respond to your JavaScript requests
+> as the referer header will not match .*localhost.* (see
+> 'referer-pattern' in init-param). Now the referer header may not be sent
+> with the request, either, which would cause problems. In this event, try
+> removing the 'referer-pattern' init-param completely.
+> 2. See if you are still having problems when setting
+> org.owasp.csrfguard.TokenPerPage to false in Owasp.CsrfGuard.properties
+> 3. See if you are still having problems when setting
+> org.owasp.csrfguard.Ajax to false in Owasp.CsrfGuard.properties.
+> 4. Does CsrfGuard try and redirect you to anywhere? I noticed you
+> created a "Redirect" action but did not specify the page (i.e.
+> "Redirect.Page=/csrf.jsp").
+> 
+> Unfortunately this is a bit tough to debug remotely. I'd look at any
+> console logs that may provide more info about the sequence of operations
+> going on and corresponding traffic. Hook up a HTTP proxy. When you click
+> the link, do you see a token sent in the request? Do you get any errors
+> in your browser's JavaScript console (i.e. possible bug in JS code)?
+> 
+> I'll try to push another ALPHA release of CSRFGuard containing a few
+> minor updates for you to try as well.
+> 
+> -Eric
+> 
+> 
+> On 1/27/11 9:18 AM, nikesh.chaturvedi at wipro.com wrote:
+>> Hi All,
+> 
+> 
+> 
+>> I am trying to integrate CSRF 3 into my application on Spring
+>> Framework.Below are the steps which I done for configuring it:-
+> 
+> 
+> 
+> 
+> 
+>> 1)      Placed Owasp.CsrfGuard.js, Owasp.CsrfGuard.properties and
+>> CSRFGuard-2.0.jar files in respective folders.
+> 
+> 
+> 
+>> 2)      Configure Web.xml
+> 
+> 
+> 
+>> <?xml version="1.0" encoding="UTF-8"?>
+> 
+>> <web-app id="WebApp_ID" version="2.5"
+>> xmlns="http://java.sun.com/xml/ns/javaee"
+>> xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>> xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+>> http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+> 
+> 
+> 
+>>       <display-name>FINGate</display-name>
+> 
+> 
+> 
+>>       <description>FINGate Portal</description>
+> 
+> 
+> 
+>>       <context-param>
+> 
+>>             <param-name>webAppRootKey</param-name>
+> 
+>>             <param-value>FINGate.root</param-value>
+> 
+>>       </context-param>
+> 
+> 
+> 
+>>       <context-param>
+> 
+>>             <param-name>log4jConfigLocation</param-name>
+> 
+> 
+>> <param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+>> s</param-value>
+> 
+>>       </context-param>
+> 
+> 
+> 
+>>       <context-param>
+> 
+>>             <param-name>contextConfigLocation</param-name>
+> 
+>>             <param-value>
+> 
+>>                   /WEB-INF/FINGate-portal-servlet.xml
+> 
+>>                   /WEB-INF/FINGate-portal-service.xml
+> 
+>>             </param-value>
+> 
+>>       </context-param>
+> 
+> 
+> 
+>>       <listener>
+> 
+>>             <listener-class>
+> 
+>>                   org.springframework.web.context.ContextLoaderListener
+> 
+>>             </listener-class>
+> 
+>>       </listener>
+> 
+> 
+> 
+>>       <listener>
+> 
+> 
+>> <listener-class>org.springframework.web.context.request.RequestContextLi
+>> stener</listener-class>
+> 
+>>   </listener>
+> 
+> 
+> 
+>>       <listener>
+> 
+>>             <listener-class>
+> 
+>>                   org.springframework.web.util.Log4jConfigListener
+> 
+>>             </listener-class>
+> 
+> 
+> 
+>>       </listener>
+> 
+> 
+> 
+>>       <servlet>
+> 
+>>            <servlet-name>JavaScriptServlet</servlet-name>
+> 
+> 
+>> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-cl
+>> ass>
+> 
+>>            <init-param>
+> 
+>>                <param-name>source-file</param-name>
+> 
+>>                <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+> 
+>>            </init-param>
+> 
+>>            <init-param>
+> 
+>>                <param-name>inject-into-forms</param-name>
+> 
+>>                <param-value>true</param-value>
+> 
+>>            </init-param>
+> 
+>>            <init-param>
+> 
+>>                <param-name>inject-into-attributes</param-name>
+> 
+>>                <param-value>true</param-value>
+> 
+>>            </init-param>
+> 
+>>           <init-param>
+> 
+>>                <param-name>domain-strict</param-name>
+> 
+>>                <param-value>false</param-value>
+> 
+>>           </init-param>
+> 
+>>           <init-param>
+> 
+>>                <param-name>referer-pattern</param-name>
+> 
+>>                <param-value>.*localhost.*</param-value>
+> 
+>>           </init-param>
+> 
+>>       </servlet>
+> 
+> 
+> 
+>>       <servlet>
+> 
+>>             <servlet-name>FINGate-portal</servlet-name>
+> 
+>>             <servlet-class>
+> 
+>>                   org.springframework.web.servlet.DispatcherServlet
+> 
+>>             </servlet-class>
+> 
+>>             <load-on-startup>2</load-on-startup>
+> 
+>>       </servlet>
+> 
+> 
+> 
+>>       <servlet>
+> 
+>>       <servlet-name>InitLog</servlet-name>
+> 
+>>       <servlet-class>com.fiu.fingate.common.util.InitLog</servlet-class>
+> 
+>>       <init-param>
+> 
+>>             <param-name>log4j-init-file</param-name>
+> 
+> 
+>> <param-value>/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+>> s</param-value>
+> 
+>>       </init-param>
+> 
+>>     <load-on-startup>1</load-on-startup>
+> 
+>>   </servlet>
+> 
+> 
+> 
+>>       <servlet-mapping>
+> 
+>>            <servlet-name>JavaScriptServlet</servlet-name>
+> 
+>>            <url-pattern>/JavaScriptServlet</url-pattern>
+> 
+>>       </servlet-mapping>
+> 
+> 
+> 
+>>       <servlet-mapping>
+> 
+>>             <servlet-name>FINGate-portal</servlet-name>
+> 
+>>             <url-pattern>*.do</url-pattern>
+> 
+>>       </servlet-mapping>
+> 
+> 
+> 
+>>       <session-config>
+> 
+>>             <session-timeout>15</session-timeout>
+> 
+>>       </session-config>
+> 
+> 
+> 
+>>       <welcome-file-list>
+> 
+>>             <welcome-file>index.jsp</welcome-file>
+> 
+>>       </welcome-file-list>
+> 
+> 
+> 
+>>       <filter>
+> 
+>>             <filter-name>CSRFGuard</filter-name>
+> 
+> 
+>> <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+> 
+>>             <init-param>
+> 
+>>                   <param-name>config</param-name>
+> 
+> 
+>> <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+> 
+>>             </init-param>
+> 
+>>             <init-param>
+> 
+>>                   <param-name>print-config</param-name>
+> 
+>>                   <param-value>true</param-value>
+> 
+>>             </init-param>
+> 
+>>       </filter>
+> 
+> 
+> 
+>>       <filter>
+> 
+>>       <filter-name>Foo</filter-name>
+> 
+> 
+>> <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+> 
+>>       <init-param>
+> 
+>>       <param-name>targetBean</param-name>
+> 
+>>       <param-value>FingateFilter</param-value>
+> 
+>>       </init-param>
+> 
+>>       </filter>
+> 
+> 
+> 
+>>       <filter-mapping>
+> 
+>>             <filter-name>CSRFGuard</filter-name>
+> 
+>>             <url-pattern>*.do</url-pattern>
+> 
+>>       </filter-mapping>
+> 
+> 
+> 
+>>       <filter-mapping>
+> 
+>>       <filter-name>Foo</filter-name>
+> 
+>>       <url-pattern>*.do</url-pattern>
+> 
+>>       </filter-mapping>
+> 
+> 
+> 
+>>       <jsp-config>
+> 
+>>       <taglib>
+> 
+>>       <taglib-uri>BreadCrumbTags</taglib-uri>
+> 
+>>       <taglib-location>/WEB-INF/taglib37.tld</taglib-location>
+> 
+>>    </taglib>
+> 
+>>       </jsp-config>
+> 
+> 
+> 
+>>       </web-app>
+> 
+> 
+> 
+>> 3)configure Owasp.CsrfGuard.properties  properties file
+> 
+> 
+> 
+>> # The OWASP CSRFGuard Project, BSD License
+> 
+>> # Eric Sheridan (eric.sheridan at owasp.org), Copyright (c) 2010 
+> 
+>> # All rights reserved.
+> 
+>> #
+> 
+>> # Redistribution and use in source and binary forms, with or without
+> 
+>> # modification, are permitted provided that the following conditions are
+>> met:
+> 
+>> #
+> 
+>> #     1. Redistributions of source code must retain the above copyright
+>> notice,
+> 
+>> #        this list of conditions and the following disclaimer.
+> 
+>> #     2. Redistributions in binary form must reproduce the above
+>> copyright
+> 
+>> #        notice, this list of conditions and the following disclaimer in
+>> the
+> 
+>> #        documentation and/or other materials provided with the
+>> distribution.
+> 
+>> #     3. Neither the name of OWASP nor the names of its contributors may
+>> be used
+> 
+>> #        to endorse or promote products derived from this software
+>> without specific
+> 
+>> #        prior written permission.
+> 
+>> #
+> 
+>> # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+>> "AS IS"
+> 
+>> # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+>> THE
+> 
+>> # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+>> PURPOSE
+> 
+>> # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+>> BE LIABLE
+> 
+>> # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+>> CONSEQUENTIAL DAMAGES
+> 
+>> # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+>> SERVICES;
+> 
+>> # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+>> CAUSED AND ON
+> 
+>> # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+>> TORT
+> 
+>> # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+>> OF THIS
+> 
+>> # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> 
+> 
+> 
+>> # Logger
+> 
+>> #
+> 
+>> # The logger property (org.owasp.csrfguard.Logger) defines the qualified
+>> class name of 
+> 
+>> # the object responsible for processing all log messages produced by
+>> CSRFGuard. The default
+> 
+>> # CSRFGuard logger is org.owasp.csrfguard.log.ConsoleLogger. This class
+>> logs all messages
+> 
+>> # to System.out which JavaEE application servers redirect to a vendor
+>> specific log file.
+> 
+>> # Developers can customize the logging behavior of CSRFGuard by
+>> implementing the
+> 
+>> # org.owasp.csrfguard.log.ILogger interface and setting the logger
+>> property to the new
+> 
+>> # logger's qualified class name. The following configuration snippet
+>> instructs OWASP CSRFGuard
+> 
+>> # to capture all log messages to the console:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+> 
+>> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+> 
+> 
+> 
+>> # New Token Landing Page
+> 
+>> #
+> 
+>> # The new token landing page property
+>> (org.owasp.csrfguard.NewTokenLandingPage) defines
+> 
+>> # where to send a user if the token is being generated for the first
+>> time. CSRFGuard will
+> 
+>> # redirect the user to the current page without any parameters if the
+>> property is not specified.
+> 
+>> # Preventing the protected application from consuming a request whose
+>> session does not yet
+> 
+>> # have a CSRF token through the use of a redirect prevents the execution
+>> of a one-time CSRF
+> 
+>> # attack. The following configuration snippet instructs OWASP CSRFGuard
+>> to redirect the user to
+> 
+>> # /Owasp.CsrfGuard.Test/index.html when they visit a protected resource
+>> without having a
+> 
+>> # corresponding CSRF token present in the HttpSession object:
+> 
+>> #
+> 
+>> #
+>> org.owasp.csrfguard.NewTokenLandingPage=/Owasp.CsrfGuard.Test/index.html
+> 
+>> org.owasp.csrfguard.NewTokenLandingPage=/FINGate/newPassword.do
+> 
+> 
+> 
+>> # Unique Per-Page Tokens
+> 
+>> #
+> 
+>> # The unique token per-page property (org.owasp.csrfguard.TokenPerPage)
+>> is a boolean value that
+> 
+>> # determines if CSRFGuard should make use of unique per-page (i.e. URI)
+>> prevention tokens as
+> 
+>> # opposed to unique per-session prevention tokens. When a user requests
+>> a protected resource,
+> 
+>> # CSRFGuard will determine if a page specific token has been previously
+>> generated. If a page
+> 
+>> # specific token has not yet been previously generated, CSRFGuard will
+>> verify the request was
+> 
+>> # submitted with the per-session token intact. After verifying the
+>> presence of the per-session token,
+> 
+>> # CSRFGuard will create a page specific token that is required for all
+>> subsequent requests to the
+> 
+>> # associated resource. The per-session CSRF token can only be used when
+>> requesting a resource for
+> 
+>> # the first time. All subsequent requests must have the per-page token
+>> intact or the request will
+> 
+>> # be treated as a CSRF attack. Use of the unique token per page property
+>> is currently experimental
+> 
+>> # but provides a significant amount of improved security. Consider the
+>> exposure of a CSRF token using
+> 
+>> # the legacy unique per-session model. Exposure of this token
+>> facilitates the attacker's ability to
+> 
+>> # carry out a CSRF attack against the victim's active session for any
+>> resource exposed by the web
+> 
+>> # application. Now consider the exposure of a CSRF token using the
+>> experimental unique token per-page
+> 
+>> # model. Exposure of this token would only allow the attacker to carry
+>> out a CSRF attack against the
+> 
+>> # victim's active session for a small subset of resources exposed by the
+>> web application. Use of the
+> 
+>> # unique token per-page property is a strong defense in depth strategy
+>> significantly reducing the
+> 
+>> # impact of exposed CSRF prevention tokens. The following configuration
+>> snippet instructs OWASP
+> 
+>> # CSRFGuard to utilize the unique token per-page model:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.TokenPerPage=true
+> 
+>> org.owasp.csrfguard.TokenPerPage=true
+> 
+> 
+> 
+>> # Token Rotation
+> 
+>> #
+> 
+>> # The rotate token property (org.owasp.csrfguard.Rotate) is a boolean
+>> value that determines if
+> 
+>> # CSRFGuard should generate and utilize a new token after verifying the
+>> previous token. Rotation
+> 
+>> # helps minimize the window of opportunity an attacker has to leverage
+>> the victim's stolen token
+> 
+>> # in a targeted CSRF attack. However, this functionality generally
+>> causes navigation problems in
+> 
+>> # most applications. Specifically, the 'Back' button in the browser will
+>> often cease to function
+> 
+>> # properly. When a user hits the 'Back' button and interacts with the
+>> HTML, the browser may submit
+> 
+>> # an old token causing CSRFGuard to incorrectly believe this request is
+>> a CSRF attack in progress
+> 
+>> # (i.e. a 'false positive'). Users can prevent this scenario by
+>> preventing the caching of HTML pages
+> 
+>> # containing FORM submissions using the cache-control header. However,
+>> this may also introduce
+> 
+>> # performance problems as the browser will have to request HTML on a
+>> more frequent basis. The following
+> 
+>> # configuration snippet disables token rotation:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.Rotate=false
+> 
+> 
+> 
+>> # Ajax and XMLHttpRequest Support
+> 
+>> #
+> 
+>> # The Ajax property (org.owasp.csrfguard.Ajax) is a boolean value that
+>> indicates whether or not OWASP
+> 
+>> # CSRFGuard should support the injection and verification of unique
+>> per-session prevention tokens for
+> 
+>> # XMLHttpRequests. To leverage Ajax support, the user must not only set
+>> this property to true but must
+> 
+>> # also reference the JavaScript DOM Manipulation code using a script
+>> element. This dynamic script will
+> 
+>> # override the send method of the XMLHttpRequest object to ensure the
+>> submission of an X-Requested-With
+> 
+>> # header name value pair coupled with the submission of a custom header
+>> name value pair for each request.
+> 
+>> # The name of the custom header is the value of the token name property
+>> and the value of the header is
+> 
+>> # always the unique per-session token value. This custom header is
+>> analogous to the HTTP parameter name
+> 
+>> # value pairs submitted via traditional GET and POST requests. If the
+>> X-Requested-With header was sent
+> 
+>> # in the HTTP request, then CSRFGuard will look for the presence and
+>> ensure the validity of the unique
+> 
+>> # per-session token in the custom header name value pair. Note that
+>> verification of these headers takes
+> 
+>> # precedence over verification of the CSRF token supplied as an HTTP
+>> parameter. More specifically,
+> 
+>> # CSRFGuard does not verify the presence of the CSRF token if the Ajax
+>> support property is enabled and
+> 
+>> # the corresponding X-Requested-With and custom headers are embedded
+>> within the request. The following
+> 
+>> # configuration snippet instructs OWASP CSRFGuard to support Ajax
+>> requests by verifying the presence and
+> 
+>> # correctness of the X-Requested-With and custom headers:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.Ajax=true
+> 
+>> org.owasp.csrfguard.Ajax=true
+> 
+> 
+> 
+>> # Unprotected Pages:
+> 
+>> #
+> 
+>> # The unprotected pages property (org.owasp.csrfguard.unprotected.*)
+>> defines a series of pages that
+> 
+>> # should not be protected by CSRFGuard. Such configurations are useful
+>> when the CsrfGuardFilter is
+> 
+>> # aggressively mapped (ex: /*). The syntax of the property name is
+>> org.owasp.csrfguard.unprotected.[PageName],
+> 
+>> # where PageName is some arbitrary identifier that can be used to
+>> reference a resource. The syntax of
+> 
+>> # defining the uri of unprotected pages is the same as the syntax used
+>> by the JavaEE container for uri mapping.
+> 
+>> # Specifically, CSRFGuard will identify the first match (if any) between
+>> the requested uri and an unprotected
+> 
+>> # page in order of declaration. Match criteria is as follows:
+> 
+>> #
+> 
+>> # Case 1: exact match between request uri and unprotected page
+> 
+>> # Case 2: longest path prefix match, beginning / and ending /*
+> 
+>> # Case 3: extension match, beginning *.
+> 
+>> # Default: requested resource must be validated by CSRFGuard
+> 
+>> #
+> 
+>> # The following code snippet illustrates the three use cases over four
+>> examples. The first two examples
+> 
+>> # (Tag and JavaScriptServlet) look for direct URI matches. The third
+>> example (Html) looks for all resources
+> 
+>> # ending in a .html extension. The last example (Public) looks for all
+>> resources prefixed with the URI path /MySite/Public/*.
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+> 
+>> #
+>> org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test/
+>> JavaScriptServlet
+> 
+>> # org.owasp.csrfguard.unprotected.Html=*.html
+> 
+>> org.owasp.csrfguard.unprotected.Public=/FINGate/checkNewPassword.do
+> 
+> 
+> 
+>> #org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test
+>> /JavaScriptServlet
+> 
+>> #org.owasp.csrfguard.unprotected.Ajax=/Owasp.CsrfGuard.Test/ajax.html
+> 
+>> #org.owasp.csrfguard.unprotected.Error=/Owasp.CsrfGuard.Test/error.html
+> 
+>> #org.owasp.csrfguard.unprotected.Index=/Owasp.CsrfGuard.Test/index.html
+> 
+>> #org.owasp.csrfguard.unprotected.JavaScript=/Owasp.CsrfGuard.Test/javasc
+>> ript.html
+> 
+>> #org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+> 
+> 
+> 
+>> # Actions: Responding to Attacks
+> 
+>> #
+> 
+>> # The actions directive (org.owasp.csrfguard.action.*) gives the user
+>> the ability to specify one or more
+> 
+>> # actions that should be invoked when a CSRF attack is detected. Every
+>> action must implement the
+> 
+>> # org.owasp.csrfguard.action.IAction interface either directly or
+>> indirectly through the
+> 
+>> # org.owasp.csrfguard.action.AbstractAction helper class. Many actions
+>> accept parameters that can be specified
+> 
+>> # along with the action class declaration. These parameters are consumed
+>> at runtime and impact the behavior of
+> 
+>> # the associated action.
+> 
+>> #
+> 
+>> # The syntax for defining and configuring CSRFGuard actions is
+>> relatively straight forward. Let us assume we wish
+> 
+>> # to redirect the user to a default page when a CSRF attack is detected.
+>> A redirect action already exists within
+> 
+>> # the CSRFGuard bundle and is available via the class name
+>> org.owasp.csrfguard.actions.Redirect. In order to enable
+> 
+>> # this action, we capture the following declaration in the
+>> Owasp.CsrfGuard.properties file:
+> 
+>> #
+> 
+>> # syntax: org.owasp.csrfguard.action.[actionName]=[className]
+> 
+>> org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.Cs
+>> rfController
+> 
+>> #
+>> org.owasp.csrfguard.action.class.Redirect=com.fiu.fingate.controller.com
+>> mon.CsrfController
+> 
+>> #
+> 
+>> # The aforementioned directive declares an action called "Redirect"
+>> (i.e. [actionName]) referencing the Java class
+> 
+>> # "org.owasp.csrfguard.actions.Redirect" (i.e. [className]). Anytime a
+>> CSRF attack is detected, the Redirect action
+> 
+>> # will be executed. You may be asking yourself, "but how do I specify
+>> where the user is redirected?"; this is where
+> 
+>> # action parameters come into play. In order to specify the redirect
+>> location, we capture the following declaration
+> 
+>> # in the Owasp.CsrfGuard.properties file:
+> 
+>> #
+> 
+>> # syntax:
+>> org.owasp.csrfguard.action.[actionName].[parameterName]=[parameterValue]
+> 
+>>    org.owasp.csrfguard.action.Redirect.ErrorPage=/FINGate/newPassword.do
+> 
+>> #
+> 
+>> # The aforementioned directive declares an action parameter called
+>> "ErrorPage" (i.e. [parameterName]) with the value
+> 
+>> # of "/Owasp.CsrfGuard.Test/error.html" (i.e. [parameterValue]) for the
+>> action "Redirect" (i.e. [actionName]). The
+> 
+>> # Redirect action expects the "ErrorPage" parameter to be defined and
+>> will redirect the user to this location when
+> 
+>> # an attack is detected.
+> 
+>> #
+> 
+>> #org.owasp.csrfguard.action.Empty=org.owasp.csrfguard.action.Empty
+> 
+>> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+> 
+>> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>> forgery (CSRF) attack thwarted (user:%user, ip:%remote_ip,
+>> uri:%request_uri)
+> 
+>> #org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invali
+>> date
+> 
+>> #org.owasp.csrfguard.action.class.Redirect=org.owasp.csrfguard.actions.R
+>> edirect
+> 
+>> #org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.C
+>> srfController
+> 
+>> #org.owasp.csrfguard.action.Redirect.Page=/index.jsp
+> 
+>> #org.owasp.csrfguard.action.RequestAttribute=org.owasp.csrfguard.action.
+>> RequestAttribute
+> 
+>> #org.owasp.csrfguard.action.RequestAttribute.AttributeName=Owasp_CsrfGua
+>> rd_Exception_Key
+> 
+>> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+> 
+>> #org.owasp.csrfguard.action.SessionAttribute=org.owasp.csrfguard.action.
+>> SessionAttribute
+> 
+>> #org.owasp.csrfguard.action.SessionAttribute.AttributeName=Owasp_CsrfGua
+>> rd_Exception_Key
+> 
+> 
+> 
+>> # Token Name
+> 
+>> #
+> 
+>> # The token name property (org.owasp.csrfguard.TokenName) defines the
+>> name of the HTTP parameter
+> 
+>> # to contain the value of the OWASP CSRFGuard token for each request.
+>> The following configuration
+> 
+>> # snippet sets the CSRFGuard token parameter name to the value
+>> OWASP_CSRFTOKEN:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+> 
+>> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+> 
+> 
+> 
+>> # Session Key
+> 
+>> #
+> 
+>> # The session key property (org.owasp.csrfguard.SessionKey) defines the
+>> string literal used to save
+> 
+>> # and lookup the CSRFGuard token from the session. This value is used by
+>> the filter and the tag
+> 
+>> # libraries to retrieve and set the token value in the session.
+>> Developers can use this key to
+> 
+>> # programmatically lookup the token within their own code. The following
+>> configuration snippet sets
+> 
+>> # the session key to the value OWASP_CSRFTOKEN:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+> 
+>> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+> 
+> 
+> 
+>> # Token Length
+> 
+>> #
+> 
+>> # The token length property (org.owasp.csrfguard.TokenLength) defines
+>> the number of characters that
+> 
+>> # should be found within the CSRFGuard token. Note that characters are
+>> delimited by dashes (-) in groups
+> 
+>> # of four. For cosmetic reasons, users are encourage to ensure the token
+>> length is divisible by four.
+> 
+>> # The following configuration snippet sets the token length property to
+>> 32 characters:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.TokenLength=32
+> 
+>> org.owasp.csrfguard.TokenLength=32
+> 
+> 
+> 
+>> # Pseudo-random Number Generator
+> 
+>> #
+> 
+>> # The pseudo-random number generator property (org.owasp.csrfguard.PRNG)
+>> defines what PRNG should be used
+> 
+>> # to generate the OWASP CSRFGuard token. Always ensure this value
+>> references a cryptographically strong
+> 
+>> # pseudo-random number generator algorithm. The following configuration
+>> snippet sets the pseudo-random number
+> 
+>> # generator to SHA1PRNG:
+> 
+>> #
+> 
+>> # org.owasp.csrfguard.PRNG=SHA1PRNG
+> 
+>> org.owasp.csrfguard.PRNG=SHA1PRNG
+> 
+> 
+> 
+> 
+> 
+>> 4)Inserted javascript tag in fingatehome.jsp
+> 
+> 
+> 
+> 
+> 
+>> <html>
+> 
+>> <head>
+> 
+>>       <title>Welcome to FIU-IND</title>
+> 
+>>       <meta http-equiv="PRAGMA" content="NO-CACHE" ></meta>
+> 
+>>       <meta http-equiv="Expires" content="-1" ></meta>
+> 
+>>       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"
+>> />
+> 
+>>       <%@ taglib prefix="spring"
+>> uri="http://www.springframework.org/tags" %>
+> 
+>>       <%@ taglib prefix="form"
+>> uri="http://www.springframework.org/tags/form" %>
+> 
+>>       <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+> 
+>>       <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+> 
+> 
+> 
+> 
+> 
+>>             <link href="${channelBean.context}/css/fiu.css"
+>> rel="stylesheet" type="text/css">
+> 
+>>             <script language="JavaScript"
+>> src="${channelBean.context}/js/pupdate.js"></script>
+> 
+>>             <script language="JavaScript"
+>> src="${channelBean.context}/js/fingate.js"></script>
+> 
+>>             <script
+>> src="${channelBean.context}/JavaScriptServlet"></script>
+> 
+> 
+> 
+>> </head>
+> 
+> 
+> 
+>> <body topmargin="0" leftmargin="0" bgcolor="#e1e1e1">
+> 
+> 
+> 
+>> <TABLE cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" border="0"
+>> width="1003" align="center">
+> 
+>>       <TR>
+> 
+>>             <TD valign="top">
+> 
+>>       <jsp:include page="/jsp/common/fiuheader.jsp"></jsp:include>
+> 
+>>             </td>
+> 
+>>       </tr>
+> 
+>>       <tr>
+> 
+>>             <td>
+> 
+>>                   <!-- Menu Starts here -->
+> 
+>>       <jsp:include page="/jsp/common/fiumenu.jsp"></jsp:include>
+> 
+> 
+> 
+>>                   <!-- Menu Ends here -->
+> 
+>>             </td>
+> 
+>>       </tr>
+> 
+>>       <tr>
+> 
+>>             <td valign="top" class="minheight">
+> 
+>>                   <!-- Body Starts here -->
+> 
+>>                   <TABLE cellpadding="0" cellspacing="0" border="0"
+>> width="1003" align="center">
+> 
+>>                   <tr>
+> 
+>>                   <jsp:include
+>> page="/jsp/common/loginWelcomeHeader.jsp"></jsp:include>
+> 
+>> <!--                    <td class="leftpanel" valign="middle"><span
+>> class="welcome">Welcome,
+>> <B>${sessionBean.loggedInUserName}</B></span></td>-->
+> 
+>>                         <td class="rightpanel" valign="top">
+> 
+>>                               <TABLE cellpadding="0" cellspacing="0"
+>> border="0" width="100%">
+> 
+>>                               <TR>
+> 
+>>                                     <TD class="breadcrums"><B>&nbsp;</B>
+>> <span class="ornglink">&nbsp;</span>&nbsp;</TD>
+> 
+>>                                     <jsp:include
+>> page="/jsp/common/logoutHeader.jsp"></jsp:include>
+> 
+> 
+> 
+>> <!--                                <TD class="logindetails"
+>> align="right">-->
+> 
+>> <!--                                      <span class="lastlogin">Last
+>> Login: ${sessionBean.lastLogin} hrs</span> |-->
+> 
+>> <!--                                      <span class="logout"><a
+>> href="https://10.24.235.231/pkmslogout?filename=logout.html">Logout</a><
+>> /span>-->
+> 
+>> <!--                                </TD>-->
+> 
+>>                               </TR>
+> 
+>>                               </TABLE>
+> 
+>>                         </td>
+> 
+>>                   </tr>
+> 
+>>                   <TR>
+> 
+>>                         <TD colspan="2" valign="top">
+> 
+>>                               <TABLE cellpadding="0" cellspacing="0"
+>> bgcolor="#FFFFFF" border="0" width="100%" align="center"
+>> class="rlpadding">
+> 
+>>                               <TR>
+> 
+>>                                     <TD valign="top"><!-- Column 1 -->
+> 
+>>                                           <TABLE cellpadding="0"
+>> cellspacing="0" bgcolor="#FFFFFF" border="0" width="100%">
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD valign="top">
+> 
+>>                                                             <TABLE
+>> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> colspan="2"
+>> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+>> src="${channelBean.context}/images/menu_heading.gif" title="Message
+>> Inbox"></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="messages" width="150"><a href="#">Messages</a><span
+>> class="newmssg">(Unread)</span></TD>
+> 
+>>                                                                   <TD
+>>> <a href="${channelBean.context}/messages/messageInbox.do">
+> 
+> 
+> 
+>>                                              <c:if
+>> test="${(unreadHome!=null)&&(unreadHome!=0)}" >
+> 
+> 
+> 
+>>                                              <span
+>> class="messages">(${unreadHome})</span>
+> 
+> 
+> 
+>>                                              </c:if>  
+> 
+> 
+> 
+>>                                              </a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="secmessages"><a href="#">Secure Messages</a><span
+>> class="newmssg">(Unread)</span></TD>
+> 
+>>                                                                   <TD
+>>> <a href="${channelBean.context}/messages/secureMessageInbox.do">
+> 
+> 
+> 
+>>                                             <c:if
+>> test="${(unreadSecureMessage1!=null)&&(unreadSecureMessage1!=0)}" >
+> 
+> 
+> 
+>>                                             <span
+>> class="messages">(${unreadSecureMessage1})</span>
+> 
+> 
+> 
+>>                                              </c:if>  
+> 
+> 
+> 
+>>                                               </a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </TD>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td><img
+>> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td valign="top">
+> 
+>>                                                             <TABLE
+>> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> colspan="2"
+>> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+>> src="${channelBean.context}/images/reports_heading.gif"
+>> title="Reports"></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="reports_link" width="150"><a href="#">Rejected Reports</a></TD>
+> 
+>>                                                                   <TD
+>> class="reports_link"><a href="#">(1)</a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="reports_link" width="150">Overdue Reports</TD>
+> 
+>>                                                                   <TD
+>> class="reports_link">(2)</TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="reports_link" width="150">Additional Information</TD>
+> 
+>>                                                                   <TD
+>> class="reports_link">(2)</TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td><img
+>> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td valign="top">
+> 
+>>                                                             <TABLE
+>> class="menutable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> colspan="2"
+>> background="${channelBean.context}/images/menu_heading_bg.gif"><img
+>> src="${channelBean.context}/images/approval_heading.gif"
+>> title="Approvals Pending"></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="reports_link" width="150"><a href="#">New User</a></TD>
+> 
+>>                                                                   <TD
+>> class="reports_link"><a href="#">(2)</a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="reports_link">Profile Change</TD>
+> 
+>>                                                                   <TD
+>> class="reports_link">(2)</TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </TR>
+> 
+>>                                           </TABLE>
+> 
+>>                                     </TD>
+> 
+>>                                     <TD valign="top"><!-- Column 2 -->
+> 
+>>                                           <TABLE cellpadding="0"
+>> cellspacing="0" bgcolor="#FFFFFF">
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD valign="top">
+> 
+>>                                                             <TABLE
+>> class="alerttable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+>> width="240">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> background="${channelBean.context}/images/alert_heading_bg.gif"><img
+>> src="${channelBean.context}/images/alert_heading.gif"
+>> title="Alerts"></TD>
+> 
+>>                                                             </tr>
+> 
+> 
+>>                                                            <tr>
+> 
+> 
+> 
+> 
+>> <c:forEach items="${UserDetailsCommand.alertList}" var="loginBean"
+>> varStatus="status" begin="0" end="0">
+> 
+> 
+> 
+>> <c:set var="alertId" scope="page" value="${loginBean.alertId}"/>
+> 
+> 
+> 
+> 
+>> <TD class="alertmssgbrickred" valign="top">
+> 
+> 
+>> <c:out value="${loginBean.alertMessage}" /></TD>
+> 
+> 
+> 
+> 
+>> </c:forEach>                                                            
+> 
+>>                                                             </tr>
+> 
+>>                                                             <tr>
+> 
+>>                                                                   <TD
+>> class="alertmore" valign="top">
+> 
+> 
+>> <a href="resources/listAlerts.do">more</a>
+> 
+>>                                                                   </TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td><img
+>> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td>
+> 
+>>                                                             <TABLE
+>> class="tiptable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+>> width="240">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> background="${channelBean.context}/images/tip_heading_bg.gif"><img
+>> src="${channelBean.context}/images/tip_heading.gif" title="Tips"></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+> 
+>> <c:forEach items="${UserDetailsCommand.tipList}" var="loginBean"
+>> varStatus="status" begin="0" end="0">
+> 
+> 
+> 
+>> <c:set var="tipsId" scope="page" value="${loginBean.tipsId}"/>
+> 
+> 
+> 
+> 
+>> <TD class="tipmssg">
+> 
+> 
+>> <c:out value="${loginBean.tipsDetail}" /></TD>
+> 
+> 
+> 
+> 
+>> </c:forEach>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="more" valign="top"><a href="resources/listTips.do">more</a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td><img
+>> src="${channelBean.context}/images/spacer.gif" height="4px"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td>
+> 
+> 
+>>                                                             <TABLE
+>> class="eventtable" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+>> width="240">
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> colspan="2"
+>> background="${channelBean.context}/images/events_heading_bg.gif"><img
+>> src="${channelBean.context}/images/events_heading.gif"
+>> title="Events"></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             <c:forEach
+>> items="${UserDetailsCommand.eventList}" var="loginBean"
+>> varStatus="status" begin="0" end="2">
+> 
+>>                                                             <TR>
+> 
+> 
+> 
+> 
+>>                                                                   <c:set
+>> var="eventId" scope="page" value="${loginBean.eventId}"/>
+> 
+>>                                                                   <TD
+>> class="eventdatetop" valign="top"><c:out
+>> value="${loginBean.eventStartDate}" /></TD>
+> 
+>>                                                                   <TD
+>> class="eventdateblue"><c:out value="${loginBean.eventName}" /></TD>
+> 
+> 
+> 
+> 
+> 
+> 
+>> </TR></c:forEach>
+> 
+>>                                                             <TR>
+> 
+>>                                                                   <TD
+>> class="more" valign="top" colspan="2"><a
+>> href="resources/listEvents.do">more</a></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                           </table>
+> 
+> 
+>>                                     </TD>
+> 
+>>                                     <TD valign="top"><!-- Column 3 -->
+> 
+>>                                           <TABLE class="menutable"
+>> cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="275">
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> background="${channelBean.context}/images/resources_heading_bg.gif"><img
+>> src="${channelBean.context}/images/resources_heading.gif"
+>> title="Resources"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="resource_subhead">Downloads</td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <c:forEach
+>> items="${UserDetailsCommand.colDownloadList}" var="loginBean"
+>> varStatus="status" begin="0" end="2">
+> 
+>>                                                             <TR>
+> 
+> 
+>>                                                                   <TD
+>> class="resource_download_detail"><c:out value="${loginBean.topic}"
+>> /></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                 </c:forEach>
+> 
+> 
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD
+>> class="res_more" valign="top" colspan="2"><a
+>> href="resources/listDownloads.do">more</a></TD>
+> 
+>>                                                 </TR>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="resource_subhead">FAQs</td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <c:forEach
+>> items="${UserDetailsCommand.faqList}" var="loginBean" varStatus="status"
+>> begin="0" end="2">
+> 
+>>                                                             <TR>
+> 
+> 
+>>                                                                   <TD
+>> class="resource_download_detail">
+> 
+> 
+> 
+> 
+> 
+>>                                                                   <c:out
+>> value="${loginBean.topic}" /></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                 </c:forEach>
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD
+>> class="res_more" valign="top" colspan="2"><a
+>> href="resources/listFAQ.do">more</a></TD>
+> 
+>>                                                 </TR>
+> 
+> 
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="resource_subhead">Problems & Solutions</td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <c:forEach
+>> items="${UserDetailsCommand.problemList}" var="loginBean"
+>> varStatus="status" begin="0" end="2">
+> 
+>>                                                             <TR>
+> 
+> 
+>>                                                                   <TD
+>> class="resource_download_detail">
+> 
+> 
+> 
+> 
+> 
+>>                                                                   <c:out
+>> value="${loginBean.topic}" /></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                 </c:forEach>
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD
+>> class="res_more" valign="top" colspan="2"><a
+>> href="resources/listProblemSolution.do">more</a></TD>
+> 
+>>                                                 </TR>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="resource_subhead">Discussion Forums</td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <c:forEach
+>> items="${UserDetailsCommand.discussionForumList}" var="loginBean"
+>> varStatus="status" begin="0" end="2">
+> 
+>>                                                             <TR>
+> 
+> 
+>>                                                                   <c:set
+>> var="categoryId" scope="page" value="${loginBean.forumCategoryName}"/>
+> 
+> 
+> 
+>>                                                                   <TD
+>> class="resource_download_detail">
+> 
+> 
+> 
+> 
+> 
+>>                                                                   <c:out
+>> value="${loginBean.forumCategoryName}" /></TD>
+> 
+>>                                                             </TR>
+> 
+>>                                                 </c:forEach>
+> 
+>>                                                 <TR>
+> 
+>>                                                       <TD
+>> class="res_more" valign="top" colspan="2"><a
+>> href="resources/listDiscussionForumCategory.do">more</a></TD>
+> 
+>>                                                 </TR>
+> 
+>>                                           </table>
+> 
+>>                                     </TD>
+> 
+>>                                     <TD valign="top"><!-- Column 4 -->
+> 
+>>                                           <TABLE class="menutable"
+>> cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" width="251">
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> background="${channelBean.context}/images/currentpoll_heading_bg.gif"><i
+>> mg src="${channelBean.context}/images/currentpoll_heading.gif"
+>> title="Current Survey"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="currentpolls" valign="top">
+> 
+>>                                                       <jsp:include
+>> page="/jsp/common/fiuCurrentPoll.jsp"></jsp:include>
+> 
+>> <!--                                                        <table
+>> cellpadding="0" cellspacing="0" width="100%" border="0">-->
+> 
+>> <!--                                                        -->
+> 
+>> <!--
+>> <tr>-->
+> 
+>> <!--
+>> <td class="arrow" valign="top"><img
+>> src="${channelBean.context}/images/poll_arrow.gif"></td>-->
+> 
+>> <!--
+>> <td colspan="6" class="pollQ" valign="top"><c:out
+>> value="${UserDetailsCommand.currentPollDetailsBean.pollQuestion}"/></td>
+>> -->
+> 
+>> <!--
+>> </tr>-->
+> 
+>> <!--
+>> <c:forEach
+>> items="${UserDetailsCommand.currentPollDetailsBean.optionList}"
+>> var="pollOptionBean" varStatus="status">-->
+> 
+>> <!--
+>> <tr>-->
+> 
+>> <!--
+>> <td class="customPoll" valign="top">&nbsp;</td>-->
+> 
+>> <!--
+>> <td class="customPoll" valign="top" width="10"><input type="radio"
+>> name="optionId" value="${pollOptionBean.optionId}"><c:out
+>> value="${pollOptionBean.option}" /></td>-->
+> 
+>> <!--
+>> </tr>-->
+> 
+>> <!--
+>> </c:forEach>-->
+> 
+>> <!--
+>> <tr>-->
+> 
+>> <!--
+>> <td colspan="6" style="padding-right:25px;" align="right"><a
+>> href="#"><img src="${channelBean.context}/images/submit.gif"
+>> title="Submit" border="0"
+>> onclick="submitPolls('submitPoll.do')"></a></td>-->
+> 
+>> <!--
+>> </tr>-->
+> 
+>> <!--                                                        </table>-->
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td valign="top"
+>> background="${channelBean.context}/images/prev_poll_heading_bg.gif"><img
+>> src="${channelBean.context}/images/prev_poll_heading.gif"
+>> title="Previous Survey Results"></td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td valign="top"
+>> class="prev_poll">
+> 
+>>                                                             <TABLE
+>> cellpadding="0" cellspacing="0" width="100%" border="0">
+> 
+>>                                                                   <tr>
+> 
+> 
+>> <c:if test="${not empty
+>> UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+> 
+> 
+>> <td class="arrow" valign="top">
+> 
+> 
+>> <img src="${channelBean.context}/images/poll_arrow.gif">
+> 
+> 
+>> </td>
+> 
+> 
+>> <td colspan="2" class="pollQ" valign="top">
+> 
+> 
+>> <c:out
+>> value="${UserDetailsCommand.previousPollDetailsBean.pollQuestion}"/>
+> 
+> 
+>> </td>
+> 
+> 
+>> </c:if>
+> 
+> 
+> 
+>>                                                                   </tr>
+> 
+>>                                                                   <TR>
+> 
+> 
+>> <TD colspan="3">
+> 
+> 
+>> <c:if test="${not empty
+>> UserDetailsCommand.previousPollDetailsBean.pollQuestion}">
+> 
+>> <!--
+>> <img src="${channelBean.context}/images/pie.gif" title="Result Pie
+>> Chart">-->
+> 
+> 
+>> <c:forEach
+>> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+>> var="pollOptionBean" varStatus="status">
+> 
+> 
+>> <c:set var="totalResponse"
+>> value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="val" value="${(pollResponse*100)/totalResponse}" />
+> 
+> 
+>> <c:if test="${status.count=='1'}">
+> 
+> 
+>> <c:set var="paramOption1" value="${pollOptionBean.option}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="paramValue1" value="${val}" scope="page"/>
+> 
+> 
+>> </c:if>
+> 
+> 
+>> <c:if test="${status.count=='2'}">
+> 
+> 
+>> <c:set var="paramOption2" value="${pollOptionBean.option}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="paramValue2" value="${val}" scope="page"/>
+> 
+> 
+>> </c:if>
+> 
+> 
+>> <c:if test="${status.count=='3'}">
+> 
+> 
+>> <c:set var="paramOption3" value="${pollOptionBean.option}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="paramValue3" value="${val}" scope="page"/>
+> 
+> 
+>> </c:if>
+> 
+> 
+>> <c:if test="${status.count=='4'}">
+> 
+> 
+>> <c:set var="paramOption4" value="${pollOptionBean.option}"
+>> scope="page"/>
+> 
+> 
+>> <c:set var="paramValue4" value="${val}" scope="page"/>
+> 
+> 
+>> </c:if>
+> 
+> 
+>> </c:forEach>
+> 
+> 
+>> <jsp:include page="/jsp/common/pieChart.jsp">
+> 
+> 
+>> <jsp:param name="paramOption1" value="${paramOption1}" />
+> 
+> 
+>> <jsp:param name="paramValue1" value="${paramValue1}" />
+> 
+> 
+>> <jsp:param name="paramOption2" value="${paramOption2}" />
+> 
+> 
+>> <jsp:param name="paramValue2" value="${paramValue2}" />
+> 
+> 
+>> <jsp:param name="paramOption3" value="${paramOption3}" />
+> 
+> 
+>> <jsp:param name="paramValue3" value="${paramValue3}" />
+> 
+> 
+>> <jsp:param name="paramOption4" value="${paramOption4}" />
+> 
+> 
+>> <jsp:param name="paramValue4" value="${paramValue4}" />
+> 
+> 
+>> </jsp:include>
+> 
+> 
+>> </c:if>
+> 
+> 
+>> </TD>
+> 
+>> <!--
+>> <TD valign="top" width="50%">-->
+> 
+>> <!--
+>> <TABLE cellpadding="2" cellspacing="0" border="0" width="100%">-->
+> 
+>> <!--
+>> <c:forEach
+>> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+>> var="pollOptionBean" varStatus="status">-->
+> 
+>> <!--
+>> <TR>-->
+> 
+>> <!--
+>> <c:if test="${status.count=='1'}">-->
+> 
+>> <!--
+>> <TD valign="top" class="color"><img
+>> src="${channelBean.context}/images/yes.gif"></TD>-->
+> 
+>> <!--
+>> </c:if>-->
+> 
+>> <!--
+>> <c:if test="${status.count=='2'}">-->
+> 
+>> <!--
+>> <TD valign="top" class="color"><img
+>> src="${channelBean.context}/images/no.gif"></TD>-->
+> 
+>> <!--
+>> </c:if>-->
+> 
+>> <!--
+>> <c:if test="${status.count=='3'}">-->
+> 
+>> <!--
+>> <TD valign="top" class="color"><img
+>> src="${channelBean.context}/images/mayb.gif"></TD>-->
+> 
+>> <!--
+>> </c:if>-->
+> 
+>> <!--
+>> <c:if test="${status.count=='4'}">-->
+> 
+>> <!--
+>> <TD valign="top" class="color"><img
+>> src="${channelBean.context}/images/idc.gif"></TD>-->
+> 
+>> <!--
+>> </c:if>-->
+> 
+>> <!--
+>> <TD valign="top" class="pollmarks"><c:out
+>> value="${pollOptionBean.option}" /></TD>-->
+> 
+>> <!--
+>> </TR>-->
+> 
+>> <!--
+>> </c:forEach>-->
+> 
+>> <!--
+>> </TABLE>-->
+> 
+>> <!--
+>> </TD>-->
+> 
+>>                                                                   </TR>
+> 
+>>                                                             </TABLE>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                                 <tr>
+> 
+>>                                                       <td
+>> class="results">
+> 
+>>                                                       <c:forEach
+>> items="${UserDetailsCommand.previousPollDetailsBean.optionList}"
+>> var="pollOptionBean" varStatus="status">
+> 
+>>                                                       <span
+>> class="title">
+> 
+>> <!--                                                  <c:out
+>> value="${pollOptionBean.option}" />-->
+> 
+>>                                                       </span>
+> 
+>> <!--                                                  <c:set
+>> var="totalResponse"
+>> value="${UserDetailsCommand.previousPollDetailsBean.totalResponse}"
+>> scope="page"/>-->
+> 
+>> <!--                                                  <c:set
+>> var="pollResponse" value="${pollOptionBean.optionResponseCount}"
+>> scope="page"/>-->
+> 
+>> <!--                                                  <c:set var="val"
+>> value="${(pollResponse*100)/totalResponse}" />-->
+> 
+>> <!--                                                  <fmt:setLocale
+>> value="en_US"/>-->
+> 
+>> <!--                                                  <span
+>> class="percentage"><fmt:formatNumber value="${val}" type="number"
+>> maxFractionDigits="0"/>%</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+> 
+>>                                                       </c:forEach>
+> 
+>>                                                       </td>
+> 
+>>                                                 </tr>
+> 
+>>                                           </table>
+> 
+>>                                     </TD>
+> 
+>>                               </TR>
+> 
+>>                               </TABLE>
+> 
+>>                         </TD>
+> 
+>>                   </TR>
+> 
+>>                   <tr>
+> 
+>>                         <td colspan="2" class="data"><br></td>
+> 
+>>                   </tr>
+> 
+>>                   <tr>
+> 
+>>                         <td colspan="2">
+> 
+>>                               <TABLE cellpadding="0" cellspacing="0"
+>> bgcolor="#FFFFFF" border="0" width="1003" align="center">
+> 
+>>                                     <TR>
+> 
+>>                                           <TD class="footerlinks"><a
+>> href="#">Sitemap</a> | <a href="#">Disclaimer</a></TD>
+> 
+>>                                           <TD
+>> class="footer">&copy;Copyright 2010 FIU-IND. All Rights Reserved.</TD>
+> 
+>>                                     </TR>
+> 
+>>                               </TABLE>
+> 
+>>                         </td>
+> 
+>>                   </tr>
+> 
+>>                   </TABLE>
+> 
+>>                   <!-- Body Ends here -->
+> 
+>>             </td>
+> 
+>>       </tr>
+> 
+>> </table>
+> 
+>> </body>
+> 
+>> </html>
+> 
+> 
+> 
+> 
+> 
+>> But the problem is when I click on any link in fingatehome.jsp it is
+>> giving potential cross-site request forgery (CSRF) attack thwarted.
+> 
+> 
+> 
+>> Can anyone tell me what wrong I am doing as it is not allowing me to
+>> access any of my webpage.I want to apply security for all my application
+>> web pages.But I don't know how to use it.
+> 
+> 
+> 
+>> Thanks and regards
+> 
+>> Nikesh
+> 
+> 
+>> Please do not print this email unless it is absolutely necessary. 
+> 
+>> The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments. 
+> 
+>> WARNING: Computer viruses can be transmitted via email. The recipient should check this email and any attachments for the presence of viruses. The company accepts no liability for any damage caused by any virus transmitted by this email. 
+> 
+>> www.wipro.com
+> 
+> 
+> 
+> 
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.16 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQQcBAEBAgAGBQJNQekQAAoJEBWErF92qiG2Yn0gAJf1M24xF2I2tfLPU8L4fpvv
+5LVfYgUth9NWsZwfL/Xzv03ITws4SORPswn7N1UXINVTJJq24FD9G710j2cu5iHT
+Ik0wvzcPHk5bo9BN3YofjJJg44u3mjRJCAjY174P92IiTM5ZHNRs/k0TrYwXhJCO
+TRIgfbenKITC/7CFMaLObW2dYVfAIVGW1l6FZu5n7h2YXvnD8ETbSPdcDt4vajqa
+FY49FATmQofNxt5j+s7q2Bd49QzrsDy4JrBcxTuo4W5ebVmQWc+IP8gYmIzsCNUU
+qdLFMdkICkPQnYA483ShDbeDOiTV7POz28FS4X4as7IWfu+62P2rCmDb/Xax8f0a
+/6laZa9hDvB/NJG7RcNZldILzavJ+gy+FadWGdBGNOa/SnrrUT3RV8AkZmoKcOER
+i9Eku0iYuidBg5ucwaVNDlDHym5fg8BmPRNtFVzg0oCn5Ov+yBiGv52PlmLzj4qa
+bdznINw+hqy/i7HF11ohej3suBAZXgrHCFAPu9Ch/E38mC+Lf3ttxPMDcowm8yFT
+WLhQpbpj0IvbCzR6Pz57DeHQtnS1QjEZO/afbCMow2KDGk1W1kA3xlkGrtobSyOP
+WbttMKlZDuub5g9ELseBF6f00fnzyvq9WAIa/PA70Phog3xQ1S0Hv3WLg3WwuCMD
+yTpjSy8u2MsD/gPLeFYr8Q12eBGNDu7lNZ1Ib0dpeMg5PMzqLqJcgjmyNiEpgYO0
+/TeZ7Bc5KbmtGNWOzZNm9m6l9xzsg2omVhNgzZivhC6QYnn/D/OScN9fOLSEzw+i
+5/AQA06p/MyDKSWQ+FB6vB2H8NsDoVJhY5rVzelnhdM4Zy1Vj+2kXxoG4CyDxJBk
+T8mAG3tCXlyIBnwD3aXnrJ3R7pf4TcHYprrlzOjWlfC1z1hIFsTvbKBd2qH8iR7q
+0GcMHOuf4KnN2phkFfltzYTZbiOSAJcRnoKex8aLRsIcNBzhgwk/htGhvCoGF73J
+GHhHL596jXY79G47LjMdQKeltRs0p037eXwW6ubCpXNz08zZF7cTO4GXT8T2ZTRB
+fhieJ+WPrCGkWTzMCGJiND9p0BbUgwjIEPyB40eIWIYvmvRoC3hS2+T3lPLPOZ8h
+40ioUiVs8i7z9FMYJo7xplOeMW7DlwjRZvgb7SEQgIo/dbcO1HKzMIm+Ew33qgEX
+as9YZxZ4uzxhcr7FneSuK4NIXSR1b1CLW2sz3MSXcfT+9l4FbrCD1XpAyoyG87I8
+OQf9U7/18+wEv01+sHfkNDbDhmBL9h3ozDYOxlSWmE5lZ4tobo5lSl+F2q05M9ng
+VhbGEZEfp4Nfd76UiJIRb+cj/x7WQDSuAa/So2sNuE87WVPCQjHTtC0zKCAEo1w=
+=sEmL
+-----END PGP SIGNATURE-----
+
+From eric.sheridan at owasp.org  Thu Jan 27 20:35:55 2011
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Thu, 27 Jan 2011 20:35:55 -0500
+Subject: [Owasp-csrfguard] OWASP CSRFGuard 3.0.0.479 ALPHA Released!
+Message-ID: <4D421D7B.2000704@owasp.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+OWASP,
+
+I'm proud to announce the release of OWASP CSRFGuard 3.0.0.479 ALPHA.
+You can download the latest copy here:
+
+https://github.com/downloads/esheri3/OWASP-CSRFGuard/OWASP-CSRFGuard-3.0.0.479.tar.gz
+
+This is largely a bug fix release with very little added functionality.
+There are a couple known problems with the dynamic JavaScript code:
+
+1. I don't know how to inject tokens into setters of document.location
+
+Ex: document.location='http://www.owasp.org';
+
+If owasp.org was the protected site, I would want the token included as
+a query string parameter (assuming inject-into-attributes was set to
+true). Any thoughts?
+
+2. I am not injecting tokens into elements dynamically generated by
+JavaScript. I'm planning on overriding "createElement" and
+"setAttribute" to ensure the token is injected properly. If you know of
+a more elegant solution, please let me know!
+
+Once I address #2 and clearly document the current limitations of #1,
+I'm going to strongly consider pushing CSRFGuard 3 to BETA. Please send
+me any information relating to bugs or significant features that you
+feel should be addressed in v3 ASAP.
+
+Another big update with this release is that the source code is now
+hosted at GitHub (https://github.com/esheri3/OWASP-CSRFGuard)! I figured
+it was time I get inline with this whole 'git' thing.
+
+- -Eric
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.16 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQQcBAEBAgAGBQJNQh12AAoJEBWErF92qiG26A4f/ilPvI3CCRQCRgcbAQWjuv3t
+ezokQfITRb32J6JsC3oubGTtOOxDzLsntuS0FKbL5HMcXXi18YEZOazlhhxnlM3N
+0n7qRZrSgMoPX4sf3/FASdBCDTP/hqTt/Z/Q4qwMAUoJBPkHIkMqn+OsZI+bUenM
+4AxYKZSLHaiwGGAq8BnjsDD5SlaCBoDDBjZqli+UjKUSVXYLA5RyFq+5ocP3UjfW
+EQYt+EcNmlNCameQMf7cDG595HXW7p308+2PJgT+x7zO9RM7oGaK2lEWdlMNFafl
+lIe/EqSz5B7rwtRhtjrI8mit1LsYqskmhhSsOlZzD5QU/lh6TTSqmaV7dEFVunxa
+KSDOL/0ZNkAhmQdpb0jfpwRRScOUkavHoaKz5y475BpdELvGmQxsOE454y/TPPbs
+TjR9hh+NdlXiun3yMjKuXXLWOfVyAtwkiRVCCNwE8WQyJ4xKFAA2hNYy7/qZjrut
+W+sXm/eYtcWKROIQm5fAikllLZGNxqVMQmEEjby1LEpN6SC+0WQyh4+Lt0gJnexC
+/2rYGlzC5XTXAmL4XDPwZlG2dW5jfz8dtNCXTibS6lIFyDPx2inxrKvKF0pz97BS
+LAgAge5DeShIkEWYsm7E5wriXys4NjzLdz4YFYkKtpX6CxIUKV4Lkg5di0tdAQJQ
+hHIhBrSduU+qEfBkRnu5d/e1GaAVU1V+VtKQIhphcy0vjCwk5Xvg8FZmSSf1+Vs8
+V1WrchYV2GM/8cXhZMM7cFj7bDtQ/7uOGGuxjtLOaYl9AElNOLXrUhjlER5/cvoC
+1egw3JmPjvAxKnX6+4hxfqhHKDQwYO0Og+F1gMQBoFmyV88hE4eYI3ZvOIsJV4gh
+YtL4wvYzQfjHAHv14JtDIVO5ql0kgA8BPUsKOEuB0w0qYRSlYeuEZgWs1uDzQbIr
+4Pqvg7h2q89yviD8KgVFm1uViy0aQcc1PtoY3KtXaqnMdN9XkKVCmhf7vJPJv2OK
+sjdelUpY9+p4GY1b6N9n0nQHlRe9WTICcMXF3fjk6bFWVED5DhW0Ow9N+f3BG27b
+x53ZQTr5qVXYoFr8CtwXeHMCkC4u9iFLT3Asanmphma7FP8Qh9lJrPUUFLBg+lER
+dcbPM2o7wL6FrgMK+qbCxUfl1G3RnHmcFNQ+mx0BIsJq5S3pNBTZBNQH3vyiZSt0
+Fk8Me/udhXrxP/pkLJ7N0UuY61W+Ev2Fveu7C2/1Mds3jPC5GktP6xt9oIc52OMD
+EzNxx/0GaNc+uyxECXeTkjzD9K76ElyICrjAaCPHQCUN5OwnMdm3iI612+KytFhK
+IjmBldbWpYsPB8/QXHwsqFjTUwpH9rRlTv6y3KsCuFBvwwjn9NiWP+YRDgaupzY=
+=gej1
+-----END PGP SIGNATURE-----
+

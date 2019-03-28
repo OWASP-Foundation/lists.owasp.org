@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] how to get the description of each rule..
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20how%20to%20get%20the%20description%20of%0A%20each%20rule..&In-Reply-To=BANLkTinj%2ByoL9riCJ458EQY5OO2Yc09B2g%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000755.html">
+   <LINK REL="Next"  HREF="000764.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] how to get the description of each rule..</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20how%20to%20get%20the%20description%20of%0A%20each%20rule..&In-Reply-To=BANLkTinj%2ByoL9riCJ458EQY5OO2Yc09B2g%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] how to get the description of each rule..">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu May  5 09:05:59 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000755.html">[Owasp-modsecurity-core-rule-set] how to get the description of each rule..
+</A></li>
+        <LI>Next message: <A HREF="000764.html">[Owasp-modsecurity-core-rule-set] how to get the description of each rule..
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#756">[ date ]</a>
+              <a href="thread.html#756">[ thread ]</a>
+              <a href="subject.html#756">[ subject ]</a>
+              <a href="author.html#756">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yep - I was hoping that some folks from the community would help with the
+documentation but that hasn't materialized...  If anyone wants to help
+with Documentation please ping me so we can coordinate.
+
+Besides the OWASP Rule Document pages, I did start updating the comments
+preceding each rule in the rules files.  I only finished two files so far -
+
+modsecurity_crs_20_protocol_violations.conf
+modsecurity_crs_21_protocol_anomalies.conf
+
+Each rule has Rules Logic and Reference sections to help provide
+information as to the rule's purpose.
+
+#
+# -=[ Rule Logic ]=-
+# Uses rule negation against the regex for positive security.  The regex
+specifies the proper
+# construction of URI request lines such as:
+#
+#       &quot;http:&quot; &quot;//&quot; host [ &quot;:&quot; port ] [ abs_path [ &quot;?&quot; query ]]
+#
+# It also outlines proper construction for CONNECT, OPTIONS and GET
+requests.
+#
+# -=[ References ]=-
+# <A HREF="http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.2.1">http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.2.1</A>
+#
+SecRule REQUEST_LINE
+&quot;!^(?:(?:[a-z]{3,10}\s+(?:\w{3,7}?://[\w\-\./]*(?::\d+)?)?/[^?#]*(?:\?[^#\s
+]*)?(?:#[\S]*)?|connect (?:\d{1,3}\.){3}\d{1,3}\.?(?::\d+)?|options
+\*)\s+[\w\./]+|get /[^?#]*(?:\?[^#\s]*)?(?:#[\S]*)?)$&quot; \
+    &quot;t:none,t:lowercase,phase:1,rev:'2.1.3',block,msg:'Invalid HTTP
+Request
+Line',id:'960911',severity:'4',tag:'<A HREF="http://www.w3.org/Protocols/rfc2616/rfc">http://www.w3.org/Protocols/rfc2616/rfc</A>
+2616-sec3.html#sec3.2.1',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_scor
+e=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.noti
+ce_anomaly_score},setvar:'tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_REQ-%{ma
+tched_var_name}=%{matched_var}'&quot;
+
+Again - if anyone wants to help with documentation improvements, we are
+certainly looking for help.
+
+
+-Ryan
+
+
+
+
+
+On 5/5/11 4:57 AM, &quot;Josh Amishav-Zlatin&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at gmail.com</A>&gt; wrote:
+
+&gt;<i>2011/5/5 &#24352;&#31456;&#25996;(&#30740;&#20845; &#31119;&#24030;) &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">zhangzhangbin at ruijie.com.cn</A>&gt;:
+</I>&gt;&gt;<i> Hello!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Many rule in the core-rule-set are complicated and I can&#8217;t
+</I>&gt;&gt;<i>understant
+</I>&gt;&gt;<i> it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Does anyone know where to find the description of each rule?
+</I>&gt;<i>
+</I>&gt;<i>There was a push to start documenting the CRS rules a while back,
+</I>&gt;<i>though it doesn't look like that much was completed:
+</I>&gt;<i>
+</I>&gt;<i><A HREF="https://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_P">https://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_P</A>
+</I>&gt;<i>roject#tab=Documentation
+</I>&gt;<i>
+</I>&gt;<i>To get a good understand of the ModSecurity rules language, I highly
+</I>&gt;<i>recommend getting a copy the ModSecurity Handbook.
+</I>&gt;<i>
+</I>&gt;<i>--
+</I>&gt;<i> - Josh
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000755.html">[Owasp-modsecurity-core-rule-set] how to get the description of each rule..
+</A></li>
+	<LI>Next message: <A HREF="000764.html">[Owasp-modsecurity-core-rule-set] how to get the description of each rule..
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#756">[ date ]</a>
+              <a href="thread.html#756">[ thread ]</a>
+              <a href="subject.html#756">[ subject ]</a>
+              <a href="author.html#756">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

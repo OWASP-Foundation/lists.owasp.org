@@ -1,0 +1,116 @@
+From Bernhard.Hirschmann at EXXETA.com  Mon Oct  1 15:08:38 2018
+From: Bernhard.Hirschmann at EXXETA.com (Hirschmann, Bernhard)
+Date: Mon, 1 Oct 2018 15:08:38 +0000
+Subject: [Owasp-appsensor-project] MySQL issue with sample app
+ appsensor-ws-rest-server-with-websocket-mysql-boot
+Message-ID: <E34FF877-E2AE-42B2-B242-7F6B6C159868@contoso.com>
+
+Hello,
+
+I'm just checking out AppSensor and I'm excited about the idea. Thank you for all the efforts you spend doing such great work!
+
+I followed the instructions for the Demo Setup, running MySQL in version 5.7. The mentioned "appsensor-ws-rest-server-with-websocket-boot" just runs fine. 
+
+With the sample app "appsensor-ws-rest-server-with-websocket-mysql-boot" I'm having some issues, which I was able to track down. There are problems with the create.sql in the project, since it doesn't create the DDL like expected. Removing the comments in the application.properties, doesn't seem to get the application to create the tables. 
+I created the DDL manually then, but had to modify the SQL statements in the create.sql. The main issue is that MySQL is quite picky with keywords. The name of the table "interval" is a reserved keyword and must be used with the right quotes: `interval`. 
+Same with the column `key` in table "key_value_pair". 
+Additionally the column type "tinyblob" causes an error during runtime of the application, since the ip_address doesn't fit into the column. Changing that to "blob" helps.
+
+With that changed I'm able to start the application, but during runtime another issue appears: a sql syntax error is reported during the persisting of events. I debugged it and found another problem with the usage of the "interval" table. In the produced SQL statement `interval` is not correctly quoted, causing MySQL's iterpreter to fail.
+
+Maybe someone has the time to go after it and can provide some help. I would highly appreciate it.
+
+Best regards!
+Bernhard 
+
+
+From jtmelton at gmail.com  Tue Oct  2 03:11:56 2018
+From: jtmelton at gmail.com (John Melton)
+Date: Mon, 1 Oct 2018 23:11:56 -0400
+Subject: [Owasp-appsensor-project] MySQL issue with sample app
+	appsensor-ws-rest-server-with-websocket-mysql-boot
+In-Reply-To: <E34FF877-E2AE-42B2-B242-7F6B6C159868@contoso.com>
+References: <E34FF877-E2AE-42B2-B242-7F6B6C159868@contoso.com>
+Message-ID: <CAM8z=yKyKB8np-hUpJwq5NCXOCmzZFMNn4AsyAyjox3WNcS5xg@mail.gmail.com>
+
+Bernhard,
+
+Thanks for reaching out. I took a shot at fixing up those 3 issues. Can you
+have a look and try again. I'm guessing it should work for installation,
+but there may be an issue with the runtime again. If so, I'll try to spend
+a bit more time getting it to work maybe this weekend.
+
+Thanks,
+John
+
+
+On Mon, Oct 1, 2018 at 11:09 AM Hirschmann, Bernhard <
+Bernhard.Hirschmann at exxeta.com> wrote:
+
+> Hello,
+>
+> I'm just checking out AppSensor and I'm excited about the idea. Thank you
+> for all the efforts you spend doing such great work!
+>
+> I followed the instructions for the Demo Setup, running MySQL in version
+> 5.7. The mentioned "appsensor-ws-rest-server-with-websocket-boot" just runs
+> fine.
+>
+> With the sample app "appsensor-ws-rest-server-with-websocket-mysql-boot"
+> I'm having some issues, which I was able to track down. There are problems
+> with the create.sql in the project, since it doesn't create the DDL like
+> expected. Removing the comments in the application.properties, doesn't seem
+> to get the application to create the tables.
+> I created the DDL manually then, but had to modify the SQL statements in
+> the create.sql. The main issue is that MySQL is quite picky with keywords.
+> The name of the table "interval" is a reserved keyword and must be used
+> with the right quotes: `interval`.
+> Same with the column `key` in table "key_value_pair".
+> Additionally the column type "tinyblob" causes an error during runtime of
+> the application, since the ip_address doesn't fit into the column. Changing
+> that to "blob" helps.
+>
+> With that changed I'm able to start the application, but during runtime
+> another issue appears: a sql syntax error is reported during the persisting
+> of events. I debugged it and found another problem with the usage of the
+> "interval" table. In the produced SQL statement `interval` is not correctly
+> quoted, causing MySQL's iterpreter to fail.
+>
+> Maybe someone has the time to go after it and can provide some help. I
+> would highly appreciate it.
+>
+> Best regards!
+> Bernhard
+>
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20181001/1b4e3684/attachment.html>
+
+From Bernhard.Hirschmann at EXXETA.com  Tue Oct  2 12:24:30 2018
+From: Bernhard.Hirschmann at EXXETA.com (Hirschmann, Bernhard)
+Date: Tue, 2 Oct 2018 12:24:30 +0000
+Subject: [Owasp-appsensor-project] MySQL issue with sample app
+ appsensor-ws-rest-server-with-websocket-mysql-boot
+In-Reply-To: <CAM8z=yKyKB8np-hUpJwq5NCXOCmzZFMNn4AsyAyjox3WNcS5xg@mail.gmail.com>
+References: <E34FF877-E2AE-42B2-B242-7F6B6C159868@contoso.com>,
+	<CAM8z=yKyKB8np-hUpJwq5NCXOCmzZFMNn4AsyAyjox3WNcS5xg@mail.gmail.com>
+Message-ID: <AM0PR01MB4466D15087B05571CADF4B778DE80@AM0PR01MB4466.eurprd01.prod.exchangelabs.com>
+
+Hello John,
+
+thank you! Your changes in create.sql look fine to me.
+
+For the mapping problem of the Interval table in MySQL - I suggest to add an annotaion with escaped quotes for the tablename. I found out that doing so will do the clarification for the interpreter. So something like this  could work in appsensor-code:
+
+? @Entity
+? @Table(name="\"Interval\"")
+? public class Interval implements IAppsensorEntity {
+
+Best regards
+Bernhard
+

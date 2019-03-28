@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-argentina] Vulnerabilidades de variables manchadas
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%20Vulnerabilidades%20de%20variables%20manchadas&In-Reply-To=cdfaf8b20905120629l15986e17n5fde097670051150%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <LINK REL="Previous"  HREF="000160.html">
+   <LINK REL="Next"  HREF="000159.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-argentina] Vulnerabilidades de variables manchadas </H1>
+    <B>Ezequiel Gutesman</B> 
+    <A HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%20Vulnerabilidades%20de%20variables%20manchadas&In-Reply-To=cdfaf8b20905120629l15986e17n5fde097670051150%40mail.gmail.com"
+       TITLE="[Owasp-argentina] Vulnerabilidades de variables manchadas">egutesman en gmail.com
+       </A><BR>
+    <I>Mar Mayo 12 10:52:01 EDT 2009</I>
+    <P><UL>
+        <LI>Mensaje anterior: <A HREF="000160.html">[Owasp-argentina] Vulnerabilidades de variables manchadas
+</A></li>
+        <LI>Próximo mensaje: <A HREF="000159.html">[Owasp-argentina] Sistema para detectar vulnerabilidades de	variables manchadas
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#161">[ fecha ]</a>
+              <a href="thread.html#161">[ hilo ]</a>
+              <a href="subject.html#161">[ asunto ]</a>
+              <a href="author.html#161">[ autor ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>2009/5/12 Andres Riancho &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">andres.riancho en gmail.com</A>&gt;
+
+&gt;<i> Juanjo,
+</I>&gt;<i>
+</I>&gt;<i> 2009/5/11 Juanjo Conti &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">jjconti en gmail.com</A>&gt;:
+</I>&gt;<i> &gt; 2009/5/11 Arturo 'Buanzo' Busleiman &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-argentina">buanzo en buanzo.com.ar</A>&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; -----BEGIN PGP SIGNED MESSAGE-----
+</I>&gt;<i> &gt;&gt; Hash: SHA512
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Juanjo Conti wrote:
+</I>&gt;<i> &gt;&gt; &gt; Les pregunto a Uds que tienen mas experiencia y seguro conocen más
+</I>&gt;<i> &gt;&gt; &gt; [...] sin constitue la gran amyoría. Estoy en lo cierto? No lo estoy?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; la gran mayoria, si. O al menos, la mas &quot;noticeable difference&quot; :)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Entonces no sería incorrecto que un primer esfuerzo por un analizador de
+</I>&gt;<i> &gt; código fuente esté orientado a detectar este tipo de vulnerabilidades.
+</I>&gt;<i> &gt; Right?
+</I>&gt;<i>
+</I>&gt;<i> Si me tengo que jugar, digo que el 90% de las vulnerabilidades se
+</I>&gt;<i> pueden detectar de esta manera.
+</I>&gt;<i>
+</I>
+
+Estoy de acuerdo.
+
+Hay muchos proyectos en esa direccion:
+
+Con granularidad per-character, es decir, una marca por cada caracter, que
+vive con el mientras exista dentro del interprete, se propaga y se chequea
+(hasta ahora) por SQLinjection (si concatenas caracteres con marcas
+distintas siguen mezcladas...):
+
+   - grasp.coresecurity.com (en super beta, pero estamos haciendo una
+   version para php-5.2.6, el que quiera esta invitado a colaborar)
+
+Con granularidad por variable, mas para una fase de testing (una marca por
+variable, si mezclas 2 una &quot;sana&quot; + &quot;insana&quot; = &quot;insana&quot;)
+
+   - <A HREF="http://wiki.php.net/rfc/taint">http://wiki.php.net/rfc/taint</A> (W. Venema)
+
+Hay muchisimos mas proyectos, pero me parece, para lo que estamos hablando,
+de los mas representativos de las opciones de granularidad.
+
+El problema que veo yo con el analisis estatico del codigo es que  hagas lo
+que hagas seguramente se te escapan o bien execution paths o bien maneras de
+bypasear algun escape o algo. En cambio, con el aproach dinamico y en
+run-time, podes por ejemplo, saber en el momento preciso antes de ejecutar
+una query, exactamente como esta construida, por ejemplo, en grasp:
+
+SELECT * FROM users WHERE name = 'pirulo' or 1=1 --'
+..................................xxxxxxxxxxxxxxxxx.
+
+donde . significa &quot;limpio&quot; X &quot;sucio&quot;
+
+En el momento de mandar la query a mysql, se chequean las marcas y esta
+query falla, sin importar cuantas veces encodee antes de construirla, porque
+las marcas persisten AUNQUE encodees, escapes etc, si esta query llega, es
+un ataque.
+
+salu2
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Mensaje anterior: <A HREF="000160.html">[Owasp-argentina] Vulnerabilidades de variables manchadas
+</A></li>
+	<LI>Próximo mensaje: <A HREF="000159.html">[Owasp-argentina] Sistema para detectar vulnerabilidades de	variables manchadas
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#161">[ fecha ]</a>
+              <a href="thread.html#161">[ hilo ]</a>
+              <a href="subject.html#161">[ asunto ]</a>
+              <a href="author.html#161">[ autor ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-argentina">Más información sobre la lista de distribución Owasp-argentina </a><br>
+</body></html>

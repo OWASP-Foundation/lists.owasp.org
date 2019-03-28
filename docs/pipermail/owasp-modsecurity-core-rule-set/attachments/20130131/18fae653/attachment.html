@@ -1,0 +1,39 @@
+<tt>
+Patch&nbsp;not&nbsp;useful&nbsp;or&nbsp;wrong&nbsp;way&nbsp;to&nbsp;post&nbsp;it&nbsp;?&nbsp;Just&nbsp;for&nbsp;info.&lt;br&gt;&lt;br&gt;Best&lt;br&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Wed,&nbsp;Jan&nbsp;30,&nbsp;2013&nbsp;at&nbsp;11:57&nbsp;AM,&nbsp;Elia&nbsp;Pinto&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:yersinia.spiros@gmail.com&quot;&nbsp;target=&quot;_blank&quot;&gt;yersinia.spiros@gmail.com&lt;/a&gt;&gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex&quot;&gt;When&nbsp;the&nbsp;apache&nbsp;HTTP&nbsp;Server&nbsp;manages&nbsp;its&nbsp;child&nbsp;processes,&nbsp;it&nbsp;sends&nbsp;a&nbsp;simple&nbsp;HTTP&nbsp;request&nbsp;back&nbsp;to&nbsp;itself.&lt;br&gt;<br>
+This&nbsp;request&nbsp;will&nbsp;appear&nbsp;in&nbsp;the&nbsp;access_log&nbsp;file&nbsp;with&nbsp;the&nbsp;remote&nbsp;address&nbsp;set&nbsp;to&nbsp;the&nbsp;loop-back&nbsp;interface&lt;br&gt;<br>
+and&nbsp;if&nbsp;you&nbsp;log&nbsp;the&nbsp;User-Agent&nbsp;string&nbsp;you&nbsp;will&nbsp;see&nbsp;the&nbsp;server&nbsp;signature&nbsp;followed&nbsp;by&nbsp;&quot;(internal&nbsp;dummy&nbsp;connection)&quot;&lt;br&gt;<br>
+on&nbsp;non-SSL&nbsp;servers.&nbsp;modsecurity_crs_47_common_exceptions&nbsp;already&nbsp;contain&nbsp;a&nbsp;chained&nbsp;rule&nbsp;for&nbsp;skipping&lt;br&gt;<br>
+the&nbsp;apache&nbsp;internal&nbsp;dummy&nbsp;connection&nbsp;if&nbsp;the&nbsp;connection&nbsp;is&nbsp;from&nbsp;the&nbsp;lookback&nbsp;address.&lt;br&gt;<br>
+&lt;br&gt;<br>
+But&nbsp;if&nbsp;the&nbsp;administrator&nbsp;has&nbsp;set&nbsp;the&nbsp;directive&nbsp;SecServerSignature&lt;br&gt;<br>
+to&nbsp;one&nbsp;of&nbsp;the&nbsp;./modsecurity_35_bad_robots.data,&nbsp;for&nbsp;example&nbsp;chinaclaw,&nbsp;the&nbsp;skip&nbsp;rule&nbsp;for&nbsp;the&nbsp;internal&nbsp;dummy&nbsp;connection&nbsp;is&nbsp;not&nbsp;used,&lt;br&gt;<br>
+because&nbsp;in&nbsp;that&nbsp;case&nbsp;the&nbsp;User-Agent&nbsp;is&nbsp;defined&nbsp;by&nbsp;the&nbsp;valued&nbsp;of&nbsp;the&nbsp;SecServerSignature,&nbsp;and&lt;br&gt;<br>
+not&nbsp;contain&nbsp;the&nbsp;value&nbsp;Apache:&nbsp;in&nbsp;this&nbsp;case&nbsp;the&nbsp;rule&nbsp;990012&nbsp;will&nbsp;fire&nbsp;wrongly.&lt;br&gt;<br>
+Therefore,&nbsp;because&nbsp;the&nbsp;skip&nbsp;rule&nbsp;it&nbsp;is&nbsp;applied&nbsp;already&nbsp;to&nbsp;connection&nbsp;from&nbsp;127.0.0.1,&lt;br&gt;<br>
+so&nbsp;it&nbsp;is&nbsp;sufficently&nbsp;safe,&nbsp;don&#39;t&nbsp;cause&nbsp;any&nbsp;problem&nbsp;to&nbsp;eliminate&nbsp;the&nbsp;&quot;Apache&quot;&nbsp;control&nbsp;also&nbsp;on&nbsp;the&nbsp;User-Agent&nbsp;variables.&lt;br&gt;<br>
+It&nbsp;is&nbsp;very&nbsp;similar&nbsp;to&nbsp;a&nbsp;standard&nbsp;iptables&nbsp;setup&nbsp;in&nbsp;which&nbsp;it&nbsp;is&nbsp;common&nbsp;to&nbsp;put&nbsp;a&nbsp;catchall&nbsp;ACCEPT&nbsp;rule&lt;br&gt;<br>
+on&nbsp;the&nbsp;loopback&nbsp;interface.&lt;br&gt;<br>
+---&lt;br&gt;<br>
+ .../modsecurity_crs_47_common_exceptions.conf&nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; 2&nbsp;+-&lt;br&gt;<br>
+ 1&nbsp;files&nbsp;changed,&nbsp;1&nbsp;insertions(+),&nbsp;1&nbsp;deletions(-)&lt;br&gt;<br>
+&lt;br&gt;<br>
+diff&nbsp;--git&nbsp;a/base_rules/modsecurity_crs_47_common_exceptions.conf&nbsp;b/base_rules/modsecurity_crs_47_common_exceptions.conf&lt;br&gt;<br>
+index&nbsp;c63cabd..eda515b&nbsp;100644&lt;br&gt;<br>
+---&nbsp;a/base_rules/modsecurity_crs_47_common_exceptions.conf&lt;br&gt;<br>
++++&nbsp;b/base_rules/modsecurity_crs_47_common_exceptions.conf&lt;br&gt;<br>
+@@&nbsp;-23,7&nbsp;+23,7&nbsp;@@&nbsp;SecRule&nbsp;REQUEST_LINE&nbsp;&quot;^GET&nbsp;/$&quot;&nbsp;&quot;chain,phase:2,id:&#39;981020&#39;,t:none,pass,nolog&quot;&lt;br&gt;<br>
+ #&lt;br&gt;<br>
+ SecRule&nbsp;REQUEST_LINE&nbsp;&quot;^(GET&nbsp;/|OPTIONS&nbsp;\*)&nbsp;HTTP/1.0$&quot;&nbsp;&quot;chain,phase:2,id:&#39;981021&#39;,t:none,pass,nolog&quot;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;REMOTE_ADDR&nbsp;&quot;^(127\.0\.0\.|\:\:)1$&quot;&nbsp;&quot;chain,t:none&quot;&lt;br&gt;<br>
+-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;REQUEST_HEADERS:User-Agent&nbsp;&quot;^Apache.*\(internal&nbsp;dummy&nbsp;connection\)$&quot;&nbsp;&quot;t:none,t:none,chain&quot;&lt;br&gt;<br>
++&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;REQUEST_HEADERS:User-Agent&nbsp;&quot;^.*\(internal&nbsp;dummy&nbsp;connection\)$&quot;&nbsp;&quot;t:none,t:none,chain&quot;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;TX:&#39;/PROTOCOL_VIOLATION\\\/MISSING_HEADER/&#39;&nbsp;&quot;.*&quot;&nbsp;&quot;chain,setvar:tx.missing_header=+1,setvar:tx.missing_header_%{tx.missing_header}=%{matched_var_name}&quot;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;TX:&#39;/MISSING_HEADER_/&#39;&nbsp;&quot;TX\:(.*)&quot;&nbsp;&quot;capture,t:none,setvar:!tx.%{tx.1}&quot;&lt;br&gt;<br>
+&lt;span&nbsp;class=&quot;HOEnZb&quot;&gt;&lt;font&nbsp;color=&quot;#888888&quot;&gt;&lt;br&gt;<br>
+--&lt;br&gt;<br>
+1.7.1&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;/font&gt;&lt;/span&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;<br>
+
+</tt>

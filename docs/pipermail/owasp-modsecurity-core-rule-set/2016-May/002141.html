@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20arg%20name%20not%20resolving%20for%0A%20large%09post%20value&In-Reply-To=%3CCO2PR18MB00126F53EE88C88DDDEDC078DE720%40CO2PR18MB0012.namprd18.prod.outlook.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002140.html">
+   <LINK REL="Next"  HREF="002148.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value</H1>
+    <B>Colin MacAllister</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20arg%20name%20not%20resolving%20for%0A%20large%09post%20value&In-Reply-To=%3CCO2PR18MB00126F53EE88C88DDDEDC078DE720%40CO2PR18MB0012.namprd18.prod.outlook.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value">cmacallister at probono.net
+       </A><BR>
+    <I>Wed May 11 15:42:38 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002140.html">[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value
+</A></li>
+        <LI>Next message: <A HREF="002148.html">[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2141">[ date ]</a>
+              <a href="thread.html#2141">[ thread ]</a>
+              <a href="subject.html#2141">[ subject ]</a>
+              <a href="author.html#2141">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Okay, more data. What's going on in this system I inherited is that I receive a friendly URL and rewrite it to /index.cfm?404;/[friendly URL]/. This has been working for decades. The friendly URL pass truncates the body of the form data, but the rewritten version doesn't (and just happens to correctly fail other tests I haven't whitelisted yet.)
+
+I attached the winmerge report comparing the headers of the two to show that there's really very little that's different.
+
+This one breaks ...
+
+--d25c0000-A--
+[11/May/2016:11:07:11 --0400] 12177733394557306202 69.12.26.106:23691 80 127.0.0.1 80
+--d25c0000-B--
+POST /featured_vols/description HTTP/1.1
+Cache-Control: max-age=0
+Connection: keep-alive
+Content-Length: 2975
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+Cookie: _ga=GA1.2.219992625.1458320050; CFID=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-267771; CFTOKEN=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-4eaddd7ee5a61753-DFBE0B9D-9D0A-05B8-72ADDAE8098402E1; __utma=165789951.219992625.1458320050.1462818223.1462821173.2; __utmc=165789951; __utmz=165789951.1462818223.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); JSESSIONID=63EE19F6E809FFAF93F6A49EF57E3693.cfusion; __utma=220594061.606745990.1458227854.1462818276.1462978225.14; __utmb=220594061.2.10.1462978225; __utmc=220594061; __utmz=220594061.1458227854.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);
+Host: my.server.com
+Referer: <A HREF="http://my.server.com/featured_vols/description">http://my.server.com/featured_vols/description</A>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36
+Origin: <A HREF="http://my.server.com">http://my.server.com</A>
+Upgrade-Insecure-Requests: 1
+
+--d25c0000-C--
+rc+is+knowledgeable%2C+and+kind [which a segment of my form post starting further down, truncated so that it doesn't even include the ARG_NAME for this bit of data, followed by the rest of the post.]
+
+
+This one works (but fails the tests) ...
+
+
+--4e120000-A--
+[11/May/2016:11:07:11 --0400] 12177733394557306202 69.12.26.106:23691 80 127.0.0.1 80
+--4e120000-B--
+POST /index.cfm?404;/featured_vols/description HTTP/1.1
+Cache-Control: max-age=0
+Connection: keep-alive
+Content-Length: 11167
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+Cookie: _ga=GA1.2.219992625.1458320050; CFID=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-267771; CFTOKEN=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-4eaddd7ee5a61753-DFBE0B9D-9D0A-05B8-72ADDAE8098402E1; __utma=165789951.219992625.1458320050.1462818223.1462821173.2; __utmc=165789951; __utmz=165789951.1462818223.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); JSESSIONID=63EE19F6E809FFAF93F6A49EF57E3693.cfusion; __utma=220594061.606745990.1458227854.1462818276.1462978225.14; __utmb=220594061.2.10.1462978225; __utmc=220594061; __utmz=220594061.1458227854.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);
+Host: my.server.com
+Referer: <A HREF="http://my.server.com/featured_vols/description">http://my.server.com/featured_vols/description</A>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36
+Origin: <A HREF="http://my.server.com">http://my.server.com</A>
+Upgrade-Insecure-Requests: 1
+X-Original-URL: /featured_vols/description
+
+--dc220000-C--
+Description=%3Ch3%3EWelcome+to [... the rest of the full post]
+
+
+
+From: Colin MacAllister
+Sent: Wednesday, May 11, 2016 11:03 AM
+To: OWASP List &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: RE: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+I added part C (request body) to the audit log, and it also is showing truncated data. It's actually the entire form data post that is truncated so that just the last part gets through. But the entire post is received by the database.
+
+From: Colin MacAllister
+Sent: Tuesday, May 10, 2016 1:38 PM
+To: OWASP List &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: RE: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Resurrecting this. I'm sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+
+I've attempted switching back from anomaly scoring mode to one-strike-you're-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+
+Sent from Mail&lt;<A HREF="https://go.microsoft.com/fwlink/?LinkId=550986">https://go.microsoft.com/fwlink/?LinkId=550986</A>&gt; for Windows 10
+
+From: Colin MacAllister&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cmacallister at probono.net</A>&gt;
+Sent: Thursday, May 5, 2016 2:39 PM
+To: OWASP List&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Hi, all,
+
+As I fine-tune my CMS not to bark at me for valid traffic, I've come upon the following problem. When a rule matches (in anomaly scoring mode, haven't tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, &quot;Blurb.&quot;
+
+ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind... [followed by a chunk of the rest of the arg value]
+
+I checked it in the inspector, and indeed the ARG_NAME should be &quot;Blurb&quot;. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I'd rather not.
+
+Have I found a bug? See the snippet from the audit log I attached to this email.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.html</A>&gt;
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.htm">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.htm</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002140.html">[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value
+</A></li>
+	<LI>Next message: <A HREF="002148.html">[Owasp-modsecurity-core-rule-set] arg name not resolving for large	post value
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2141">[ date ]</a>
+              <a href="thread.html#2141">[ thread ]</a>
+              <a href="subject.html#2141">[ subject ]</a>
+              <a href="author.html#2141">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-delhi] MAIL SERVER TESTING
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=%5BOwasp-delhi%5D%20MAIL%20SERVER%20TESTING&In-Reply-To=C43253473FD450409272936013235111044D1543%40APSW0640EVS.ms.ds.uhc.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000644.html">
+   <LINK REL="Next"  HREF="000646.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-delhi] MAIL SERVER TESTING</H1>
+    <B>Soi, Dhruv</B> 
+    <A HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=%5BOwasp-delhi%5D%20MAIL%20SERVER%20TESTING&In-Reply-To=C43253473FD450409272936013235111044D1543%40APSW0640EVS.ms.ds.uhc.com"
+       TITLE="[Owasp-delhi] MAIL SERVER TESTING">dhruv.soi at owasp.org
+       </A><BR>
+    <I>Wed Dec 16 07:58:15 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000644.html">[Owasp-delhi] MAIL SERVER TESTING
+</A></li>
+        <LI>Next message: <A HREF="000646.html">[Owasp-delhi] Twitter website is hacked !!!!!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#645">[ date ]</a>
+              <a href="thread.html#645">[ thread ]</a>
+              <a href="subject.html#645">[ subject ]</a>
+              <a href="author.html#645">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think there is slight confusion between both the tests. Below are the test
+cases for open relay and spoofing. Apart from open relay, you may try to do
+local relay and SMTP implementation shall allow to send email as
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">abc at domain.com</A> to <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">abc at domain.com</A> without asking for credentials.
+
+ 
+
+Simple Open Relay Testing
+
+=====
+
+telnet mail.domain.com 25
+
+mail from:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">spammer at evil.com</A>
+
+rcpt to:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">vicimemail at domain.com</A>
+
+data
+
+some text in the email
+
+.
+
+quit
+
+=====
+
+ 
+
+Above mail will throw an error stating &quot;550 Relay Access Denied&quot; if the
+server is running with SMTP AUTH. Else email will be delivered. 
+
+ 
+
+ 
+
+Mail Spoofing Test - Even with SMTP AUTH, let us say you have valid
+credentials (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">abc at domain.com</A>) and you try to send the email as <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">ceo at domain.com</A>
+as From address in your outlook:
+
+telnet mail.domain.com 25
+
+AUTH PLAIN AHRlc3QAdGVzdDEyMzQ=
+
+mail from:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">ceo at domain.com</A>
+
+rcpt to:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">vicimemail at domain.com</A>
+
+data
+
+You are fired with immediate effect. Some more text in the email.
+
+.
+
+quit
+
+====
+
+ 
+
+If mail server is not doing the login checks, above mail will pass due to
+the correct credentials valid to some other mailbox. Else you will see an
+error message &quot;Access Denied: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">victimemail at domain.com</A>: mailbox <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">ceo at domain.com</A>
+not owned by the user&quot;
+
+ 
+
+Hope helpful!
+
+ 
+
+ 
+
+ 
+
+ 
+
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>] On Behalf Of Suryavanshi,
+Rajesh
+Sent: Wednesday, December 16, 2009 6:09 PM
+To: vaibhav aher
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi at lists.owasp.org</A>
+Subject: Re: [Owasp-delhi] MAIL SERVER TESTING
+
+ 
+
+thats right vaibhav..
+
+ 
+
+I was meant to place authentication control in between.. if we block relay
+there is no use to have SMTP.
+
+ 
+
+since it was mentioned below: test like open relay, mail spoofing, both are
+interconnected.  We test open relay to prevent mail spoofing.
+
+ 
+
+ 
+
+Rgds, 
+
+ 
+
+Raj
+
+ 
+
+  _____  
+
+From: vaibhav aher [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">vaibhavaher at gmail.com</A>] 
+Sent: Wednesday, December 16, 2009 5:44 PM
+To: Suryavanshi, Rajesh
+Subject: Re: [Owasp-delhi] MAIL SERVER TESTING
+
+Hello Raj.
+
+ 
+
+If you block there Relay you will not able to send the mails. Then there
+will be no use of SMTP.
+
+Kindly refer to SMTP AUTH, to stop Open Mail Relay.
+
+ 
+
+Regards
+
+Vaibhav 
+
+IS Consultant.
+
+On Wed, Dec 16, 2009 at 5:02 PM, Suryavanshi, Rajesh
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">rajesh_suryavanshi at uhc.com</A>&gt; wrote:
+
+ Hi All,
+
+ 
+
+I need to have one clarification here regarding open relay, mail spoofing;
+Is it possible to perform mail spoofing if open relay is blocked on a mail
+server.
+
+ 
+
+ 
+
+ 
+
+Rgds.
+
+ 
+
+Raj
+
+ 
+
+  _____  
+
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>] On Behalf Of Parmendra Sharma
+
+Sent: Wednesday, December 16, 2009 4:45 PM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">dhruv.soi at torridnetworks.com</A>
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi at lists.owasp.org</A>
+Subject: Re: [Owasp-delhi] MAIL SERVER TESTING
+
+Hi,
+
+ 
+
+Thanks for the comments.
+
+ 
+
+but what i was asking is there any specific &quot;methodology/Guideline/How to&quot;
+to test such issues.
+
+On Wed, Dec 16, 2009 at 4:35 PM, Soi, Dhruv &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">dhruv.soi at torridnetworks.com</A>&gt;
+wrote:
+
+Apart from standard assessment of mail server to check for vulnerabilities
+in the SMTP/POP3/IMAP/OS software there are few mail server specific test
+like open relay, mail spoofing, usage of plain text protocols, user
+harvesting VRFY (SMTP command), Brute Force Prevention to POP3/SMTP/webmail,
+Malware Evasion, SPAM Tests, Information Leakage in bounced messages,
+webmail security, password policies etc.
+
+ 
+
+Hope Helpful.
+
+ 
+
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi-bounces at lists.owasp.org</A>] On Behalf Of Parmendra Sharma
+Sent: Wednesday, December 16, 2009 4:24 PM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">owasp-delhi at lists.owasp.org</A>
+Subject: [Owasp-delhi] MAIL SERVER TESTING
+
+ 
+
+Hello All,
+
+ 
+
+Can anyone share details (How to perform vapt, any guideline, any
+methodology) regarding the vulnerability asssessment and pen test process
+for a MAIL SERVER.
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+
+
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+
+This e-mail, including attachments, may include confidential and/or
+proprietary information, and may be used only by the person or entity
+to which it is addressed. If the reader of this e-mail is not the intended
+recipient or his or her authorized agent, the reader is hereby notified
+that any dissemination, distribution or copying of this e-mail is
+prohibited. If you have received this e-mail in error, please notify the
+sender by replying to this message and delete this e-mail immediately.
+
+
+_______________________________________________
+Owasp-delhi mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">Owasp-delhi at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">https://lists.owasp.org/mailman/listinfo/owasp-delhi</A>
+
+ 
+
+ 
+This e-mail, including attachments, may include confidential and/or
+proprietary information, and may be used only by the person or entity
+to which it is addressed. If the reader of this e-mail is not the intended
+recipient or his or her authorized agent, the reader is hereby notified
+that any dissemination, distribution or copying of this e-mail is
+prohibited. If you have received this e-mail in error, please notify the
+sender by replying to this message and delete this e-mail immediately.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-delhi/attachments/20091216/d1a54bef/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-delhi/attachments/20091216/d1a54bef/attachment-0001.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000644.html">[Owasp-delhi] MAIL SERVER TESTING
+</A></li>
+	<LI>Next message: <A HREF="000646.html">[Owasp-delhi] Twitter website is hacked !!!!!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#645">[ date ]</a>
+              <a href="thread.html#645">[ thread ]</a>
+              <a href="subject.html#645">[ subject ]</a>
+              <a href="author.html#645">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-delhi">More information about the Owasp-delhi
+mailing list</a><br>
+</body></html>

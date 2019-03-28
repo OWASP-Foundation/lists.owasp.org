@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Brute force against single client
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Brute%20force%20against%20single%20client&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000593.html">
+   <LINK REL="Next"  HREF="000598.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Brute force against single client</H1>
+    <B>Superpizza</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Brute%20force%20against%20single%20client&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Brute force against single client">superpizza at bigfoot.com
+       </A><BR>
+    <I>Wed Jan 12 05:42:17 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000593.html">[Owasp-modsecurity-core-rule-set] SecRequestBodyLimit parameter
+</A></li>
+        <LI>Next message: <A HREF="000598.html">[Owasp-modsecurity-core-rule-set] Brute force against single	client
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#597">[ date ]</a>
+              <a href="thread.html#597">[ thread ]</a>
+              <a href="subject.html#597">[ subject ]</a>
+              <a href="author.html#597">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi everyone.
+I was wondering about setting up a brute force protection against a single
+client (browser).
+It happens I manage a busy site, and a I've got a bunch of customers
+coming to me through large proxies.
+This means I can't simply ban an IP
+(as dictated by current brute force rule in 2.1.1),
+ but I'd like to stop a single client
+(likely a script mimicking a real browser).
+
+I thought about setting up a global collection
+ populated by hashing a cookie (different value for each customer).
+Something like:
+
+SecRule REQUEST_COOKIES_NAMES:JSESSIONID &quot;^(.*)$&quot;
+&quot;phase:1,t:none,pass,nolog,t:sha1,t:hexEncode,setvar: `
+tx.cookie_hash=%{matched_var}&quot;
+
+SecAction
+&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol: \
+ip=%{tx.cookie_hash}&quot;
+
+I could then try to modify the rules present in
+modsecurity_crs_11_brute_force.conf to evaluate that variable.
+Any suggestion?
+
+Regards, Luca
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000593.html">[Owasp-modsecurity-core-rule-set] SecRequestBodyLimit parameter
+</A></li>
+	<LI>Next message: <A HREF="000598.html">[Owasp-modsecurity-core-rule-set] Brute force against single	client
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#597">[ date ]</a>
+              <a href="thread.html#597">[ thread ]</a>
+              <a href="subject.html#597">[ subject ]</a>
+              <a href="author.html#597">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

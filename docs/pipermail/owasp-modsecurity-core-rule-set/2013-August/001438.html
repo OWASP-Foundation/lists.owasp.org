@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Anomaly%20scoring%20mode%20no%0A%20longer%20blocks%20only%20on%20anomaly_score%20in%20CRS%202.2.8%20%3F&In-Reply-To=%3CCAG6aRdVzRTyF8uF-dSN8%3DF-hXj0sCLu51GcTJ0pxKTJ0bvtf6g%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001437.html">
+   <LINK REL="Next"  HREF="001439.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?</H1>
+    <B>chris derham</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Anomaly%20scoring%20mode%20no%0A%20longer%20blocks%20only%20on%20anomaly_score%20in%20CRS%202.2.8%20%3F&In-Reply-To=%3CCAG6aRdVzRTyF8uF-dSN8%3DF-hXj0sCLu51GcTJ0pxKTJ0bvtf6g%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?">chris at derham.me.uk
+       </A><BR>
+    <I>Thu Aug  8 18:29:37 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001437.html">[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?
+</A></li>
+        <LI>Next message: <A HREF="001439.html">[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1438">[ date ]</a>
+              <a href="thread.html#1438">[ thread ]</a>
+              <a href="subject.html#1438">[ subject ]</a>
+              <a href="author.html#1438">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ah ok - my bad. Guess I didn't understand your original post properly :-(
+
+So what I (now) think you saying is &quot;some of the rules in
+modsecurity_crs_41_sql_injection_attacks.conf will no longer work with
+anomaly scoring blocking, as they don't include
+&quot;setvar:tx.%{rule.id}-SOMETHING&quot;. I had a look and see that if you
+search for &quot;setvar:'tx.%{tx.msg}-&quot;, you will get 22 hits. My guess is
+that you are trying to say that these be changed to become
+&quot;setvar:'tx.%{tx.id}-&quot;
+
+Does that sum up what you are trying to say? That still doesn't add up
+to me. The highlighted change only really altered the regex used -
+moving from a number to a number terminated by a space. This won't
+cause the issue you describe. I guess you are saying that since the
+last time you coded your rule, this has changed, and this is the last
+change on that file? The initial version of the file on 14th Sep 2012
+had the line &quot;SecRule TX:/^\d/ &quot;(.*)&quot;&quot; which would still require
+&quot;setvar:tx.%{rule.id}-SOMETHING&quot;. I guess you need to explain what
+your concern really is - well at least to me. Perhaps everyone else
+understands already - sorry for been slow
+
+Thanks
+
+Chris
+
+On Thu, Aug 8, 2013 at 2:44 PM,  &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rp-modsec-crs-list at bev.net</A>&gt; wrote:
+&gt;<i> I posted the orignal question. But, let me add some clarification.
+</I>&gt;<i> Almost all of the stock CRS rules will block in anomaly scoring mode as-is.
+</I>&gt;<i> But, there are couple in the SQLi rules (I think) that might not (don't
+</I>&gt;<i> have those handy).
+</I>&gt;<i>
+</I>&gt;<i> The other words, if you doing nothing but straight CRS with no local or
+</I>&gt;<i> third
+</I>&gt;<i> party rules, no problems.
+</I>&gt;<i>
+</I>&gt;<i> The issue is that local (or possibly non-CRS third party) rules you've added
+</I>&gt;<i> (on top of CRS) with scoring will need more than just the score now. You
+</I>&gt;<i> must
+</I>&gt;<i> also have a &quot;setvar:tx.%{rule.id}-SOMETHING&quot; (the need for a dash is what
+</I>&gt;<i> effectively got changed).
+</I>&gt;<i>
+</I>&gt;<i> -RP
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001437.html">[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?
+</A></li>
+	<LI>Next message: <A HREF="001439.html">[Owasp-modsecurity-core-rule-set] Anomaly scoring mode no longer blocks only on anomaly_score in CRS 2.2.8 ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1438">[ date ]</a>
+              <a href="thread.html#1438">[ thread ]</a>
+              <a href="subject.html#1438">[ subject ]</a>
+              <a href="author.html#1438">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

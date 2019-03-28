@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-webgoat] Assistance with WebGoat v5: &quot;How to hijack a session&quot;
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-webgoat%40lists.owasp.org?Subject=%5BOwasp-webgoat%5D%20Assistance%20with%20WebGoat%20v5%3A%20%22How%20to%20hijack%20a%0A%20session%22&In-Reply-To=BAY124-W34A8A6D67870E0832C947BF86C0%40phx.gbl">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000385.html">
+   <LINK REL="Next"  HREF="000386.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-webgoat] Assistance with WebGoat v5: &quot;How to hijack a session&quot;</H1>
+    <B>Rogan Dawes</B> 
+    <A HREF="mailto:owasp-webgoat%40lists.owasp.org?Subject=%5BOwasp-webgoat%5D%20Assistance%20with%20WebGoat%20v5%3A%20%22How%20to%20hijack%20a%0A%20session%22&In-Reply-To=BAY124-W34A8A6D67870E0832C947BF86C0%40phx.gbl"
+       TITLE="[Owasp-webgoat] Assistance with WebGoat v5: &quot;How to hijack a session&quot;">rogan at dawes.za.net
+       </A><BR>
+    <I>Fri Mar 30 04:13:22 EDT 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000385.html">[Owasp-webgoat] Assistance with WebGoat v5: &quot;How to hijack a session&quot;
+</A></li>
+        <LI>Next message: <A HREF="000386.html">[Owasp-webgoat] WebGoat and Eclipse
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#389">[ date ]</a>
+              <a href="thread.html#389">[ thread ]</a>
+              <a href="subject.html#389">[ subject ]</a>
+              <a href="author.html#389">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Anand Iyer wrote:
+&gt;<i> 
+</I>&gt;<i> Hello All,
+</I>&gt;<i>  
+</I>&gt;<i> I have been able to identify the skip in the WEAKID (I guess this occurs 
+</I>&gt;<i> after every 29 steps). However I am still unable to brute-force the time 
+</I>&gt;<i> component of the WEAKID. I carried out the following steps in WebScarab:
+</I>&gt;<i>  
+</I>&gt;<i> 1. Using the SessionID Analysis Tab, I collected around 100 SessionIDs.
+</I>&gt;<i>  
+</I>&gt;<i> 2. In the Analysis sub-tab, I found out the initial sequence part which 
+</I>&gt;<i> was used by another user as given below
+</I>&gt;<i> 
+</I>&gt;<i>     *Thu Mar 29 17:21:32 IST 2007 15514-1175169092796 572796 40109*
+</I>&gt;<i>     *Thu Mar 29 17:21:32 IST 2007 15516-1175169092906 652906 80110*
+</I>&gt;<i> 
+</I>&gt;<i> 3. Then I used the script mentioned by Rogan in the previous mail with 
+</I>&gt;<i> the following parameters:
+</I>&gt;<i> 
+</I>&gt;<i>     Request Template: I gave any random number (As I did not understand
+</I>&gt;<i>     the question &quot;Which request is the template?&quot;)
+</I>
+This is where you went wrong, I think. This &quot;template&quot; is used while 
+making the requests. It refers to an existing request shown in the 
+summary, that will have the calculated &quot;WEAKID&quot; inserted into it and 
+sent off.
+
+Obviously, you want to choose a request that would invoke the correct 
+lesson. This is typically a GET request.
+
+&gt;<i>     Enter Sequence Number: I gave the initial sequence number of the ID
+</I>&gt;<i>     which was skipped (Say 15515)
+</I>
+Correct.
+
+&gt;<i>     Start Time: 1175169092796
+</I>&gt;<i>     End Time: 1175169092906 (As I want to find out the match between
+</I>&gt;<i>     these two times; I hope I am right here)
+</I>
+Correct.
+&gt;<i> 
+</I>&gt;<i> 4. The script starts brute-forcing and after some &quot;Trying...&quot; comes up 
+</I>&gt;<i> with &quot;Success with conversation xyz&quot;.
+</I>&gt;<i> The exact conversation snippet is given below:
+</I>&gt;<i> 
+</I>&gt;<i>     *Trying WEAKID=15515-1175169092904; WEAKID=15395-1175168390796
+</I>&gt;<i>     Trying WEAKID=15515-1175169092905; WEAKID=15395-1175168390796
+</I>&gt;<i>     Success with conversation 378
+</I>&gt;<i>     Success with conversation 379*
+</I>&gt;<i> 
+</I>
+One thing you should note from the above snippet is that there were TWO 
+WEAKID cookies sent. You should preferably use a request template that 
+does NOT have a WEAKID cookie, since the script does not overwrite an 
+existing WEAKID. (Yes, you could say that this is a flaw in the script - 
+patches welcome!)
+
+If you were successful, you should go to the summary page and take a 
+look at the referenced conversations. If you view the details of the 
+conversation (i.e. the HTML response obtained), you should see something 
+like &quot;Congratulations, you have completed this lesson&quot;. This represents 
+you successfully accessing someone else's session.
+
+&gt;<i> 5. I then tried a few of the WEAKID combinations with 
+</I>&gt;<i> 15515-1175169092906 and sequentially increasing the time-component, but 
+</I>&gt;<i> I am still unable to get the right one.
+</I>
+This step is unnecessary.
+&gt;<i>  
+</I>&gt;<i> Please let me know where I am going wrong. Also I would like to mention 
+</I>&gt;<i> that I am not a programmer; don't know if that would make any difference :)
+</I>&gt;<i>  
+</I>&gt;<i> Regards,
+</I>&gt;<i> Anant Iyer
+</I>&gt;<i> 
+</I>&gt;<i> P.S. Apologies for the long mail.
+</I>
+
+Hope this helps!
+
+Rogan
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000385.html">[Owasp-webgoat] Assistance with WebGoat v5: &quot;How to hijack a session&quot;
+</A></li>
+	<LI>Next message: <A HREF="000386.html">[Owasp-webgoat] WebGoat and Eclipse
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#389">[ date ]</a>
+              <a href="thread.html#389">[ thread ]</a>
+              <a href="subject.html#389">[ subject ]</a>
+              <a href="author.html#389">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-webgoat">More information about the Owasp-webgoat
+mailing list</a><br>
+</body></html>

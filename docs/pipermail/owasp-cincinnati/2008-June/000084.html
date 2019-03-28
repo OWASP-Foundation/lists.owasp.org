@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-cincinnati] Demonstrate CSRF with Web app only accept	POST
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20Demonstrate%20CSRF%20with%20Web%20app%20only%20accept%0A%09POST&In-Reply-To=DA235E4D5FD3CE4C8B77382F0837274C374314%40EXCHMAIL01.corp.medplus.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000083.html">
+   <LINK REL="Next"  HREF="000085.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-cincinnati] Demonstrate CSRF with Web app only accept	POST</H1>
+    <B>Marco M. Morana</B> 
+    <A HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20Demonstrate%20CSRF%20with%20Web%20app%20only%20accept%0A%09POST&In-Reply-To=DA235E4D5FD3CE4C8B77382F0837274C374314%40EXCHMAIL01.corp.medplus.com"
+       TITLE="[Owasp-cincinnati] Demonstrate CSRF with Web app only accept	POST">marco.m.morana at gmail.com
+       </A><BR>
+    <I>Mon Jun 23 19:02:37 EDT 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000083.html">[Owasp-cincinnati] OWASP Cincinnati Chapter June 24th: RSVP Meeting	Reminder
+</A></li>
+        <LI>Next message: <A HREF="000085.html">[Owasp-cincinnati] FW: Fantastic job on your presentation today
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#84">[ date ]</a>
+              <a href="thread.html#84">[ thread ]</a>
+              <a href="subject.html#84">[ subject ]</a>
+              <a href="author.html#84">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yan
+
+You are correct in saying that whatever URL in SRC attribute results in a
+GET a request. So the deal is, if the site allows to use a GET for a POST
+you can take an embedded auto POST request put in an image tag and see
+execute it as GET request. A site that uses POST is still vulnerable if does
+not enforce POST only request. An attacker will use a proxy to change the
+GET to a POST to verify that can be processed. If there is one it will craft
+a malicious form with an embedded img with that request that will execute as
+a GET.
+
+The key is this to think like an attacker :)
+
+Regards
+
+Marco
+
+<A HREF="http://www.cgisecurity.com/articles/csrf-faq.shtml#post">http://www.cgisecurity.com/articles/csrf-faq.shtml#post</A>
+
+
+
+-----Original Message-----
+From: Zhou, Yan [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">yzhou at medplus.com</A>] 
+Sent: Monday, June 23, 2008 11:15 AM
+To: Marco M. Morana
+Subject: RE: [Owasp-cincinnati] Demonstrate CSRF with Web app only accept
+POST
+
+Marco, 
+
+Are you talking about embedding POST in IMG tag's SRC attribute?
+
+I thought whatever URL in SRC attribute results in a GET request, not a
+POST. 
+
+Is the following close to what you suggested? 
+
+&lt;img src=&quot;&lt;script&gt;...do post here...&lt;/script&gt;&quot; width=1 height=1&gt;&lt;/img&gt;
+
+
+Thanks, 
+Yan Zhou
+-----Original Message-----
+From: Marco M. Morana [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">marco.m.morana at gmail.com</A>] 
+Sent: Friday, June 20, 2008 6:57 PM
+To: Zhou, Yan
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">owasp-cincinnati at lists.owasp.org</A>
+Subject: FW: [Owasp-cincinnati] Demonstrate CSRF with Web app only
+accept POST
+
+Yan
+
+I think the threat scenario for CSRF that you should try to test is
+whether
+you can have a form that executes a POST without the user knowing that
+exploits a previously authenticated session token. Let say Form A issues
+a
+POST and the session ID does not change, the same session can be used to
+issue a post with a malicious form B (the pages need to be in the same
+browser process, that is using the same IExplore.exe). The fact that the
+user does not notice the error should be because you embed the POST in a
+1X1
+pixel image tag. The fact that the POST executes could be confirmed by
+trapping the HTTP response via a web proxy like paros or webscarab like
+in
+the webgoat lesson.
+
+I have not tried this but I would recommend you try the CSRF lesson of
+webgoat against a web a site that has a well know CSRF vulnerability
+such as
+Foundstone hacme books for example, using the same testing technique.
+
+I think you can also try again OWASP CSRFTester or this tool here
+<A HREF="http://shiflett.org/blog/2007/jul/csrf-redirector">http://shiflett.org/blog/2007/jul/csrf-redirector</A> from Chris Shiflett.
+Chris
+can also be contacted at <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">Chris at shiflett.org</A>
+
+Regards
+
+Marco
+
+-----Original Message-----
+From: Zhou, Yan [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">yzhou at medplus.com</A>] 
+Sent: Friday, June 20, 2008 2:20 PM
+To: Marco Morana
+Subject: RE: [Owasp-cincinnati] Demonstrate CSRF with Web app only
+accept
+POST
+
+Marco, 
+
+It does not work, 
+
+Suppose page B does an automatic POST once loaded, and page A contains
+&lt;img&gt; tag that links to page B. 
+
+When you load page A in browser, the form is not submitted in page B. I
+do not know HTTP well enough to say why that is the case, but I do not
+believe the form will be submitted &quot;indirectly&quot; in this fashion. 
+
+Any idea how I can do CSRF with a POST only Web. App, and without user
+notice the before and after?
+
+Thanks, 
+Yan
+
+
+
+
+
+
+
+
+
+
+Confidentiality Notice: The information contained in this electronic
+transmission is confidential and may be legally privileged. It is
+intended
+only for the addressee(s) named above. If you are not an intended
+recipient,
+be aware that any disclosure, copying, distribution or use of the
+information contained in this transmission is prohibited and may be
+unlawful. If you have received this transmission in error, please notify
+us
+by telephone (513) 229-5500 or by email (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">postmaster at MedPlus.com</A>). After
+replying, please erase it from your computer system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidentiality Notice: The information contained in this electronic
+transmission is confidential and may be legally privileged. It is intended
+only for the addressee(s) named above. If you are not an intended recipient,
+be aware that any disclosure, copying, distribution or use of the
+information contained in this transmission is prohibited and may be
+unlawful. If you have received this transmission in error, please notify us
+by telephone (513) 229-5500 or by email (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">postmaster at MedPlus.com</A>). After
+replying, please erase it from your computer system.
+
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000083.html">[Owasp-cincinnati] OWASP Cincinnati Chapter June 24th: RSVP Meeting	Reminder
+</A></li>
+	<LI>Next message: <A HREF="000085.html">[Owasp-cincinnati] FW: Fantastic job on your presentation today
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#84">[ date ]</a>
+              <a href="thread.html#84">[ thread ]</a>
+              <a href="subject.html#84">[ subject ]</a>
+              <a href="author.html#84">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">More information about the Owasp-cincinnati
+mailing list</a><br>
+</body></html>

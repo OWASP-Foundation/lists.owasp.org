@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-2) CD&lt; does not pass mod security filters
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BJIRA%5D%20Resolved%3A%20%28CORERULES-2%29%0A%20CD%3C%20does%20not%20pass%20mod%20security%20filters&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000022.html">
+   <LINK REL="Next"  HREF="000023.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-2) CD&lt; does not pass mod security filters</H1>
+    <B>Ryan Barnett (JIRA)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BJIRA%5D%20Resolved%3A%20%28CORERULES-2%29%0A%20CD%3C%20does%20not%20pass%20mod%20security%20filters&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-2) CD&lt; does not pass mod security filters">Ryan.Barnett at breach.com
+       </A><BR>
+    <I>Thu Aug  6 08:49:15 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000022.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+        <LI>Next message: <A HREF="000023.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-10)	Updated the transformation functions used in the XSS/SQLi	rules to increase performance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#21">[ date ]</a>
+              <a href="thread.html#21">[ thread ]</a>
+              <a href="subject.html#21">[ subject ]</a>
+              <a href="author.html#21">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+     [ <A HREF="https://www.modsecurity.org/tracker/browse/CORERULES-2?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel">https://www.modsecurity.org/tracker/browse/CORERULES-2?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel</A> ]
+
+Ryan Barnett resolved CORERULES-2.
+----------------------------------
+
+       Resolution: Fixed
+    Fix Version/s:     (was: 1.6.2)
+                   2.0.0
+
+In the new CRS v2.0.0 rules, the rules use anomaly scoring/collaborative rules.  So, while this particular payload does match, you are able to over-ride it later on and re-adjust the anomaly score.  Here is an example where I sent the following request with the same payload that you sent -
+
+--ba166a09-A--
+[05/Aug/2009:18:23:13 --0400] SnoGUX8AAQEAABKJPy8AAACA 192.168.0.100 47476 192.168.0.100 80
+--ba166a09-B--
+GET /cgi-bin/test-cgi?foo=%3Cli%3ECD%20drive%20if%20installing%20from%20CD%3C/li%3E HTTP/1.1
+Host: 192.168.0.100
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+
+Here is the individual rule match from the modsec_audit.log file -
+
+Message: Pattern match &quot;\bcd\b\W*?[\/]&quot; at TX:pm_data_ARGS:foo. [file &quot;/usr/local/apache/conf/modsecurity-core-rules/base_rules/modsecurity_crs_40_generic_attacks.conf&quot;] [line &quot;244&quot;] [id &quot;958821&quot;] [msg &quot;System Command Injection&quot;] [data &quot;cd&lt;/&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/COMMAND_INJECTION&quot;]
+
+In order to implement an exclusion for this in the new CRS 2.0.0 format, you should add the following entry to the modsecurity_48_local_exceptions.conf file -
+
+SecRule TX:PM_DATA_ARGS:foo &quot;@streq &lt;li&gt;cd drive if installing from cd&lt;/li&gt;&quot; &quot;phase:2,t:none,nolog,pass,setvar:tx.anomaly_score=-20&quot;
+
+This rule will inspect the TX variable data that matched from the audit log file to see if the exact false positive payload data is in the argument called foo.  If so, then we will decrement the anomaly score by 20.
+
+
+&gt;<i> CD&lt; does not pass mod security filters
+</I>&gt;<i> --------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>                 Key: CORERULES-2
+</I>&gt;<i>                 URL: <A HREF="https://www.modsecurity.org/tracker/browse/CORERULES-2">https://www.modsecurity.org/tracker/browse/CORERULES-2</A>
+</I>&gt;<i>             Project: Core Rules
+</I>&gt;<i>          Issue Type: Improvement
+</I>&gt;<i>      Security Level: Normal
+</I>&gt;<i>         Environment: CentOS 5.2, Apache module
+</I>&gt;<i>            Reporter: &#381;ilvinas
+</I>&gt;<i>            Assignee: Ryan Barnett
+</I>&gt;<i>             Fix For: 2.0.0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> When a string like this is passed through mod security: 
+</I>&gt;<i> {noformat}
+</I>&gt;<i> &quot;&lt;li&gt;CD drive if installing from CD&lt;/li&gt;&quot;
+</I>&gt;<i> {noformat}
+</I>&gt;<i> It does not pass it's filters.
+</I>&gt;<i> Original rule:
+</I>&gt;<i> {noformat}
+</I>&gt;<i> (?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b
+</I>&gt;<i> \W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\W*?[\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:assw
+</I>&gt;<i> d|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)|p(
+</I>&gt;<i> ?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))
+</I>&gt;<i> {noformat}
+</I>&gt;<i> Our modified rule:
+</I>&gt;<i> {noformat}
+</I>&gt;<i> (?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b
+</I>&gt;<i> \W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\s+[\.\~\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:a
+</I>&gt;<i> sswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)
+</I>&gt;<i> |p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))
+</I>&gt;<i> {noformat}
+</I>&gt;<i> Please advise what the correct rule would be.
+</I>
+-- 
+This message is automatically generated by JIRA.
+-
+If you think it was sent incorrectly contact one of the administrators: <A HREF="https://www.modsecurity.org/tracker/secure/Administrators.jspa">https://www.modsecurity.org/tracker/secure/Administrators.jspa</A>
+-
+For more information on JIRA, see: <A HREF="http://www.atlassian.com/software/jira">http://www.atlassian.com/software/jira</A>
+
+       
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000022.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+	<LI>Next message: <A HREF="000023.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-10)	Updated the transformation functions used in the XSS/SQLi	rules to increase performance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#21">[ date ]</a>
+              <a href="thread.html#21">[ thread ]</a>
+              <a href="subject.html#21">[ subject ]</a>
+              <a href="author.html#21">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

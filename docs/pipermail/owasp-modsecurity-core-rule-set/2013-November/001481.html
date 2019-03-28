@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with SecRuleRemoveById
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Unable%20to%20remove%20rule%20960012%0A%20with%20SecRuleRemoveById&In-Reply-To=%3C52834ED7.8040301%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001479.html">
+   <LINK REL="Next"  HREF="001480.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with SecRuleRemoveById</H1>
+    <B>Dietrich Streifert</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Unable%20to%20remove%20rule%20960012%0A%20with%20SecRuleRemoveById&In-Reply-To=%3C52834ED7.8040301%40googlemail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with SecRuleRemoveById">dietrich.streifert at googlemail.com
+       </A><BR>
+    <I>Wed Nov 13 10:05:11 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001479.html">[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012	with SecRuleRemoveById
+</A></li>
+        <LI>Next message: <A HREF="001480.html">[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with SecRuleRemoveById
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1481">[ date ]</a>
+              <a href="thread.html#1481">[ thread ]</a>
+              <a href="subject.html#1481">[ subject ]</a>
+              <a href="author.html#1481">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ted,
+
+Thank you for your help.
+
+I've removed the LocationMatch section and it works!
+
+Regards
+Dietrich
+
+Am 13.11.2013 04:37, schrieb Ted Wells:
+&gt;<i> Hey Dietrich,
+</I>&gt;<i>
+</I>&gt;<i> If you want to get rid of the rule altogether (not just whitelist certain URLs against it), you won&#8217;t actually need that LocationMatch section. I believe this should work:
+</I>&gt;<i>
+</I>&gt;<i>    &lt;IfModule mod_security2.c&gt;
+</I>&gt;<i>        SecRuleRemoveById 960012
+</I>&gt;<i>   &lt;/IfModule&gt;
+</I>&gt;<i>
+</I>&gt;<i> What it looks like was actually causing it not to work was that, because LocationMatch uses regular expressions, you would want to use &#8220;/.*&#8221; instead of &#8220;/*&#8221; to match every URL (again, the LocationMatch is redundant if you&#8217;re looking to disable the rule for every URL anyways =] ):
+</I>&gt;<i>
+</I>&gt;<i> &lt;LocationMatch /.* &gt;
+</I>&gt;<i>    &lt;IfModule mod_security2.c&gt;
+</I>&gt;<i>        SecRuleRemoveById 960012
+</I>&gt;<i>   &lt;/IfModule&gt;
+</I>&gt;<i> &lt;/LocationMatch&gt;
+</I>&gt;<i>
+</I>&gt;<i> On Nov 12, 2013, at 11:55 AM, Dietrich Streifert &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dietrich.streifert at googlemail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> I'm trying create a setup for a subversion dav over http server. I've successfully managed to enable the needed content-type 'application/vnd.svn*' and the request methods like PROPFIND etc.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> While trying to commit to the repositories which are served vi the above setup, I'm getting a rule violation against rule id &quot;960012&quot; in modsecurity_crs_20_protocol_violations.conf, line 312, which is caused by the javahl svn client of eclipse.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I've tried to disable the rule via
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &lt;LocationMatch /* &gt;
+</I>&gt;&gt;<i>    &lt;IfModule mod_security2.c&gt;
+</I>&gt;&gt;<i>        SecRuleRemoveById 960012
+</I>&gt;&gt;<i>   &lt;/IfModule&gt;
+</I>&gt;&gt;<i> &lt;/LocationMatch&gt;
+</I>&gt;&gt;<i> with no success.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I've seen in line 312 of modsecurity_crs_20_protocol_violations.conf that rule id 960012 has a chained rule which has no rule id.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Would I need to also disable the chained rule, which of course, I can't do because of the missing rule id?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Is this a bug or a newbies common mistake?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Regards
+</I>&gt;&gt;<i> Dietrich
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001479.html">[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012	with SecRuleRemoveById
+</A></li>
+	<LI>Next message: <A HREF="001480.html">[Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with SecRuleRemoveById
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1481">[ date ]</a>
+              <a href="thread.html#1481">[ thread ]</a>
+              <a href="subject.html#1481">[ subject ]</a>
+              <a href="author.html#1481">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

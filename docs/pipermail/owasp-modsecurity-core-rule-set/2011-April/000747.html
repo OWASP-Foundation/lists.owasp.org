@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Working new AppDefect Rule -	Charset Checks
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Working%20new%20AppDefect%20Rule%20-%0A%09Charset%20Checks&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000746.html">
+   <LINK REL="Next"  HREF="000748.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Working new AppDefect Rule -	Charset Checks</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Working%20new%20AppDefect%20Rule%20-%0A%09Charset%20Checks&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Working new AppDefect Rule -	Charset Checks">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Apr 21 09:26:31 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000746.html">[Owasp-modsecurity-core-rule-set] New mail-list to report false	positives with rules
+</A></li>
+        <LI>Next message: <A HREF="000748.html">[Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the	Week: Integrating IDS Signatures
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#747">[ date ]</a>
+              <a href="thread.html#747">[ thread ]</a>
+              <a href="subject.html#747">[ subject ]</a>
+              <a href="author.html#747">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I am working on some new Application Defect rules for the CRS based on the Watcher application - <A HREF="http://websecuritytool.codeplex.com/wikipage?title=Checks&lt;http://websecuritytool.codeplex.com/wikipage?title=Checks#charset">http://websecuritytool.codeplex.com/wikipage?title=Checks&lt;http://websecuritytool.codeplex.com/wikipage?title=Checks#charset</A>&gt;
+
+The one I am currently working is the Charset Check - <A HREF="http://websecuritytool.codeplex.com/wikipage?title=Checks#charset">http://websecuritytool.codeplex.com/wikipage?title=Checks#charset</A>
+
+There are two current checks listed by Watcher, however the first check that I am testing is to raise an alert if a web app/resource does not include a charset declaration at all for text/html data in either the Content-Type Response Header or in a meta http-equiv html code block in the response body.  I have some rules that are working -
+
+SecRule &amp;RESOURCE:CHARSET_CHECK &quot;@eq 0&quot; &quot;chain,phase:4,t:none,pass,log,msg:'Character Set (Charset) Not Specified for Response Content.',logdata:'%{response_content_type}',setvar:resource.charset_check=1,expirevar:resource.charset_check=86400&quot;
+        SecRule &amp;RESOURCE:MISSING_CHARSET &quot;@eq 0&quot; &quot;chain&quot;
+                SecRule RESPONSE_HEADERS:Content-Length &quot;!^0$&quot; &quot;chain&quot;
+                        SecRule RESPONSE_BODY &quot;!@contains &lt;meta http-equiv=\&quot;content-type\&quot; content=\&quot;text/html; charset=&quot; &quot;chain&quot;
+                                SecRule RESPONSE_CONTENT_TYPE &quot;(?i:^text/html;?$)&quot; &quot;setvar:resource.missing_charset=1,expirevar:resource.missing_charset=86400&quot;
+
+
+I was running some tests by configuring my apache install to be an open proxy and then having my browser use it as a proxy while browsing public sites such as google, facebook, amazon, and cnn.  What I am trying to figure out if this should be tracked per/site or per/resource.  As you can see with the example rules, we only want periodic alerting of defects (vs. alerting each time when we see attacks).  The idea for appdefect detection is to alert the admin to a config issue but not to flood them with alerts.  With the example rules above, we are storing RESOURCE variables to do alert suppression so it will only alert on the issue 1/day.  The alert suppression/periodic alerting works fine, however I am not sure for this issue if it is better to track this per/resource or per/site.  Per resource seems more accurate, however there may be many more alerts generated.  What I was seeing while browsing to these sites is that oftentimes there are subdomains that don't set charset at all.  So, you would essentially have a flood of alerts for that subdomain.  On the flip side (false negative), if we only tracked this in a GLOBAL site collection, if one resource correctly declares charset, then there might be other resources that don't and we would not alert on it&#8230;.
+
+So, I wanted to get some feedback from the community on which persistent collection you think we should track this appdefect issue in &#8211; GLOBAL or RESOURCE?
+
+Comments welcome,
+Ryan
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000746.html">[Owasp-modsecurity-core-rule-set] New mail-list to report false	positives with rules
+</A></li>
+	<LI>Next message: <A HREF="000748.html">[Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the	Week: Integrating IDS Signatures
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#747">[ date ]</a>
+              <a href="thread.html#747">[ thread ]</a>
+              <a href="subject.html#747">[ subject ]</a>
+              <a href="author.html#747">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

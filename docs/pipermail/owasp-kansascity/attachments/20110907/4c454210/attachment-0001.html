@@ -1,0 +1,58 @@
+<tt>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;As&nbsp;the&nbsp;apache-kill&nbsp;script&nbsp;has&nbsp;been&nbsp;an&nbsp;ongoing&nbsp;topic&nbsp;of&nbsp;conversation&nbsp;for&nbsp;the&nbsp;past&nbsp;few&nbsp;weeks,&nbsp;here&nbsp;for&nbsp;your&nbsp;convenience&nbsp;is&nbsp;a&nbsp;piece&nbsp;on&nbsp;mitigation:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;<br>
+<br>
+&lt;/div&gt;&lt;div&gt;&lt;a&nbsp;href=&quot;https://www.infosecisland.com/blogview/16131-Mitigating-the-Apache-Range-Header-DoS-Vulnerability.html&quot;&nbsp;target=&quot;_blank&quot;&gt;https://www.infosecisland.com/blogview/16131-Mitigating-the-Apache-Range-Header-DoS-Vulnerability.html&lt;/a&gt;&lt;/div&gt;<br>
+<br>
+<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;span&nbsp;style=&quot;color:rgb(51,&nbsp;51,&nbsp;51);font-family:Arial,&nbsp;Verdana,&nbsp;sans-serif;font-size:14px;background-color:rgb(255,&nbsp;255,&nbsp;255)&quot;&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;text-align:left&quot;&gt;<br>
+<br>
+<br>
+Fortunately,&nbsp;there&nbsp;are&nbsp;some&nbsp;Apache&nbsp;configuration&nbsp;settings&nbsp;that&nbsp;can&nbsp;be&nbsp;adjusted&nbsp;to&nbsp;mitigate&nbsp;this&nbsp;vulnerability:&lt;/p&gt;&lt;ul&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;list-style-type:none;text-align:left&quot;&gt;<br>
+<br>
+<br>
+&lt;li&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;list-style-type:square;list-style-position:inside&quot;&gt;<br>
+Use&nbsp;mod_headers&nbsp;to&nbsp;completely&nbsp;disallow&nbsp;the&nbsp;use&nbsp;of&nbsp;Range&nbsp;headers.&nbsp; For&nbsp;example,&nbsp;in&nbsp;your&nbsp;httpd.conf&nbsp;file&nbsp;add&nbsp;the&nbsp;lines:&lt;/li&gt;&lt;/ul&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+<br>
+<br>
+&lt;em&gt;RequestHeader&nbsp;unset&nbsp;Range &lt;/em&gt;&lt;/p&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+&lt;em&gt;RequestHeader&nbsp;unset&nbsp;Request-Range&lt;/em&gt;&lt;/p&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+Note&nbsp;that&nbsp;this&nbsp;may&nbsp;impact&nbsp;certain&nbsp;clients,&nbsp;particularly&nbsp;if&nbsp;a&nbsp;web&nbsp;server&nbsp;is&nbsp;used&nbsp;for&nbsp;serving&nbsp;content&nbsp;to&nbsp;e-Readers&nbsp;or&nbsp;providing&nbsp;streaming&nbsp;video.&nbsp;However,&nbsp;this&nbsp;should&nbsp;be&nbsp;safe&nbsp;for&nbsp;most&nbsp;websites&nbsp;that&nbsp;are&nbsp;not&nbsp;serving&nbsp;this&nbsp;type&nbsp;of&nbsp;content.&lt;/p&gt;<br>
+<br>
+<br>
+&lt;ul&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;list-style-type:none;text-align:left&quot;&gt;&lt;li&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;list-style-type:square;list-style-position:inside&quot;&gt;<br>
+<br>
+<br>
+Limit&nbsp;the&nbsp;size&nbsp;of&nbsp;the&nbsp;request&nbsp;field&nbsp;to&nbsp;a&nbsp;only&nbsp;few&nbsp;hundred&nbsp;bytes.&nbsp; For&nbsp;example,&nbsp;in&nbsp;your&nbsp;httpd.conf&nbsp;file&nbsp;add&nbsp;the&nbsp;line:&lt;/li&gt;&lt;/ul&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+<br>
+<br>
+&lt;em&gt;LimitRequestFieldSize&nbsp;200&lt;/em&gt;&lt;/p&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+While&nbsp;this&nbsp;will&nbsp;keep&nbsp;the&nbsp;offending&nbsp;Range&nbsp;header&nbsp;short,&nbsp;it&nbsp;may&nbsp;break&nbsp;other&nbsp;headers&nbsp;such&nbsp;as&nbsp;a&nbsp;large&nbsp;cookie&nbsp;or&nbsp;security&nbsp;fields&nbsp;header&nbsp;settings.&nbsp; Also,&nbsp;as&nbsp;the&nbsp;attack&nbsp;evolves&nbsp;you&nbsp;may&nbsp;have&nbsp;to&nbsp;further&nbsp;limit&nbsp;this&nbsp;or&nbsp;impose&nbsp;other&nbsp;LimitRequestFields&nbsp;settings.&lt;/p&gt;<br>
+<br>
+<br>
+&lt;ul&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;list-style-type:none;text-align:left&quot;&gt;&lt;li&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;list-style-type:square;list-style-position:inside&quot;&gt;<br>
+<br>
+<br>
+Configure&nbsp;Apache&nbsp;to&nbsp;detect&nbsp;a&nbsp;large&nbsp;number&nbsp;of&nbsp;ranges&nbsp;in&nbsp;the&nbsp;request&nbsp;header&nbsp;and&nbsp;then&nbsp;either&nbsp;ignore&nbsp;the&nbsp;header&nbsp;or&nbsp;reject&nbsp;the&nbsp;request.&nbsp;For&nbsp;example,&nbsp;add&nbsp;the&nbsp;following&nbsp;lines&nbsp;to&nbsp;your&nbsp;httpd.conf&nbsp;file:&lt;/li&gt;&lt;/ul&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+<br>
+<br>
+&lt;em&gt;SetEnvIf&nbsp;Range&nbsp;(,.*?){5,}&nbsp;bad-range=1&nbsp;RequestHeader&nbsp;unset&nbsp;Range&nbsp;env=bad-range&lt;/em&gt;&lt;/p&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;<br>
+<br>
+<br>
+The&nbsp;value&nbsp;5&nbsp;is&nbsp;arbitrary&nbsp;and&nbsp;may&nbsp;need&nbsp;to&nbsp;be&nbsp;made&nbsp;larger&nbsp;depending&nbsp;on&nbsp;the&nbsp;type&nbsp;of&nbsp;content&nbsp;your&nbsp;site&nbsp;serves.&nbsp;For&nbsp;example,&nbsp;the&nbsp;value&nbsp;may&nbsp;need&nbsp;to&nbsp;be&nbsp;increased&nbsp;to&nbsp;10&nbsp;for&nbsp;sites&nbsp;that&nbsp;serve&nbsp;PDFs&nbsp;to&nbsp;eReaders&nbsp;for&nbsp;example,&nbsp;or&nbsp;that&nbsp;serve&nbsp;other&nbsp;types&nbsp;of&nbsp;large&nbsp;files&nbsp;such&nbsp;as&nbsp;video.&lt;/p&gt;<br>
+<br>
+<br>
+&lt;ul&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;list-style-type:none;text-align:left&quot;&gt;&lt;li&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;list-style-type:square;list-style-position:inside&quot;&gt;<br>
+<br>
+<br>
+Finally,&nbsp;if&nbsp;you&nbsp;are&nbsp;using&nbsp;mod_security&nbsp;you&nbsp;can&nbsp;use&nbsp;the&nbsp;below&nbsp;rule&nbsp;to&nbsp;detect&nbsp;and&nbsp;block&nbsp;the&nbsp;attack.&nbsp;Thanks&nbsp;to &lt;a&nbsp;href=&quot;http://blog.spiderlabs.com/2011/08/mitigation-of-apache-range-header-dos-attack.html&quot;&nbsp;style=&quot;text-decoration:none;color:rgb(0,&nbsp;99,&nbsp;150)&quot;&nbsp;target=&quot;_blank&quot;&gt;SpiderLabs &lt;/a&gt;for&nbsp;this&nbsp;bit&nbsp;of&nbsp;code.&lt;/li&gt;<br>
+<br>
+<br>
+&lt;/ul&gt;&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:30px;text-align:left&quot;&gt;&lt;em&gt;SecRule&nbsp;REQUEST_HEADERS:Range&nbsp;“^bytes=(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,”&nbsp;\&nbsp;“phase:2,capture,rev:’2.2.1′,t:none,block,msg:’Range:&nbsp;Too&nbsp;many&nbsp;fields’,logdata:’%{matched_var}’severity:’5′,id:’958231′,tag:’RULE_MATURITY/5′,tag:’RULE_ACCURACY/7′,tag:’&lt;a&nbsp;href=&quot;https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%%7Btx.id%7D&quot;&nbsp;target=&quot;_blank&quot;&gt;https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}&lt;/a&gt;’,tag:’PROTOCOL_VIOLATION/INVALID_HREQ’,tag:’&lt;a&nbsp;href=&quot;http://www.bad-behavior.ioerror.us/documentation/how-it-works/&quot;&nbsp;target=&quot;_blank&quot;&gt;http://www.bad-behavior.ioerror.us/documentation/how-it-works/&lt;/a&gt;’,setvar:’tx.msg=%{rule.msg}’,setvar:&lt;a&nbsp;href=&quot;http://tx.id&quot;&nbsp;target=&quot;_blank&quot;&gt;tx.id&lt;/a&gt;=%{&lt;a&nbsp;href=&quot;http://rule.id&quot;&nbsp;target=&quot;_blank&quot;&gt;rule.id&lt;/a&gt;},setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.notice_anomaly_score},setvar:tx.%{&lt;a&nbsp;href=&quot;http://rule.id&quot;&nbsp;target=&quot;_blank&quot;&gt;rule.id&lt;/a&gt;}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}”&lt;/em&gt;&lt;/p&gt;<br>
+<br>
+<br>
+&lt;p&nbsp;style=&quot;margin-top:0px;margin-right:0px;margin-bottom:1em;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;text-align:left&quot;&gt;I&nbsp;believe&nbsp;that&nbsp;most&nbsp;sites&nbsp;could&nbsp;easily&nbsp;implement&nbsp;the&nbsp;first&nbsp;option&nbsp;(denying&nbsp;Range&nbsp;headers&nbsp;altogether)&nbsp;without&nbsp;any&nbsp;negative&nbsp;impact&nbsp;to&nbsp;site&nbsp;viewers.&nbsp; &lt;/p&gt;<br>
+<br>
+<br>
+&lt;/span&gt;&lt;/div&gt;<br>
+
+</tt>

@@ -1,0 +1,412 @@
+From cbyram at mindspring.com  Sun Oct 23 22:48:54 2005
+From: cbyram at mindspring.com (Chuck Byram)
+Date: Sun, 23 Oct 2005 22:48:54 -0400
+Subject: [OWASP-WEBGOAT]Stored Xss problem
+Message-ID: <20051024024858.PZUP24528.ibm56aec.bellsouth.net@silver>
+
+Hello,
+ 
+I didn't see this topic in the list, so I sincerely hope I'm not repeating
+anything.
+ 
+In the WebGoat Stored Xss lesson, I keep getting this error message: "*
+Error generating lessons.StoredXss" when I click any message in the message
+list.  It doesn't matter if it's a benign message or a script that alerts
+cookies.  It also will not mark my lesson as complete (my main problem).
+ 
+After much gnashing of teeth, I finally thought to look at the Tomcat window
+and I found this error message:
+ 
+java.sql.SQLException: No data found
+        at sun.jdbc.odbc.JdbcOdbc.standardError(JdbcOdbc.java:7139)
+        at sun.jdbc.odbc.JdbcOdbc.SQLGetDataString(JdbcOdbc.java:3908)
+        at
+sun.jdbc.odbc.JdbcOdbcResultSet.getDataString(JdbcOdbcResultSet.java:5699)
+        at
+sun.jdbc.odbc.JdbcOdbcResultSet.getString(JdbcOdbcResultSet.java:353)
+        at lessons.StoredXss.makeCurrent(StoredXss.java:228)
+        at lessons.StoredXss.createContent(StoredXss.java:107)
+        at lessons.AbstractLesson.wrapForm(AbstractLesson.java:1089)
+        at session.Screen.setup(Screen.java:622)
+... and other not as relevant stack trace.
+ 
+This is occuring in the StoredXss.java file at the critical part for
+success:
+if ( results.getString( MESSAGE_COL ).toLowerCase().indexOf( "script" ) !=
+-1 )  // <-- problem
+{
+    makeSuccess( s );
+}
+ 
+ 
+I found this line in the docs for ResultSet for j2se 1.4.2 and 5.0:
+For maximum portability, result set columns within each row should be read
+in left-to-right order, and each column should be read only once.
+ 
+So, with the addition of the user_name column to this lesson, both these
+practices are being broken and I'm thinking this is why it's breaking.  Has
+anyone else run into this?
+ 
+I can think of a couple ways to resolve this, but thought I would check to
+see if anyone already had an answer or would recommend one way over the
+other.
+ 
+Method 1: Install a different java runtime (my environment particulars are
+below).  I don't play java very much, so I'm not sure if a newer version or
+different vendor will help.  I would prefer this if someone thinks it would
+work and am open to suggestions for version.
+ 
+Method 2: Install the developer tools, modify the StoredXss.java to read the
+values to variables and recompile the site.  As I said, I'm not that
+familiar with the java environment, so I'll have to feel my way through ant,
+deployment etc.  In addition, I would be modifying the source for a
+metrics/scoring site and that's not ideal.
+ 
+Environment:
+OS: Windows 2003 Standard SP1
+WebGoat: 3.7 Release version
+Java: Whatever came in the WebGoat zip.  The version on java.exe is 1.5.0
+from Sun.
+ 
+Any thoughts?
+ 
+Thanks,
+Chuck Byram
+Empiric Design, Inc.
+chuckb at empiricdesign.com
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051023/6e6cacf7/attachment.html 
+
+From deepa.khetan at gmail.com  Sun Oct 30 23:27:40 2005
+From: deepa.khetan at gmail.com (Deepa Khetan)
+Date: Mon, 31 Oct 2005 09:57:40 +0530
+Subject: [OWASP-WEBGOAT]Fwd: Exception with starting Webgoat
+In-Reply-To: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com>
+References: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com>
+Message-ID: <728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>
+
+Hi,
+i have downloaded the Webgoat .war file(latest vrsion). I have also
+downloaded the developers .zip file. i have unzipped it and i am double
+clicked on webgoat.bat .. but i am getting the below error on tomcat. Can
+anyone help me please???? Also, i have kept the .war fiel in my webapps
+folder and started my tomcat in my usual way(from the path where my tomcat
+is installed) . i am not able to access the WebGoat/attack page.
+ Regards,
+Deepa
+
+Oct 31, 2005 9:47:08 AM org.apache.coyote.http11.Http11Protocol init
+SEVERE: Error initializing endpoint
+java.net.BindException: Address already in use: JVM_Bind:80
+at org.apache.tomcat.util.net.PoolTcpEndpoint.initEndpoint (
+PoolTcpEndpoint.java:297)
+at org.apache.coyote.http11.Http11Protocol.init(Http11Protocol.java:137)
+at org.apache.catalina.connector.Connector.initialize(Connector.java:920)
+at org.apache.catalina.core.StandardService.initialize (StandardService.java
+:579)
+at org.apache.catalina.core.StandardServer.initialize(StandardServer.java
+:2091)
+at org.apache.catalina.startup.Catalina.load(Catalina.java:490)
+at org.apache.catalina.startup.Catalina.load (Catalina.java:509)
+at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java
+:39)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke (
+DelegatingMethodAccessorImpl.java:25)
+at java.lang.reflect.Method.invoke(Method.java:585)
+at org.apache.catalina.startup.Bootstrap.load(Bootstrap.java:243)
+at org.apache.catalina.startup.Bootstrap.main (Bootstrap.java:408)
+Oct 31, 2005 9:47:08 AM org.apache.catalina.startup.Catalina load
+SEVERE: Catalina.start
+LifecycleException: Protocol handler initialization failed:
+java.net.BindException: Address already in use: JVM_Bind:80
+at org.apache.catalina.connector.Connector.initialize(Connector.java:922)
+at org.apache.catalina.core.StandardService.initialize(StandardService.java
+:579)
+at org.apache.catalina.core.StandardServer.initialize (StandardServer.java
+:2091)
+at org.apache.catalina.startup.Catalina.load(Catalina.java:490)
+at org.apache.catalina.startup.Catalina.load(Catalina.java:509)
+at sun.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java
+:39)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke(
+DelegatingMethodAccessorImpl.java:25)
+at java.lang.reflect.Method.invoke (Method.java:585)
+at org.apache.catalina.startup.Bootstrap.load(Bootstrap.java:243)
+at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:408)
+Oct 31, 2005 9:47:08 AM org.apache.catalina.startup.Catalina load
+INFO: Initialization processed in 2203 ms
+Oct 31, 2005 9:47:08 AM org.apache.catalina.core.StandardService start
+INFO: Starting service Catalina
+Oct 31, 2005 9:47:08 AM org.apache.catalina.core.StandardEngine start
+INFO: Starting Servlet Engine: Apache Tomcat/5.5.4
+Oct 31, 2005 9:47:08 AM org.apache.catalina.core.StandardHost start
+INFO: XML validation disabled
+Oct 31, 2005 9:47:09 AM org.apache.coyote.http11.Http11Protocol start
+SEVERE: Error starting endpoint
+java.net.BindException: Address already in use: JVM_Bind:80
+at org.apache.tomcat.util.net.PoolTcpEndpoint.initEndpoint(
+PoolTcpEndpoint.java:297)
+at org.apache.tomcat.util.net.PoolTcpEndpoint.startEndpoint (
+PoolTcpEndpoint.java:312)
+at org.apache.coyote.http11.Http11Protocol.start(Http11Protocol.java:176)
+at org.apache.catalina.connector.Connector.start(Connector.java:992)
+at org.apache.catalina.core.StandardService.start (StandardService.java:459)
+at org.apache.catalina.core.StandardServer.start(StandardServer.java:2010)
+at org.apache.catalina.startup.Catalina.start(Catalina.java:537)
+at sun.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java
+:39)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke(
+DelegatingMethodAccessorImpl.java:25)
+at java.lang.reflect.Method.invoke (Method.java:585)
+at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:271)
+at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:409)
+Oct 31, 2005 9:47:09 AM org.apache.catalina.startup.Catalina start
+SEVERE: Catalina.start:
+LifecycleException: Protocol handler start failed: java.net.BindException:
+Address already in use: JVM_Bind:80
+at org.apache.catalina.connector.Connector.start(Connector.java :994)
+at org.apache.catalina.core.StandardService.start(StandardService.java:459)
+at org.apache.catalina.core.StandardServer.start(StandardServer.java:2010)
+at org.apache.catalina.startup.Catalina.start (Catalina.java:537)
+at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java
+:39)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke (
+DelegatingMethodAccessorImpl.java:25)
+at java.lang.reflect.Method.invoke(Method.java:585)
+at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:271)
+at org.apache.catalina.startup.Bootstrap.main (Bootstrap.java:409)
+Oct 31, 2005 9:47:09 AM org.apache.catalina.startup.Catalina start
+INFO: Server startup in 1125 ms
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051031/842152e0/attachment.html 
+
+From deepa.khetan at gmail.com  Mon Oct 31 04:21:32 2005
+From: deepa.khetan at gmail.com (Deepa Khetan)
+Date: Mon, 31 Oct 2005 14:51:32 +0530
+Subject: [OWASP-WEBGOAT]Fwd: Exception with starting Webgoat
+In-Reply-To: <4365CA37.90500@dawes.za.net>
+References: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com>
+	 <728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>
+	 <4365CA37.90500@dawes.za.net>
+Message-ID: <728c36830510310121g67ce2a47na3855dee6ea66c43@mail.gmail.com>
+
+When i am putting the WebGoat.war file in my Tomcat/webaps and starting the
+tomcat, i get the following error in my logs...
+ 2005-10-31 12:45:06 ContextConfig[/WebGoat]: Configured an authenticator
+for method BASIC
+2005-10-31 12:45:06 StandardManager[/WebGoat]: Seeding random number
+generator class java.security.SecureRandom
+2005-10-31 12:45:06 StandardManager[/WebGoat]: Seeding of random number
+generator has been completed
+2005-10-31 12:45:06 StandardWrapper[/WebGoat:default]: Loading container
+servlet default
+2005-10-31 12:45:06 StandardWrapper[/WebGoat:invoker]: Loading container
+servlet invoker
+2005-10-31 12:45:06 HostConfig[localhost] Exception while expanding web
+application archive WebGoat.war
+java.lang.UnsupportedClassVersionError: HammerHead (Unsupported
+major.minorversion
+49.0)
+at java.lang.ClassLoader.defineClass0(Native Method)
+at java.lang.ClassLoader.defineClass(ClassLoader.java:537)
+at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:123)
+at org.apache.catalina.loader.WebappClassLoader.findClassInternal(
+WebappClassLoader.java:1679)
+at org.apache.catalina.loader.WebappClassLoader.findClass(
+WebappClassLoader.java:968)
+at org.apache.catalina.loader.WebappClassLoader.loadClass(
+WebappClassLoader.java:1409)
+at org.apache.catalina.loader.WebappClassLoader.loadClass(
+WebappClassLoader.java:1289)
+at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java
+:885)
+at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:823)
+at org.apache.catalina.core.StandardContext.loadOnStartup(
+StandardContext.java:3427)
+at org.apache.catalina.core .StandardContext.start(StandardContext.java
+:3628)
+at org.apache.catalina.core.ContainerBase.addChildInternal(
+ContainerBase.java:821)
+at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:807)
+at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:595)
+at org.apache.catalina.core.StandardHostDeployer.install(
+StandardHostDeployer.java:307)
+at org.apache.catalina.core.StandardHost.install(StandardHost.java:788)
+at org.apache.catalina.startup.HostConfig.deployWARs(HostConfig.java:492)
+at org.apache.catalina.startup.HostConfig.deployApps(HostConfig.java:400)
+at org.apache.catalina.startup.HostConfig.start(HostConfig.java:718)
+at org.apache.catalina.startup.HostConfig.lifecycleEvent(HostConfig.java
+:358)
+at org.apache.catalina.util.LifecycleSupport.fireLifecycleEvent(
+LifecycleSupport.java:166)
+at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1196)
+at org.apache.catalina.core.StandardHost.start(StandardHost.java:754)
+at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1188)
+at org.apache.catalina.core.StandardEngine.start(StandardEngine.java:363)
+at org.apache.catalina.core.StandardService.start(StandardService.java:497)
+at org.apache.catalina.core.StandardServer.start(StandardServer.java:2190)
+at org.apache.catalina.startup.Catalina.start(Catalina.java:512)
+at org.apache.catalina.startup .Catalina.execute(Catalina.java:400)
+at org.apache.catalina.startup.Catalina.process(Catalina.java:180)
+at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java
+:39)
+at sun.reflect.DelegatingMethodAccessorImpl.invoke(
+DelegatingMethodAccessorImpl.java:25)
+at java.lang.reflect.Method.invoke(Method.java:324)
+at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:203)
+
+
+Also, if i try to run the webGoat-developers through webGoat.bat file after
+switching off the port for other tomcat, i get a blank page
+ Any idea what is happening?
+Regards,
+Deepa
+ On 10/31/05, Rogan Dawes <rogan at dawes.za.net> wrote:
+>
+> Deepa Khetan wrote:
+> > Hi,
+> > i have downloaded the Webgoat .war file(latest vrsion). I have also
+> > downloaded the developers .zip file. i have unzipped it and i am double
+> > clicked on webgoat.bat .. but i am getting the below error on tomcat.
+> > Can anyone help me please???? Also, i have kept the .war fiel in my
+> > webapps folder and started my tomcat in my usual way(from the path where
+> > my tomcat is installed) . i am not able to access the WebGoat/attack
+> page.
+> >
+> > Regards,
+> > Deepa
+> >
+> > Oct 31, 2005 9:47:08 AM org.apache.coyote.http11.Http11Protocol init
+> > SEVERE: Error initializing endpoint
+> > java.net.BindException: Address already in use: JVM_Bind:80
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>
+> It is trying to run on port 80, but you already have something listening
+> on that port, e.g. an existing webserver.
+>
+> You can try disabling whatever is running there, while you play with
+> webgoat, or change the tomcat configuration file to make webgoat run on
+> a different port.
+>
+> Rogan
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051031/87244cfe/attachment.html 
+
+From lists at dawes.za.net  Mon Oct 31 04:25:13 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Mon, 31 Oct 2005 11:25:13 +0200
+Subject: [OWASP-WEBGOAT]Fwd: Exception with starting Webgoat
+In-Reply-To: <728c36830510310121g67ce2a47na3855dee6ea66c43@mail.gmail.com>
+References: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com>	<728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>	<4365CA37.90500@dawes.za.net> <728c36830510310121g67ce2a47na3855dee6ea66c43@mail.gmail.com>
+Message-ID: <4365E2F9.4010302@dawes.za.net>
+
+Deepa Khetan wrote:
+> When i am putting the WebGoat.war file in my Tomcat/webaps and starting 
+> the tomcat, i get the following error in my logs...
+>  
+> 2005-10-31 12:45:06 ContextConfig[/WebGoat]: Configured an authenticator 
+> for method BASIC
+> 2005-10-31 12:45:06 StandardManager[/WebGoat]: Seeding random number 
+> generator class java.security.SecureRandom
+> 2005-10-31 12:45:06 StandardManager[/WebGoat]: Seeding of random number 
+> generator has been completed
+> 2005-10-31 12:45:06 StandardWrapper[/WebGoat:default]: Loading container 
+> servlet default
+> 2005-10-31 12:45:06 StandardWrapper[/WebGoat:invoker]: Loading container 
+> servlet invoker
+> 2005-10-31 12:45:06 HostConfig[localhost] Exception while expanding web 
+> application archive WebGoat.war
+> java.lang.UnsupportedClassVersionError: HammerHead (Unsupported 
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> major.minor version 49.0)
+>        at java.lang.ClassLoader.defineClass0(Native Method)
+
+Looks to me like you are mixing classes compiled using Java 5 (aka 1.5) 
+and Java 1.4. i.e. your Tomcat installation is using J2SDK 1.4, and 
+WebGoat is compiled using 1.5.
+
+It would probably be easier for you to disable your own running Tomcat 
+installation, and simply run the version that comes with the FULL 
+webgoat download, while you wish to use webgoat.
+
+Regards,
+
+Rogan
+
+
+
+From lists at dawes.za.net  Mon Oct 31 07:33:44 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Mon, 31 Oct 2005 14:33:44 +0200
+Subject: [OWASP-WEBGOAT]Fwd: Exception with starting Webgoat
+In-Reply-To: <728c36830510310330v4dfaeaa0m95ff93f46f79fab6@mail.gmail.com>
+References: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com>	<728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>	<4365CA37.90500@dawes.za.net>	<728c36830510310121g67ce2a47na3855dee6ea66c43@mail.gmail.com>	<4365E2F9.4010302@dawes.za.net> <728c36830510310330v4dfaeaa0m95ff93f46f79fab6@mail.gmail.com>
+Message-ID: <43660F28.3010102@dawes.za.net>
+
+Deepa Khetan wrote:
+> Will i be able to disable my own Tomcat by removing the TOMAT_PATH from 
+> environment variables or do i need to uninstall it completely?
+> 
+
+Your tomcat is probably started as a service. So if you stop the 
+service, you should be able to run the Tomcat instance for WebGoat 
+without any problems.
+
+Alternatively, and maybe more suitable for you, change the port that 
+WebGoat's instance of TomCat runs on. Edit the file
+
+<Tomcat home>\conf\server.xml
+
+and change the section that defines the port as being port 80, and 
+change it to something else, e.g. 8080.
+
+Rogan
+
+
+
+From rogan at dawes.za.net  Mon Oct 31 02:39:35 2005
+From: rogan at dawes.za.net (Rogan Dawes)
+Date: Mon, 31 Oct 2005 09:39:35 +0200
+Subject: [OWASP-WEBGOAT]Fwd: Exception with starting Webgoat
+In-Reply-To: <728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>
+References: <728c36830510302025u6b64bbfo3aa4b6350db254d2@mail.gmail.com> <728c36830510302027l1045a2a9x6d9363efec918e94@mail.gmail.com>
+Message-ID: <4365CA37.90500@dawes.za.net>
+
+Deepa Khetan wrote:
+> Hi,
+> i have downloaded the Webgoat .war file(latest vrsion). I have also 
+> downloaded the developers .zip file. i have unzipped it and i am double 
+> clicked on webgoat.bat .. but i am getting the below error on tomcat. 
+> Can anyone help me please???? Also, i have kept the .war fiel in my 
+> webapps folder and started my tomcat in my usual way(from the path where 
+> my tomcat is installed) . i am not able to access the WebGoat/attack page.
+>  
+> Regards,
+> Deepa
+> 
+> Oct 31, 2005 9:47:08 AM org.apache.coyote.http11.Http11Protocol init
+> SEVERE: Error initializing endpoint
+> java.net.BindException: Address already in use: JVM_Bind:80
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is trying to run on port 80, but you already have something listening 
+on that port, e.g. an existing webserver.
+
+You can try disabling whatever is running there, while you play with 
+webgoat, or change the tomcat configuration file to make webgoat run on 
+a different port.
+
+Rogan
+
+
+

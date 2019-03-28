@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Possible false positive for	981244
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Possible%20false%20positive%20for%0A%09981244&In-Reply-To=CAG6aRdUm54HyWZk4p%2Bkd3EVpANsuu%3DCuOfxU5LBrcZ-01PD-Qg%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000818.html">
+   <LINK REL="Next"  HREF="000820.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Possible false positive for	981244</H1>
+    <B>Christian Bockermann</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Possible%20false%20positive%20for%0A%09981244&In-Reply-To=CAG6aRdUm54HyWZk4p%2Bkd3EVpANsuu%3DCuOfxU5LBrcZ-01PD-Qg%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Possible false positive for	981244">chris at jwall.org
+       </A><BR>
+    <I>Fri Aug  5 04:12:29 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000818.html">[Owasp-modsecurity-core-rule-set] Possible false positive for 981244
+</A></li>
+        <LI>Next message: <A HREF="000820.html">[Owasp-modsecurity-core-rule-set] help with preventing entries to	audit log
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#819">[ date ]</a>
+              <a href="thread.html#819">[ thread ]</a>
+              <a href="subject.html#819">[ subject ]</a>
+              <a href="author.html#819">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Chris!
+
+
+Am 04.08.2011 um 14:46 schrieb chris derham:
+&gt;<i> Not sure if this is the correct way to report false positives, but we are testing our app works following upgrade to mod_security and to core ruleset 2.2.1. We are now hitting a false positive on rule 981244. I believe the relevant section of the logs is shown below. Our app needs to login via a http call, and it appears that the rule is rejecting the call as it contains a parameter &quot;j_username&quot;. We have turned the rule off for this particular url using a location match shown below which seems to overcome the issue. Is this the correct way, or is this really a false positive? Rule says it is trying to catch SQL login attempts
+</I>&gt;<i> 
+</I>&gt;<i>     &lt;LocationMatch &quot;/secure*&quot;&gt;
+</I>&gt;<i>         SecRuleRemoveById 981244
+</I>&gt;<i>     &lt;/LocationMatch&gt;
+</I>
+That's a reasonable way to exclude rules for specific contexts.
+The problem in your request is the password string that has been entered
+into the login form (or sent otherwise).
+
+It looks like the string &quot;like&quot; is somehow part of the password as can be
+seen by the
+
+     ... [data &quot;like&quot;] ....
+
+part of the log event you attached.
+As &quot;like&quot; is part of the SQL language, this request is flagged as possible
+intrusion.
+
+As for the exclusion, your proposed version will exclude that rule for all
+requests to /secure/*
+You might also consider just removing the parameter 'j_password' from the
+rule, which can be done with:
+
+   &lt;Location /secure&gt;
+        #
+        # Remove rule 981244 from j_password parameter for all /secure/ requests
+        #
+	SecRuleUpdateTargetById 981244 !ARGS:j_password 
+   &lt;/Location&gt;
+
+Please note, that SecRuleUpdateTargetById is rather new and requires ModSecurity
+2.6 (which you obviously have deployed, just mentioning that here for completeness).
+
+Best regards,
+    Chris
+
+
+&gt;<i> 
+</I>&gt;<i> Thanks for any pointers
+</I>&gt;<i> 
+</I>&gt;<i> Chris
+</I>&gt;<i> 
+</I>&gt;<i> --23480000-B--
+</I>&gt;<i> POST /secure/j_acegi_security_check
+</I>&gt;<i> HTTP/1.1
+</I>&gt;<i> Host: &lt;host name&gt;
+</I>&gt;<i> User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:5.0) Gecko/20100101 Firefox/5.0 
+</I>&gt;<i> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+</I>&gt;<i> Accept-Language: en-gb,en;q=0.5
+</I>&gt;<i> Accept-Encoding: gzip, deflate 
+</I>&gt;<i> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7 
+</I>&gt;<i> Connection: keep-alive 
+</I>&gt;<i> Referer: <A HREF="http://&lt;host">http://&lt;host</A> name&gt;/internet/shop 
+</I>&gt;<i> Cookie: JSESSIONID=872EE0D25BB05A9D8376C67A9808AB18
+</I>&gt;<i> Content-Type: application/x-www-form-urlencoded
+</I>&gt;<i> Content-Length: 62 
+</I>&gt;<i> 
+</I>&gt;<i> --23480000-C-- 
+</I>&gt;<i> j_username=&lt;username&gt;&amp;j_password=&lt;password&gt;
+</I>&gt;<i> 
+</I>&gt;<i> --23480000-F--
+</I>&gt;<i> HTTP/1.1 412 Precondition Failed
+</I>&gt;<i> Last-Modified: Tue, 25 Jan 2011 18:00:46 GMT
+</I>&gt;<i> ETag: &quot;100000002f836-18e-49aaf7eea50aa&quot;
+</I>&gt;<i> Accept-Ranges: bytes
+</I>&gt;<i> Vary:Accept-Encoding
+</I>&gt;<i> Content-Encoding: gzip
+</I>&gt;<i> Content-Length: 262
+</I>&gt;<i> Keep-Alive: timeout=15, max=100
+</I>&gt;<i> Connection: Keep-Alive
+</I>&gt;<i> Content-Type: text/html 
+</I>&gt;<i> 
+</I>&gt;<i> --23480000-H-- Message: Access denied with code 412 (phase 2). Pattern match &quot;(?i:(?:\\d(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s+(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s+\\d)|(?:^admin\\s*(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)|(\\/\\*)+(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)+\\s?(?:--|#|\\/\\*|{)?)|(?:(\&quot;|'| ...&quot; at ARGS:j_username. [file &quot;D:/apps/Apache2.2/conf/modsecurity2/modsecurity-crs_2.2.1/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;] [line &quot;560&quot;] [id &quot;981244&quot;] [msg &quot;Detects basic SQL authentication bypass attempts 1/3&quot;] [data &quot;like&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;] [tag &quot;WEB_ATTACK/ID&quot;] [tag &quot;WEB_ATTACK/LFI&quot;] 
+</I>&gt;<i> Action: Intercepted (phase 2)
+</I>&gt;<i> Stopwatch: 1312456696272672 15001 (- - -)
+</I>&gt;<i> Stopwatch2: 1312456696272672 15001; combined=14001, p1=2001, p2=8000, p3=0, p4=0, p5=2000, sr=2001, sw=0, l=0, gc=2000
+</I>&gt;<i> Producer: ModSecurity for Apache/2.6.1 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core ruleset/2.2.1.
+</I>&gt;<i> Server: Apache
+</I>&gt;<i> WebApp-Info: &quot;rbge&quot; &quot;-&quot; &quot;-&quot; /); core ruleset/2.1.2. Server: Apache WebApp-Info: &quot;rbge&quot; &quot;-&quot; &quot;-&quot; 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000818.html">[Owasp-modsecurity-core-rule-set] Possible false positive for 981244
+</A></li>
+	<LI>Next message: <A HREF="000820.html">[Owasp-modsecurity-core-rule-set] help with preventing entries to	audit log
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#819">[ date ]</a>
+              <a href="thread.html#819">[ thread ]</a>
+              <a href="subject.html#819">[ subject ]</a>
+              <a href="author.html#819">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

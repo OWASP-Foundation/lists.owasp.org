@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%09entries%20of%20stricter%20siblings&In-Reply-To=%3CF9848279-85AC-4A18-A7B1-DD7065568AD0%40spam.lifeforms.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002049.html">
+   <LINK REL="Next"  HREF="002060.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings</H1>
+    <B>Walter Hop</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%09entries%20of%20stricter%20siblings&In-Reply-To=%3CF9848279-85AC-4A18-A7B1-DD7065568AD0%40spam.lifeforms.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings">modsec at spam.lifeforms.nl
+       </A><BR>
+    <I>Sun Mar  6 14:11:51 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002049.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+        <LI>Next message: <A HREF="002060.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2053">[ date ]</a>
+              <a href="thread.html#2053">[ thread ]</a>
+              <a href="subject.html#2053">[ subject ]</a>
+              <a href="author.html#2053">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> On 06 Mar 2016, at 10:00, Franziska Buehler &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">franziska.buehler.schmocker at gmail.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> We have some proposals for stricter siblings of existing rules.
+</I>&gt;<i> When cloning rules to stricter siblings, multiple rules at different
+</I>&gt;<i> paranoia levels could match.
+</I>&gt;<i> Several clones of a rule should use strict limits to avoid multiple
+</I>&gt;<i> log entries for one request.
+</I>
+I also think that 'stricter siblings&#8217; should not cause rule matches for all siblings.
+
+Having multiple log lines in the audit entry for one violation will be confusing to users and waste space.
+
+Your message also makes me remember another possible problem: the anomaly score being increased multiple times. (I don&#8217;t recall if this was already decided on earlier, in any case I can&#8217;t find it in the list archives)
+
+For instance, if a user runs at paranoia level 4, we don&#8217;t want the following to happen:
+
+&gt;<i> Paranoia level 2:
+</I>&gt;<i> SecRule ARGS_NAMES|ARGS|XML:/* &quot;([\~\!\@\#\.....\&lt;\&gt;].*?){5,}&quot; \&#8230;
+</I>
+anomaly +5
+
+&gt;<i> Paranoia level 3:
+</I>&gt;<i> SecRule ARGS_NAMES|ARGS|XML:/* &quot;([\~\!\@\#\.....\&lt;\&gt;].*?){3,}&quot; \&#8230;
+</I>
+anomaly +5
+
+&gt;<i> Paranoia level 4:
+</I>&gt;<i> SecRule ARGS_NAMES|ARGS|XML:/* &quot;[\~\!\@\#\.....\&lt;\&gt;]&quot; \&#8230;
+</I>
+anomaly +5
+
+&#8230;which gives the user an anomaly score of 15 for a single character sequence.
+
+It seems counter-intuitive to me that we&#8217;d accumulate the anomaly score just by the presence of a single threat heuristic (that we happen to have multiple siblings for). This would make these rules overpowered compared to the other rules.
+
+So, I think it&#8217;s very important to prevent multiple sibling rules firing.
+
+If we want to prevent this, we could do it with a variable. As soon as a sibling triggers, we just set a variable specific to that &#8216;family&#8217; of siblings. The other siblings would chain on that variable and simply not trigger when it&#8217;s set by an earlier sibling. Then, as the rules are handled from top to bottom, simply the most severe sibling will be triggered and logged.
+
+It comes with a little bit of rule complexity in handling the variables, but this will be an easy copy-pasteable recipe, we won&#8217;t have to change the paranoia mechanism, and its performance impact is low.
+
+(Alternatively, in the rule example you&#8217;ve given, we could hand-craft the rules to only trigger in their specific instance, like:
+- level 2: {5,}
+- level 3: {3,4}
+- level 4: {1,2}
+but this has the danger that we will mistype and cause a &#8216;hole&#8217; in the coverage. I think it&#8217;s safer for the rules to &#8220;overlap&#8221; and prevent multiple triggers through another mechanism.)
+
+Any thoughts or other possible solutions?
+
+Cheers!
+WH
+</PRE>
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002049.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+	<LI>Next message: <A HREF="002060.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2053">[ date ]</a>
+              <a href="thread.html#2053">[ thread ]</a>
+              <a href="subject.html#2053">[ subject ]</a>
+              <a href="author.html#2053">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

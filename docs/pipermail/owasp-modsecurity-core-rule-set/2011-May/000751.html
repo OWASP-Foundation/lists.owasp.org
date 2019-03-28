@@ -1,0 +1,633 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%20behaving%20as%20expected&In-Reply-To=BANLkTikooBwvcxDfMOdEdbw-Bgy9gBccZg%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000752.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected</H1>
+    <B>Guillaume Bilodeau</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%20behaving%20as%20expected&In-Reply-To=BANLkTikooBwvcxDfMOdEdbw-Bgy9gBccZg%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected">guillaume.bilodeau at gmail.com
+       </A><BR>
+    <I>Mon May  2 09:16:55 EDT 2011</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000752.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#751">[ date ]</a>
+              <a href="thread.html#751">[ thread ]</a>
+              <a href="subject.html#751">[ subject ]</a>
+              <a href="author.html#751">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+I have opened a bug report at Apache and they have confirmed that issues in
+HTTPD Core are causing the following problems:
+
+- Apache doesn't always return a 408 when a request time out is detected
+(various cases)
+- Apache doesn't handle a request time out properly when the URL corresponds
+to a RedirectMatch directive
+
+More details here: <A HREF="https://issues.apache.org/bugzilla/show_bug.cgi?id=51103">https://issues.apache.org/bugzilla/show_bug.cgi?id=51103</A>
+
+Thank you all for your time and precious help!
+
+Cheers,
+GB
+
+On Tue, Apr 19, 2011 at 9:16 AM, Guillaume Bilodeau &lt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt; wrote:
+
+&gt;<i> Our latest tries looked like this:
+</I>&gt;<i>
+</I>&gt;<i> In modsecurity_crs_11_slow_dos_protection.conf:
+</I>&gt;<i>
+</I>&gt;<i> #SecReadStateLimit 10
+</I>&gt;<i> &lt;IfModule reqtimeout_module&gt;
+</I>&gt;<i> RequestReadTimeout header=20-40,MinRate=500 body=20,MinRate=500
+</I>&gt;<i> &lt;/IfModule&gt;
+</I>&gt;<i> SecRule RESPONSE_STATUS &quot;@streq 408&quot;
+</I>&gt;<i> &quot;phase:5,t:none,nolog,pass,setvar:ip.slow_dos_counter=+1,expirevar:ip.slow_dos_counter=60&quot;
+</I>&gt;<i> SecRule IP:SLOW_DOS_COUNTER &quot;@gt 5&quot; &quot;phase:1,t:none,log,drop,msg:'Client
+</I>&gt;<i> Connection Dropped due to high # of slow DoS alerts'&quot;
+</I>&gt;<i>
+</I>&gt;<i> First test**
+</I>&gt;<i>
+</I>&gt;<i> http_dos_cli --host 1.2.3.4 --port 80 --path /doLogin.html --slow-headers
+</I>&gt;<i> --post --connections 1000 --rate 1000 --timeout 5
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Tool establishes connections, starts sending headers
+</I>&gt;<i>
+</I>&gt;<i> After 20 seconds, requests start timing out
+</I>&gt;<i>
+</I>&gt;<i> Within a minute, tool cannot connect anymore
+</I>&gt;<i>
+</I>&gt;<i> Outside IP can connect to Apache
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> In error_log:
+</I>&gt;<i>
+</I>&gt;<i> [Tue Apr 19 08:55:09 2011] [info] [client 5.6.7.8] Request header read
+</I>&gt;<i> timeout
+</I>&gt;<i>
+</I>&gt;<i> [Tue Apr 19 08:55:09 2011] [error] [client 5.6.7.8] request failed: error
+</I>&gt;<i> reading the headers
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> In Wireshark:
+</I>&gt;<i>
+</I>&gt;<i> HTTP response code 400 (Bad Request)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Second test**
+</I>&gt;<i>
+</I>&gt;<i> http_dos_cli --host 1.2.3.4 --port 80 --path /doLogin.html --slow-post
+</I>&gt;<i> --post-field j_username --connections 1000 --rate 1000 --timeout 5
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Tool establishes connections, starts sending post data
+</I>&gt;<i>
+</I>&gt;<i> Tool caps at 1000 connections, never receives any error
+</I>&gt;<i>
+</I>&gt;<i> Outside IP cannot connect to Apache
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> In error_log:
+</I>&gt;<i>
+</I>&gt;<i> [Tue Apr 19 09:01:20 2011] [info] [client 5.6.7.8] Request body read
+</I>&gt;<i> timeout
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> In Wireshark:
+</I>&gt;<i>
+</I>&gt;<i> HTTP response code 200 (Found)
+</I>&gt;<i>
+</I>&gt;<i> So...
+</I>&gt;<i>
+</I>&gt;<i> In both cases, Apache (mod_reqtimeout I suppose) seems to be enforcing the
+</I>&gt;<i> header / body timeout correctly.  It's just that it's not returning a 408 in
+</I>&gt;<i> either case.
+</I>&gt;<i>
+</I>&gt;<i> On Sat, Apr 16, 2011 at 10:18 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Have you tried using header=timeout  directive against the slow dos tool
+</I>&gt;&gt;<i> to prevent slow headers?  Wonder if that part works for you or if it also is
+</I>&gt;&gt;<i> returning the 200. If that doesn't work then maybe it is related to Solaris
+</I>&gt;&gt;<i> OS. These settings worked for me on Mac OSX and Ubuntu.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Apr 16, 2011, at 9:58 AM, &quot;Guillaume Bilodeau&quot; &lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> We're using an Apache 2.2.17 that was built from scratch on a Solaris box.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sat, Apr 16, 2011 at 9:44 AM, Ryan Barnett &lt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i> What apache version are you using?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Apr 16, 2011, at 9:43 AM, &quot;Guillaume Bilodeau&quot; &lt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> A little more information on the 200 return code:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It seems that mod_reqtimeout is not closing the connection after the 20
+</I>&gt;&gt;<i> seconds, but rather truncating the request and letting it go through.  So
+</I>&gt;&gt;<i> the request is actually processed, and since the URL is referring to an
+</I>&gt;&gt;<i> actual resource, a 200 code is returned.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Surely there must be a problem with our configuration?  Or maybe our
+</I>&gt;&gt;<i> Apache build?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i> GB
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sat, Apr 16, 2011 at 12:55 AM, Brian Rectanus &lt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i> Probably not &quot;disastrous&quot; :)  You have the overhead of the TCP 3-way
+</I>&gt;&gt;<i> handshake and also the shutdown, but the browsers should be using SSL
+</I>&gt;&gt;<i> session resumption, which is not connection based.  It uses cached SSL
+</I>&gt;&gt;<i> session IDs and should be reused on each connection up to the timeout
+</I>&gt;&gt;<i> - just make sure this is enabled in the Apache config.  Personally, I
+</I>&gt;&gt;<i> find that about 3 second timeouts w/low request limit works well for
+</I>&gt;&gt;<i> keepalives, so it may be enough to just limit the keepalive timeout
+</I>&gt;&gt;<i> and number of requests  (say 3 second timeout w/9 requests limit
+</I>&gt;&gt;<i> instead of completely disabling them).  It really depends on your
+</I>&gt;&gt;<i> latency requirements for your site.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -B
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Thu, Apr 14, 2011 at 2:37 PM, Guillaume Bilodeau
+</I>&gt;&gt;<i> &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i> &gt; We will try turning off connection keep-alive to see how Apache will
+</I>&gt;&gt;<i> react.
+</I>&gt;&gt;<i> &gt;  However, isn't turning this off going to have a disastrous impact on
+</I>&gt;&gt;<i> &gt; connection performance, especially since all traffic will be SSL?
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On Thu, Apr 14, 2011 at 3:19 PM, Ivan Ristic &lt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Yes, it's probably because of keep-alives. Sounds like a bug in the
+</I>&gt;&gt;<i> &gt;&gt; reqtimeout module, because, if the connection stays open, the module
+</I>&gt;&gt;<i> &gt;&gt; isn't achieving much.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; IIRC, ModSecurity will turn off keep-alives on a connection on which it
+</I>&gt;&gt;<i> &gt;&gt; blocks.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; On Thu, Apr 14, 2011 at 8:11 PM, Guillaume Bilodeau
+</I>&gt;&gt;<i> &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt; Hi Ryan,
+</I>&gt;&gt;<i> &gt;&gt; &gt; We installed WireShark and started sniffing on all traffic.  It seems
+</I>&gt;&gt;<i> &gt;&gt; &gt; that
+</I>&gt;&gt;<i> &gt;&gt; &gt; Apache is returning a 200 status code instead of a 408 when the
+</I>&gt;&gt;<i> request
+</I>&gt;&gt;<i> &gt;&gt; &gt; reaches 30 seconds, so from what I understand ModSecurity can't do
+</I>&gt;&gt;<i> much
+</I>&gt;&gt;<i> &gt;&gt; &gt; about that.  The funny thing is, if we follow one of the TCP streams,
+</I>&gt;&gt;<i> we
+</I>&gt;&gt;<i> &gt;&gt; &gt; see
+</I>&gt;&gt;<i> &gt;&gt; &gt; that http_dos_cli keeps sending data even after receiving the 200
+</I>&gt;&gt;<i> code.
+</I>&gt;&gt;<i> &gt;&gt; &gt;  Maybe something to do with  keep-alive connections?
+</I>&gt;&gt;<i> &gt;&gt; &gt; Cheers,
+</I>&gt;&gt;<i> &gt;&gt; &gt; GB
+</I>&gt;&gt;<i> &gt;&gt; &gt; On Thu, Apr 14, 2011 at 2:12 PM, Ryan Barnett &lt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; OK, if mod_reqtimeout is installed and that directive is working,
+</I>&gt;&gt;<i> then
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; after 30 sec if Apache has not received the entire request body then
+</I>&gt;&gt;<i> it
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; should terminate the request with a 408 status code.  The
+</I>&gt;&gt;<i> ModSecurity
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; CRS
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; rules are simply monitoring if/how many 408 alerts are generated by
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Apache
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; per client.  After a certain amount, then ModSecurity will step in
+</I>&gt;&gt;<i> on
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; subsequent requests in phase:1 and do drop actions.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; So, by monitoring your Apache error log while you are running your
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; http_dos_cli tool, does Apache generate 408 alerts after 30 secs?
+</I>&gt;&gt;<i>  If
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; not,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; then I don't think that the mod_reqtimeout module or directive is
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; working.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; -Ryan
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; From: Guillaume Bilodeau
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Date: Thu, 14 Apr 2011 13:07:41 -0500
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; To: Ryan Barnett
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Cc:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &quot;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&quot;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Subject: Re: [Owasp-modsecurity-core-rule-set] Slow HTTP DOS
+</I>&gt;&gt;<i> protection
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; not behaving as expected
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Hi Ryan,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; I'm no Apache expert, but AFAICT the req_timeout module is
+</I>&gt;&gt;<i> installed.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;  A
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; /server-info shows the req_timeout.c module with the
+</I>&gt;&gt;<i> RequestReadTimeout
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; parameter.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Thanks,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; GB
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; On Thu, Apr 14, 2011 at 1:56 PM, Ryan Barnett
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Did you install the reqtimeout module?
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; # Mitigate Slow HTTP POST attacks
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; # Must have the mod_reqtimeout module installed
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; # You should adjust the RequestReadTimeout body directive setting to
+</I>&gt;&gt;<i> a
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; limit
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; # that will allow any legitimate slow clients or large file uplaods.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;IfModule reqtimeout_module&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; RequestReadTimeout body=30
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;/IfModule&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; -Ryan
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; From: Guillaume Bilodeau
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Date: Thu, 14 Apr 2011 12:33:52 -0500
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; To:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &quot;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&gt;&quot;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; &lt;&lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Subject: [Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection
+</I>&gt;&gt;<i> not
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; behaving as expected
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Hi all,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; We are trying to setup the OWASP Core Rule Set to protect our
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; application
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; from Slow HTTP DOS attacks.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; We have setup ModSecurity 2.5.13 on our Apache 2.2.17 instance,
+</I>&gt;&gt;<i> loaded
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; module, and included all CRS base rules plus
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; modsecurity_crs_11_slow_dos_protection.conf.  We didn't change the
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; settings
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; defined in the conf file, so SecReadStateLimit is set to 5 and
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; RequestReadTimeout is set to body=30.  We are using the http_dos_cli
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; command
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; line tool to do our tests, with the connection parameter set to 500.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; When running the slow-headers test, ModSecurity seems to be
+</I>&gt;&gt;<i> protecting
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; application correctly, dropping most (all?) requests from the
+</I>&gt;&gt;<i> tester's
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; IP
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; and allowing requests from a different IP to be served.  However,
+</I>&gt;&gt;<i> when
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; running the slow-post test, ModSecurity doesn't seem to be doing
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; anything.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;  From what I understand, the test successfully creates the 500
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; connections
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; and keeps them open; none of them are dropped.  Requests coming from
+</I>&gt;&gt;<i> a
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; different IP are not served and eventually time out.  A tail -f
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; error_log
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; shows nothing except the eventual message on MaxClients (set to 300
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; now)
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; being reached.  Interestingly, when we kill the http_dos_cli
+</I>&gt;&gt;<i> process,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; error_log is then flooded with hundreds of entries such as this:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; [Mon Nov 22 17:44:46 2010] [warn] ModSecurity: Access denied with
+</I>&gt;&gt;<i> code
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; 400.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Too many connections [6] of 5 allowed in READ state from
+</I>&gt;&gt;<i> 211.144.112.20
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; -
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Possible DoS Consumption Attack [Rejected]
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; (this has been taken from the SpiderLabs blog entry, dates and IPs
+</I>&gt;&gt;<i> are
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; obviously different)
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Any idea on why this isn't behaving like we're expecting it to be?
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Thanks!
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; GB
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> &gt;&gt; &gt; &lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt; &lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; &lt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; --
+</I>&gt;&gt;<i> &gt;&gt; Ivan Risti&#263;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> &gt; &lt;mailto:&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt; &lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt; &lt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> &gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you are
+</I>&gt;&gt;<i> not the intended recipient, you are hereby notified that any disclosure,
+</I>&gt;&gt;<i> copying, distribution, or use of the information contained herein (including
+</I>&gt;&gt;<i> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+</I>&gt;&gt;<i> transmission in error, please immediately contact the sender and destroy the
+</I>&gt;&gt;<i> material in its entirety, whether in electronic or hard copy format.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110502/35a33865/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110502/35a33865/attachment-0001.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000752.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#751">[ date ]</a>
+              <a href="thread.html#751">[ thread ]</a>
+              <a href="subject.html#751">[ subject ]</a>
+              <a href="author.html#751">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

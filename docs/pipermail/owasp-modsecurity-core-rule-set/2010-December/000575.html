@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BBUG%20Report%5D%20Restricted%0A%09extensions%20rule%20bug&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000574.html">
+   <LINK REL="Next"  HREF="000576.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug</H1>
+    <B>dreamice</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BBUG%20Report%5D%20Restricted%0A%09extensions%20rule%20bug&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug">dreamice.jiang at gmail.com
+       </A><BR>
+    <I>Wed Dec 29 20:50:08 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000574.html">[Owasp-modsecurity-core-rule-set] Custom ruleset not working
+</A></li>
+        <LI>Next message: <A HREF="000576.html">[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#575">[ date ]</a>
+              <a href="thread.html#575">[ thread ]</a>
+              <a href="subject.html#575">[ subject ]</a>
+              <a href="author.html#575">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear Ryan,
+I just find a bug of the Restricted extensions rule.
+
+The original rule are:
+setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/
+.bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/
+.dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/
+.licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/
+.resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/
+.xsx/', \
+
+SecRule REQUEST_BASENAME &quot;\.(.*)$&quot; &quot;chain,capture,setvar:tx.extension
+=&#8216;.%{tx.1}/&#8217;,phase:2,t:none,t:urlDecodeUni,t:lowercase,deny,log,auditlog,msg:'URL
+file extension is restricted by policy',
+severity:'2',id:'960035',tag:'POLICY/EXT_RESTRICTED',tag:'WASCTC/WASC-15',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',logdata:'%{TX.0}'&quot;
+        SecRule TX:EXTENSION &quot;@within %{tx.restricted_extensions}&quot;
+&quot;t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.%{
+rule.id}-POLICY/EXT_RESTRICTED-%{matched_var_name}=%{matched_var}&quot;
+I test and debug it but this rule does not work right. So I saw that the
+rule set tx.extension with two more single quote(''), but the setvar does
+not set the two single quote.
+For example, if you request the base name test.log, the rule sets the
+tx.extension with '.log/', but the restrcted_extensions is .log, They are
+not equal and the rule can not be matched.
+
+Wish you do a test and update the rules. Thanks a lot.
+
+Best regards,
+
+dreamice
+2010-12-30
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101230/a8ae076f/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101230/a8ae076f/attachment.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000574.html">[Owasp-modsecurity-core-rule-set] Custom ruleset not working
+</A></li>
+	<LI>Next message: <A HREF="000576.html">[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#575">[ date ]</a>
+              <a href="thread.html#575">[ thread ]</a>
+              <a href="subject.html#575">[ subject ]</a>
+              <a href="author.html#575">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

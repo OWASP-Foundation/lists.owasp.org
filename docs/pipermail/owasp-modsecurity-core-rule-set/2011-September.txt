@@ -1,0 +1,2194 @@
+From RBarnett at trustwave.com  Thu Sep  1 09:21:23 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 1 Sep 2011 08:21:23 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Lots of false positives with
+ wordpress
+In-Reply-To: <CAKA73TDqHAU3w-riA4+dVDXLLrMyzJ+cAFQCi5Nd_cGH=Ah4CQ@mail.gmail.com>
+Message-ID: <CA84FA8D.31485%rbarnett@trustwave.com>
+
+
+On 8/31/11 7:11 PM, "Majed B." <majedb at gmail.com> wrote:
+
+>Hello,
+>
+>I have just configured mod_security (2.6) with rule set 2.2.1. My
+>website runs wordpress 3.2.1. mod-sec is running in detection only
+>mode.
+
+You may also be interested in the "WordPress" specific virtual patches in
+the slr_rules directory.
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/slr_r
+ules/modsecurity_crs_46_slr_et_wordpress_attacks.conf
+
+
+These are rules that were created from converted Emerging Threats (ET)
+rules for WordPress vulns.  The advantage of running these rules are that
+they are very specific as to *where* they are looking for attacks vs. the
+generic rules in the rest of the CRS which are looking everywhere.
+
+>
+>As soon as I restarted apache, I saw many warnings in the error log as
+>visitors come to the site. First, visitors were denied access because
+>of a false positive on cookie session hijacking, then when I disabled
+>optional_rules altogether, I started getting warnings about SQLi
+>attacks when I tried to login to the admin panel of wordpress.
+>
+>Here's a sample of the error of the SQLi warning:
+>
+>[Thu Sep 01 01:57:35 2011] [error] [client 98.158.123.158]
+>ModSecurity: Warning. Operator GE matched 5 at
+>TX:restricted_sqli_char_count. [file
+>"/etc/modsecurity/modsecurity-crs/2.2.1/base_rules/modsecurity_crs_41_sql_
+>injection_attacks.conf"]
+>[line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL
+>Character Anomaly Detection Alert - Total # of special characters
+>exceeded"] [data "9"] [hostname "xyz.com"] [uri "/wp-admin/admin.php"]
+>[unique_id "Tl68X04vrrwAAEeUFbUAAAAF"]
+>[Thu Sep 01 01:57:36 2011] [error] [client 98.158.123.158]
+>ModSecurity: Warning. Operator LT matched 5 at
+>TX:inbound_anomaly_score. [file
+>"/etc/modsecurity/modsecurity-crs/2.2.1/base_rules/modsecurity_crs_60_corr
+>elation.conf"]
+>[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound
+>Score: 3, SQLi=10, XSS=): Restricted SQL Character Anomaly Detection
+>Alert - Total # of special characters exceeded"] [hostname "xyz.com"]
+>[uri "/wp-admin/admin.php"] [unique_id "Tl68X04vrrwAAEeUFbUAAAAF"]
+>
+>(Note: I renamed the domain name to xyz.com)
+>
+>I tried increasing the @ge value from 4 to 5, and it stopped the
+>warnings from showing when only browsing the login page, but after I
+>login, the warnings keep pouring. I don't know what is a suitable
+>value to be put there.
+
+
+You need to look at the audit log data for the transaction that has the
+UniqueID - Tl68X04vrrwAAEeUFbUAAAAF.  You might also want to download the
+latest SVN version of the sql injection file as those rules have been
+updated -
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_
+rules/modsecurity_crs_41_sql_injection_attacks.conf?revision=1835
+
+-Ryan
+
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Thu Sep  1 14:46:14 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 1 Sep 2011 13:46:14 -0500
+Subject: [Owasp-modsecurity-core-rule-set] (Updated) Mitigation of Apache
+	Range Header DoS Attack
+Message-ID: <CA854B36.315AF%rbarnett@trustwave.com>
+
+Just posted an update with new mitigation rules -
+http://blog.spiderlabs.com/2011/08/mitigation-of-apache-range-header-dos-attack.html
+
+Please test these out and report back experiences.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From steve.hodges at oit.gatech.edu  Thu Sep  1 18:23:46 2011
+From: steve.hodges at oit.gatech.edu (Steve Hodges)
+Date: Thu, 1 Sep 2011 18:23:46 -0400 (EDT)
+Subject: [Owasp-modsecurity-core-rule-set] basic question
+In-Reply-To: <2081150503.28243.1314915266614.JavaMail.root@mail3.gatech.edu>
+Message-ID: <2086541842.28484.1314915826738.JavaMail.root@mail3.gatech.edu>
+
+Hello...
+
+Apologies for what is probably a very basic question. I've noticed some rules are marked with severity 2 (critical, by default) but seem to use a different level when doing anomaly scoring -- for example:
+
+SecRule REQUEST_HEADERS:Host "^[\d.:]+$" "phase:2,rev:'2.2.1',t:none,block,msg:'Host header is a numeric IP address', severity:'2',id:'960017',tag:'PROTOCOL_VIOLATION/IP_HOST',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',tag:'http://technet.microsoft.com/en-us/magazine/2005.01.hackerbasher.aspx',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-POLICY/IP_HOST-%{matched_var_name}=%{matched_var}'"
+
+This rule uses severity:'2' but uses the 'notice' level for anomaly scoring: setvar:tx.policy_score=+%{tx.notice_anomaly_score}.
+
+Perhaps the answer to this may simply be that things can and sometimes should be scored differently when doing anomaly scoring -- is that right? It seems a little odd when looking at logs (or AuditConsole) to see things marked 'critical' but that don't get scored that way.
+
+Thanks--
+
+-steve
+
+From Jason_Haar at trimble.com  Thu Sep  1 23:14:07 2011
+From: Jason_Haar at trimble.com (Jason Haar)
+Date: Fri, 02 Sep 2011 15:14:07 +1200
+Subject: [Owasp-modsecurity-core-rule-set] Lots of false positives with
+ wordpress
+In-Reply-To: <CA84FA8D.31485%rbarnett@trustwave.com>
+References: <CA84FA8D.31485%rbarnett@trustwave.com>
+Message-ID: <4E6049FF.7080005@trimble.com>
+
+FYI for the same reason I just upgraded to the 2.2.2
+modsecurity_crs_41_sql_injection_attacks.conf ruleset, however it
+doesn't appear to have made any difference.
+
+e.g.
+
+The following Cookie triggers 981248
+
+LtpaToken2=x5Orq
+
+(it didn't like "50r"?????)
+
+Jason
+
+
+
+On 02/09/11 01:21, Ryan Barnett wrote:
+>
+> On 8/31/11 7:11 PM, "Majed B." <majedb at gmail.com> wrote:
+>
+> >Hello,
+> >
+> >I have just configured mod_security (2.6) with rule set 2.2.1. My
+> >website runs wordpress 3.2.1. mod-sec is running in detection only
+> >mode.
+>
+> You may also be interested in the "WordPress" specific virtual patches in
+> the slr_rules directory.
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/slr_r
+> ules/modsecurity_crs_46_slr_et_wordpress_attacks.conf
+>
+>
+> These are rules that were created from converted Emerging Threats (ET)
+> rules for WordPress vulns.  The advantage of running these rules are that
+> they are very specific as to *where* they are looking for attacks vs. the
+> generic rules in the rest of the CRS which are looking everywhere.
+>
+> >
+> >As soon as I restarted apache, I saw many warnings in the error log as
+> >visitors come to the site. First, visitors were denied access because
+> >of a false positive on cookie session hijacking, then when I disabled
+> >optional_rules altogether, I started getting warnings about SQLi
+> >attacks when I tried to login to the admin panel of wordpress.
+> >
+> >Here's a sample of the error of the SQLi warning:
+> >
+> >[Thu Sep 01 01:57:35 2011] [error] [client 98.158.123.158]
+> >ModSecurity: Warning. Operator GE matched 5 at
+> >TX:restricted_sqli_char_count. [file
+> >"/etc/modsecurity/modsecurity-crs/2.2.1/base_rules/modsecurity_crs_41_sql_
+> >injection_attacks.conf"]
+> >[line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL
+> >Character Anomaly Detection Alert - Total # of special characters
+> >exceeded"] [data "9"] [hostname "xyz.com"] [uri "/wp-admin/admin.php"]
+> >[unique_id "Tl68X04vrrwAAEeUFbUAAAAF"]
+> >[Thu Sep 01 01:57:36 2011] [error] [client 98.158.123.158]
+> >ModSecurity: Warning. Operator LT matched 5 at
+> >TX:inbound_anomaly_score. [file
+> >"/etc/modsecurity/modsecurity-crs/2.2.1/base_rules/modsecurity_crs_60_corr
+> >elation.conf"]
+> >[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound
+> >Score: 3, SQLi=10, XSS=): Restricted SQL Character Anomaly Detection
+> >Alert - Total # of special characters exceeded"] [hostname "xyz.com"]
+> >[uri "/wp-admin/admin.php"] [unique_id "Tl68X04vrrwAAEeUFbUAAAAF"]
+> >
+> >(Note: I renamed the domain name to xyz.com)
+> >
+> >I tried increasing the @ge value from 4 to 5, and it stopped the
+> >warnings from showing when only browsing the login page, but after I
+> >login, the warnings keep pouring. I don't know what is a suitable
+> >value to be put there.
+>
+>
+> You need to look at the audit log data for the transaction that has the
+> UniqueID - Tl68X04vrrwAAEeUFbUAAAAF.  You might also want to download the
+> latest SVN version of the sql injection file as those rules have been
+> updated -
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_
+> rules/modsecurity_crs_41_sql_injection_attacks.conf?revision=1835
+>
+> -Ryan
+>
+> >_______________________________________________
+> >Owasp-modsecurity-core-rule-set mailing list
+> >Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+>
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If
+> you are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the
+> sender and destroy the material in its entirety, whether in electronic
+> or hard copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+-- 
+Cheers
+
+Jason Haar
+Information Security Manager, Trimble Navigation Ltd.
+Phone: +1 408 481 8171
+PGP Fingerprint: 7A2E 0407 C9A6 CAF6 2B9F 8422 C063 5EBB FE1D 66D1
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110902/fdd79906/attachment.html 
+
+From domingo at domingo.dk  Fri Sep  2 10:27:51 2011
+From: domingo at domingo.dk (Thomas D. Dahlmann)
+Date: Fri, 02 Sep 2011 16:27:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Restricted SQL Character Anomaly
+	Detection Alert and Roundcube mail
+Message-ID: <4E60E7E7.7060100@domingo.dk>
+
+Hi
+
+I've got the bellow shown exception when I try to hit my webmail site.
+
+What kind of "bad" characters is the rule complaining about in this request?
+
+
+--63235740-A--
+[02/Sep/2011:15:59:55 +0200] TmDhWX8AAQEAAClL2qkAAAAJ x.x.x.x 28681 
+2.2.2.2 443
+--63235740-B--
+GET 
+/?_task=mail&_remote=1&_action=list&_mbox=RoundCube&_page=1&_refresh=1&_=1314971993364&_unlock=loading1314971993363 
+HTTP/1.1
+Host: example.com
+Connection: keep-alive
+Referer: https://example.com/
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML, 
+like Gecko) Chrome/13.0.782.215 Safari/535.1
+Accept: application/json, text/javascript, */*; q=0.01
+X-Roundcube-Request: b7aa8fc451317a76730a72f69fbb3e9e
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+Cookie: addressviewsplitter=250; prefsviewsplitter=195; 
+identviewsplitter=300; mailviewsplitter=291; sieverulesviewsplitter=245; 
+wp-settings-1=editor%3Dtinymce%26m4%3Do%26m0%3Do%26uploader%3D1; 
+wp-settings-time-1=1308940613; mailviewsplitterv=165; 
+roundcube_sessid=27cd4d0e05639619d9fa8684a6401300
+
+--63235740-F--
+HTTP/1.1 200 OK
+Expires: Fri, 02 Sep 2011 13:59:55 GMT
+Cache-Control: private, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Last-Modified: Fri, 02 Sep 2011 13:59:55 GMT
+X-DNS-Prefetch-Control: off
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 1983
+Keep-Alive: timeout=15, max=91
+Connection: Keep-Alive
+Content-Type: text/plain; charset=UTF-8
+
+--63235740-H--
+Message: Operator GE matched 4 at TX:restricted_sqli_char_count. [file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL Character 
+Anomaly Detection Alert - Total # of special characters exceeded"] [data 
+"4"]
+Message: Warning. Operator LT matched 5 at TX:inbound_anomaly_score. 
+[file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_60_correlation.conf"] 
+[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound 
+Score: 3, SQLi=5, XSS=): Restricted SQL Character Anomaly Detection 
+Alert - Total # of special characters exceeded"]
+Stopwatch: 1314971993379011 2207359 (- - -)
+Stopwatch2: 1314971993379011 2207359; combined=125219, p1=1234, 
+p2=123185, p3=109, p4=385, p5=303, sr=387, sw=3, l=0, gc=0
+Producer: ModSecurity for Apache/2.6.1 (http://www.modsecurity.org/); 
+core ruleset/2.2.1.
+Server: Apache/2.2.14 (Ubuntu)
+
+--63235740-Z--
+
+
+/Thomas
+
+From webmaster at organicspider.co.uk  Fri Sep  2 10:48:26 2011
+From: webmaster at organicspider.co.uk (Organic Spider)
+Date: Fri, 02 Sep 2011 15:48:26 +0100 (BST)
+Subject: [Owasp-modsecurity-core-rule-set] Restricted SQL Character
+	Anomaly	Detection Alert and Roundcube mail
+In-Reply-To: <4E60E7E7.7060100@domingo.dk>
+Message-ID: <0e7cc2ed-7b54-49c2-8917-d256df63d0c9@office.splatnix.net>
+
+I am guessing that rule is counting the number of '&'s in the URI. Have had the same issue.
+-- 
+Thanks, OS
+----- Original Message ----- 
+
+From: "Thomas D. Dahlmann" <domingo at domingo.dk> 
+To: owasp-modsecurity-core-rule-set at lists.owasp.org 
+Sent: Friday, 2 September, 2011 3:27:51 PM 
+Subject: [Owasp-modsecurity-core-rule-set] Restricted SQL Character Anomaly Detection Alert and Roundcube mail 
+
+Hi 
+
+I've got the bellow shown exception when I try to hit my webmail site. 
+
+What kind of "bad" characters is the rule complaining about in this request? 
+
+
+--63235740-A-- 
+[02/Sep/2011:15:59:55 +0200] TmDhWX8AAQEAAClL2qkAAAAJ x.x.x.x 28681 
+2.2.2.2 443 
+--63235740-B-- 
+GET 
+/?_task=mail&_remote=1&_action=list&_mbox=RoundCube&_page=1&_refresh=1&_=1314971993364&_unlock=loading1314971993363 
+HTTP/1.1 
+Host: example.com 
+Connection: keep-alive 
+Referer: https://example.com/ 
+X-Requested-With: XMLHttpRequest 
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML, 
+like Gecko) Chrome/13.0.782.215 Safari/535.1 
+Accept: application/json, text/javascript, */*; q=0.01 
+X-Roundcube-Request: b7aa8fc451317a76730a72f69fbb3e9e 
+Accept-Encoding: gzip,deflate,sdch 
+Accept-Language: en-US,en;q=0.8 
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3 
+Cookie: addressviewsplitter=250; prefsviewsplitter=195; 
+identviewsplitter=300; mailviewsplitter=291; sieverulesviewsplitter=245; 
+wp-settings-1=editor%3Dtinymce%26m4%3Do%26m0%3Do%26uploader%3D1; 
+wp-settings-time-1=1308940613; mailviewsplitterv=165; 
+roundcube_sessid=27cd4d0e05639619d9fa8684a6401300 
+
+--63235740-F-- 
+HTTP/1.1 200 OK 
+Expires: Fri, 02 Sep 2011 13:59:55 GMT 
+Cache-Control: private, no-cache, must-revalidate, post-check=0, pre-check=0 
+Pragma: no-cache 
+Last-Modified: Fri, 02 Sep 2011 13:59:55 GMT 
+X-DNS-Prefetch-Control: off 
+Vary: Accept-Encoding 
+Content-Encoding: gzip 
+Content-Length: 1983 
+Keep-Alive: timeout=15, max=91 
+Connection: Keep-Alive 
+Content-Type: text/plain; charset=UTF-8 
+
+--63235740-H-- 
+Message: Operator GE matched 4 at TX:restricted_sqli_char_count. [file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL Character 
+Anomaly Detection Alert - Total # of special characters exceeded"] [data 
+"4"] 
+Message: Warning. Operator LT matched 5 at TX:inbound_anomaly_score. 
+[file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_60_correlation.conf"] 
+[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound 
+Score: 3, SQLi=5, XSS=): Restricted SQL Character Anomaly Detection 
+Alert - Total # of special characters exceeded"] 
+Stopwatch: 1314971993379011 2207359 (- - -) 
+Stopwatch2: 1314971993379011 2207359; combined=125219, p1=1234, 
+p2=123185, p3=109, p4=385, p5=303, sr=387, sw=3, l=0, gc=0 
+Producer: ModSecurity for Apache/2.6.1 (http://www.modsecurity.org/); 
+core ruleset/2.2.1. 
+Server: Apache/2.2.14 (Ubuntu) 
+
+--63235740-Z-- 
+
+
+/Thomas 
+_______________________________________________ 
+Owasp-modsecurity-core-rule-set mailing list 
+Owasp-modsecurity-core-rule-set at lists.owasp.org 
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 
+
+From RBarnett at trustwave.com  Fri Sep  2 12:48:39 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 2 Sep 2011 11:48:39 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Restricted SQL Character
+ Anomaly Detection Alert and Roundcube mail
+In-Reply-To: <4E60E7E7.7060100@domingo.dk>
+Message-ID: <CA868029.31680%rbarnett@trustwave.com>
+
+Can you try the SVN trunk version (v2.2.2)?
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_
+rules/modsecurity_crs_41_sql_injection_attacks.conf
+
+I tried your complete transaction and the same category of check triggered
+for a Cookie value -
+
+[Fri Sep 02 12:41:07 2011] [error] [client 127.0.0.1] ModSecurity:
+Warning. Pattern match
+"([\\\\~\\\\!\\\\@\\\\#\\\\$\\\\%\\\\^\\\\&\\\\*\\\\(\\\\)\\\\-\\\\+\\\\=\\
+\\{\\\\}\\\\[\\\\]\\\\|\\\\:\\\\;\\"\\\\'\\\\\\xc2\\xb4\\\\\\xe2\\x80\\x99\
+\\\\\xe2\\x80\\x98\\\\`\\\\<\\\\>].*){6,}" at
+REQUEST_COOKIES:wp-settings-1. [file
+"/usr/local/apache/conf/crs/activated_rules/modsecurity_crs_41_sql_injectio
+n_attacks.conf"] [line "521"] [id "981172"] [rev "2.2.2"] [msg "Restricted
+SQL Character Anomaly Detection Alert - Total # of special characters
+exceeded"] [data "=1"] [hostname "example.com"] [uri "/"] [unique_id
+"TmEHIcCoqAEAALzcEnkAAAAI"
+
+
+
+That wp-settings-1 cookie payload decodes to -
+
+wp-settings-1=editor=tinymce&m4=o&m0=o&uploader=1
+
+And the rule triggered on having a bunck of = and & chars in it.
+
+-Ryan
+
+
+On 9/2/11 10:27 AM, "Thomas D. Dahlmann" <domingo at domingo.dk> wrote:
+
+>Hi
+>
+>I've got the bellow shown exception when I try to hit my webmail site.
+>
+>What kind of "bad" characters is the rule complaining about in this
+>request?
+>
+>
+>--63235740-A--
+>[02/Sep/2011:15:59:55 +0200] TmDhWX8AAQEAAClL2qkAAAAJ x.x.x.x 28681
+>2.2.2.2 443
+>--63235740-B--
+>GET
+>/?_task=mail&_remote=1&_action=list&_mbox=RoundCube&_page=1&_refresh=1&_=1
+>314971993364&_unlock=loading1314971993363
+>HTTP/1.1
+>Host: example.com
+>Connection: keep-alive
+>Referer: https://example.com/
+>X-Requested-With: XMLHttpRequest
+>User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML,
+>like Gecko) Chrome/13.0.782.215 Safari/535.1
+>Accept: application/json, text/javascript, */*; q=0.01
+>X-Roundcube-Request: b7aa8fc451317a76730a72f69fbb3e9e
+>Accept-Encoding: gzip,deflate,sdch
+>Accept-Language: en-US,en;q=0.8
+>Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+>Cookie: addressviewsplitter=250; prefsviewsplitter=195;
+>identviewsplitter=300; mailviewsplitter=291; sieverulesviewsplitter=245;
+>wp-settings-1=editor%3Dtinymce%26m4%3Do%26m0%3Do%26uploader%3D1;
+>wp-settings-time-1=1308940613; mailviewsplitterv=165;
+>roundcube_sessid=27cd4d0e05639619d9fa8684a6401300
+>
+>--63235740-F--
+>HTTP/1.1 200 OK
+>Expires: Fri, 02 Sep 2011 13:59:55 GMT
+>Cache-Control: private, no-cache, must-revalidate, post-check=0,
+>pre-check=0
+>Pragma: no-cache
+>Last-Modified: Fri, 02 Sep 2011 13:59:55 GMT
+>X-DNS-Prefetch-Control: off
+>Vary: Accept-Encoding
+>Content-Encoding: gzip
+>Content-Length: 1983
+>Keep-Alive: timeout=15, max=91
+>Connection: Keep-Alive
+>Content-Type: text/plain; charset=UTF-8
+>
+>--63235740-H--
+>Message: Operator GE matched 4 at TX:restricted_sqli_char_count. [file
+>"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_41_sql_injec
+>tion_attacks.conf"]
+>[line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL Character
+>Anomaly Detection Alert - Total # of special characters exceeded"] [data
+>"4"]
+>Message: Warning. Operator LT matched 5 at TX:inbound_anomaly_score.
+>[file
+>"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_60_correlati
+>on.conf"]
+>[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound
+>Score: 3, SQLi=5, XSS=): Restricted SQL Character Anomaly Detection
+>Alert - Total # of special characters exceeded"]
+>Stopwatch: 1314971993379011 2207359 (- - -)
+>Stopwatch2: 1314971993379011 2207359; combined=125219, p1=1234,
+>p2=123185, p3=109, p4=385, p5=303, sr=387, sw=3, l=0, gc=0
+>Producer: ModSecurity for Apache/2.6.1 (http://www.modsecurity.org/);
+>core ruleset/2.2.1.
+>Server: Apache/2.2.14 (Ubuntu)
+>
+>--63235740-Z--
+>
+>
+>/Thomas
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From ty733420 at gmail.com  Wed Sep  7 14:08:43 2011
+From: ty733420 at gmail.com (Ty)
+Date: Wed, 7 Sep 2011 13:08:43 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Bug in CRS 2.2.2 rule 960335?
+Message-ID: <CACBJu2Xes++76v0hq++fh9Qk026iks-fuCgVNFm72Hyp1iL4DA@mail.gmail.com>
+
+Hello,
+
+I'm running into what I think are false positives for rule 960335 in CRS
+2.2.2.  I see blocked requests with "Operator GT matched 512 at ARGS:xxx"
+when there are clearly less than 512 parameters being sent.
+
+Should the "SecRule ARGS" rule be replaced with "SecRule &ARGS", like the
+below?
+
+Thanks,
+Ty
+
+# Maximum number of arguments in request limited
+SecRule &TX:MAX_NUM_ARGS "@eq 1" "chain,phase:2,t:none,block,msg:'Too many
+arguments in request',id:'960335',severity:'4',rev:'2.2.2'"
+    SecRule &ARGS "@gt %{tx.max_num_args}"
+"t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+rule.id}-POLICY/SIZE_LIMIT-%{matched_var_name}=%{matched_var}"
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110907/2295f8b4/attachment.html 
+
+From RBarnett at trustwave.com  Wed Sep  7 15:26:14 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 7 Sep 2011 14:26:14 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Bug in CRS 2.2.2 rule 960335?
+In-Reply-To: <CACBJu2Xes++76v0hq++fh9Qk026iks-fuCgVNFm72Hyp1iL4DA@mail.gmail.com>
+Message-ID: <CA8D3C96.3199A%rbarnett@trustwave.com>
+
+
+From: Ty <ty733420 at gmail.com<mailto:ty733420 at gmail.com>>
+Date: Wed, 7 Sep 2011 13:08:43 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Bug in CRS 2.2.2 rule 960335?
+
+Hello,
+
+I'm running into what I think are false positives for rule 960335 in CRS 2.2.2.  I see blocked requests with "Operator GT matched 512 at ARGS:xxx" when there are clearly less than 512 parameters being sent.
+
+Should the "SecRule ARGS" rule be replaced with "SecRule &ARGS", like the below?
+
+Yes, good catch.  I had updated these rules and removed the & that was there by mistake on these other rules and removed this one too?  It is now fixed in SVN -
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_rules/modsecurity_crs_23_request_limits.conf?revision=1837
+
+-Ryan
+
+
+
+Thanks,
+Ty
+
+# Maximum number of arguments in request limited
+SecRule &TX:MAX_NUM_ARGS "@eq 1" "chain,phase:2,t:none,block,msg:'Too many arguments in request',id:'960335',severity:'4',rev:'2.2.2'"
+    SecRule &ARGS "@gt %{tx.max_num_args}" "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id<http://rule.id/>}-POLICY/SIZE_LIMIT-%{matched_var_name}=%{matched_var}"
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From kauselot at yahoo.com  Wed Sep  7 19:05:23 2011
+From: kauselot at yahoo.com (kause lotski)
+Date: Wed, 7 Sep 2011 16:05:23 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] the whole
+	modsecurity_crs_41_sql_injection_attacks.conf needs
+	exceptions for google analytics and piwik cookies
+Message-ID: <1315436723.37064.YahooMailNeo@web113314.mail.gq1.yahoo.com>
+
+I have found that almost all rules in modsecurity_crs_41_sql_injection_attacks.conf need !REQUEST_COOKIES:/^_pk_ref.*/|!REQUEST_COOKIES:/^__utmz$/|!ARGS:gclid? for google adwords, google analytics? and piwik to work ok with mod_security.
+
+Hope this helps someone else
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110907/e7ca5b23/attachment.html 
+
+From Jens.Schleusener at t-online.de  Thu Sep  8 04:22:42 2011
+From: Jens.Schleusener at t-online.de (Jens Schleusener)
+Date: Thu, 8 Sep 2011 10:22:42 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] Is rule 958291 ("Range: field
+ exists and begins with 0") really correct?
+Message-ID: <alpine.LSU.2.02.1109081000370.9059@schiller.dip.t-dialin.net>
+
+Hi,
+
+in a modsec_audit.log I find some blocked requests like
+
+  Message: Access denied with code 403 (phase 2).
+  [file " .../base_rules/modsecurity_crs_20_protocol_violations.conf"]
+  [id "958291"] [rev "2.2.2"]
+  [msg "Range: field exists and begins with 0."]
+  [data "bytes=0-6134031"]
+  [severity "NOTICE"]
+  [tag "RULE_MATURITY/5"]
+  [tag "RULE_ACCURACY/7"]
+  [tag "https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-958291"]
+  [tag "PROTOCOL_VIOLATION/INVALID_HREQ"]
+  [tag "http://www.bad-behavior.ioerror.us/documentation/how-it-works/"]
+
+In modsecurity_crs_20_protocol_violations.conf one can find the 
+according comments
+
+  # 1. Range Header exists and begins with 0 - normal browsers don't do this.
+  # Automated programs and bots often do not obey the HTTP RFC
+  #
+  # -=[ Rule Logic ]=-
+  # This rule inspects the Range request header to see if it starts with 0.
+  #
+  # -=[ References ]=-
+  # http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+
+Ok, I see on "my" server (offering FOSS software packages) often many 
+"suspicious" overlapping byte-range requests (but always only one single 
+byte-range per request; may be from bots or "tricky" download managers?) 
+whose purpose I yet don't really understand. They lead summarized 
+sometimes to a 10-100 times greater download volume compared to the size 
+of the single downloaded package itself.
+
+Nevertheless I don't understand the above rule.
+
+At first view on the given reference page
+
+  http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+
+I cannot find any related information.
+
+But reading RFC2616 I found
+
+  Examples of byte-content-range-spec values, assuming that the entity
+  contains a total of 1234 bytes
+
+   - The first 500 bytes:
+
+   bytes 0-499/1234
+
+   - All except for the first 500 bytes:
+
+   bytes 500-1233/1234
+
+So my question:
+
+Is using a range request beginning with 0 really a RFC violation?
+Use "normal" browsers really no range headers beginning with 0?
+Or is the idea behind this rule that ""normal" browsers normally don't use 
+byte-range requests and if yet than only ranges beginning with > 0
+(for e.g. for resuming interrupted transfers)?
+
+Regards
+
+Jens
+
+From RBarnett at trustwave.com  Thu Sep  8 08:23:59 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 8 Sep 2011 07:23:59 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Is rule 958291 ("Range: field
+ exists and begins with 0") really correct?
+In-Reply-To: <alpine.LSU.2.02.1109081000370.9059@schiller.dip.t-dialin.net>
+Message-ID: <CA8E2BFF.319EA%rbarnett@trustwave.com>
+
+Jens,
+In the Bad Behavior rules there is a file called "common_tests.inc.php"
+which has the following info -
+
+// Range: field exists and begins with 0
+        // Real user-agents do not start ranges at 0
+        // NOTE: this blocks the whois.sc bot. No big loss.
+        // Exceptions: MT (not fixable); LJ (refuses to fix; may be
+        // blocked again in the future); Facebook
+        if ($settings['strict'] && array_key_exists('Range',
+$package['headers_mixed']) && strpos($package['headers_mixed']['Range'],
+"=0-") !== FALSE) {
+                if (strncmp($ua, "MovableType", 11) && strncmp($ua, "URI::Fetch", 10) &&
+strncmp($ua, "php-openid/", 11) && strncmp($ua, "facebookexternalhit",
+19)) {
+                        return "7ad04a8a";
+                }
+        }
+
+So it seems that although this is legal per the RFC, it seems as though no
+legitimate clients do this.
+
+If you find this is not the case, please let us know and we will adjustthe
+rule or you can simply remove the rule locally with an exception.
+
+-Ryan
+
+
+
+
+On 9/8/11 4:22 AM, "Jens Schleusener" <Jens.Schleusener at t-online.de> wrote:
+
+>Hi,
+>
+>in a modsec_audit.log I find some blocked requests like
+>
+>  Message: Access denied with code 403 (phase 2).
+>  [file " .../base_rules/modsecurity_crs_20_protocol_violations.conf"]
+>  [id "958291"] [rev "2.2.2"]
+>  [msg "Range: field exists and begins with 0."]
+>  [data "bytes=0-6134031"]
+>  [severity "NOTICE"]
+>  [tag "RULE_MATURITY/5"]
+>  [tag "RULE_ACCURACY/7"]
+>  [tag "https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-958291"]
+>  [tag "PROTOCOL_VIOLATION/INVALID_HREQ"]
+>  [tag "http://www.bad-behavior.ioerror.us/documentation/how-it-works/"]
+>
+>In modsecurity_crs_20_protocol_violations.conf one can find the
+>according comments
+>
+>  # 1. Range Header exists and begins with 0 - normal browsers don't do
+>this.
+>  # Automated programs and bots often do not obey the HTTP RFC
+>  #
+>  # -=[ Rule Logic ]=-
+>  # This rule inspects the Range request header to see if it starts with
+>0.
+>  #
+>  # -=[ References ]=-
+>  # http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+>
+>Ok, I see on "my" server (offering FOSS software packages) often many
+>"suspicious" overlapping byte-range requests (but always only one single
+>byte-range per request; may be from bots or "tricky" download managers?)
+>whose purpose I yet don't really understand. They lead summarized
+>sometimes to a 10-100 times greater download volume compared to the size
+>of the single downloaded package itself.
+>
+>Nevertheless I don't understand the above rule.
+>
+>At first view on the given reference page
+>
+>  http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+>
+>I cannot find any related information.
+>
+>But reading RFC2616 I found
+>
+>  Examples of byte-content-range-spec values, assuming that the entity
+>  contains a total of 1234 bytes
+>
+>   - The first 500 bytes:
+>
+>   bytes 0-499/1234
+>
+>   - All except for the first 500 bytes:
+>
+>   bytes 500-1233/1234
+>
+>So my question:
+>
+>Is using a range request beginning with 0 really a RFC violation?
+>Use "normal" browsers really no range headers beginning with 0?
+>Or is the idea behind this rule that ""normal" browsers normally don't
+>use
+>byte-range requests and if yet than only ranges beginning with > 0
+>(for e.g. for resuming interrupted transfers)?
+>
+>Regards
+>
+>Jens
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From kauselot at yahoo.com  Sat Sep 10 05:23:48 2011
+From: kauselot at yahoo.com (kause lotski)
+Date: Sat, 10 Sep 2011 02:23:48 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] extended ascii characters
+	triggering some rules
+Message-ID: <1315646628.99524.YahooMailNeo@web113318.mail.gq1.yahoo.com>
+
+Rules 950901, 960024, 981173,981211,973335
+
+Get almost alway triggered by extended ascii characters like ??? (hope this will come trough correctly, this are czs with scarons)
+
+
+Se example bellow:
+
+--1f07a55c-A--
+[10/Sep/2011:10:57:51 +0200] Tmsmj1u5ziUAAG15Cb8AAAAC xxxx 3328 xxxx 80
+--1f07a55c-B--
+POST /index.php HTTP/1.1
+Host: www.xxx.net
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: sl,en-gb;q=0.7,en;q=0.3
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-2,utf-8;q=0.7,*;q=0.7
+Connection: keep-alive
+Referer: http://www.xxx.net/index.php?option=com_content&task=new&sectionid=4&Itemid=0
+Cookie: fboard_settings[current_view]=flat; __utma=47285926.1656474622.1312483112.1315605425.1315645025.5; __utmz=47285926.1312483112.1.1.utmccn=(direct)|utmcsr=(direct)|utmcmd=(none); fboard_settings[member_id]=101; 56269b42eb162bb930fa4936a548dbaf=a167eb13da3c2f96df9fa5c974092a74; __utmc=47285926; adp_partner=1; __utmb=47285926
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 4319
+
+--1f07a55c-C--
+title=test&catid=69&introtext=Dokaj+je+peres+pisalo+o+dogodkih+njega+dni%2C%3Cbr+%2F%3E%0D%0Aa+poet+vsekdar+druga%C4%8De+videl%2C+%C4%8Dutil+je+stvari.%3Cbr+%2F%3E%0D%0ADa+je+svet+pokvarjen+vemo%3A+vidimo+in+sli%C5%A1imo%2C%3Cbr+%2F%3E%0D%0Akdaj+je+pesem+skrpucalo+pa+lahko+%C5%A1e+%C4%8Dutimo.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AErvin+Fritz+je+pesnik+vrli%2C+ki+ostro+vihti+pero%2C%3Cbr+%2F%3E%0D%0Ada+z+umetni%C5%A1kim+vtisom%2C+me%C5%A1a+drek+in+seje+zlo.%3Cbr+%2F%3E%0D%0AV+te%C5%BEkih+%C4%8Dasih+komunizma+ritolizil+je+oblast%2C%3Cbr+%2F%3E%0D%0Aa+sedaj%2C+na+stara+leta%2C+na%C5%A1el+novo+si+je+strast.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AMoritat+o+Jan%C5%BEi+Jan%C5%BEu%2C+njega+novi+umotvor%2C%3Cbr+%2F%3E%0D%0Az+domi%C5%A1lijsko+nam+satiro+slika+Jan%C5%A1e+samomor.%3Cbr+%2F%3E%0D%0AS+tem+pogro%C5%A1nim%2C+bednim+%C5%A1undom+se+pobrati+z+oblastjo%2C%3Cbr+%2F%3E%0D%0Avsem+ostalim+pa+nasuje+peska+%C5%BEgo%C4%8Dega+v+oko.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0ANa
+jprej+s+cipo+Ur%C5%A1ko+zmerja%2C+%26quot%3Bza+prav+vsak+madrac%26quot%3B%2C+da+je%3Cbr+%2F%3E%0D%0Ain+nato%2C+nose%C4%8Di+-+z+vinom%2C+da+naliva+se.%3Cbr+%2F%3E%0D%0ANa+petrolu+mo%C5%BE+in+%C5%BEena+naj+bi+se+ustavila%2C%3Cbr+%2F%3E%0D%0As+fla%C5%A1o+vina+pod+pazduho+-+brez+pla%C4%8Dila+naj+bi+%C5%A1la.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AJanezu+o%C4%8Dita+gore%2C+%C4%8De%C5%A1+da+%26quot%3Bosvajalec%26quot%3B+je%2C%3Cbr+%2F%3E%0D%0Apa+%C4%8Deprav+so+hribi+na%C5%A1i+le+sprehod+za+romarje.%3Cbr+%2F%3E%0D%0AHkrati+pljuva+po+desnici%2C+%C4%8De%C5%A1%2C+da+kraja+vle%C4%8De+jo%3Cbr+%2F%3E%0D%0Av+de%C5%BEelo+senc+in+greha+-+grobnico+politi%C4%8Dno.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AOro%C5%BEarsko%2C+glej%2C+afero%2C+na%C5%A1+privle%C4%8De+Fritz+na+dan%2C%3Cbr+%2F%3E%0D%0Akuje+hladno+rad+%C5%BEelezo%2C+kot+kak+stari+partizan.%3Cbr+%2F%3E%0D%0APa+tajkune+rad+pograja+%28%C4%8De%C5%A1%2C+saj+vem%2C+prav+tak%C5%A1en+si%29%2C%3Cbr+%2F%3E%0D%0Ahkrati+pa+ga+v+zvezde
++kuje%2C+ker+je+%26quot%3Bcvet+nedol%C5%BEnosti%26quot%3B.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AZliva+gnev+in+bes+in+%C5%BEveplo%2C+la%C5%BE+v+satiro+prelevi%2C%3Cbr+%2F%3E%0D%0Av+resnici+-+glava+prazna+-+le+sovra%C5%A1tvo+vzbudi.%3Cbr+%2F%3E%0D%0APrav+na+koncu+pa+%C5%A1e+enkrat%2C+malo+norca+brije+se%3Cbr+%2F%3E%0D%0Aiz+premajhne+mu+de%C5%BEele%2C+Liliput-Slovenije.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AVsako+teslo+z+doktoratom%2C+vsak+politik%2C+liberal%2C%3Cbr+%2F%3E%0D%0Afilozofski+pesnik%2C+dohtar%2C+vsak+boskur%2C+psoljub+in+far%2C%3Cbr+%2F%3E%0D%0Avsa+golazen+zarotila+se+je+drug+prot%27+drugemu%2C%3Cbr+%2F%3E%0D%0Aen+%C4%8Dez+drugega+udriha%2C+le+dr%C5%BEava+gre+po+zlu.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0ABrez+srca+so+vsi+po+vrsti%2C+pravega+duha+nikjer%3Cbr+%2F%3E%0D%0Aa+le+eno+je+pomembno%3A+to%2C+da+netimo+prepir.%3Cbr+%2F%3E%0D%0ATo+so+misli+na%C5%A1e+klene%2C+to+Slovenca+je+srce%2C%3Cbr+%2F%3E%0D%0Asaj+ni+%C4%8Dudno%2C+da+de%C5%BEela+prav+zares+k+
+Hudi%C4%8Du+gre.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0A%C4%8Ce+pred+nekaj+desetletji+rde%C4%8Di+vrag+bi+ne+pri%C5%A1el%3Cbr+%2F%3E%0D%0Aiz+ledenega+oklepa+carstva+kjer+porodil+ga+je+gnev%2C%3Cbr+%2F%3E%0D%0Ana%C5%A1+kavarni%C5%A1ki+brezdelne%C5%BE%2C+grob%2C+neuk%2C+nasilen%2C+len%2C%3Cbr+%2F%3E%0D%0Abi+ne+menjal+vr%C4%8Dka+piva+za+gevir+in+pas+in+%C5%A1lem%2C%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0Abratomorno+vojno+netil%2C+klal%2C+pobijal+ustrahoval%2C%3Cbr+%2F%3E%0D%0Apotlej+barvo+hitro+menjal+in+zasluge+vse+pobral.%3Cbr+%2F%3E%0D%0AIn+%C5%A1e+danes+bi+po+zemlji+na%C5%A1i+zdrav+in+klen+slovenski+rod%3Cbr+%2F%3E%0D%0Ahodil%2C+delal%2C+%C5%BEivel%2C+ljubil%2C+korenine+vra%C5%A1%C4%8Dal+tod.%3Cbr+%2F%3E%0D%0A%3Cbr+%2F%3E%0D%0AA+tako+ostaja+zmeda%3A+kup+ljudi+brez+cilja+je%2C%3Cbr+%2F%3E%0D%0Abrez+prepri%C4%8Danj%2C+smisla%2C+vere%2C+brez+zavesti+narodne.%3Cbr+%2F%3E%0D%0AVrli+Fritz+se+temu+roga%2C+olja+v+ogenj+vliva+rad%2C%3Cbr+%2F%3E%0D%0Ako+prodaja+la%C5%BE+-
++satiro%2C+kosti+gloda+bratu+brat.%0D%0A&fulltext=&folders=%2F&_source=&_align=&_alt=&_border=&_caption=&_caption_position=bottom&_caption_align=&_width=&state=0&access=0&created_by_alias=&ordering=0&publish_up=2011-09-10+10%3A57%3A26&publish_down=Never&metadesc=&metakey=&images=&goodexit=1&option=com_content&Returnid=99999999&id=&version=0&sectionid=4&created_by=&referer=http%3A%2F%2Fwww.xxx.net%2F&task=save&jdfe3107b33382501410e7fa2f8ad8291=1
+--1f07a55c-F--
+HTTP/1.1 403 Forbidden
+Content-Length: 328
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--1f07a55c-H--
+Message: Rule execution error - PCRE limits exceeded (-8): (null).
+Message: Pattern match "(?i:["\'][ ]*(([^a-z0-9~_:\'" ])|(in)).+?\(.*?\))" at ARGS:introtext. [file "/usr/local/etc/apache22/Includes/mod_security2/base_rules/modsecurity_crs_41_xss_attacks.conf"] [line "765"] [id "973335"] [rev "2.2.1"] [msg "IE XSS Filters - Attack Detected"] [data "\x22, da je<br /> in nato, nose\xc4\x8di - z vinom, da naliva se.<br /> Na petrolu mo\xc5\xbe in \xc5\xbeena naj bi se ustavila,<br /> s fla\xc5\xa1o vina pod pazduho - brez pla\xc4\x8dila naj bi \xc5\xa1la.<br /> <br /> Janezu o\xc4\x8dita gore, \xc4\x8de\xc5\xa1 da \x22osvajalec\x22 je,<br /> pa \xc4\x8deprav so hribi na\xc5\xa1i le sprehod za romarje.<br /> Hkrati pljuva po desnici, \xc4\x8de\xc5\xa1, da kraja vle\xc4\x8de jo<br /> v de\xc5\xbeelo senc in greha - grobnico politi\xc4\x8dno.<br /> <br /..."]
+Message: Access denied with code 403 (phase 2). Pattern match "(.*)" at TX:0. [file "/usr/local/etc/apache22/Includes/mod_security2/base_rules/modsecurity_crs_49_inbound_blocking.conf"] [line "26"] [id "981176"] [msg "Inbound Anomaly Score Exceeded (Total Score: 5, SQLi=, XSS=5): Last Matched Message: IE XSS Filters - Attack Detected"] [data "Last Matched Data: \x22, da je<br /> in nato, nose\xc4\x8di - z vinom, da naliva se.<br /> Na petrolu mo\xc5\xbe in \xc5\xbeena naj bi se ustavila,<br /> s fla\xc5\xa1o vina pod pazduho - brez pla\xc4\x8dila naj bi \xc5\xa1la.<br /> <br /> Janezu o\xc4\x8dita gore, \xc4\x8de\xc5\xa1 da \x22osvajalec\x22 je,<br /> pa \xc4\x8deprav so hribi na\xc5\xa1i le sprehod za romarje.<br /> Hkrati pljuva po desnici, \xc4\x8de\xc5\xa1, da kraja vle\xc4\x8de jo<br /> v de\xc5\xbeelo senc in greha - grobnico politi\xc4..."]
+Action: Intercepted (phase 2)
+Stopwatch: 1315645071738117 241365 (24013* 198293 -)
+Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.2.0.
+Server: Apache/2.2.14 (FreeBSD) DAV/2 PHP/5.2.17 with Suhosin-Patch
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110910/6d64365c/attachment.html 
+
+From domingo at domingo.dk  Mon Sep 12 16:25:45 2011
+From: domingo at domingo.dk (Thomas D. Dahlmann)
+Date: Mon, 12 Sep 2011 22:25:45 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Restricted SQL Character
+ Anomaly Detection Alert and Roundcube mail
+In-Reply-To: <CA868029.31680%rbarnett@trustwave.com>
+References: <CA868029.31680%rbarnett@trustwave.com>
+Message-ID: <4E6E6AC9.6010100@domingo.dk>
+
+Just tried 2.2.2, still complaining:
+
+--6e29976e-A--
+[12/Sep/2011:22:20:57 +0200] Tm5pqH8AAQEAAD7NK34AAAAL 192.168.255.126 
+39065 x.x.x.x 443
+--6e29976e-B--
+GET 
+/?_task=mail&_remote=1&_action=check-recent&_t=1315858856789&_mbox=INBOX&_list=1&_=1315858856790&_unlock=0 
+HTTP/1.1
+Host: example.com
+Connection: keep-alive
+Referer: https://example.com/?_task=mail
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.1 (KHTML, like 
+Gecko) Chrome/13.0.782.220 Safari/535.1
+Accept: application/json, text/javascript, */*; q=0.01
+X-Roundcube-Request: 0f3bcbcd36d0e4e2c4eab5f23ccfc971
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+Cookie: mailviewsplitterv=165; 
+wp-settings-1=editor%3Dtinymce%26m4%3Do%26m0%3Do%26uploader%3D1; 
+wp-settings-time-1=1314128296; 
+roundcube_sessid=1b7ae7d350aca9dcc89493a63a2dbd24
+
+--6e29976e-F--
+HTTP/1.1 200 OK
+Expires: Mon, 12 Sep 2011 20:20:57 GMT
+Cache-Control: private, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Last-Modified: Mon, 12 Sep 2011 20:20:57 GMT
+X-DNS-Prefetch-Control: off
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 96
+Keep-Alive: timeout=15, max=100
+Connection: Keep-Alive
+Content-Type: text/plain; charset=UTF-8
+
+--6e29976e-H--
+Message: Pattern match 
+"([\\~\\!\\@\\#\\$\\%\\^\\&\\*\\(\\)\\-\\+\\=\\{\\}\\[\\]\\|\\:\\;\"\\'\\\xc2\xb4\\\xe2\x80\x99\\\xe2\x80\x98\\`\\<\\>].*){6,}" 
+at REQUEST_COOKIES:wp-settings-1. [file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "521"] [id "981172"] [rev "2.2.2"] [msg "Restricted SQL Character 
+Anomaly Detection Alert - Total # of special characters exceeded"] [data 
+"=1"]
+Message: Warning. Operator LT matched 5 at TX:inbound_anomaly_score. 
+[file 
+"/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_60_correlation.conf"] 
+[line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound 
+Score: 3, SQLi=1, XSS=): Restricted SQL Character Anomaly Detection 
+Alert - Total # of special characters exceeded"]
+Stopwatch: 1315858856891692 385196 (- - -)
+Stopwatch2: 1315858856891692 385196; combined=80816, p1=844, p2=79444, 
+p3=11, p4=197, p5=317, sr=305, sw=3, l=0, gc=0
+Producer: ModSecurity for Apache/2.6.1 (http://www.modsecurity.org/); 
+core ruleset/2.2.2.
+Server: Apache/2.2.14 (Ubuntu)
+
+--6e29976e-Z--
+
+/Thomas
+
+On 2011-09-02 18:48, Ryan Barnett wrote:
+> Can you try the SVN trunk version (v2.2.2)?
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_
+> rules/modsecurity_crs_41_sql_injection_attacks.conf
+>
+> I tried your complete transaction and the same category of check triggered
+> for a Cookie value -
+>
+> [Fri Sep 02 12:41:07 2011] [error] [client 127.0.0.1] ModSecurity:
+> Warning. Pattern match
+> "([\\\\~\\\\!\\\\@\\\\#\\\\$\\\\%\\\\^\\\\&\\\\*\\\\(\\\\)\\\\-\\\\+\\\\=\\
+> \\{\\\\}\\\\[\\\\]\\\\|\\\\:\\\\;\\"\\\\'\\\\\\xc2\\xb4\\\\\\xe2\\x80\\x99\
+> \\\\\xe2\\x80\\x98\\\\`\\\\<\\\\>].*){6,}" at
+> REQUEST_COOKIES:wp-settings-1. [file
+> "/usr/local/apache/conf/crs/activated_rules/modsecurity_crs_41_sql_injectio
+> n_attacks.conf"] [line "521"] [id "981172"] [rev "2.2.2"] [msg "Restricted
+> SQL Character Anomaly Detection Alert - Total # of special characters
+> exceeded"] [data "=1"] [hostname "example.com"] [uri "/"] [unique_id
+> "TmEHIcCoqAEAALzcEnkAAAAI"
+>
+>
+>
+> That wp-settings-1 cookie payload decodes to -
+>
+> wp-settings-1=editor=tinymce&m4=o&m0=o&uploader=1
+>
+> And the rule triggered on having a bunck of = and&  chars in it.
+>
+> -Ryan
+>
+>
+> On 9/2/11 10:27 AM, "Thomas D. Dahlmann"<domingo at domingo.dk>  wrote:
+>
+>> Hi
+>>
+>> I've got the bellow shown exception when I try to hit my webmail site.
+>>
+>> What kind of "bad" characters is the rule complaining about in this
+>> request?
+>>
+>>
+>> --63235740-A--
+>> [02/Sep/2011:15:59:55 +0200] TmDhWX8AAQEAAClL2qkAAAAJ x.x.x.x 28681
+>> 2.2.2.2 443
+>> --63235740-B--
+>> GET
+>> /?_task=mail&_remote=1&_action=list&_mbox=RoundCube&_page=1&_refresh=1&_=1
+>> 314971993364&_unlock=loading1314971993363
+>> HTTP/1.1
+>> Host: example.com
+>> Connection: keep-alive
+>> Referer: https://example.com/
+>> X-Requested-With: XMLHttpRequest
+>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML,
+>> like Gecko) Chrome/13.0.782.215 Safari/535.1
+>> Accept: application/json, text/javascript, */*; q=0.01
+>> X-Roundcube-Request: b7aa8fc451317a76730a72f69fbb3e9e
+>> Accept-Encoding: gzip,deflate,sdch
+>> Accept-Language: en-US,en;q=0.8
+>> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+>> Cookie: addressviewsplitter=250; prefsviewsplitter=195;
+>> identviewsplitter=300; mailviewsplitter=291; sieverulesviewsplitter=245;
+>> wp-settings-1=editor%3Dtinymce%26m4%3Do%26m0%3Do%26uploader%3D1;
+>> wp-settings-time-1=1308940613; mailviewsplitterv=165;
+>> roundcube_sessid=27cd4d0e05639619d9fa8684a6401300
+>>
+>> --63235740-F--
+>> HTTP/1.1 200 OK
+>> Expires: Fri, 02 Sep 2011 13:59:55 GMT
+>> Cache-Control: private, no-cache, must-revalidate, post-check=0,
+>> pre-check=0
+>> Pragma: no-cache
+>> Last-Modified: Fri, 02 Sep 2011 13:59:55 GMT
+>> X-DNS-Prefetch-Control: off
+>> Vary: Accept-Encoding
+>> Content-Encoding: gzip
+>> Content-Length: 1983
+>> Keep-Alive: timeout=15, max=91
+>> Connection: Keep-Alive
+>> Content-Type: text/plain; charset=UTF-8
+>>
+>> --63235740-H--
+>> Message: Operator GE matched 4 at TX:restricted_sqli_char_count. [file
+>> "/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_41_sql_injec
+>> tion_attacks.conf"]
+>> [line "551"] [id "981173"] [rev "2.2.1"] [msg "Restricted SQL Character
+>> Anomaly Detection Alert - Total # of special characters exceeded"] [data
+>> "4"]
+>> Message: Warning. Operator LT matched 5 at TX:inbound_anomaly_score.
+>> [file
+>> "/etc/apache2/modsecurity_crs/activated_rules/modsecurity_crs_60_correlati
+>> on.conf"]
+>> [line "33"] [id "981203"] [msg "Inbound Anomaly Score (Total Inbound
+>> Score: 3, SQLi=5, XSS=): Restricted SQL Character Anomaly Detection
+>> Alert - Total # of special characters exceeded"]
+>> Stopwatch: 1314971993379011 2207359 (- - -)
+>> Stopwatch2: 1314971993379011 2207359; combined=125219, p1=1234,
+>> p2=123185, p3=109, p4=385, p5=303, sr=387, sw=3, l=0, gc=0
+>> Producer: ModSecurity for Apache/2.6.1 (http://www.modsecurity.org/);
+>> core ruleset/2.2.1.
+>> Server: Apache/2.2.14 (Ubuntu)
+>>
+>> --63235740-Z--
+>>
+>>
+>> /Thomas
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+>
+
+
+From godadada at yahoo.com  Mon Sep 12 22:48:27 2011
+From: godadada at yahoo.com (Chunde Shi)
+Date: Mon, 12 Sep 2011 19:48:27 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] Hello: need help on Problem
+	with modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+Message-ID: <1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+
+
+________________________________
+
+
+
+Hello:
+
+
+? I noticed your good discussion on Problem with	modsecurity_crs_16_session_hijacking.conf. (https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2011-July/000794.html)
+
+I am using it and ran into similar ip/hash/matching problem. I am not sure if the latest file from 
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+
+has fixed the problem you were referring to.
+But my problem sounds similar to yours.
+
+
+Do you
+ have a working version of the modsecurity_crs_16_session_hijacking.conf.
+Could you email me if you do, godadada at yahoo.com?
+
+Thanks in advance
+
+Chunde
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110912/5718d065/attachment.html 
+
+From michael.haas10 at gmail.com  Tue Sep 13 03:56:30 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Tue, 13 Sep 2011 09:56:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Hello: need help on Problem
+ with modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+	<1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+Message-ID: <CAFW5hxCEy=3VzuGezymQAQ6RpvyXr7bOTkt3h8QU0-wWcx6Xjw@mail.gmail.com>
+
+Hi,
+
+I think the rules should work. The only thing i needed to change was
+SecRule SESSION:VALID "!@eq 1" to SecRule &SESSION:VALID "!@eq 1" .
+If you don't change this you get for sessions which are not known to
+mod_security the ip_hash/ua_hash mismatch warnings.
+
+Michael
+
+
+2011/9/13 Chunde Shi <godadada at yahoo.com>:
+> ________________________________
+>
+> Hello:
+>
+> ? I noticed your good discussion on Problem with
+> modsecurity_crs_16_session_hijacking.conf.
+> (https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2011-July/000794.html)
+> I am using it and ran into similar ip/hash/matching problem. I am not sure
+> if the latest file from
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>
+> has fixed the problem you were referring to.
+> But my problem sounds similar to yours.
+>
+>
+> Do you
+>  have a working version of the modsecurity_crs_16_session_hijacking.conf.
+> Could you email me if you do, godadada at yahoo.com?
+>
+> Thanks in advance
+>
+> Chunde
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+From godadada at yahoo.com  Tue Sep 13 06:46:24 2011
+From: godadada at yahoo.com (Chunde Shi)
+Date: Tue, 13 Sep 2011 03:46:24 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] Where can I find
+	vulnerabilities.txt
+In-Reply-To: <1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+	<1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+Message-ID: <1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+
+Hello,
+
+? Thanks in advance for your help. following rule conf file is referring to a file vulnerabilities.txt. it does not seems to be in the download CRS tree.
+Where can I get it?
+
+experimental_rules/modsecurity_crs_61_ip_forensics.conf:SecGeoLookupDb /usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat
+lua/osvdb.lua:for line in io.lines("/usr/local/apache/conf/modsec_current/base_rules/vulnerabilities.txt") do
+
+Regards,
+Chunde
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110913/89c4b2ac/attachment.html 
+
+From godadada at yahoo.com  Tue Sep 13 06:51:38 2011
+From: godadada at yahoo.com (Chunde Shi)
+Date: Tue, 13 Sep 2011 03:51:38 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] GeoLiteCity.dat at two places
+In-Reply-To: <1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+	<1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+	<1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+Message-ID: <1315911098.64923.YahooMailNeo@web111711.mail.gq1.yahoo.com>
+
+Hello:
+
+? The CRS expects to have the same file at two locations. Please make it at one place.
+
+
+[root at atlaspen-stage2 crs]# grep 'GeoLiteCity.dat' */*
+
+
+experimental_rules/modsecurity_crs_11_proxy_abuse.conf:SecGeoLookupDb /usr/local/apache/conf/modsec/GeoLiteCity.dat
+experimental_rules/modsecurity_crs_61_ip_forensics.conf:SecGeoLookupDb /usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat
+[root at atlaspen-stage2 crs]#
+
+
+
+Regards,
+Chunde
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110913/28e3b934/attachment.html 
+
+From RBarnett at trustwave.com  Tue Sep 13 07:21:52 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 13 Sep 2011 06:21:52 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Where can I find
+	vulnerabilities.txt
+In-Reply-To: <1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+	<1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+	<1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+Message-ID: <931FB717-E14D-47FA-B9F1-22A2A01B7675@trustwave.com>
+
+This file is part of the OSVDB export. You need to register for an account at www.osvdb.org<http://www.osvdb.org> and then you can download it to your servers.
+
+There were two reasons why we didn't include it with the CRS -
+
+1) Licensing restrictions. They want individuals to register on their site.
+
+2) You should update this file frequently to get the latest vulns. I recommend you setup a cronjob to pull down the archive daily.
+
+These are similar issues as with the Google Safe Browsing DB where we provide an interface/rules but the user needs to update some external data.
+
+Ryan
+
+On Sep 13, 2011, at 6:46 AM, Chunde Shi <godadada at yahoo.com<mailto:godadada at yahoo.com>> wrote:
+
+Hello,
+
+  Thanks in advance for your help. following rule conf file is referring to a file vulnerabilities.txt. it does not seems to be in the download CRS tree.
+Where can I get it?
+
+experimental_rules/modsecurity_crs_61_ip_forensics.conf:SecGeoLookupDb /usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat
+lua/osvdb.lua:for line in io.lines("/usr/local/apache/conf/modsec_current/base_rules/vulnerabilities.txt") do
+
+Regards,
+Chunde
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From RBarnett at trustwave.com  Tue Sep 13 07:23:50 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 13 Sep 2011 06:23:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] GeoLiteCity.dat at two places
+In-Reply-To: <1315911098.64923.YahooMailNeo@web111711.mail.gq1.yahoo.com>
+References: <1315857047.17449.YahooMailNeo@web111721.mail.gq1.yahoo.com>
+	<1315882107.16564.YahooMailNeo@web111717.mail.gq1.yahoo.com>
+	<1315910784.8957.YahooMailNeo@web111701.mail.gq1.yahoo.com>
+	<1315911098.64923.YahooMailNeo@web111711.mail.gq1.yahoo.com>
+Message-ID: <9266AB45-E73B-481E-992C-FD69A1DD8AAC@trustwave.com>
+
+Similar to my other email about the osvdb data, you need to download the GeoIP DB file to your systems and and then adjust these paths appropriately.
+
+Ryan
+
+On Sep 13, 2011, at 6:51 AM, Chunde Shi <godadada at yahoo.com<mailto:godadada at yahoo.com>> wrote:
+
+Hello:
+
+  The CRS expects to have the same file at two locations. Please make it at one place.
+
+
+[root at atlaspen-stage2 crs]# grep 'GeoLiteCity.dat' */*
+
+
+experimental_rules/modsecurity_crs_11_proxy_abuse.conf:SecGeoLookupDb /usr/local/apache/conf/modsec/GeoLiteCity.dat
+experimental_rules/modsecurity_crs_61_ip_forensics.conf:SecGeoLookupDb /usr/local/apache/conf/modsec_current/base_rules/GeoLiteCity.dat
+[root at atlaspen-stage2 crs]#
+
+
+Regards,
+Chunde
+
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From RBarnett at trustwave.com  Thu Sep 22 20:13:07 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 22 Sep 2011 19:13:07 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Trustwave SpiderLabs Releases
+	Commercial Rules Feed and Support
+Message-ID: <CAA14753.35CA4%rbarnett@trustwave.com>
+
+I am excited to announce that today Trustwave has released two new commercial offerings for open source ModSecurity users -
+
+ *   ModSecurity Rules from Trustwave SpiderLabs ? http://www.modsecurity.org/projects/commercial/rules/
+    *   The rules cover vulnerabilities within public software (commercial and open source)
+    *   We have 4 main attack categories that we cover (current # of rules for each is listed):
+       *   SQL Injection - 4536
+       *   Cross-site Scripting - 4155
+       *   Remote File Inclusion - 4276
+       *   Local File Inclusion ? 551
+       *   Total ? 13,518
+    *   We also have rules files that group common software packages together (WordPress, Joomla, osCommerce, etc?)
+    *   We also provide two versions of the rules depending upon if you want to integrate these rules with the OWASP CRS or if you wan to run them stand-alone.
+
+ *   Commercial Support - http://www.modsecurity.org/projects/commercial/support/
+
+Here is a blog post from Trustwave SpiderLabs' Senior VP Nick Percoco on the new offerings - http://blog.spiderlabs.com/2011/09/trustwave-releases-new-modsecurity-rules-and-support.html
+
+If you have an specific questions about these services, please contact me directly.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Fri Sep 23 06:30:06 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 23 Sep 2011 05:30:06 -0500
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users]
+ Trustwave SpiderLabs Releases Commercial Rules Feed and Support
+In-Reply-To: <CAA14753.35CA4%rbarnett@trustwave.com>
+References: <CAA14753.35CA4%rbarnett@trustwave.com>
+Message-ID: <BE52CBCF-8FAF-4771-9233-93CAED227C2A@trustwave.com>
+
+Sorry - here is the correct URL -
+
+https://ssl.trustwave.com/web-application-firewall
+
+Thanks
+
+Ryan
+
+On Sep 22, 2011, at 7:13 PM, Ryan Barnett <RBarnett at trustwave.com> wrote:
+
+> I am excited to announce that today Trustwave has released two new commercial offerings for open source ModSecurity users -
+>
+> *   ModSecurity Rules from Trustwave SpiderLabs ? http://www.modsecurity.org/projects/commercial/rules/
+>    *   The rules cover vulnerabilities within public software (commercial and open source)
+>    *   We have 4 main attack categories that we cover (current # of rules for each is listed):
+>       *   SQL Injection - 4536
+>       *   Cross-site Scripting - 4155
+>       *   Remote File Inclusion - 4276
+>       *   Local File Inclusion ? 551
+>       *   Total ? 13,518
+>    *   We also have rules files that group common software packages together (WordPress, Joomla, osCommerce, etc?)
+>    *   We also provide two versions of the rules depending upon if you want to integrate these rules with the OWASP CRS or if you wan to run them stand-alone.
+>
+> *   Commercial Support - http://www.modsecurity.org/projects/commercial/support/
+>
+> Here is a blog post from Trustwave SpiderLabs' Senior VP Nick Percoco on the new offerings - http://blog.spiderlabs.com/2011/09/trustwave-releases-new-modsecurity-rules-and-support.html
+>
+> If you have an specific questions about these services, please contact me directly.
+>
+> --
+> Ryan Barnett
+> Senior Security Researcher
+> Trustwave - SpiderLabs
+>
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+>
+>
+> ------------------------------------------------------------------------------
+> All of the data generated in your IT infrastructure is seriously valuable.
+> Why? It contains a definitive record of application performance, security
+> threats, fraudulent activity, and more. Splunk takes this data and makes
+> sense of it. IT sense. And common sense.
+> http://p.sf.net/sfu/splunk-d2dcopy2
+> _______________________________________________
+> mod-security-users mailing list
+> mod-security-users at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/mod-security-users
+> ModSecurity Services from Trustwave's SpiderLabs:
+> https://www.trustwave.com/application-security.php
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From RBarnett at trustwave.com  Sat Sep 24 12:07:00 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 24 Sep 2011 11:07:00 -0500
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users]
+ Trustwave SpiderLabs Releases Commercial Rules Feed and Support
+In-Reply-To: <BE52CBCF-8FAF-4771-9233-93CAED227C2A@trustwave.com>
+References: <CAA14753.35CA4%rbarnett@trustwave.com>
+	<BE52CBCF-8FAF-4771-9233-93CAED227C2A@trustwave.com>
+Message-ID: <49753518-EF4D-4846-8CC4-8FD5D56A621D@trustwave.com>
+
+I wanted to send a follow-up to apologize for sending this note to the OWASP list as we are not supposed to push commercial offerings.
+
+If you would like to hear about commercial offerings, make sure you are signed up for the Mod-Security-User mail list on SourceForge -
+http://lists.sourceforge.net/lists/listinfo/mod-security-users
+
+Ryan
+
+On Sep 23, 2011, at 6:30 AM, "Ryan Barnett" <RBarnett at trustwave.com> wrote:
+
+> Sorry - here is the correct URL -
+>
+> https://ssl.trustwave.com/web-application-firewall
+>
+> Thanks
+>
+> Ryan
+>
+> On Sep 22, 2011, at 7:13 PM, Ryan Barnett <RBarnett at trustwave.com> wrote:
+>
+>> I am excited to announce that today Trustwave has released two new commercial offerings for open source ModSecurity users -
+>>
+>> *   ModSecurity Rules from Trustwave SpiderLabs ? http://www.modsecurity.org/projects/commercial/rules/
+>>   *   The rules cover vulnerabilities within public software (commercial and open source)
+>>   *   We have 4 main attack categories that we cover (current # of rules for each is listed):
+>>      *   SQL Injection - 4536
+>>      *   Cross-site Scripting - 4155
+>>      *   Remote File Inclusion - 4276
+>>      *   Local File Inclusion ? 551
+>>      *   Total ? 13,518
+>>   *   We also have rules files that group common software packages together (WordPress, Joomla, osCommerce, etc?)
+>>   *   We also provide two versions of the rules depending upon if you want to integrate these rules with the OWASP CRS or if you wan to run them stand-alone.
+>>
+>> *   Commercial Support - http://www.modsecurity.org/projects/commercial/support/
+>>
+>> Here is a blog post from Trustwave SpiderLabs' Senior VP Nick Percoco on the new offerings - http://blog.spiderlabs.com/2011/09/trustwave-releases-new-modsecurity-rules-and-support.html
+>>
+>> If you have an specific questions about these services, please contact me directly.
+>>
+>> --
+>> Ryan Barnett
+>> Senior Security Researcher
+>> Trustwave - SpiderLabs
+>>
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+>>
+>>
+>> ------------------------------------------------------------------------------
+>> All of the data generated in your IT infrastructure is seriously valuable.
+>> Why? It contains a definitive record of application performance, security
+>> threats, fraudulent activity, and more. Splunk takes this data and makes
+>> sense of it. IT sense. And common sense.
+>> http://p.sf.net/sfu/splunk-d2dcopy2
+>> _______________________________________________
+>> mod-security-users mailing list
+>> mod-security-users at lists.sourceforge.net
+>> https://lists.sourceforge.net/lists/listinfo/mod-security-users
+>> ModSecurity Services from Trustwave's SpiderLabs:
+>> https://www.trustwave.com/application-security.php
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From rm4dillo at gmail.com  Wed Sep 28 09:37:57 2011
+From: rm4dillo at gmail.com (rm4dillo Dasypodidae)
+Date: Wed, 28 Sep 2011 15:37:57 +0200
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+Message-ID: <CAAzXPXC+rb_uz=OvSSC81Hv22b34kUOuahCEGKzjHwwo3WF0PQ@mail.gmail.com>
+
+Hi all,
+
+I just noticed that all the rules that have an Id that starts with "973"
+(modsecurity_crs_41_xss_attacks.conf) are the only CRS rules that have
+"nolog" and "noauditlog" in their actions list despite the "setvar:tx.%{
+rule.id}-...-%{matched_var_name}=%{tx.0}" action. Therefore it's impossible
+to override log destinations for those rules with the "SecDefaultAction"
+directive.
+
+Is there any reason for that?
+
+TYIA
+
+Rm4dillo
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110928/0515581a/attachment.html 
+
+From RBarnett at trustwave.com  Wed Sep 28 09:42:24 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 28 Sep 2011 08:42:24 -0500
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+In-Reply-To: <CAAzXPXC+rb_uz=OvSSC81Hv22b34kUOuahCEGKzjHwwo3WF0PQ@mail.gmail.com>
+Message-ID: <CAA89C5F.3623A%rbarnett@trustwave.com>
+
+Good catch, we will remove them and make sure that they use "block" only so they will inherit your SecDefaultAction settings.
+
+Thanks.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+From: rm4dillo Dasypodidae <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+Date: Wed, 28 Sep 2011 08:37:57 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+
+Hi all,
+
+I just noticed that all the rules that have an Id that starts with "973" (modsecurity_crs_41_xss_attacks.conf) are the only CRS rules that have "nolog" and "noauditlog" in their actions list despite the "setvar:tx.%{rule.id<http://rule.id>}-...-%{matched_var_name}=%{tx.0}" action. Therefore it's impossible to override log destinations for those rules with the "SecDefaultAction" directive.
+
+Is there any reason for that?
+
+TYIA
+
+Rm4dillo
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From rm4dillo at gmail.com  Wed Sep 28 11:51:34 2011
+From: rm4dillo at gmail.com (rm4dillo Dasypodidae)
+Date: Wed, 28 Sep 2011 17:51:34 +0200
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+In-Reply-To: <CAA89C5F.3623A%rbarnett@trustwave.com>
+References: <CAAzXPXC+rb_uz=OvSSC81Hv22b34kUOuahCEGKzjHwwo3WF0PQ@mail.gmail.com>
+	<CAA89C5F.3623A%rbarnett@trustwave.com>
+Message-ID: <CAAzXPXCyCZUn30jL7s7WA4MXj5LtTQ1VVUu_+m8Zr6ojgOC63A@mail.gmail.com>
+
+Thank you for your fast reaction.
+
+On Wed, Sep 28, 2011 at 3:42 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+> Good catch, we will remove them and make sure that they use "block" only so
+> they will inherit your SecDefaultAction settings.
+>
+> Thanks.
+>
+> --
+> Ryan Barnett
+> Senior Security Researcher
+> Trustwave - SpiderLabs
+>
+>
+> From: rm4dillo Dasypodidae <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+> Date: Wed, 28 Sep 2011 08:37:57 -0500
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+>
+> Hi all,
+>
+> I just noticed that all the rules that have an Id that starts with "973"
+> (modsecurity_crs_41_xss_attacks.conf) are the only CRS rules that have
+> "nolog" and "noauditlog" in their actions list despite the "setvar:tx.%{
+> rule.id<http://rule.id>}-...-%{matched_var_name}=%{tx.0}" action.
+> Therefore it's impossible to override log destinations for those rules with
+> the "SecDefaultAction" directive.
+>
+> Is there any reason for that?
+>
+> TYIA
+>
+> Rm4dillo
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110928/f1b2390d/attachment.html 
+
+From RBarnett at trustwave.com  Wed Sep 28 12:31:21 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 28 Sep 2011 11:31:21 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Announcing Release of OWASP
+	ModSecurity Core Rule Set (CRS) v.2.2.2
+Message-ID: <CAA8C419.362E9%rbarnett@trustwave.com>
+
+I am pleased to announce the release of OWASP ModSecurity CRS v2.2.2.
+
+===========
+CHANGELOG
+===========
+--------------------------
+Version 2.2.2 - 09/28/2011
+--------------------------
+
+Improvements:
+- Updated the AppSensor Profiling (to use Lua scripts) for Request Exceptions Detection Points
+  http://blog.spiderlabs.com/2011/08/implementing-appsensor-detection-points-in-modsecurity.html
+- Added new Range header detection checks to prevent Apache DoS
+  http://blog.spiderlabs.com/2011/08/mitigation-of-apache-range-header-dos-attack.html
+- Added new Security Scanner User-Agent strings
+- Added example script to the /util directory to convert Arachni DAST scanner XML data into ModSecurity virtual patching rules.
+  http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-automated-virtual-patching-script.html
+- Updated the SQLi Character Anomaly Detection Rules
+- Added Host header info to the RESOURCE collection key for AppSensor profiling rules
+
+Bug Fixes:
+- Fixed action list for XSS rules (replaced pass,nolog,auditlog with block)
+- Fixed Request Limit rules by removing & from variables
+- Fixed Session Hijacking IP/UA hash captures
+- Updated the SQLi regex for rule ID 981242
+
+
+--------------------------
+DOWNLOADING
+--------------------------
+Manual Downloading:
+You can always download the latest CRS version here -
+https://sourceforge.net/projects/mod-security/files/modsecurity-crs/0-CURRENT/
+
+Automated Downloading:
+Use the rules-updater.pl script in the CRS /util directory
+
+# Get a list of what the repository contains:
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -l
+
+Repository: http://www.modsecurity.org/autoupdate/repository
+
+modsecurity-crs {
+          2.0.0: modsecurity-crs_2.0.0.zip
+          2.0.1: modsecurity-crs_2.0.1.zip
+          2.0.2: modsecurity-crs_2.0.2.zip
+          2.0.3: modsecurity-crs_2.0.3.zip
+          2.0.4: modsecurity-crs_2.0.4.zip
+          2.0.5: modsecurity-crs_2.0.5.zip
+          2.0.6: modsecurity-crs_2.0.6.zip
+          2.0.7: modsecurity-crs_2.0.7.zip
+          2.0.8: modsecurity-crs_2.0.8.zip
+          2.0.9: modsecurity-crs_2.0.9.zip
+          2.0.9: modsecurity-crs_2.0.10.zip
+          2.1.0: modsecurity-crs_2.1.0.zip
+          2.1.1: modsecurity-crs_2.1.1.zip
+          2.1.2: modsecurity-crs_2.1.2.zip
+  2.2.0: modsecurity-crs_2.2.0.zip
+          2.2.1: modsecurity-crs_2.2.1.zip
+          2.2.2: modsecurity-crs_2.2.2.zip
+}
+
+# Get the latest stable version of "modsecurity-crs":
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -prules -Smodsecurity-crs
+Fetching: modsecurity-crs/modsecurity-crs_2.2.2.zip ...
+$ ls -R rules
+modsecurity-crs
+
+rules/modsecurity-crs:
+modsecurity-crs_2.2.2.zip    modsecurity-crs_2.2.2.zip.sig
+
+--
+Ryan Barnett
+OWASP ModSecurity Core Rule Set Project Lead
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From rm4dillo at gmail.com  Wed Sep 28 13:18:17 2011
+From: rm4dillo at gmail.com (rm4dillo D)
+Date: Wed, 28 Sep 2011 19:18:17 +0200
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+Message-ID: <CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA@mail.gmail.com>
+
+I have three questions concerning the changes that have been applied to the
+rule 981176 in order to add the last matched data in the log line.
+
+First, when ModSecurity is in "DetectionOnly" mode, the chained
+rule ( SecRule TX:/^\d/ "(.*)" ) that has been added is triggered as many
+times as the number of variable names in the transaction collection that
+match the "^\d" regular expression. This makes ModSecurity log only one
+entry when it's in the "Blocking" mode and lots of entries when in
+"DetectionOnly" mode.
+
+The second issue with this chained rule is that the "^\d" regular expression
+is not discriminant enough as it matches the "capture" action variables
+"TX:0", "TX:1", ... and "TX:9" when in "DetectionOnly" mod. A quick fix to
+avoid that would be replacing the regular expression by "^/d{2}".
+
+The last issue (still related to this chained rule; I think that I don't
+like it much ;-) ) is that the "matched_var" variable does not really
+contain the "Last Matched Data". In "DetectionOnly" mode, it will only be
+valid for the last logged line as it corresponds to the last matched rule
+and erroneous for all the other lines (Cf. first issue). In "Blocking" mode
+(as we log only once then the request is rejected if the score has exceeded)
+it will contain the matched data of the first rule that matched and the
+message (tx.msg) of the last one.
+This produces misleading logs as the one below:
+
+        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity:
+Warning. Pattern match "(.*)" at
+TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file
+"/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf"]
+[line "26"] [id "981176"] [msg "Inbound Anomaly Score Exceeded (Total Score:
+44, SQLi=15, XSS=30): *Last Matched Message: IE XSS Filters - Attack
+Detected"]* *[data "Last Matched Data: benchmark("]* [hostname "localhost"]
+[uri "/"]
+
+As most rules use the "capture" action, why don't we replace the chained
+rule "hack?" with a simple "logdata:'Last Matched Data: %{tx.0}". This still
+would be better but still not perfect as the content will sometimes be
+erronuous because some rules can't capture. Or, even cleaner, why don't we
+add a "setvar:'tx.last_matched_data=..." in every rule?
+
+Cheers,
+
+Rm4dillo
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110928/90c3e2a6/attachment.html 
+
+From RBarnett at trustwave.com  Wed Sep 28 16:35:35 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 28 Sep 2011 15:35:35 -0500
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data
+ issues
+In-Reply-To: <CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA@mail.gmail.com>
+Message-ID: <CAA8EAEF.36362%rbarnett@trustwave.com>
+
+
+From: rm4dillo D <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+Date: Wed, 28 Sep 2011 12:18:17 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+
+I have three questions concerning the changes that have been applied to the rule 981176 in order to add the last matched data in the log line.
+
+Yeah, these rules in the 49 inbound blocking file can certainly be improved upon.
+
+
+First, when ModSecurity is in "DetectionOnly" mode, the chained rule ( SecRule TX:/^\d/ "(.*)" ) that has been added is triggered as many times as the number of variable names in the transaction collection that match the "^\d" regular expression. This makes ModSecurity log only one entry when it's in the "Blocking" mode and lots of entries when in "DetectionOnly" mode.
+
+This is true however you can control how you want the rules to log by editing the SecDefaultAction within the 10 config file.  If you wan to run in anomaly scoring mode with blocking and less logging, then you can set SecDefaultAction to "pass,nolog,auditlog" and this will mean that each individual SecRule will log an entry to the audit log but only the rules in the 40 inbound blocking file will log to the Apache error_log.  This will give you the overall anomaly score and data on the last rule match.
+
+If you want to run in anomaly scoring mode with blocking but to have more logging in the Apache error log, then simply change the SecDefaultAction to "pass,log" and this means that all rules will log to both the audit and error logs.  This is more chatty obviously but you will still have all logging.
+
+
+The second issue with this chained rule is that the "^\d" regular expression is not discriminant enough as it matches the "capture" action variables "TX:0", "TX:1", ... and "TX:9" when in "DetectionOnly" mod. A quick fix to avoid that would be replacing the regular expression by "^/d{2}".
+
+Agreed.  I updated it to this and it seems to work better -
+
+SecRule TX:/^\d+\-/ "(.*)"
+
+
+The last issue (still related to this chained rule; I think that I don't like it much ;-) ) is that the "matched_var" variable does not really contain the "Last Matched Data". In "DetectionOnly" mode, it will only be valid for the last logged line as it corresponds to the last matched rule and erroneous for all the other lines (Cf. first issue). In "Blocking" mode (as we log only once then the request is rejected if the score has exceeded) it will contain the matched data of the first rule that matched and the message (tx.msg) of the last one.
+This produces misleading logs as the one below:
+
+        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity: Warning. Pattern match "(.*)" at TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file "/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf"] [line "26"] [id "981176"] [msg "Inbound Anomaly Score Exceeded (Total Score: 44, SQLi=15, XSS=30): Last Matched Message: IE XSS Filters - Attack Detected"] [data "Last Matched Data: benchmark("] [hostname "localhost"] [uri "/"]
+
+As most rules use the "capture" action, why don't we replace the chained rule "hack?" with a simple "logdata:'Last Matched Data: %{tx.0}". This still would be better but still not perfect as the content will sometimes be erronuous because some rules can't capture. Or, even cleaner, why don't we add a "setvar:'tx.last_matched_data=..." in every rule?
+
+I updated the rules to use the following.  Let me know if this is any better -
+
+# Alert and Block based on Anomaly Scores
+#
+SecRule TX:ANOMALY_SCORE "@gt 0" \
+    "chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+        SecRule TX:ANOMALY_SCORE "@ge %{tx.inbound_anomaly_score_level}" chain
+                SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+                        SecRule TX:/^\d+\-/ "(.*)" "capture"
+
+-Ryan
+
+
+
+
+Cheers,
+
+Rm4dillo
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Wed Sep 28 16:47:10 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 28 Sep 2011 15:47:10 -0500
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+In-Reply-To: <CAAzXPXCyCZUn30jL7s7WA4MXj5LtTQ1VVUu_+m8Zr6ojgOC63A@mail.gmail.com>
+Message-ID: <CAA8FFF3.36472%rbarnett@trustwave.com>
+
+These should be fixed in the v2.2.2 that was just released today.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave ? SpiderLabs
+
+From: rm4dillo Dasypodidae <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+Date: Wed, 28 Sep 2011 10:51:34 -0500
+To: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+
+Thank you for your fast reaction.
+
+On Wed, Sep 28, 2011 at 3:42 PM, Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+Good catch, we will remove them and make sure that they use "block" only so they will inherit your SecDefaultAction settings.
+
+Thanks.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+From: rm4dillo Dasypodidae <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com><mailto:rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>>
+Date: Wed, 28 Sep 2011 08:37:57 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>>
+Subject: [Owasp-modsecurity-core-rule-set] XSS 973xxx rules "nolog" issue
+
+Hi all,
+
+I just noticed that all the rules that have an Id that starts with "973" (modsecurity_crs_41_xss_attacks.conf) are the only CRS rules that have "nolog" and "noauditlog" in their actions list despite the "setvar:tx.%{rule.id<http://rule.id><http://rule.id>}-...-%{matched_var_name}=%{tx.0}" action. Therefore it's impossible to override log destinations for those rules with the "SecDefaultAction" directive.
+
+Is there any reason for that?
+
+TYIA
+
+Rm4dillo
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From rm4dillo at gmail.com  Thu Sep 29 04:35:30 2011
+From: rm4dillo at gmail.com (rm4dillo D)
+Date: Thu, 29 Sep 2011 10:35:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data
+	issues
+In-Reply-To: <CAA8EAEF.36362%rbarnett@trustwave.com>
+References: <CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA@mail.gmail.com>
+	<CAA8EAEF.36362%rbarnett@trustwave.com>
+Message-ID: <CAAzXPXAc6Lpt3B612rP+6e8RDE8ZZYjOzaS3_4U2qwqy+4eEDg@mail.gmail.com>
+
+- Thanks for the second issue's solution. It suits me perfectly!
+
+- Concerning the first and third issues (as I think that they'll share the
+same solution), I'm already using a "SecDefaultAction" that logs everywhere
+(for log parsing purposes); but suppose I'm in "Detection" mode and I'd like
+to count the requests that ModSecurity would have rejected if I move to
+"Blocking" mode. The fast&easy way to do that would be to count lines that
+contain "Inbound Anomaly Score Exceeded" but it's currently unreliable as
+described in my previous e-mail.
+The change you've brought still doesn't fix it. What about this?
+
+# Alert and Block based on Anomaly Scores
+#
+SecRule TX:/^\d+\-/ "(.*)" "pass,nolog,capture"
+SecRule TX:ANOMALY_SCORE "@gt 0" \
+    "chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score
+Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+XSS=%{TX.XSS_SCORE}):
+%{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+        SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+                SecRule TX:ANOMALY_SCORE "@ge
+%{tx.inbound_anomaly_score_level}"
+
+
+and as an extra:
+
+# Alert if Anomaly Score does not exceed the Anomaly Score Level
+#
+SecRule TX:/^\d+\-/ "(.*)" "pass,nolog,capture"
+SecRule TX:ANOMALY_SCORE "@gt 0" \
+    "chain,phase:2,id:'981176',t:none,pass,log,msg:'Inbound Anomaly Score
+(Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+XSS=%{TX.XSS_SCORE}):
+%{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+        SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+                SecRule TX:ANOMALY_SCORE "@lt
+%{tx.inbound_anomaly_score_level}"
+
+
+What do you thing of that? Sad that we missed 2.2.2 for this issues, is
+there any planned date for the 2.2.3 ?
+
+Thanks Ryan
+
+Rm4dillo
+
+On Wed, Sep 28, 2011 at 10:35 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+>
+> From: rm4dillo D <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+> Date: Wed, 28 Sep 2011 12:18:17 -0500
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data
+> issues
+>
+> I have three questions concerning the changes that have been applied to the
+> rule 981176 in order to add the last matched data in the log line.
+>
+> Yeah, these rules in the 49 inbound blocking file can certainly be improved
+> upon.
+>
+>
+> First, when ModSecurity is in "DetectionOnly" mode, the chained rule (
+> SecRule TX:/^\d/ "(.*)" ) that has been added is triggered as many times as
+> the number of variable names in the transaction collection that match the
+> "^\d" regular expression. This makes ModSecurity log only one entry when
+> it's in the "Blocking" mode and lots of entries when in "DetectionOnly"
+> mode.
+>
+> This is true however you can control how you want the rules to log by
+> editing the SecDefaultAction within the 10 config file.  If you wan to run
+> in anomaly scoring mode with blocking and less logging, then you can set
+> SecDefaultAction to "pass,nolog,auditlog" and this will mean that each
+> individual SecRule will log an entry to the audit log but only the rules in
+> the 40 inbound blocking file will log to the Apache error_log.  This will
+> give you the overall anomaly score and data on the last rule match.
+>
+> If you want to run in anomaly scoring mode with blocking but to have more
+> logging in the Apache error log, then simply change the SecDefaultAction to
+> "pass,log" and this means that all rules will log to both the audit and
+> error logs.  This is more chatty obviously but you will still have all
+> logging.
+>
+>
+> The second issue with this chained rule is that the "^\d" regular
+> expression is not discriminant enough as it matches the "capture" action
+> variables "TX:0", "TX:1", ... and "TX:9" when in "DetectionOnly" mod. A
+> quick fix to avoid that would be replacing the regular expression by
+> "^/d{2}".
+>
+> Agreed.  I updated it to this and it seems to work better -
+>
+> SecRule TX:/^\d+\-/ "(.*)"
+>
+>
+> The last issue (still related to this chained rule; I think that I don't
+> like it much ;-) ) is that the "matched_var" variable does not really
+> contain the "Last Matched Data". In "DetectionOnly" mode, it will only be
+> valid for the last logged line as it corresponds to the last matched rule
+> and erroneous for all the other lines (Cf. first issue). In "Blocking" mode
+> (as we log only once then the request is rejected if the score has exceeded)
+> it will contain the matched data of the first rule that matched and the
+> message (tx.msg) of the last one.
+> This produces misleading logs as the one below:
+>
+>        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity:
+> Warning. Pattern match "(.*)" at
+> TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file
+> "/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf"]
+> [line "26"] [id "981176"] [msg "Inbound Anomaly Score Exceeded (Total Score:
+> 44, SQLi=15, XSS=30): Last Matched Message: IE XSS Filters - Attack
+> Detected"] [data "Last Matched Data: benchmark("] [hostname "localhost"]
+> [uri "/"]
+>
+> As most rules use the "capture" action, why don't we replace the chained
+> rule "hack?" with a simple "logdata:'Last Matched Data: %{tx.0}". This still
+> would be better but still not perfect as the content will sometimes be
+> erronuous because some rules can't capture. Or, even cleaner, why don't we
+> add a "setvar:'tx.last_matched_data=..." in every rule?
+>
+> I updated the rules to use the following.  Let me know if this is any
+> better -
+>
+> # Alert and Block based on Anomaly Scores
+> #
+> SecRule TX:ANOMALY_SCORE "@gt 0" \
+>    "chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score
+> Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+> XSS=%{TX.XSS_SCORE}):
+> %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+>        SecRule TX:ANOMALY_SCORE "@ge %{tx.inbound_anomaly_score_level}"
+> chain
+>                SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+>                        SecRule TX:/^\d+\-/ "(.*)" "capture"
+>
+> -Ryan
+>
+>
+>
+>
+> Cheers,
+>
+> Rm4dillo
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110929/c863da52/attachment-0001.html 
+
+From rm4dillo at gmail.com  Thu Sep 29 04:36:40 2011
+From: rm4dillo at gmail.com (rm4dillo D)
+Date: Thu, 29 Sep 2011 10:36:40 +0200
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data
+	issues
+In-Reply-To: <CAAzXPXAc6Lpt3B612rP+6e8RDE8ZZYjOzaS3_4U2qwqy+4eEDg@mail.gmail.com>
+References: <CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA@mail.gmail.com>
+	<CAA8EAEF.36362%rbarnett@trustwave.com>
+	<CAAzXPXAc6Lpt3B612rP+6e8RDE8ZZYjOzaS3_4U2qwqy+4eEDg@mail.gmail.com>
+Message-ID: <CAAzXPXAJ05DvTCJTJp7=5W_Cx=2s_m6LkBg2k5avNFvAgH-OTw@mail.gmail.com>
+
+Oups... id collision... 981174 seems to be available
+
+On Thu, Sep 29, 2011 at 10:35 AM, rm4dillo D <rm4dillo at gmail.com> wrote:
+
+> - Thanks for the second issue's solution. It suits me perfectly!
+>
+> - Concerning the first and third issues (as I think that they'll share the
+> same solution), I'm already using a "SecDefaultAction" that logs everywhere
+> (for log parsing purposes); but suppose I'm in "Detection" mode and I'd like
+> to count the requests that ModSecurity would have rejected if I move to
+> "Blocking" mode. The fast&easy way to do that would be to count lines that
+> contain "Inbound Anomaly Score Exceeded" but it's currently unreliable as
+> described in my previous e-mail.
+> The change you've brought still doesn't fix it. What about this?
+>
+> # Alert and Block based on Anomaly Scores
+> #
+> SecRule TX:/^\d+\-/ "(.*)" "pass,nolog,capture"
+> SecRule TX:ANOMALY_SCORE "@gt 0" \
+>     "chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score
+> Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+> XSS=%{TX.XSS_SCORE}):
+> %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+>         SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+>                 SecRule TX:ANOMALY_SCORE "@ge
+> %{tx.inbound_anomaly_score_level}"
+>
+>
+> and as an extra:
+>
+> # Alert if Anomaly Score does not exceed the Anomaly Score Level
+> #
+> SecRule TX:/^\d+\-/ "(.*)" "pass,nolog,capture"
+>
+> SecRule TX:ANOMALY_SCORE "@gt 0" \
+>     "chain,phase:2,id:'981176',t:none,pass,log,msg:'Inbound Anomaly Score
+> (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+> XSS=%{TX.XSS_SCORE}):
+> %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+>
+>         SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+>                 SecRule TX:ANOMALY_SCORE "@lt
+> %{tx.inbound_anomaly_score_level}"
+>
+>
+> What do you thing of that? Sad that we missed 2.2.2 for this issues, is
+> there any planned date for the 2.2.3 ?
+>
+> Thanks Ryan
+>
+> Rm4dillo
+>
+> On Wed, Sep 28, 2011 at 10:35 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+>
+>>
+>> From: rm4dillo D <rm4dillo at gmail.com<mailto:rm4dillo at gmail.com>>
+>> Date: Wed, 28 Sep 2011 12:18:17 -0500
+>> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+>> Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data
+>> issues
+>>
+>> I have three questions concerning the changes that have been applied to
+>> the rule 981176 in order to add the last matched data in the log line.
+>>
+>> Yeah, these rules in the 49 inbound blocking file can certainly be
+>> improved upon.
+>>
+>>
+>> First, when ModSecurity is in "DetectionOnly" mode, the chained rule (
+>> SecRule TX:/^\d/ "(.*)" ) that has been added is triggered as many times as
+>> the number of variable names in the transaction collection that match the
+>> "^\d" regular expression. This makes ModSecurity log only one entry when
+>> it's in the "Blocking" mode and lots of entries when in "DetectionOnly"
+>> mode.
+>>
+>> This is true however you can control how you want the rules to log by
+>> editing the SecDefaultAction within the 10 config file.  If you wan to run
+>> in anomaly scoring mode with blocking and less logging, then you can set
+>> SecDefaultAction to "pass,nolog,auditlog" and this will mean that each
+>> individual SecRule will log an entry to the audit log but only the rules in
+>> the 40 inbound blocking file will log to the Apache error_log.  This will
+>> give you the overall anomaly score and data on the last rule match.
+>>
+>> If you want to run in anomaly scoring mode with blocking but to have more
+>> logging in the Apache error log, then simply change the SecDefaultAction to
+>> "pass,log" and this means that all rules will log to both the audit and
+>> error logs.  This is more chatty obviously but you will still have all
+>> logging.
+>>
+>>
+>> The second issue with this chained rule is that the "^\d" regular
+>> expression is not discriminant enough as it matches the "capture" action
+>> variables "TX:0", "TX:1", ... and "TX:9" when in "DetectionOnly" mod. A
+>> quick fix to avoid that would be replacing the regular expression by
+>> "^/d{2}".
+>>
+>> Agreed.  I updated it to this and it seems to work better -
+>>
+>> SecRule TX:/^\d+\-/ "(.*)"
+>>
+>>
+>> The last issue (still related to this chained rule; I think that I don't
+>> like it much ;-) ) is that the "matched_var" variable does not really
+>> contain the "Last Matched Data". In "DetectionOnly" mode, it will only be
+>> valid for the last logged line as it corresponds to the last matched rule
+>> and erroneous for all the other lines (Cf. first issue). In "Blocking" mode
+>> (as we log only once then the request is rejected if the score has exceeded)
+>> it will contain the matched data of the first rule that matched and the
+>> message (tx.msg) of the last one.
+>> This produces misleading logs as the one below:
+>>
+>>        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity:
+>> Warning. Pattern match "(.*)" at
+>> TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file
+>> "/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf"]
+>> [line "26"] [id "981176"] [msg "Inbound Anomaly Score Exceeded (Total Score:
+>> 44, SQLi=15, XSS=30): Last Matched Message: IE XSS Filters - Attack
+>> Detected"] [data "Last Matched Data: benchmark("] [hostname "localhost"]
+>> [uri "/"]
+>>
+>> As most rules use the "capture" action, why don't we replace the chained
+>> rule "hack?" with a simple "logdata:'Last Matched Data: %{tx.0}". This still
+>> would be better but still not perfect as the content will sometimes be
+>> erronuous because some rules can't capture. Or, even cleaner, why don't we
+>> add a "setvar:'tx.last_matched_data=..." in every rule?
+>>
+>> I updated the rules to use the following.  Let me know if this is any
+>> better -
+>>
+>> # Alert and Block based on Anomaly Scores
+>> #
+>> SecRule TX:ANOMALY_SCORE "@gt 0" \
+>>    "chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score
+>> Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+>> XSS=%{TX.XSS_SCORE}):
+>> %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}"
+>>        SecRule TX:ANOMALY_SCORE "@ge %{tx.inbound_anomaly_score_level}"
+>> chain
+>>                SecRule TX:ANOMALY_SCORE_BLOCKING "@streq on" chain
+>>                        SecRule TX:/^\d+\-/ "(.*)" "capture"
+>>
+>> -Ryan
+>>
+>>
+>>
+>>
+>> Cheers,
+>>
+>> Rm4dillo
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you are
+>> not the intended recipient, you are hereby notified that any disclosure,
+>> copying, distribution, or use of the information contained herein (including
+>> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+>> transmission in error, please immediately contact the sender and destroy the
+>> material in its entirety, whether in electronic or hard copy format.
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110929/a21a82a5/attachment.html 
+

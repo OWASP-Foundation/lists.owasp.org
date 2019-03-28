@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Is rule 958291 (&quot;Range: field exists and begins with 0&quot;) really correct?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Is%20rule%20958291%20%28%22Range%3A%20field%0A%20exists%20and%20begins%20with%200%22%29%20really%20correct%3F&In-Reply-To=alpine.LSU.2.02.1109081000370.9059%40schiller.dip.t-dialin.net">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000865.html">
+   <LINK REL="Next"  HREF="000867.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Is rule 958291 (&quot;Range: field exists and begins with 0&quot;) really correct?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Is%20rule%20958291%20%28%22Range%3A%20field%0A%20exists%20and%20begins%20with%200%22%29%20really%20correct%3F&In-Reply-To=alpine.LSU.2.02.1109081000370.9059%40schiller.dip.t-dialin.net"
+       TITLE="[Owasp-modsecurity-core-rule-set] Is rule 958291 (&quot;Range: field exists and begins with 0&quot;) really correct?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Sep  8 08:23:59 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000865.html">[Owasp-modsecurity-core-rule-set] Is rule 958291 (&quot;Range: field exists and begins with 0&quot;) really correct?
+</A></li>
+        <LI>Next message: <A HREF="000867.html">[Owasp-modsecurity-core-rule-set] extended ascii characters	triggering some rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#866">[ date ]</a>
+              <a href="thread.html#866">[ thread ]</a>
+              <a href="subject.html#866">[ subject ]</a>
+              <a href="author.html#866">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Jens,
+In the Bad Behavior rules there is a file called &quot;common_tests.inc.php&quot;
+which has the following info -
+
+// Range: field exists and begins with 0
+        // Real user-agents do not start ranges at 0
+        // NOTE: this blocks the whois.sc bot. No big loss.
+        // Exceptions: MT (not fixable); LJ (refuses to fix; may be
+        // blocked again in the future); Facebook
+        if ($settings['strict'] &amp;&amp; array_key_exists('Range',
+$package['headers_mixed']) &amp;&amp; strpos($package['headers_mixed']['Range'],
+&quot;=0-&quot;) !== FALSE) {
+                if (strncmp($ua, &quot;MovableType&quot;, 11) &amp;&amp; strncmp($ua, &quot;URI::Fetch&quot;, 10) &amp;&amp;
+strncmp($ua, &quot;php-openid/&quot;, 11) &amp;&amp; strncmp($ua, &quot;facebookexternalhit&quot;,
+19)) {
+                        return &quot;7ad04a8a&quot;;
+                }
+        }
+
+So it seems that although this is legal per the RFC, it seems as though no
+legitimate clients do this.
+
+If you find this is not the case, please let us know and we will adjustthe
+rule or you can simply remove the rule locally with an exception.
+
+-Ryan
+
+
+
+
+On 9/8/11 4:22 AM, &quot;Jens Schleusener&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Jens.Schleusener at t-online.de</A>&gt; wrote:
+
+&gt;<i>Hi,
+</I>&gt;<i>
+</I>&gt;<i>in a modsec_audit.log I find some blocked requests like
+</I>&gt;<i>
+</I>&gt;<i>  Message: Access denied with code 403 (phase 2).
+</I>&gt;<i>  [file &quot; .../base_rules/modsecurity_crs_20_protocol_violations.conf&quot;]
+</I>&gt;<i>  [id &quot;958291&quot;] [rev &quot;2.2.2&quot;]
+</I>&gt;<i>  [msg &quot;Range: field exists and begins with 0.&quot;]
+</I>&gt;<i>  [data &quot;bytes=0-6134031&quot;]
+</I>&gt;<i>  [severity &quot;NOTICE&quot;]
+</I>&gt;<i>  [tag &quot;RULE_MATURITY/5&quot;]
+</I>&gt;<i>  [tag &quot;RULE_ACCURACY/7&quot;]
+</I>&gt;<i>  [tag &quot;<A HREF="https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-958291&quot;]">https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-958291&quot;]</A>
+</I>&gt;<i>  [tag &quot;PROTOCOL_VIOLATION/INVALID_HREQ&quot;]
+</I>&gt;<i>  [tag &quot;<A HREF="http://www.bad-behavior.ioerror.us/documentation/how-it-works/&quot;]">http://www.bad-behavior.ioerror.us/documentation/how-it-works/&quot;]</A>
+</I>&gt;<i>
+</I>&gt;<i>In modsecurity_crs_20_protocol_violations.conf one can find the
+</I>&gt;<i>according comments
+</I>&gt;<i>
+</I>&gt;<i>  # 1. Range Header exists and begins with 0 - normal browsers don't do
+</I>&gt;<i>this.
+</I>&gt;<i>  # Automated programs and bots often do not obey the HTTP RFC
+</I>&gt;<i>  #
+</I>&gt;<i>  # -=[ Rule Logic ]=-
+</I>&gt;<i>  # This rule inspects the Range request header to see if it starts with
+</I>&gt;<i>0.
+</I>&gt;<i>  #
+</I>&gt;<i>  # -=[ References ]=-
+</I>&gt;<i>  # <A HREF="http://www.bad-behavior.ioerror.us/documentation/how-it-works/">http://www.bad-behavior.ioerror.us/documentation/how-it-works/</A>
+</I>&gt;<i>
+</I>&gt;<i>Ok, I see on &quot;my&quot; server (offering FOSS software packages) often many
+</I>&gt;<i>&quot;suspicious&quot; overlapping byte-range requests (but always only one single
+</I>&gt;<i>byte-range per request; may be from bots or &quot;tricky&quot; download managers?)
+</I>&gt;<i>whose purpose I yet don't really understand. They lead summarized
+</I>&gt;<i>sometimes to a 10-100 times greater download volume compared to the size
+</I>&gt;<i>of the single downloaded package itself.
+</I>&gt;<i>
+</I>&gt;<i>Nevertheless I don't understand the above rule.
+</I>&gt;<i>
+</I>&gt;<i>At first view on the given reference page
+</I>&gt;<i>
+</I>&gt;<i>  <A HREF="http://www.bad-behavior.ioerror.us/documentation/how-it-works/">http://www.bad-behavior.ioerror.us/documentation/how-it-works/</A>
+</I>&gt;<i>
+</I>&gt;<i>I cannot find any related information.
+</I>&gt;<i>
+</I>&gt;<i>But reading RFC2616 I found
+</I>&gt;<i>
+</I>&gt;<i>  Examples of byte-content-range-spec values, assuming that the entity
+</I>&gt;<i>  contains a total of 1234 bytes
+</I>&gt;<i>
+</I>&gt;<i>   - The first 500 bytes:
+</I>&gt;<i>
+</I>&gt;<i>   bytes 0-499/1234
+</I>&gt;<i>
+</I>&gt;<i>   - All except for the first 500 bytes:
+</I>&gt;<i>
+</I>&gt;<i>   bytes 500-1233/1234
+</I>&gt;<i>
+</I>&gt;<i>So my question:
+</I>&gt;<i>
+</I>&gt;<i>Is using a range request beginning with 0 really a RFC violation?
+</I>&gt;<i>Use &quot;normal&quot; browsers really no range headers beginning with 0?
+</I>&gt;<i>Or is the idea behind this rule that &quot;&quot;normal&quot; browsers normally don't
+</I>&gt;<i>use
+</I>&gt;<i>byte-range requests and if yet than only ranges beginning with &gt; 0
+</I>&gt;<i>(for e.g. for resuming interrupted transfers)?
+</I>&gt;<i>
+</I>&gt;<i>Regards
+</I>&gt;<i>
+</I>&gt;<i>Jens
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000865.html">[Owasp-modsecurity-core-rule-set] Is rule 958291 (&quot;Range: field exists and begins with 0&quot;) really correct?
+</A></li>
+	<LI>Next message: <A HREF="000867.html">[Owasp-modsecurity-core-rule-set] extended ascii characters	triggering some rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#866">[ date ]</a>
+              <a href="thread.html#866">[ thread ]</a>
+              <a href="subject.html#866">[ subject ]</a>
+              <a href="author.html#866">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

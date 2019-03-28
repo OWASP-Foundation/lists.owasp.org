@@ -1,0 +1,1603 @@
+From dominique.righetto at owasp.org  Fri Sep 21 07:43:57 2018
+From: dominique.righetto at owasp.org (Dominique Righetto)
+Date: Fri, 21 Sep 2018 09:43:57 +0200
+Subject: [OWASP-cheat-sheets]
+	https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+In-Reply-To: <284088931beb426ea15b0815292a33a6@EX13D11UWB004.ant.amazon.com>
+References: <1c203f1292c240e6bb11d55da09a0793@EX13D11UWB004.ant.amazon.com>
+	<b00f882b0f8d4fa6b1f1b7e7ea306643@EX13D11UWB004.ant.amazon.com>
+	<97118257-9d7f-7c1d-c03b-9093467c0788@owasp.org>
+	<CANos97c3zyK7p9WCo1S6aFiqxSoa6udE7-KD12vJwrR6qcSfJg@mail.gmail.com>
+	<CANos97dDU1AZh3DV=3oLZefvLp3pW80ib6nDz9Qw6FVj3OPeqg@mail.gmail.com>
+	<babd67cd35484563936bd0326fda0518@EX13D11UWB004.ant.amazon.com>
+	<CANos97dEyEOiExVrJ1qGr4uDbOMraRtQK9+U61jugoSc7PBPGA@mail.gmail.com>
+	<6d53af0e5d9d459aacec5565c49d1f6b@EX13D11UWB004.ant.amazon.com>
+	<CANos97cbaHSc9uUyc6G1-SPnM7pyY0AF7D2pmEV30yGmqbS_+A@mail.gmail.com>
+	<e05fc4606d4447f994abfeb25130a711@EX13D11UWB004.ant.amazon.com>
+	<CANos97em5kiaScJggFf2NetwXF709-TNaxvaCdv+yQ4Wk9iDYA@mail.gmail.com>
+	<d0f35aa9-0b9d-1c52-d4bb-35ca904f59a9@owasp.org>
+	<6d226d32897548babcd5b081ab1a0cc6@EX13D11UWB004.ant.amazon.com>
+	<CANos97dug4cw8M26614xQdkeAs4z8GwEqbVH2opeSJ1cku906Q@mail.gmail.com>
+	<72cba04b8a4344d99487d66624fafb49@EX13D11UWB004.ant.amazon.com>
+	<b2922160-3f1d-01db-5240-3542b005a6ed@manicode.com>
+	<CANos97cF6-sixjb3O_QpoksKFgcBPcYp8dnANGg5Zg_D6pZ6CQ@mail.gmail.com>
+	<284088931beb426ea15b0815292a33a6@EX13D11UWB004.ant.amazon.com>
+Message-ID: <CANos97fYHfTXHHUzAzP9j4cvR=56EhCbn4FjKMVF86vuBiWcDQ@mail.gmail.com>
+
+Hi,
+
+OK for the split of the refactoring in 2 phases, first you will deliver the
+CS refactored, secondly code samples will be added right after. To be fully
+honest, i'm not a fan of this approach because one bad point that has been
+regularly reproached to the CS project is that most of the CS are only text
+flow/long list of advice and are not directly actionable by a dev team.
+Since around 1 year we work with Jim to tackle this point and the task is
+huge...It's the reason why we have setup he CS guideline for new CS and we
+try to made them more actionable with code sample. However, I respect your
+allocation time and thanks you for your contribution so we stick to your
+plan.
+
+About the point[1], let's a take a case of a stored XSS on a page in a
+application using server side user session:
+
+=> Usage of CSRF token that stay the same for the user "session" and added
+as hidden field in form that have always the same name like "csrf_token" in
+all forms
+Protection defeated because token can be steal and reused across the
+application/user session to call others state changing services
+Same remark if CSRF token is stored in Local/Session storage (for session
+storage, the tab/window must be the same)
+Same remark if CSRF token is stored in a cookie readable by JS code
+
+=> Single validation of ORIGIN/REFERRER headers matching
+Protection defeated because browser session will be used as proxy (via BEEF
+for example) to call any state changing services with the expected ORIGIN
+and REFERRER domains
+
+=> Usage of CSRF token that is usable one time (in this mode, most of the
+time, the service respond with the next token to use)
+Protection defeated because the JS code can call the service with the
+expected token, grab the new token and call the next service and so on...
+
+My personal opinion:
+You cannot have one protection fit CSRF + XSS and be "unbreakable". You
+should implements protection against these 2 attacks with taking in account
+the easiness to implements and maintains for each one.
+CSRF protection should go back to the origin and protect against requests
+from cross domain and then a combination of ORIGIN/REFERRER checks +
+SameSite/HttpOnly/Secure attributes for authentication cookie along a
+static long non-guessable token issued at authentication time is a good
+start.
+Same approach for XSS: Input validation on services side + Output escaping
+on client side + Content-Security-Policy headers to prevent exploitation of
+any hole let it's also a good start...
+
+So to bring one point of view to your question:
+"If there is an XSS vulnerability at a single place on a domain (it can add
+custom header), it can be used to make CSRF on all other state changing
+operations within that domain done to that AJAX endpoint".
+==> If the token is static or be guessed then it impact all app services
+==> If the token is usable one time but response include the next token to
+use then it impact all app services
+==> If CSRF protection is only performed via the validation of
+ORIGIN/REFERRER header then it impact all app services
+==> Otherwise the protection is effective only if JS code cannot
+obtains/grab/deduce the token to use to call the services...
+
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com
+<dominique.righetto at gmail.com>dominique.righetto at owasp.org
+<dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Sep 20, 2018 at 11:12 PM Konakandla, Manideep <mkonakan at amazon.com>
+wrote:
+
+> Yeah, I understand that any XSS and CSRF game is over but I am stressing
+> out on the highlighted part in [1]. I am trying to highlight and get an
+> affirmation on why my understanding on token based mitigation is better
+> than origin/referrer header check will also apply to ?token based
+> mitigation Vs custom header mitigation (if static tokens are used in custom
+> headers)?.
+>
+>
+>
+> In case of tokens, we have an option to use different tokens on each page
+> (taking things like URL, timestamp etc. into consideration) and hence XSS
+> vulnerability on one page will only make state changing operations in that
+> page vulnerable to CSRF but not state changing operations on other pages
+> within that domain (because token value is different) but whereas in
+> origin/referrer header check and custom header check, the token value is
+> constant and hence XSS vulnerability in one page will also cause state
+> changing operations in other pages to be vulnerable to CSRF as well. Off
+> course, this can be mitigated in custom header checks by adding tokens to
+> custom headers rather than static constant but this cannot be mitigated in
+> origin/referrer check because those headers cannot be modified. So, yeah a
+> single XSS any CSRF is bypassed but the breadth of the impact is different
+> for each of them.
+>
+>
+>
+> Regarding code samples ? I currently was able to allocate only some time
+> for this task and I don?t think I will be able to do code samples within
+> this time frame. I am also leaving for a long vacation starting Oct 12 and
+> hence let?s try to get this out first and we can add code samples later on
+> considering my work load after I return from vacation.
+>
+>
+>
+> [1] If there is an XSS vulnerability at a single place on a domain (it can
+> add custom header), it can be used to make CSRF *on all other state
+> changing operations* *within that domain *done to that AJAX endpoint. Do
+> you agree?
+>
+>
+>
+> *From:* Dominique Righetto <dominique.righetto at owasp.org>
+> *Sent:* Thursday, September 20, 2018 8:45 AM
+> *To:* Jim Manico <jim at manicode.com>
+> *Cc:* Konakandla, Manideep <mkonakan at amazon.com>; Jim Manico <
+> jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org>;
+> eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Hi,
+>
+>
+>
+> Thanks for your contribution.
+>
+>
+>
+> I like very much your plan ?
+>
+>
+>
+> I ask for some favor in addition :
+>
+> - can you provide code sample (in one language like java or .net or the
+> one you want but it must be easy to read and understand) or libraires along
+> your proposal for each section?
+>
+> - can you use the syntaxhighlight tag for code?
+>
+>
+>
+> I'am agree with Jim, XSS  means game over because your browsing context
+> can be used as proxy so csrf protection will be defeated because request
+> came from the legitimate user.
+>
+>
+>
+> Thanks you again for all your help ???
+>
+>
+>
+> Le jeu. 20 sept. 2018 ? 18:31, Jim Manico <jim at manicode.com> a ?crit :
+>
+> > If there is an XSS vulnerability at a single place on a domain (it can
+> add custom header), it can be used to make CSRF on all other state changing
+> operations within that domain done to that AJAX endpoint. Do you agree?
+>
+> Any XSS is game over and all CSRF are useless in the face of XSS. I Agree!
+>
+> - Jim
+>
+>
+>
+> On 9/19/18 10:52 PM, Konakandla, Manideep wrote:
+>
+> Hey Guys,
+>
+>
+>
+> [1] is what I said for origin/referrer header check in this e-mail thread.
+> I also believe that this applies for custom headers for AJAX endpoints as
+> well. If there is an XSS vulnerability at a single place on a domain (it
+> can add custom header), it can be used to make CSRF on all other state
+> changing operations within that domain done to that AJAX endpoint. Do you
+> agree?
+>
+>
+>
+> Here is how I am keeping the new re-factored cheatsheet. Does this look
+> good to you guys?
+>
+>
+>
+> 1.       Use token based method as primary defense
+>
+> a.       Can use synchronizer pattern for stateful applications
+>
+> b.       Can use hah based/ encryption based token pattern for stateless
+> applications
+>
+> 2.       Defense in depth measures along with drawbacks of each one
+>
+> a.       Origin/referrer header check
+>
+> b.       Double submit cookie
+>
+> c.       Samesite cookie
+>
+> d.       Custom headers (people still need to use tokens for forms etc.
+> if they have mix of ajax endpoints and general HTML)
+>
+> 3.       Strong CSRF defenses but very less usable : captcha etc.
+>
+> 4.       CSRF Myths / techniques that do not work section
+>
+>
+>
+> [1] if we solely rely on origin/referrer header check - an XSS
+> vulnerability within a single page on that domain will also give CSRF
+> vulnerability to all other state changing operations under that entire
+> domain.
+>
+>
+>
+> *From:* Dominique Righetto <dominique.righetto at owasp.org>
+> <dominique.righetto at owasp.org>
+> *Sent:* Wednesday, September 12, 2018 1:31 PM
+> *To:* Konakandla, Manideep <mkonakan at amazon.com> <mkonakan at amazon.com>
+> *Cc:* Jim Manico <jim.manico at owasp.org> <jim.manico at owasp.org>; Dave
+> Wichers <dave.wichers at owasp.org> <dave.wichers at owasp.org>;
+> eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Hi
+>
+>
+>
+> Thanks you very much for the update
+>
+>
+>
+> Le mer. 12 sept. 2018 ? 21:33, Konakandla, Manideep <mkonakan at amazon.com>
+> a ?crit :
+>
+> Just an update: I started working on this along with other sprint tasks of
+> mine today. I am hoping to get it completed by end of next week and then
+> send it for legal/PR approvals.
+>
+>
+>
+> *From:* Jim Manico <jim.manico at owasp.org>
+> *Sent:* Thursday, August 23, 2018 6:49 AM
+> *To:* Dominique Righetto <dominique.righetto at owasp.org>; Konakandla,
+> Manideep <mkonakan at amazon.com>
+> *Cc:* Dave Wichers <dave.wichers at owasp.org>; eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Awesome! Thank you! :)
+>
+> - Jim
+>
+>
+>
+> On 8/23/18 2:41 AM, Dominique Righetto wrote:
+>
+> You are welcome :)
+>
+> --
+> Cordialement, Best regards,
+> Dominique Righetto
+> dominique.righetto at gmail.com
+>
+> dominique.righetto at owasp.org <dominique.righetto at gmail.com>
+>
+> https://righettod.eu
+> GPG: 323D19BA
+>
+>
+>
+>
+>
+> On Thu, Aug 23, 2018 at 10:33 AM Konakandla, Manideep <mkonakan at amazon.com>
+> wrote:
+>
+> Np. I will keep u guys posted. Thanks for the support and have good rest
+> of your day!
+>
+>
+>
+> *From:* Dominique Righetto <dominique.righetto at owasp.org>
+> *Sent:* Thursday, August 23, 2018 1:29 AM
+> *To:* Konakandla, Manideep <mkonakan at amazon.com>
+> *Cc:* Jim Manico <jim.manico at owasp.org>; Dave Wichers <
+> dave.wichers at owasp.org>; eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Hi,
+>
+>
+>
+> Sounds goods for me.
+>
+>
+>
+> Thanks again for the contribution :)
+>
+> --
+> Cordialement, Best regards,
+> Dominique Righetto
+> dominique.righetto at gmail.com
+>
+> dominique.righetto at owasp.org <dominique.righetto at gmail.com>
+>
+> https://righettod.eu
+> GPG: 323D19BA
+>
+>
+>
+>
+>
+> On Thu, Aug 23, 2018 at 10:03 AM Konakandla, Manideep <mkonakan at amazon.com>
+> wrote:
+>
+> Ok, I received necessary approvals for working on this. I am hoping to
+> start the work in 2 weeks and then deliver the document to you guys for
+> review by end of September/1st week of October (might be 1-2 weeks delay
+> if approvals from Legal and other teams get delayed). My plan is to work on
+> below things ? Please let me know if I missed anything/you feel something
+> else has to be added to this list.
+>
+>
+>
+> 1.       Change the order of primary and defense in depth measures
+>
+> 2.       Include the pitfalls/caveats for each CSRF mitigation technique
+> (origin/referrer header, samesite, double submit cookie etc.)
+>
+> 3.       Re-structure entire page and remove outdated/ non-relevant stuff
+>
+>
+>
+> *From:* Dominique Righetto <dominique.righetto at owasp.org>
+> *Sent:* Thursday, August 16, 2018 12:02 PM
+> *To:* Konakandla, Manideep <mkonakan at amazon.com>
+> *Cc:* Jim Manico <jim.manico at owasp.org>; Dave Wichers <
+> dave.wichers at owasp.org>; eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Ok i perfectly understand.
+>
+> Thanks for the info.
+>
+>
+>
+> Le jeu. 16 ao?t 2018 ? 20:33, Konakandla, Manideep <mkonakan at amazon.com>
+> a ?crit :
+>
+> I had an offline discussion with Jim and informed him that I will have to
+> check few details before I give any commitment to update the guidance?s
+> here.
+>
+>
+>
+> Update: I got approval internally from my team to work on this (fix issues
+> and re-structure entire page) but I still need to get approval from Legal
+> team to work on this. I will let you guys know when I hear back from them.
+> Most likely they will ask me to just get it reviewed with them before
+> sending it to you guys for review/get it published on OWASP page.
+>
+>
+>
+> *From:* Dominique Righetto <dominique.righetto at owasp.org>
+> *Sent:* Tuesday, August 14, 2018 11:02 PM
+> *To:* Jim Manico <jim.manico at owasp.org>
+> *Cc:* Konakandla, Manideep <mkonakan at amazon.com>; Dave Wichers <
+> dave.wichers at owasp.org>; eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> Roadmap has been updated: https://trello.com/b/w020m3jQ/cs-roadmap
+>
+> --
+> Cordialement, Best regards,
+> Dominique Righetto
+> dominique.righetto at gmail.com
+>
+> dominique.righetto at owasp.org <dominique.righetto at gmail.com>
+>
+> https://righettod.eu
+> GPG: 323D19BA
+>
+>
+>
+>
+>
+> On Mon, Aug 13, 2018 at 6:03 AM Dominique Righetto <
+> dominique.righetto at owasp.org> wrote:
+>
+> I have finally achieved to read the thread, very interesting  ?
+>
+>
+>
+> I understand the need to simplify the cheat sheet and the solutions
+> proposed. It is one of the reason why i have add code sample. So this
+> contribution is a very good point.
+>
+>
+>
+> Just a little thing about header, take care to ensure that the referrer
+> policy of the site is not set to no-referrer otherwise you cannot use
+> origin/referrer headers couple to create a protection layer.
+>
+>
+>
+> Tanks you for the helps proposal ?
+>
+>
+>
+>
+>
+> Le dim. 12 ao?t 2018 ? 22:21, Jim Manico <jim.manico at owasp.org> a ?crit :
+>
+> That makes sense. We're not going to get consensus but you demonstrated
+> mastery over this material. I am impressed.
+>
+> Please consider yourself owner of the page and edit as you see fit. I'll
+> keep an eye on your edits and make comments as you go.
+>
+> But please go ahead and charge.
+>
+> > I also personally don?t recommend double submit cookies for enterprises
+> that have lot of subdomains for which they might not be sure if they are
+> 100% secure
+>
+> Makes sense, but what DO you suggest for stateless services and CSRF
+> defense?
+>
+> Aloha, Jim
+>
+>
+>
+> On 8/10/18 10:41 AM, Konakandla, Manideep wrote:
+>
+> Thanks. I also personally don?t recommend double submit cookies for
+> enterprises that have lot of subdomains for which they might not be sure if
+> they are 100% secure. More details are explained here
+> <https://media.blackhat.com/eu-13/briefings/Lundeen/bh-eu-13-deputies-still-confused-lundeen-wp.pdf>
+> (section 2.1.1). I think this is something that has to be mentioned in the
+> wiki as well.
+>
+>
+>
+> Do we have a consensus process before we edit the page? Or current
+> discussion is enough?  How do we want to go next? I am not quite sure at
+> the moment if I will be able to contribute (I can let you know after
+> checking few details).
+>
+>
+>
+> *From:* Jim Manico <jim.manico at owasp.org> <jim.manico at owasp.org>
+> *Sent:* Friday, August 10, 2018 1:23 PM
+> *To:* Konakandla, Manideep <mkonakan at amazon.com> <mkonakan at amazon.com>;
+> Dominique Righetto <dominique.righetto at owasp.org>
+> <dominique.righetto at owasp.org>
+> *Cc:* Dave Wichers <dave.wichers at owasp.org> <dave.wichers at owasp.org>;
+> eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> All I'm saying is that it's a good idea to split browser standard based
+> CSRF defense and defenses that require tokens.
+>
+> And you know, I am not at all opposed to making tokens the primary
+> defense. I think that's totally fair. In fact for my words its...
+>
+> 1) Use a token method - either normal syncronizer tokens or
+> double-submit-cookies for stateless services. This is the main defense in
+> use today.
+>
+> 2) I also do header defense and think it's secondary. I only use headers
+> by themselves for lower risk services and it's normally easy to deploy as
+> long as I only need to defense posts. If get and posts transact, this
+> becomes tough to deploy.
+>
+> 3) I always use the samesite cookie for single-domain applications. This
+> gets weird in mash-up cases.
+>
+> So yea, I am totally ok for moving tokens to the primary defense of this
+> guide.
+>
+> - Jim
+>
+> On 8/10/18 10:16 AM, Konakandla, Manideep wrote:
+>
+> *This is a false argument. *
+>
+> >> I am not sure if you got the context there. It was is in response to
+> Dominique statement which said that we are delegating part of protection to
+> browsers if we solely reply on referrer/origin headers properly and hence
+> we need to depend on token as well (for which you +1?ed). I am confused now
+> that you are saying it as an browser standard (which means nothing should
+> wrong and we don?t need to worry about delegating protection to browser).
+> The discussion was also about browsers handling the data. Origin/referrer
+> header check is not easy deployment as well (considering proxies,
+> individual domains when a company has, around 50+ subdomains etc.). I feel
+> token mitigation is more easy using some OWASP libraries that provide
+> auto-tokening (this anyway is my personal opinion).
+>
+> One more thing we need to remember is that, if we solely rely on
+> origin/referrer header check - an XSS vulnerability within a single page on
+> that domain will also give CSRF vulnerability to all other state changing
+> operations under that entire domain. Considering that and also that
+> depending on browsers to send origin/referrer header ? I feel token should
+> be used as a primary mitigation and origin/referrer header check as
+> defense-in-depth. Do we have any similar issues for tokens? If not ? maybe
+> we should just do that. Either ways, it?s just my opinion ? if there is no
+> consensus for it, we can just stop the debate and let it be the way it is.
+> I will be more than happy to always learn if there is something that I am
+> missing J
+>
+> *> **Also, I know that samesite cookie itself is not supported on all
+> browsers but I?m more looking towards the text written on the wiki
+> (provides some protection against cross-site request forgery attacks), is
+> the ?some? here refers to the partial support of the browsers? ? Yes*
+>
+> It frankly does not provide that impression here. When me/couple of other
+> colleagues/friends of mine read it, we were thinking on the angle of issue
+> with the technology itself. I will be more than happy to edit it if you
+> guys agree or else again ? we can just let the way it is :)
+>
+>
+>
+> *From:* Jim Manico <jim.manico at owasp.org> <jim.manico at owasp.org>
+> *Sent:* Friday, August 10, 2018 12:51 PM
+> *To:* Konakandla, Manideep <mkonakan at amazon.com> <mkonakan at amazon.com>;
+> Dominique Righetto <dominique.righetto at owasp.org>
+> <dominique.righetto at owasp.org>
+> *Cc:* Dave Wichers <dave.wichers at owasp.org> <dave.wichers at owasp.org>;
+> eric.sheridan at owasp.org
+> *Subject:* Re:
+> https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+>
+>
+>
+> > In a sense/In fact, we rely on browsers to protect CSRF tokens as well
+> ? so if we do not trust browsers for sending referrer/origin headers
+> properly, we shouldn?t be trusting them to secure our tokens
+>
+> This is a false argument. One of these is fully controlled by the browser
+> via browser standards, one of these is controlled by individual programmers.
+>
+> > Unless there is anything additional that origin/referrer header check
+> provides that?s not provided by token based mitigation
+>
+> What it also provides is VERY easy deployment capabilities like the same
+> site token. One of these is based on browser standards and again tokens
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180921/a8f93c36/attachment-0001.html>
+
+From mkonakan at amazon.com  Thu Sep 27 00:27:21 2018
+From: mkonakan at amazon.com (Konakandla, Manideep)
+Date: Thu, 27 Sep 2018 00:27:21 +0000
+Subject: [OWASP-cheat-sheets]
+ https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+References: <1c203f1292c240e6bb11d55da09a0793@EX13D11UWB004.ant.amazon.com>
+	<CANos97dDU1AZh3DV=3oLZefvLp3pW80ib6nDz9Qw6FVj3OPeqg@mail.gmail.com>
+	<babd67cd35484563936bd0326fda0518@EX13D11UWB004.ant.amazon.com>
+	<CANos97dEyEOiExVrJ1qGr4uDbOMraRtQK9+U61jugoSc7PBPGA@mail.gmail.com>
+	<6d53af0e5d9d459aacec5565c49d1f6b@EX13D11UWB004.ant.amazon.com>
+	<CANos97cbaHSc9uUyc6G1-SPnM7pyY0AF7D2pmEV30yGmqbS_+A@mail.gmail.com>
+	<e05fc4606d4447f994abfeb25130a711@EX13D11UWB004.ant.amazon.com>
+	<CANos97em5kiaScJggFf2NetwXF709-TNaxvaCdv+yQ4Wk9iDYA@mail.gmail.com>
+	<d0f35aa9-0b9d-1c52-d4bb-35ca904f59a9@owasp.org>
+	<6d226d32897548babcd5b081ab1a0cc6@EX13D11UWB004.ant.amazon.com>
+	<CANos97dug4cw8M26614xQdkeAs4z8GwEqbVH2opeSJ1cku906Q@mail.gmail.com>
+	<72cba04b8a4344d99487d66624fafb49@EX13D11UWB004.ant.amazon.com>
+	<b2922160-3f1d-01db-5240-3542b005a6ed@manicode.com>
+	<CANos97cF6-sixjb3O_QpoksKFgcBPcYp8dnANGg5Zg_D6pZ6CQ@mail.gmail.com>
+	<284088931beb426ea15b0815292a33a6@EX13D11UWB004.ant.amazon.com>
+	<511338d8-eab8-a6c3-4cae-2badcae4f07a@manicode.com> 
+Message-ID: <cb99b04cbd4d46fd8a5a559bc9c3eb3e@EX13D11UWB004.ant.amazon.com>
+
+Yeah. My understanding of the breadth of exploitation of XSS in an application protected with just origin/referrer and other application protected with just token based mitigation earlier was wrong. Dominique earlier email thread cleared that to me (breadth of exploitation is same in both the cases. i.e., if an XSS vulnerability is found in any individual application protected with only one of those techniques, it still can exploit all state changing operations on entire application [though the complexity of exploitation is easy in origin/referrer check than token based mitigation]).
+
+Anyway, I am all clear and also almost done with re-factoring the cheatsheet  [1] ? Should be fully completed by Friday unless something comes up meanwhile. I will then send it to my colleagues for review and then for Legal, PR approvals. Before that, I need help from you guys on below items
+
+
+a.       I requested for an OWASP account and it?s still in pending. @JIM ? Can you please help me in getting my account approved? (registered with mani.konakandla at gmail.com<mailto:mani.konakandla at gmail.com>)
+
+b.       Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+c.       One thing I wouldn?t be reviewing is the ASP.NET references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked
+
+[1] Below are changes done so far
+a. Switched primary, secondary defense and our reasoning behind it (added lot of reasons on issues with origin/referrer header check and why token should be made primary)
+b. Added CSRF mitigation myths (CORS, content-type validation etc.)
+c. Added a section called ?Not so popular CSRF mitigations? (mentioned details about triple submit cookie)
+d. Included limitations / issues associated with double submit cookie, same site cookie, captcha as a CSRF defense etc.
+e. Removed lot of obsolete content and added some new content to some of the mitigations
+f. Made document look more better by adding RFC?s links wherever possible and lot of other minor changes.
+
+From: Jim Manico <jim at manicode.com<mailto:jim at manicode.com>>
+Sent: Wednesday, September 26, 2018 4:19 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+
+Well tokens can be placed in cookies.
+
+The real answer to avoid CSRF is tokens in JavaScript variable as opposed to cookies. They are not automatically sent and indeed make CSRF impossible - at the expense of tokens being fully stolen via XSS. Pick your poison!
+
+I recommend a COMBO of these defenses. For web apps, sychronizer token + header verification + re-authentication for sensitive features.
+
+For API's double-cookie submit or just use JavaScript variable based tokens + header verification for same-site API's + re-authentication for sensitive features.
+> [1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operationswithin that domain done to that AJAX endpoint. Do you agree?
+
+Absolutely!
+
+On 9/20/18 11:12 AM, Konakandla, Manideep wrote:
+Yeah, I understand that any XSS and CSRF game is over but I am stressing out on the highlighted part in [1]. I am trying to highlight and get an affirmation on why my understanding on token based mitigation is better than origin/referrer header check will also apply to ?token based mitigation Vs custom header mitigation (if static tokens are used in custom headers)?.
+
+In case of tokens, we have an option to use different tokens on each page (taking things like URL, timestamp etc. into consideration) and hence XSS vulnerability on one page will only make state changing operations in that page vulnerable to CSRF but not state changing operations on other pages within that domain (because token value is different) but whereas in origin/referrer header check and custom header check, the token value is constant and hence XSS vulnerability in one page will also cause state changing operations in other pages to be vulnerable to CSRF as well. Off course, this can be mitigated in custom header checks by adding tokens to custom headers rather than static constant but this cannot be mitigated in origin/referrer check because those headers cannot be modified. So, yeah a single XSS any CSRF is bypassed but the breadth of the impact is different for each of them.
+
+Regarding code samples ? I currently was able to allocate only some time for this task and I don?t think I will be able to do code samples within this time frame. I am also leaving for a long vacation starting Oct 12 and hence let?s try to get this out first and we can add code samples later on considering my work load after I return from vacation.
+
+[1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Thursday, September 20, 2018 8:45 AM
+To: Jim Manico <jim at manicode.com><mailto:jim at manicode.com>
+Cc: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+Hi,
+
+Thanks for your contribution.
+
+I like very much your plan ?
+
+I ask for some favor in addition :
+- can you provide code sample (in one language like java or .net or the one you want but it must be easy to read and understand) or libraires along your proposal for each section?
+- can you use the syntaxhighlight tag for code?
+
+I'am agree with Jim, XSS  means game over because your browsing context can be used as proxy so csrf protection will be defeated because request came from the legitimate user.
+
+Thanks you again for all your help ???
+
+Le jeu. 20 sept. 2018 ? 18:31, Jim Manico <jim at manicode.com<mailto:jim at manicode.com>> a ?crit :
+
+> If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Any XSS is game over and all CSRF are useless in the face of XSS. I Agree!
+
+- Jim
+
+On 9/19/18 10:52 PM, Konakandla, Manideep wrote:
+Hey Guys,
+
+[1] is what I said for origin/referrer header check in this e-mail thread. I also believe that this applies for custom headers for AJAX endpoints as well. If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Here is how I am keeping the new re-factored cheatsheet. Does this look good to you guys?
+
+
+1.       Use token based method as primary defense
+
+a.       Can use synchronizer pattern for stateful applications
+
+b.       Can use hah based/ encryption based token pattern for stateless applications
+
+2.       Defense in depth measures along with drawbacks of each one
+
+a.       Origin/referrer header check
+
+b.       Double submit cookie
+
+c.       Samesite cookie
+
+d.       Custom headers (people still need to use tokens for forms etc. if they have mix of ajax endpoints and general HTML)
+
+3.       Strong CSRF defenses but very less usable : captcha etc.
+
+4.       CSRF Myths / techniques that do not work section
+
+[1] if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain.
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Wednesday, September 12, 2018 1:31 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>
+Cc: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi
+
+Thanks you very much for the update
+
+Le mer. 12 sept. 2018 ? 21:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+Just an update: I started working on this along with other sprint tasks of mine today. I am hoping to get it completed by end of next week and then send it for legal/PR approvals.
+
+From: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Sent: Thursday, August 23, 2018 6:49 AM
+To: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>; Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+Awesome! Thank you! :)
+
+- Jim
+
+On 8/23/18 2:41 AM, Dominique Righetto wrote:
+You are welcome :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:33 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Np. I will keep u guys posted. Thanks for the support and have good rest of your day!
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 23, 2018 1:29 AM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi,
+
+Sounds goods for me.
+
+Thanks again for the contribution :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:03 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Ok, I received necessary approvals for working on this. I am hoping to start the work in 2 weeks and then deliver the document to you guys for review by end of September/1st week of October (might be 1-2 weeks delay if approvals from Legal and other teams get delayed). My plan is to work on below things ? Please let me know if I missed anything/you feel something else has to be added to this list.
+
+
+1.       Change the order of primary and defense in depth measures
+
+2.       Include the pitfalls/caveats for each CSRF mitigation technique (origin/referrer header, samesite, double submit cookie etc.)
+
+3.       Re-structure entire page and remove outdated/ non-relevant stuff
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 16, 2018 12:02 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Ok i perfectly understand.
+Thanks for the info.
+
+Le jeu. 16 ao?t 2018 ? 20:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+I had an offline discussion with Jim and informed him that I will have to check few details before I give any commitment to update the guidance?s here.
+
+Update: I got approval internally from my team to work on this (fix issues and re-structure entire page) but I still need to get approval from Legal team to work on this. I will let you guys know when I hear back from them. Most likely they will ask me to just get it reviewed with them before sending it to you guys for review/get it published on OWASP page.
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Tuesday, August 14, 2018 11:02 PM
+To: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Cc: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Roadmap has been updated: https://trello.com/b/w020m3jQ/cs-roadmap
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Mon, Aug 13, 2018 at 6:03 AM Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>> wrote:
+I have finally achieved to read the thread, very interesting  ?
+
+I understand the need to simplify the cheat sheet and the solutions proposed. It is one of the reason why i have add code sample. So this contribution is a very good point.
+
+Just a little thing about header, take care to ensure that the referrer policy of the site is not set to no-referrer otherwise you cannot use origin/referrer headers couple to create a protection layer.
+
+Tanks you for the helps proposal ?
+
+
+Le dim. 12 ao?t 2018 ? 22:21, Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>> a ?crit :
+
+That makes sense. We're not going to get consensus but you demonstrated mastery over this material. I am impressed.
+
+Please consider yourself owner of the page and edit as you see fit. I'll keep an eye on your edits and make comments as you go.
+
+But please go ahead and charge.
+
+> I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure
+
+Makes sense, but what DO you suggest for stateless services and CSRF defense?
+
+Aloha, Jim
+
+On 8/10/18 10:41 AM, Konakandla, Manideep wrote:
+Thanks. I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure. More details are explained here<https://media.blackhat.com/eu-13/briefings/Lundeen/bh-eu-13-deputies-still-confused-lundeen-wp.pdf> (section 2.1.1). I think this is something that has to be mentioned in the wiki as well.
+
+Do we have a consensus process before we edit the page? Or current discussion is enough?  How do we want to go next? I am not quite sure at the moment if I will be able to contribute (I can let you know after checking few details).
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 1:23 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+All I'm saying is that it's a good idea to split browser standard based CSRF defense and defenses that require tokens.
+And you know, I am not at all opposed to making tokens the primary defense. I think that's totally fair. In fact for my words its...
+
+1) Use a token method - either normal syncronizer tokens or double-submit-cookies for stateless services. This is the main defense in use today.
+
+2) I also do header defense and think it's secondary. I only use headers by themselves for lower risk services and it's normally easy to deploy as long as I only need to defense posts. If get and posts transact, this becomes tough to deploy.
+
+3) I always use the samesite cookie for single-domain applications. This gets weird in mash-up cases.
+
+So yea, I am totally ok for moving tokens to the primary defense of this guide.
+
+- Jim
+On 8/10/18 10:16 AM, Konakandla, Manideep wrote:
+
+This is a false argument.
+
+>> I am not sure if you got the context there. It was is in response to Dominique statement which said that we are delegating part of protection to browsers if we solely reply on referrer/origin headers properly and hence we need to depend on token as well (for which you +1?ed). I am confused now that you are saying it as an browser standard (which means nothing should wrong and we don?t need to worry about delegating protection to browser). The discussion was also about browsers handling the data. Origin/referrer header check is not easy deployment as well (considering proxies, individual domains when a company has, around 50+ subdomains etc.). I feel token mitigation is more easy using some OWASP libraries that provide auto-tokening (this anyway is my personal opinion).
+
+One more thing we need to remember is that, if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain. Considering that and also that depending on browsers to send origin/referrer header ? I feel token should be used as a primary mitigation and origin/referrer header check as defense-in-depth. Do we have any similar issues for tokens? If not ? maybe we should just do that. Either ways, it?s just my opinion ? if there is no consensus for it, we can just stop the debate and let it be the way it is. I will be more than happy to always learn if there is something that I am missing ?
+
+> Also, I know that samesite cookie itself is not supported on all browsers but I?m more looking towards the text written on the wiki (provides some protection against cross-site request forgery attacks), is the ?some? here refers to the partial support of the browsers? ? Yes
+
+It frankly does not provide that impression here. When me/couple of other colleagues/friends of mine read it, we were thinking on the angle of issue with the technology itself. I will be more than happy to edit it if you guys agree or else again ? we can just let the way it is :)
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 12:51 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+> In a sense/In fact, we rely on browsers to protect CSRF tokens as well ? so if we do not trust browsers for sending referrer/origin headers properly, we shouldn?t be trusting them to secure our tokens
+
+This is a false argument. One of these is fully controlled by the browser via browser standards, one of these is controlled by individual programmers.
+
+> Unless there is anything additional that origin/referrer header check provides that?s not provided by token based mitigation
+
+What it also provides is VERY easy deployment capabilities like the same site token. One of these is based on browser standards and again tokens
+
+
+--
+
+Jim Manico
+
+Manicode Security
+
+https://www.manicode.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180927/a87f025c/attachment-0001.html>
+
+From mkonakan at amazon.com  Thu Sep 27 02:46:12 2018
+From: mkonakan at amazon.com (Konakandla, Manideep)
+Date: Thu, 27 Sep 2018 02:46:12 +0000
+Subject: [OWASP-cheat-sheets]
+ https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+References: <1c203f1292c240e6bb11d55da09a0793@EX13D11UWB004.ant.amazon.com>
+	<CANos97dDU1AZh3DV=3oLZefvLp3pW80ib6nDz9Qw6FVj3OPeqg@mail.gmail.com>
+	<babd67cd35484563936bd0326fda0518@EX13D11UWB004.ant.amazon.com>
+	<CANos97dEyEOiExVrJ1qGr4uDbOMraRtQK9+U61jugoSc7PBPGA@mail.gmail.com>
+	<6d53af0e5d9d459aacec5565c49d1f6b@EX13D11UWB004.ant.amazon.com>
+	<CANos97cbaHSc9uUyc6G1-SPnM7pyY0AF7D2pmEV30yGmqbS_+A@mail.gmail.com>
+	<e05fc4606d4447f994abfeb25130a711@EX13D11UWB004.ant.amazon.com>
+	<CANos97em5kiaScJggFf2NetwXF709-TNaxvaCdv+yQ4Wk9iDYA@mail.gmail.com>
+	<d0f35aa9-0b9d-1c52-d4bb-35ca904f59a9@owasp.org>
+	<6d226d32897548babcd5b081ab1a0cc6@EX13D11UWB004.ant.amazon.com>
+	<CANos97dug4cw8M26614xQdkeAs4z8GwEqbVH2opeSJ1cku906Q@mail.gmail.com>
+	<72cba04b8a4344d99487d66624fafb49@EX13D11UWB004.ant.amazon.com>
+	<b2922160-3f1d-01db-5240-3542b005a6ed@manicode.com>
+	<CANos97cF6-sixjb3O_QpoksKFgcBPcYp8dnANGg5Zg_D6pZ6CQ@mail.gmail.com>
+	<284088931beb426ea15b0815292a33a6@EX13D11UWB004.ant.amazon.com>
+	<511338d8-eab8-a6c3-4cae-2badcae4f07a@manicode.com>  
+Message-ID: <8bac44ab83dd441a91695f96c775a911@EX13D11UWB004.ant.amazon.com>
+
+2 more questions added  (Jim already started helping me on #a)
+
+
+a.       I requested for an OWASP account and it?s still in pending. @JIM ? Can you please help me in getting my account approved? (registered with mani.konakandla at gmail.com<mailto:mani.konakandla at gmail.com>)
+
+b.       Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+c.       One thing I wouldn?t be reviewing is the ASP.NET references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked
+
+d.       At few places within the wiki, I have seen recommending to include token in headers for Ajax requests. I also don?t see a problem in passing them as parameters as well. Do you guys see any?
+
+e.       I also have not seen at any place within the wiki talking about login CSRF issues and how each of the techniques described can be prone/immune to it. Is there any reason for it or are we open to include that?
+
+From: Konakandla, Manideep
+Sent: Wednesday, September 26, 2018 5:27 PM
+To: 'Jim Manico' <jim at manicode.com>; 'Dominique Righetto' <dominique.righetto at owasp.org>
+Cc: 'Jim Manico' <jim.manico at owasp.org>; 'Dave Wichers' <dave.wichers at owasp.org>; 'eric.sheridan at owasp.org' <eric.sheridan at owasp.org>; owasp-cheat-sheets at lists.owasp.org
+Subject: RE: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+Yeah. My understanding of the breadth of exploitation of XSS in an application protected with just origin/referrer and other application protected with just token based mitigation earlier was wrong. Dominique earlier email thread cleared that to me (breadth of exploitation is same in both the cases. i.e., if an XSS vulnerability is found in any individual application protected with only one of those techniques, it still can exploit all state changing operations on entire application [though the complexity of exploitation is easy in origin/referrer check than token based mitigation]).
+
+Anyway, I am all clear and also almost done with re-factoring the cheatsheet  [1] ? Should be fully completed by Friday unless something comes up meanwhile. I will then send it to my colleagues for review and then for Legal, PR approvals. Before that, I need help from you guys on below items
+
+
+a.       I requested for an OWASP account and it?s still in pending. @JIM ? Can you please help me in getting my account approved? (registered with mani.konakandla at gmail.com<mailto:mani.konakandla at gmail.com>)
+
+b.       Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+c.       One thing I wouldn?t be reviewing is the ASP.NET references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked
+
+[1] Below are changes done so far
+a. Switched primary, secondary defense and our reasoning behind it (added lot of reasons on issues with origin/referrer header check and why token should be made primary)
+b. Added CSRF mitigation myths (CORS, content-type validation etc.)
+c. Added a section called ?Not so popular CSRF mitigations? (mentioned details about triple submit cookie)
+d. Included limitations / issues associated with double submit cookie, same site cookie, captcha as a CSRF defense etc.
+e. Removed lot of obsolete content and added some new content to some of the mitigations
+f. Made document look more better by adding RFC?s links wherever possible and lot of other minor changes.
+
+From: Jim Manico <jim at manicode.com<mailto:jim at manicode.com>>
+Sent: Wednesday, September 26, 2018 4:19 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+
+Well tokens can be placed in cookies.
+
+The real answer to avoid CSRF is tokens in JavaScript variable as opposed to cookies. They are not automatically sent and indeed make CSRF impossible - at the expense of tokens being fully stolen via XSS. Pick your poison!
+
+I recommend a COMBO of these defenses. For web apps, sychronizer token + header verification + re-authentication for sensitive features.
+
+For API's double-cookie submit or just use JavaScript variable based tokens + header verification for same-site API's + re-authentication for sensitive features.
+> [1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operationswithin that domain done to that AJAX endpoint. Do you agree?
+
+Absolutely!
+
+On 9/20/18 11:12 AM, Konakandla, Manideep wrote:
+Yeah, I understand that any XSS and CSRF game is over but I am stressing out on the highlighted part in [1]. I am trying to highlight and get an affirmation on why my understanding on token based mitigation is better than origin/referrer header check will also apply to ?token based mitigation Vs custom header mitigation (if static tokens are used in custom headers)?.
+
+In case of tokens, we have an option to use different tokens on each page (taking things like URL, timestamp etc. into consideration) and hence XSS vulnerability on one page will only make state changing operations in that page vulnerable to CSRF but not state changing operations on other pages within that domain (because token value is different) but whereas in origin/referrer header check and custom header check, the token value is constant and hence XSS vulnerability in one page will also cause state changing operations in other pages to be vulnerable to CSRF as well. Off course, this can be mitigated in custom header checks by adding tokens to custom headers rather than static constant but this cannot be mitigated in origin/referrer check because those headers cannot be modified. So, yeah a single XSS any CSRF is bypassed but the breadth of the impact is different for each of them.
+
+Regarding code samples ? I currently was able to allocate only some time for this task and I don?t think I will be able to do code samples within this time frame. I am also leaving for a long vacation starting Oct 12 and hence let?s try to get this out first and we can add code samples later on considering my work load after I return from vacation.
+
+[1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Thursday, September 20, 2018 8:45 AM
+To: Jim Manico <jim at manicode.com><mailto:jim at manicode.com>
+Cc: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+Hi,
+
+Thanks for your contribution.
+
+I like very much your plan ?
+
+I ask for some favor in addition :
+- can you provide code sample (in one language like java or .net or the one you want but it must be easy to read and understand) or libraires along your proposal for each section?
+- can you use the syntaxhighlight tag for code?
+
+I'am agree with Jim, XSS  means game over because your browsing context can be used as proxy so csrf protection will be defeated because request came from the legitimate user.
+
+Thanks you again for all your help ???
+
+Le jeu. 20 sept. 2018 ? 18:31, Jim Manico <jim at manicode.com<mailto:jim at manicode.com>> a ?crit :
+
+> If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Any XSS is game over and all CSRF are useless in the face of XSS. I Agree!
+
+- Jim
+
+On 9/19/18 10:52 PM, Konakandla, Manideep wrote:
+Hey Guys,
+
+[1] is what I said for origin/referrer header check in this e-mail thread. I also believe that this applies for custom headers for AJAX endpoints as well. If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Here is how I am keeping the new re-factored cheatsheet. Does this look good to you guys?
+
+
+1.       Use token based method as primary defense
+
+a.       Can use synchronizer pattern for stateful applications
+
+b.       Can use hah based/ encryption based token pattern for stateless applications
+
+2.       Defense in depth measures along with drawbacks of each one
+
+a.       Origin/referrer header check
+
+b.       Double submit cookie
+
+c.       Samesite cookie
+
+d.       Custom headers (people still need to use tokens for forms etc. if they have mix of ajax endpoints and general HTML)
+
+3.       Strong CSRF defenses but very less usable : captcha etc.
+
+4.       CSRF Myths / techniques that do not work section
+
+[1] if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain.
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Wednesday, September 12, 2018 1:31 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>
+Cc: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi
+
+Thanks you very much for the update
+
+Le mer. 12 sept. 2018 ? 21:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+Just an update: I started working on this along with other sprint tasks of mine today. I am hoping to get it completed by end of next week and then send it for legal/PR approvals.
+
+From: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Sent: Thursday, August 23, 2018 6:49 AM
+To: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>; Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+Awesome! Thank you! :)
+
+- Jim
+
+On 8/23/18 2:41 AM, Dominique Righetto wrote:
+You are welcome :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:33 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Np. I will keep u guys posted. Thanks for the support and have good rest of your day!
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 23, 2018 1:29 AM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi,
+
+Sounds goods for me.
+
+Thanks again for the contribution :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:03 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Ok, I received necessary approvals for working on this. I am hoping to start the work in 2 weeks and then deliver the document to you guys for review by end of September/1st week of October (might be 1-2 weeks delay if approvals from Legal and other teams get delayed). My plan is to work on below things ? Please let me know if I missed anything/you feel something else has to be added to this list.
+
+
+1.       Change the order of primary and defense in depth measures
+
+2.       Include the pitfalls/caveats for each CSRF mitigation technique (origin/referrer header, samesite, double submit cookie etc.)
+
+3.       Re-structure entire page and remove outdated/ non-relevant stuff
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 16, 2018 12:02 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Ok i perfectly understand.
+Thanks for the info.
+
+Le jeu. 16 ao?t 2018 ? 20:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+I had an offline discussion with Jim and informed him that I will have to check few details before I give any commitment to update the guidance?s here.
+
+Update: I got approval internally from my team to work on this (fix issues and re-structure entire page) but I still need to get approval from Legal team to work on this. I will let you guys know when I hear back from them. Most likely they will ask me to just get it reviewed with them before sending it to you guys for review/get it published on OWASP page.
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Tuesday, August 14, 2018 11:02 PM
+To: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Cc: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Roadmap has been updated: https://trello.com/b/w020m3jQ/cs-roadmap
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Mon, Aug 13, 2018 at 6:03 AM Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>> wrote:
+I have finally achieved to read the thread, very interesting  ?
+
+I understand the need to simplify the cheat sheet and the solutions proposed. It is one of the reason why i have add code sample. So this contribution is a very good point.
+
+Just a little thing about header, take care to ensure that the referrer policy of the site is not set to no-referrer otherwise you cannot use origin/referrer headers couple to create a protection layer.
+
+Tanks you for the helps proposal ?
+
+
+Le dim. 12 ao?t 2018 ? 22:21, Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>> a ?crit :
+
+That makes sense. We're not going to get consensus but you demonstrated mastery over this material. I am impressed.
+
+Please consider yourself owner of the page and edit as you see fit. I'll keep an eye on your edits and make comments as you go.
+
+But please go ahead and charge.
+
+> I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure
+
+Makes sense, but what DO you suggest for stateless services and CSRF defense?
+
+Aloha, Jim
+
+On 8/10/18 10:41 AM, Konakandla, Manideep wrote:
+Thanks. I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure. More details are explained here<https://media.blackhat.com/eu-13/briefings/Lundeen/bh-eu-13-deputies-still-confused-lundeen-wp.pdf> (section 2.1.1). I think this is something that has to be mentioned in the wiki as well.
+
+Do we have a consensus process before we edit the page? Or current discussion is enough?  How do we want to go next? I am not quite sure at the moment if I will be able to contribute (I can let you know after checking few details).
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 1:23 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+All I'm saying is that it's a good idea to split browser standard based CSRF defense and defenses that require tokens.
+And you know, I am not at all opposed to making tokens the primary defense. I think that's totally fair. In fact for my words its...
+
+1) Use a token method - either normal syncronizer tokens or double-submit-cookies for stateless services. This is the main defense in use today.
+
+2) I also do header defense and think it's secondary. I only use headers by themselves for lower risk services and it's normally easy to deploy as long as I only need to defense posts. If get and posts transact, this becomes tough to deploy.
+
+3) I always use the samesite cookie for single-domain applications. This gets weird in mash-up cases.
+
+So yea, I am totally ok for moving tokens to the primary defense of this guide.
+
+- Jim
+On 8/10/18 10:16 AM, Konakandla, Manideep wrote:
+
+This is a false argument.
+
+>> I am not sure if you got the context there. It was is in response to Dominique statement which said that we are delegating part of protection to browsers if we solely reply on referrer/origin headers properly and hence we need to depend on token as well (for which you +1?ed). I am confused now that you are saying it as an browser standard (which means nothing should wrong and we don?t need to worry about delegating protection to browser). The discussion was also about browsers handling the data. Origin/referrer header check is not easy deployment as well (considering proxies, individual domains when a company has, around 50+ subdomains etc.). I feel token mitigation is more easy using some OWASP libraries that provide auto-tokening (this anyway is my personal opinion).
+
+One more thing we need to remember is that, if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain. Considering that and also that depending on browsers to send origin/referrer header ? I feel token should be used as a primary mitigation and origin/referrer header check as defense-in-depth. Do we have any similar issues for tokens? If not ? maybe we should just do that. Either ways, it?s just my opinion ? if there is no consensus for it, we can just stop the debate and let it be the way it is. I will be more than happy to always learn if there is something that I am missing ?
+
+> Also, I know that samesite cookie itself is not supported on all browsers but I?m more looking towards the text written on the wiki (provides some protection against cross-site request forgery attacks), is the ?some? here refers to the partial support of the browsers? ? Yes
+
+It frankly does not provide that impression here. When me/couple of other colleagues/friends of mine read it, we were thinking on the angle of issue with the technology itself. I will be more than happy to edit it if you guys agree or else again ? we can just let the way it is :)
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 12:51 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+> In a sense/In fact, we rely on browsers to protect CSRF tokens as well ? so if we do not trust browsers for sending referrer/origin headers properly, we shouldn?t be trusting them to secure our tokens
+
+This is a false argument. One of these is fully controlled by the browser via browser standards, one of these is controlled by individual programmers.
+
+> Unless there is anything additional that origin/referrer header check provides that?s not provided by token based mitigation
+
+What it also provides is VERY easy deployment capabilities like the same site token. One of these is based on browser standards and again tokens
+
+
+--
+
+Jim Manico
+
+Manicode Security
+
+https://www.manicode.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180927/cf07031d/attachment-0001.html>
+
+From mkonakan at amazon.com  Sat Sep 29 01:34:57 2018
+From: mkonakan at amazon.com (Konakandla, Manideep)
+Date: Sat, 29 Sep 2018 01:34:57 +0000
+Subject: [OWASP-cheat-sheets]
+ https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+In-Reply-To: <A7E3A0CF-EE01-4963-9F34-AF8825C89EE0@manicode.com>
+References: <1c203f1292c240e6bb11d55da09a0793@EX13D11UWB004.ant.amazon.com>
+	<CANos97dDU1AZh3DV=3oLZefvLp3pW80ib6nDz9Qw6FVj3OPeqg@mail.gmail.com>
+	<babd67cd35484563936bd0326fda0518@EX13D11UWB004.ant.amazon.com>
+	<CANos97dEyEOiExVrJ1qGr4uDbOMraRtQK9+U61jugoSc7PBPGA@mail.gmail.com>
+	<6d53af0e5d9d459aacec5565c49d1f6b@EX13D11UWB004.ant.amazon.com>
+	<CANos97cbaHSc9uUyc6G1-SPnM7pyY0AF7D2pmEV30yGmqbS_+A@mail.gmail.com>
+	<e05fc4606d4447f994abfeb25130a711@EX13D11UWB004.ant.amazon.com>
+	<CANos97em5kiaScJggFf2NetwXF709-TNaxvaCdv+yQ4Wk9iDYA@mail.gmail.com>
+	<d0f35aa9-0b9d-1c52-d4bb-35ca904f59a9@owasp.org>
+	<6d226d32897548babcd5b081ab1a0cc6@EX13D11UWB004.ant.amazon.com>
+	<CANos97dug4cw8M26614xQdkeAs4z8GwEqbVH2opeSJ1cku906Q@mail.gmail.com>
+	<72cba04b8a4344d99487d66624fafb49@EX13D11UWB004.ant.amazon.com>
+	<b2922160-3f1d-01db-5240-3542b005a6ed@manicode.com>
+	<CANos97cF6-sixjb3O_QpoksKFgcBPcYp8dnANGg5Zg_D6pZ6CQ@mail.gmail.com>
+	<284088931beb426ea15b0815292a33a6@EX13D11UWB004.ant.amazon.com>
+	<511338d8-eab8-a6c3-4cae-2badcae4f07a@manicode.com>
+	<8bac44ab83dd441a91695f96c775a911@EX13D11UWB004.ant.amazon.com>
+	<A7E3A0CF-EE01-4963-9F34-AF8825C89EE0@manicode.com>
+Message-ID: <6795fa7232dd466e818b7953048e243d@EX13D11UWB004.ant.amazon.com>
+
+Login CSRF is a way of exploiting CSRF on login forms (details here<https://seclab.stanford.edu/websec/csrf/csrf.pdf>). Though there is a line about it in referrer validation section, it was not explained clearly and how it can scale with other techniques such as token based mitigation. No worries, I added a section about it!
+
+Finally, I am done with the document from my side and its sent for internal reviews now. It should take 1-2 weeks before it comes to you guys. Meanwhile, I still need help on below items from you guys. If no one was able to find references for a), we can very well remove it.
+
+
+a.     Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+b.     One thing I wouldn?t be reviewing is the ASP.NET<http://ASP.NET> references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked in current cheatsheet
+
+Happy weekend folks ?
+
+From: Jim Manico <jim at manicode.com>
+Sent: Thursday, September 27, 2018 3:02 AM
+To: Konakandla, Manideep <mkonakan at amazon.com>
+Cc: Dominique Righetto <dominique.righetto at owasp.org>; Jim Manico <jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org>; eric.sheridan at owasp.org; owasp-cheat-sheets at lists.owasp.org
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+...as for (d) I dont see any problems with passing tokens as headers or parameters
+
+I dont understand (e) can you explain that again?
+--
+Jim Manico
+@Manicode
+Secure Coding Education
++1 (808) 652-3805
+
+On Sep 26, 2018, at 4:46 PM, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+2 more questions added  (Jim already started helping me on #a)
+
+
+a.     I requested for an OWASP account and it?s still in pending. @JIM ? Can you please help me in getting my account approved? (registered with mani.konakandla at gmail.com<mailto:mani.konakandla at gmail.com>)
+
+b.     Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+c.     One thing I wouldn?t be reviewing is the ASP.NET<http://ASP.NET> references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked
+
+d.     At few places within the wiki, I have seen recommending to include token in headers for Ajax requests. I also don?t see a problem in passing them as parameters as well. Do you guys see any?
+
+e.     I also have not seen at any place within the wiki talking about login CSRF issues and how each of the techniques described can be prone/immune to it. Is there any reason for it or are we open to include that?
+
+From: Konakandla, Manideep
+Sent: Wednesday, September 26, 2018 5:27 PM
+To: 'Jim Manico' <jim at manicode.com<mailto:jim at manicode.com>>; 'Dominique Righetto' <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Cc: 'Jim Manico' <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; 'Dave Wichers' <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; 'eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>' <eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>>; owasp-cheat-sheets at lists.owasp.org<mailto:owasp-cheat-sheets at lists.owasp.org>
+Subject: RE: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+Yeah. My understanding of the breadth of exploitation of XSS in an application protected with just origin/referrer and other application protected with just token based mitigation earlier was wrong. Dominique earlier email thread cleared that to me (breadth of exploitation is same in both the cases. i.e., if an XSS vulnerability is found in any individual application protected with only one of those techniques, it still can exploit all state changing operations on entire application [though the complexity of exploitation is easy in origin/referrer check than token based mitigation]).
+
+Anyway, I am all clear and also almost done with re-factoring the cheatsheet  [1] ? Should be fully completed by Friday unless something comes up meanwhile. I will then send it to my colleagues for review and then for Legal, PR approvals. Before that, I need help from you guys on below items
+
+
+a.     I requested for an OWASP account and it?s still in pending. @JIM ? Can you please help me in getting my account approved? (registered with mani.konakandla at gmail.com<mailto:mani.konakandla at gmail.com>)
+
+b.     Under double submit cookie section, it is mentioned that DWR uses that approach but I could not find that anywhere within DWR documentation that it uses double submit cookie. Can someone help me finding reference if they know any?
+
+c.     One thing I wouldn?t be reviewing is the ASP.NET<http://ASP.NET> references mentioned in the wiki<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#ASP.NET.2C_MVC_and_.NET_Web_Pages>. Can someone with .NET expertize verify if these are still accurate? Looks to me like there are latest resources than the one?s linked
+
+[1] Below are changes done so far
+a. Switched primary, secondary defense and our reasoning behind it (added lot of reasons on issues with origin/referrer header check and why token should be made primary)
+b. Added CSRF mitigation myths (CORS, content-type validation etc.)
+c. Added a section called ?Not so popular CSRF mitigations? (mentioned details about triple submit cookie)
+d. Included limitations / issues associated with double submit cookie, same site cookie, captcha as a CSRF defense etc.
+e. Removed lot of obsolete content and added some new content to some of the mitigations
+f. Made document look more better by adding RFC?s links wherever possible and lot of other minor changes.
+
+From: Jim Manico <jim at manicode.com<mailto:jim at manicode.com>>
+Sent: Wednesday, September 26, 2018 4:19 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+
+Well tokens can be placed in cookies.
+
+The real answer to avoid CSRF is tokens in JavaScript variable as opposed to cookies. They are not automatically sent and indeed make CSRF impossible - at the expense of tokens being fully stolen via XSS. Pick your poison!
+
+I recommend a COMBO of these defenses. For web apps, sychronizer token + header verification + re-authentication for sensitive features.
+
+For API's double-cookie submit or just use JavaScript variable based tokens + header verification for same-site API's + re-authentication for sensitive features.
+> [1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operationswithin that domain done to that AJAX endpoint. Do you agree?
+
+Absolutely!
+
+On 9/20/18 11:12 AM, Konakandla, Manideep wrote:
+Yeah, I understand that any XSS and CSRF game is over but I am stressing out on the highlighted part in [1]. I am trying to highlight and get an affirmation on why my understanding on token based mitigation is better than origin/referrer header check will also apply to ?token based mitigation Vs custom header mitigation (if static tokens are used in custom headers)?.
+
+In case of tokens, we have an option to use different tokens on each page (taking things like URL, timestamp etc. into consideration) and hence XSS vulnerability on one page will only make state changing operations in that page vulnerable to CSRF but not state changing operations on other pages within that domain (because token value is different) but whereas in origin/referrer header check and custom header check, the token value is constant and hence XSS vulnerability in one page will also cause state changing operations in other pages to be vulnerable to CSRF as well. Off course, this can be mitigated in custom header checks by adding tokens to custom headers rather than static constant but this cannot be mitigated in origin/referrer check because those headers cannot be modified. So, yeah a single XSS any CSRF is bypassed but the breadth of the impact is different for each of them.
+
+Regarding code samples ? I currently was able to allocate only some time for this task and I don?t think I will be able to do code samples within this time frame. I am also leaving for a long vacation starting Oct 12 and hence let?s try to get this out first and we can add code samples later on considering my work load after I return from vacation.
+
+[1] If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Thursday, September 20, 2018 8:45 AM
+To: Jim Manico <jim at manicode.com><mailto:jim at manicode.com>
+Cc: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
+
+Hi,
+
+Thanks for your contribution.
+
+I like very much your plan ?
+
+I ask for some favor in addition :
+- can you provide code sample (in one language like java or .net or the one you want but it must be easy to read and understand) or libraires along your proposal for each section?
+- can you use the syntaxhighlight tag for code?
+
+I'am agree with Jim, XSS  means game over because your browsing context can be used as proxy so csrf protection will be defeated because request came from the legitimate user.
+
+Thanks you again for all your help ???
+
+Le jeu. 20 sept. 2018 ? 18:31, Jim Manico <jim at manicode.com<mailto:jim at manicode.com>> a ?crit :
+
+> If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Any XSS is game over and all CSRF are useless in the face of XSS. I Agree!
+
+- Jim
+
+On 9/19/18 10:52 PM, Konakandla, Manideep wrote:
+Hey Guys,
+
+[1] is what I said for origin/referrer header check in this e-mail thread. I also believe that this applies for custom headers for AJAX endpoints as well. If there is an XSS vulnerability at a single place on a domain (it can add custom header), it can be used to make CSRF on all other state changing operations within that domain done to that AJAX endpoint. Do you agree?
+
+Here is how I am keeping the new re-factored cheatsheet. Does this look good to you guys?
+
+
+1.       Use token based method as primary defense
+
+a.       Can use synchronizer pattern for stateful applications
+
+b.       Can use hah based/ encryption based token pattern for stateless applications
+
+2.       Defense in depth measures along with drawbacks of each one
+
+a.       Origin/referrer header check
+
+b.       Double submit cookie
+
+c.       Samesite cookie
+
+d.       Custom headers (people still need to use tokens for forms etc. if they have mix of ajax endpoints and general HTML)
+
+3.       Strong CSRF defenses but very less usable : captcha etc.
+
+4.       CSRF Myths / techniques that do not work section
+
+[1] if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain.
+
+From: Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Sent: Wednesday, September 12, 2018 1:31 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>
+Cc: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>; Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi
+
+Thanks you very much for the update
+
+Le mer. 12 sept. 2018 ? 21:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+Just an update: I started working on this along with other sprint tasks of mine today. I am hoping to get it completed by end of next week and then send it for legal/PR approvals.
+
+From: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Sent: Thursday, August 23, 2018 6:49 AM
+To: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>; Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+Awesome! Thank you! :)
+
+- Jim
+
+On 8/23/18 2:41 AM, Dominique Righetto wrote:
+You are welcome :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:33 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Np. I will keep u guys posted. Thanks for the support and have good rest of your day!
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 23, 2018 1:29 AM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Hi,
+
+Sounds goods for me.
+
+Thanks again for the contribution :)
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Thu, Aug 23, 2018 at 10:03 AM Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> wrote:
+Ok, I received necessary approvals for working on this. I am hoping to start the work in 2 weeks and then deliver the document to you guys for review by end of September/1st week of October (might be 1-2 weeks delay if approvals from Legal and other teams get delayed). My plan is to work on below things ? Please let me know if I missed anything/you feel something else has to be added to this list.
+
+
+1.       Change the order of primary and defense in depth measures
+
+2.       Include the pitfalls/caveats for each CSRF mitigation technique (origin/referrer header, samesite, double submit cookie etc.)
+
+3.       Re-structure entire page and remove outdated/ non-relevant stuff
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Thursday, August 16, 2018 12:02 PM
+To: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>
+Cc: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Ok i perfectly understand.
+Thanks for the info.
+
+Le jeu. 16 ao?t 2018 ? 20:33, Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>> a ?crit :
+I had an offline discussion with Jim and informed him that I will have to check few details before I give any commitment to update the guidance?s here.
+
+Update: I got approval internally from my team to work on this (fix issues and re-structure entire page) but I still need to get approval from Legal team to work on this. I will let you guys know when I hear back from them. Most likely they will ask me to just get it reviewed with them before sending it to you guys for review/get it published on OWASP page.
+
+From: Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>>
+Sent: Tuesday, August 14, 2018 11:02 PM
+To: Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>>
+Cc: Konakandla, Manideep <mkonakan at amazon.com<mailto:mkonakan at amazon.com>>; Dave Wichers <dave.wichers at owasp.org<mailto:dave.wichers at owasp.org>>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+Roadmap has been updated: https://trello.com/b/w020m3jQ/cs-roadmap
+--
+Cordialement, Best regards,
+Dominique Righetto
+dominique.righetto at gmail.com<mailto:dominique.righetto at gmail.com>
+dominique.righetto at owasp.org<mailto:dominique.righetto at gmail.com>
+https://righettod.eu
+GPG: 323D19BA
+
+
+On Mon, Aug 13, 2018 at 6:03 AM Dominique Righetto <dominique.righetto at owasp.org<mailto:dominique.righetto at owasp.org>> wrote:
+I have finally achieved to read the thread, very interesting  ?
+
+I understand the need to simplify the cheat sheet and the solutions proposed. It is one of the reason why i have add code sample. So this contribution is a very good point.
+
+Just a little thing about header, take care to ensure that the referrer policy of the site is not set to no-referrer otherwise you cannot use origin/referrer headers couple to create a protection layer.
+
+Tanks you for the helps proposal ?
+
+
+Le dim. 12 ao?t 2018 ? 22:21, Jim Manico <jim.manico at owasp.org<mailto:jim.manico at owasp.org>> a ?crit :
+
+That makes sense. We're not going to get consensus but you demonstrated mastery over this material. I am impressed.
+
+Please consider yourself owner of the page and edit as you see fit. I'll keep an eye on your edits and make comments as you go.
+
+But please go ahead and charge.
+
+> I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure
+
+Makes sense, but what DO you suggest for stateless services and CSRF defense?
+
+Aloha, Jim
+
+On 8/10/18 10:41 AM, Konakandla, Manideep wrote:
+Thanks. I also personally don?t recommend double submit cookies for enterprises that have lot of subdomains for which they might not be sure if they are 100% secure. More details are explained here<https://media.blackhat.com/eu-13/briefings/Lundeen/bh-eu-13-deputies-still-confused-lundeen-wp.pdf> (section 2.1.1). I think this is something that has to be mentioned in the wiki as well.
+
+Do we have a consensus process before we edit the page? Or current discussion is enough?  How do we want to go next? I am not quite sure at the moment if I will be able to contribute (I can let you know after checking few details).
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 1:23 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+All I'm saying is that it's a good idea to split browser standard based CSRF defense and defenses that require tokens.
+And you know, I am not at all opposed to making tokens the primary defense. I think that's totally fair. In fact for my words its...
+
+1) Use a token method - either normal syncronizer tokens or double-submit-cookies for stateless services. This is the main defense in use today.
+
+2) I also do header defense and think it's secondary. I only use headers by themselves for lower risk services and it's normally easy to deploy as long as I only need to defense posts. If get and posts transact, this becomes tough to deploy.
+
+3) I always use the samesite cookie for single-domain applications. This gets weird in mash-up cases.
+
+So yea, I am totally ok for moving tokens to the primary defense of this guide.
+
+- Jim
+On 8/10/18 10:16 AM, Konakandla, Manideep wrote:
+
+This is a false argument.
+
+>> I am not sure if you got the context there. It was is in response to Dominique statement which said that we are delegating part of protection to browsers if we solely reply on referrer/origin headers properly and hence we need to depend on token as well (for which you +1?ed). I am confused now that you are saying it as an browser standard (which means nothing should wrong and we don?t need to worry about delegating protection to browser). The discussion was also about browsers handling the data. Origin/referrer header check is not easy deployment as well (considering proxies, individual domains when a company has, around 50+ subdomains etc.). I feel token mitigation is more easy using some OWASP libraries that provide auto-tokening (this anyway is my personal opinion).
+
+One more thing we need to remember is that, if we solely rely on origin/referrer header check - an XSS vulnerability within a single page on that domain will also give CSRF vulnerability to all other state changing operations under that entire domain. Considering that and also that depending on browsers to send origin/referrer header ? I feel token should be used as a primary mitigation and origin/referrer header check as defense-in-depth. Do we have any similar issues for tokens? If not ? maybe we should just do that. Either ways, it?s just my opinion ? if there is no consensus for it, we can just stop the debate and let it be the way it is. I will be more than happy to always learn if there is something that I am missing ?
+
+> Also, I know that samesite cookie itself is not supported on all browsers but I?m more looking towards the text written on the wiki (provides some protection against cross-site request forgery attacks), is the ?some? here refers to the partial support of the browsers? ? Yes
+
+It frankly does not provide that impression here. When me/couple of other colleagues/friends of mine read it, we were thinking on the angle of issue with the technology itself. I will be more than happy to edit it if you guys agree or else again ? we can just let the way it is :)
+
+From: Jim Manico <jim.manico at owasp.org><mailto:jim.manico at owasp.org>
+Sent: Friday, August 10, 2018 12:51 PM
+To: Konakandla, Manideep <mkonakan at amazon.com><mailto:mkonakan at amazon.com>; Dominique Righetto <dominique.righetto at owasp.org><mailto:dominique.righetto at owasp.org>
+Cc: Dave Wichers <dave.wichers at owasp.org><mailto:dave.wichers at owasp.org>; eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>
+Subject: Re: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet>
+
+
+> In a sense/In fact, we rely on browsers to protect CSRF tokens as well ? so if we do not trust browsers for sending referrer/origin headers properly, we shouldn?t be trusting them to secure our tokens
+
+This is a false argument. One of these is fully controlled by the browser via browser standards, one of these is controlled by individual programmers.
+
+> Unless there is anything additional that origin/referrer header check provides that?s not provided by token based mitigation
+
+What it also provides is VERY easy deployment capabilities like the same site token. One of these is based on browser standards and again tokens
+
+
+--
+
+Jim Manico
+
+Manicode Security
+
+https://www.manicode.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180929/5e45f938/attachment-0001.html>
+

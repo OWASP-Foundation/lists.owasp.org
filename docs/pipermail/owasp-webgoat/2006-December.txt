@@ -1,0 +1,333 @@
+From dlclark1 at uncc.edu  Fri Dec  1 12:59:41 2006
+From: dlclark1 at uncc.edu (Clark, Dennis)
+Date: Fri, 1 Dec 2006 12:59:41 -0500
+Subject: [Owasp-webgoat] Questions on writing lessons
+Message-ID: <D3F4C99A2DBF9F43BB69B9BAF4BC43EC3DD07D@EXEVS05.its.uncc.edu>
+
+Hello All,
+ 
+I am a graduate student who was foolish enough to choose to write a WebGoat lesson as a class project before first examining the WebGoat source to see how much work would be involved.
+ 
+After going through some lesson source code I have a couple of questions:
+
+1.	Where can I find the data model for the HR system used in some of the lessons? From the source code it looks like the application uses /databases/webgoat.mdb when it runs under Windows, but when I try to open it in Access I only see a user_data table with a single record, and no Three Stooges, John Wayne, or any of the other employee records.
+2.	How do lab lessons work? I know that the documentation for this is in progress, but some clues would be nice.
+
+Any information on either of these questions would be greatly appreciated.
+
+Thanks,
+
+Dennis Clark
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20061201/ac474200/attachment.html 
+
+From bruce.mayhew at g2-inc.com  Sun Dec  3 08:40:52 2006
+From: bruce.mayhew at g2-inc.com (Bruce Mayhew)
+Date: Sun, 3 Dec 2006 08:40:52 -0500
+Subject: [Owasp-webgoat] Questions on writing lessons
+References: <D3F4C99A2DBF9F43BB69B9BAF4BC43EC3DD07D@EXEVS05.its.uncc.edu>
+Message-ID: <7C3B5F778B082349A5F029AA4A61E61932FD5D@g2srvexch01.g2-inc.net>
+
+Hi Dennis
+ 
+Welcome aboard!  The WebGoat Financials is slightly more complicated than the standard lesson architecture. I would recommend synching to the baseline at http://code.google.com/p/webgoat/ and following the instructions there for building the WebGoat environment.
+ 
+To build a simple lesson follow the instructions in the "New Lessons" category.   There are no instructions on how to build a WebGoat Financials lesson. The basic control flow is:
+ 
+*** WebGoat Financials Control Flow ****
+ 
+Browser ----(HTTP Request)----> Controller (HammerHead.java) ----(Delegates)---->Action Handlers
+ 
+             Each lesson has a main delegate that acts like a Controller for that lesson's actions.  
+                     This controller will then delegate to all other actions in the current lesson.
+             Action Handlers perform business logic and write data to WebSession
+             Action Handlers interact with database (no official data layer)
+ 
+Controller(HammerHead.java) ----(forwards)----> View(main.jsp) ----(HTTP Response)----> Browser
+ 
+The main.jsp servlet is a nested JSP that has a lesson specific content area and will ask each lesson for lesson specific content via the AbstractLesson.java class.
+ 
+I will try to get some pictures in the WebGoat documentation for the 5.0 release.
+ 
+ 
+*** WebGoat Database ***
+ 
+The data model structure can be found in org.owasp.webgoat.session.CreateDB.java which can be explored after running WebGoat.  After running WebGoat look in <deployed_root>\webapps\WebGoat\database\webgoat.mdb.  If you are running from your Eclipse workspace it will be located in: <Eclipse_workspace_name>\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\webapps\WebGoat\database
+ 
+ 
+When you're done, I would be glad to add your efforts in the WebGoat baseline or you can register to be a WebGoat developer and work from the WebGoat baseline at http://code.google.com/p/webgoat/   
+ 
+Feel free to contact me with any questions. 
+ 
+ 
+Bruce
+ 
+ 
+ 
+ 
+ 
+
+________________________________
+
+From: owasp-webgoat-bounces at lists.owasp.org on behalf of Clark, Dennis
+Sent: Fri 12/1/2006 12:59 PM
+To: owasp-webgoat at lists.owasp.org
+Subject: [Owasp-webgoat] Questions on writing lessons
+
+
+Hello All,
+ 
+I am a graduate student who was foolish enough to choose to write a WebGoat lesson as a class project before first examining the WebGoat source to see how much work would be involved.
+ 
+After going through some lesson source code I have a couple of questions:
+
+1.	Where can I find the data model for the HR system used in some of the lessons? From the source code it looks like the application uses /databases/webgoat.mdb when it runs under Windows, but when I try to open it in Access I only see a user_data table with a single record, and no Three Stooges, John Wayne, or any of the other employee records. 
+2.	How do lab lessons work? I know that the documentation for this is in progress, but some clues would be nice.
+
+Any information on either of these questions would be greatly appreciated.
+
+Thanks,
+
+Dennis Clark
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20061203/14cb6f9e/attachment.html 
+
+From jeff.williams at owasp.org  Tue Dec 12 09:07:14 2006
+From: jeff.williams at owasp.org (Jeff Williams)
+Date: Tue, 12 Dec 2006 09:07:14 -0500
+Subject: [Owasp-webgoat] FW: Java Open Review Project
+Message-ID: <0e0301c71df6$d39d4c10$5001a8c0@aspectsecurity.local>
+
+Hi,
+
+Fortify software is using WebGoat to demonstrate the power of their source
+code analysis platform.  WebGoat is the 'demo' app that anyone can see.
+It's fairly cool and shows some security holes I didn't know were there.
+Interestingly, it also misses a bunch of the lessons.  You should check it
+out as the web interface is pretty cool.
+
+There's a way to look at the flaws and comment on whether they're right or
+not.  The webgoat team has permission to update the pages.  Our login is...
+
+  http://opensource.fortifysoftware.com
+  login: webgoat
+  passwd: getg0at
+
+Check it out.
+
+--Jeff
+ 
+Jeff Williams, Chair
+The OWASP Foundation
+"Dedicated to finding and fighting the causes of insecure software"
+
+
+
+From sven.vetsch at disenchant.ch  Fri Dec 22 04:15:40 2006
+From: sven.vetsch at disenchant.ch (Sven Vetsch / Disenchant)
+Date: Fri, 22 Dec 2006 10:15:40 +0100
+Subject: [Owasp-webgoat] Teacher-Workbook for Webgoat
+Message-ID: <458BA23C.2050604@disenchant.ch>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi list members,
+in the near future I've to teach a one week security course and the main
+topic would be web application security. Now I think it would be great
+to use WebGoat for give the students an overview about it. So I solved
+the WebGoat-Lessons for myself for know how to break it. The Problem
+I've got now is, that I've solved a few lessons in a way which I think
+wasn't the way the lesson was planned for.So my question is: Is there a
+"HowTo-Guide" or something like that for WebGoat around?
+
+
+Attention: I'm not a member of this list so please put me in the Cc: if
+you write an answer to the whole list.
+
+
+PS: Of course at the end it's not important how you break something but
+for a course it would be more interesting to show "standard methods".
+
+Regards,
+Sven
+
+
+- --
+
+sent by Sven Vetsch / Disenchant
+
+www.disenchant.ch
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFFi6I88luv3I4ijh0RApMVAKDir+yX4mI5NUn9zpzDZ8kuxs1aDACgwd42
+y5CoI7GqrHVXZCWWlWYsywM=
+=KxhB
+-----END PGP SIGNATURE-----
+
+From bruce.mayhew at g2-inc.com  Sat Dec 23 09:36:49 2006
+From: bruce.mayhew at g2-inc.com (Bruce Mayhew)
+Date: Sat, 23 Dec 2006 09:36:49 -0500
+Subject: [Owasp-webgoat] Teacher-Workbook for Webgoat
+References: <458BA23C.2050604@disenchant.ch>
+Message-ID: <7C3B5F778B082349A5F029AA4A61E61932FDA1@g2srvexch01.g2-inc.net>
+
+Hi Sven
+ 
+An official WebGoat solutions sheet doesn't exist.  If you send me your solutions, I'd be glad to look them over.  Perhaps, in the future we can have a section of the user guide for solutions
+ 
+Bruce
+
+________________________________
+
+From: owasp-webgoat-bounces at lists.owasp.org on behalf of Sven Vetsch / Disenchant
+Sent: Fri 12/22/2006 4:15 AM
+To: owasp-webgoat at lists.owasp.org
+Subject: [Owasp-webgoat] Teacher-Workbook for Webgoat
+
+
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi list members,
+in the near future I've to teach a one week security course and the main
+topic would be web application security. Now I think it would be great
+to use WebGoat for give the students an overview about it. So I solved
+the WebGoat-Lessons for myself for know how to break it. The Problem
+I've got now is, that I've solved a few lessons in a way which I think
+wasn't the way the lesson was planned for.So my question is: Is there a
+"HowTo-Guide" or something like that for WebGoat around?
+
+
+Attention: I'm not a member of this list so please put me in the Cc: if
+you write an answer to the whole list.
+
+
+PS: Of course at the end it's not important how you break something but
+for a course it would be more interesting to show "standard methods".
+
+Regards,
+Sven
+
+
+- --
+
+sent by Sven Vetsch / Disenchant
+
+www.disenchant.ch
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org <http://enigmail.mozdev.org/> 
+
+iD8DBQFFi6I88luv3I4ijh0RApMVAKDir+yX4mI5NUn9zpzDZ8kuxs1aDACgwd42
+y5CoI7GqrHVXZCWWlWYsywM=
+=KxhB
+-----END PGP SIGNATURE-----
+_______________________________________________
+Owasp-webgoat mailing list
+Owasp-webgoat at lists.owasp.org
+http://lists.owasp.org/mailman/listinfo/owasp-webgoat
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20061223/0436e5ac/attachment.html 
+
+From sven.vetsch at disenchant.ch  Sun Dec 24 10:25:05 2006
+From: sven.vetsch at disenchant.ch (Sven Vetsch / Disenchant)
+Date: Sun, 24 Dec 2006 16:25:05 +0100
+Subject: [Owasp-webgoat] Teacher-Workbook for Webgoat
+In-Reply-To: <7C3B5F778B082349A5F029AA4A61E61932FDA1@g2srvexch01.g2-inc.net>
+References: <458BA23C.2050604@disenchant.ch>
+	<7C3B5F778B082349A5F029AA4A61E61932FDA1@g2srvexch01.g2-inc.net>
+Message-ID: <458E9BD1.7020500@disenchant.ch>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi Bruce,
+because I need something like a workbook to remember how the students
+should solve their stuff I think that I'll do something like this for
+myself. I think that I don't go to do all of the available lessons but
+for the ones that I'll put into my course I'll create something like a
+teacher-workbook. So when it's finished with the content I'll have in
+the course, I'll announce it on this list again but it could be that it
+takes about one month or a bit longer because I've much other things to
+do at the moment.
+
+PS: The main question is still open, so if someone already have some
+kind of workbook etc. please let me know :)
+
+Marry Christmas to all of you.
+
+Regards,
+Sven
+
+
+Bruce Mayhew wrote:
+> Hi Sven
+>  
+> An official WebGoat solutions sheet doesn't exist.  If you send me your solutions, I'd be glad to look them over.  Perhaps, in the future we can have a section of the user guide for solutions
+>  
+> Bruce
+> 
+> ________________________________
+> 
+> From: owasp-webgoat-bounces at lists.owasp.org on behalf of Sven Vetsch / Disenchant
+> Sent: Fri 12/22/2006 4:15 AM
+> To: owasp-webgoat at lists.owasp.org
+> Subject: [Owasp-webgoat] Teacher-Workbook for Webgoat
+> 
+> 
+> 
+> Hi list members,
+> in the near future I've to teach a one week security course and the main
+> topic would be web application security. Now I think it would be great
+> to use WebGoat for give the students an overview about it. So I solved
+> the WebGoat-Lessons for myself for know how to break it. The Problem
+> I've got now is, that I've solved a few lessons in a way which I think
+> wasn't the way the lesson was planned for.So my question is: Is there a
+> "HowTo-Guide" or something like that for WebGoat around?
+> 
+> 
+> Attention: I'm not a member of this list so please put me in the Cc: if
+> you write an answer to the whole list.
+> 
+> 
+> PS: Of course at the end it's not important how you break something but
+> for a course it would be more interesting to show "standard methods".
+> 
+> Regards,
+> Sven
+> 
+> 
+
+
+- --
+
+sent by Sven Vetsch / Disenchant
+
+www.disenchant.ch
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFFjpvR8luv3I4ijh0RAktNAJ9axvb6XY7UH6sFm0wDNTQgE2UdmgCg1df4
+49yZmam0lU25yDaNoqX0qS0=
+=MdYQ
+-----END PGP SIGNATURE-----
+

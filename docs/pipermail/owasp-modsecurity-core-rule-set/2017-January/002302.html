@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 93, Issue 1
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2093%2C%20Issue%201&In-Reply-To=%3CCAPF6YCnYuMux7-3y%2BtZfdF2uGvwZCgJj2Es-qmzTj6tCOp6gWQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002301.html">
+   <LINK REL="Next"  HREF="002303.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 93, Issue 1</H1>
+    <B>Paolo Luise</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2093%2C%20Issue%201&In-Reply-To=%3CCAPF6YCnYuMux7-3y%2BtZfdF2uGvwZCgJj2Es-qmzTj6tCOp6gWQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 93, Issue 1">paolo.luiseit at gmail.com
+       </A><BR>
+    <I>Wed Jan  4 09:16:15 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002301.html">[Owasp-modsecurity-core-rule-set] Redirect to another URL on	blocking problem
+</A></li>
+        <LI>Next message: <A HREF="002303.html">[Owasp-modsecurity-core-rule-set] Problem with ModSecurity internal	error flagged: TX: MSC_PCRE_LIMITS_EXCEEDED
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2302">[ date ]</a>
+              <a href="thread.html#2302">[ thread ]</a>
+              <a href="subject.html#2302">[ subject ]</a>
+              <a href="author.html#2302">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Gessy,
+I had some time to try and replicate your scenario and was able to
+achieve the result you are aiming. The problem is the &quot;chain&quot; keyword
+at the end of the SecRuleUpdateActionById directive; try with this:
+
+SecRuleUpdateActionById 949110 &quot;t: none, redirect: '<A HREF="http://&lt;mycustompage">http://&lt;mycustompage</A>&gt;'&quot;
+
+The manual says:
+Note : If the target rule is a chained rule, you must currently
+specify chain in the SecRuleUpdateActionById action list as well. This
+will be fixed in a future version.
+
+But rule 949110 is not a chained rule.
+
+I'm not sure, but I think the chain word cause the following (changes
+deny with redirect and appends chain at the end of the rule):
+
+SecRule TX:ANOMALY_SCORE &quot;@ge %{tx.inbound_anomaly_score_threshold}&quot; \
+    &quot;msg:'Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE})',\
+    severity:CRITICAL,\
+    phase:request,\
+    id:949110,\
+    t:none,\
+    redirect:'<A HREF="http://&lt;mycustompage">http://&lt;mycustompage</A>&gt;',\
+    log,\
+    tag:'application-multi',\
+    tag:'language-multi',\
+    tag:'platform-multi',\
+    tag:'attack-generic',\
+    setvar:tx.inbound_tx_msg=%{tx.msg},\
+    setvar:tx.inbound_anomaly_score=%{tx.anomaly_score},
+    chain&quot;
+    SecRule TX:PARANOIA_LEVEL &quot;@lt 1&quot;
+&quot;phase:1,id:949011,nolog,pass,skipAfter:END-REQUEST-949-BLOCKING-EVALUATION&quot;
+
+I say I'm not sure about the above chain because redirect and pass are
+both disruptive actions, and there can be only one and in the first
+rule of the chain, so modsecurity should raise an error (but I don't
+get any).
+
+Hope this will help you
+
+Regards
+Paolo Luise
+
+&gt;<i> Date: Mon, 02 Jan 2017 13:51:06 +0000
+</I>&gt;<i> From: Gessy &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">gessycaetano at gmail.com</A>&gt;
+</I>&gt;<i> To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Redirect to another URL on
+</I>&gt;<i>         blocking problem
+</I>&gt;<i> Message-ID:
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CAGxhsK5s5XSCa9GQKV2TuZ9wHToFgzwNLjScFrz36thMDmQ+VQ at mail.gmail.com</A>&gt;
+</I>&gt;<i> Content-Type: text/plain; charset=&quot;utf-8&quot;
+</I>&gt;<i>
+</I>&gt;<i> Hi
+</I>&gt;<i>
+</I>&gt;<i> I installed modsecurity 2.9.1 on a CentOS 6 and tried to use the CRS3 rules.
+</I>&gt;<i> Then I made the default configuration only modified the
+</I>&gt;<i> RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf file so when there is a
+</I>&gt;<i> blocking action, the client is redirected to a specific page.
+</I>&gt;<i>
+</I>&gt;<i> Then I used:
+</I>&gt;<i>
+</I>&gt;<i> SecRuleUpdateActionById 949110 &quot;t: none, redirect: '<A HREF="http://&lt;mycustompage">http://&lt;mycustompage</A>&gt;',
+</I>&gt;<i> chain&quot;
+</I>&gt;<i> SecRuleUpdateActionById 959100 &quot;t: none, redirect: '<A HREF="http://&lt;mycustompage">http://&lt;mycustompage</A>&gt;',
+</I>&gt;<i> chain&quot;
+</I>&gt;<i>
+</I>&gt;<i> But it did not work when I tested it with http:
+</I>&gt;<i> //&lt;mytest&gt;/?foo=../../../etc/passwd
+</I>&gt;<i>
+</I>&gt;<i> When I comment the lines that change the Disruptive Action for Anomaly
+</I>&gt;<i> Mode, the blocking occurs as expected with code 403
+</I>&gt;<i>
+</I>&gt;<i> Does anyone know how to make this work.
+</I>&gt;<i> Thank you!
+</I>&gt;<i>
+</I>&gt;<i> Gessy
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002301.html">[Owasp-modsecurity-core-rule-set] Redirect to another URL on	blocking problem
+</A></li>
+	<LI>Next message: <A HREF="002303.html">[Owasp-modsecurity-core-rule-set] Problem with ModSecurity internal	error flagged: TX: MSC_PCRE_LIMITS_EXCEEDED
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2302">[ date ]</a>
+              <a href="thread.html#2302">[ thread ]</a>
+              <a href="subject.html#2302">[ subject ]</a>
+              <a href="author.html#2302">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

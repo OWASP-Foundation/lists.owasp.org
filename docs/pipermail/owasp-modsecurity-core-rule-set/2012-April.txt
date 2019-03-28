@@ -1,0 +1,155 @@
+From juniorcastelli at gmail.com  Tue Apr  3 17:38:17 2012
+From: juniorcastelli at gmail.com (Junior Castelli)
+Date: Tue, 3 Apr 2012 14:38:17 -0300
+Subject: [Owasp-modsecurity-core-rule-set] regras do modsecurity
+Message-ID: <CAGeC4-6NYmxkuqMwbUNbKuAgn5FeQ=YAGyvmFM2YwwEBx7nsbA@mail.gmail.com>
+
+Pessoal, estive conversando com o Breno na outra lista sobre o modsecurity,
+gostaria de mais informa??es sobre as regras, se fosse poss?vel algum
+material em portugu?s.
+Ele pediu pra mim entrar em contato com o Ryan,
+
+Ol? Junior,
+
+Sobre as regras do CRS, sugiro que vc se inscreva a mail-list do CRS, eu
+mantenho e desenvolvo todo o c?digo do ModSecurity, mas as regras s?o
+mantidas pelo Ryan Barnett, que est? nessa lista que te falei.
+
+Existem muitas maneira de voc? adicionar exce??es/desabilitar o
+modsecurity, evitando assim que um determinado request seja inspecionado ou
+que alguma regra especifica n?o seja ativada para a tal transa??o. O Ryan
+pode te ajudar nesta lista.
+
+Mande pra ele o request e as regras que vc nao quer que o modsecurity
+processe que ele te dir? a melhor maneira de fazer.
+
+Existem tamb?m op??es de regras comerciais como da AtomicCorp e da
+Trustwave.
+
+Abs
+
+
+Breno
+
+On Tue, Apr 3, 2012 at 12:06 PM, Junior Castelli
+<juniorcastelli at gmail.com>wrote:
+Breno, valeu pela resposta, ? bom saber que existem alguns brasileiros por
+aqui.
+
+Eu estou fazendo um teste na minha m?quina, e consegui instalar o
+modsecurity no windows, mas tive que instalar manualmente o PHP e o Apache,
+a? configurei algumas regras padr?es e a regra contra ataques csrf, e
+funcionou legal, 100%, na verdade consigo entender a escrita em ingl?s, mas
+n?o consegui fazer com que fique claro como funciona cada regra, at?
+comecei a fazer um arquivo tentando descrever cada uma para ter uma id?ia.
+
+Ent?o, o que estou precisando ? entender melhor as regras do modsecurity, e
+principalmente as ligadas ao upload de arquivos e ? desativa??o do
+modsecurity, no caso dos componente em flash de upload que utilizo na
+aplica??o, pois com a valida??o do POST, acaba que ele bloqueia o upload,
+tentei desativar via .htaccess, mas parece que n?o funcionou, a? fiquei em
+d?vida sobre o que havia ocorrido.
+
+De qualquer forma, muito obrigado pela resposta.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120403/46585785/attachment.html>
+
+From juniorcastelli at gmail.com  Tue Apr  3 20:05:19 2012
+From: juniorcastelli at gmail.com (Junior Castelli)
+Date: Tue, 3 Apr 2012 17:05:19 -0300
+Subject: [Owasp-modsecurity-core-rule-set] request in ajax,
+	rule modsecurity_crs_43_csrf_protection.conf
+Message-ID: <CAGeC4-7dwX4uitoDEhpACSwdxGRu7M1=UzasjD4UT7uMRertzQ@mail.gmail.com>
+
+csrf how to do in requests ajax, its possible?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120403/30709d8f/attachment.html>
+
+From benwilliams+owasp at joobworld.com  Thu Apr 12 00:09:15 2012
+From: benwilliams+owasp at joobworld.com (Ben WIlliams)
+Date: Thu, 12 Apr 2012 12:09:15 +1200
+Subject: [Owasp-modsecurity-core-rule-set] SecRuleUpdateActionById for each
+	virtual host
+Message-ID: <CANfYGQ=8amqkQMdX4Kaz0_tavqmDehx-S_oB=KrJrrOj5V5mJw@mail.gmail.com>
+
+My site updates the deny rule in
+modsecurity_crs_49_inbound_blocking.conf with this
+
+SecRuleUpdateActionById 981176
+"chain,proxy:http://172.27.69.53/errors/generic.aspx"
+
+This works fine, but now I need to have a different action for each
+virtual host. Placing the line above within the VirtualHost doesn't
+change the deny action.
+
+Any suggestions on how to set a different action for each VirtualHost?
+
+Thanks
+Ben
+
+From benwilliams+owasp at joobworld.com  Thu Apr 12 01:18:26 2012
+From: benwilliams+owasp at joobworld.com (Ben WIlliams)
+Date: Thu, 12 Apr 2012 13:18:26 +1200
+Subject: [Owasp-modsecurity-core-rule-set] SecRuleUpdateActionById for
+	each virtual host
+In-Reply-To: <CANfYGQ=8amqkQMdX4Kaz0_tavqmDehx-S_oB=KrJrrOj5V5mJw@mail.gmail.com>
+References: <CANfYGQ=8amqkQMdX4Kaz0_tavqmDehx-S_oB=KrJrrOj5V5mJw@mail.gmail.com>
+Message-ID: <CANfYGQna-kv7iYcDgqa7AC2+RGZ8S76eb+0qs0ybLz9_GYtPUA@mail.gmail.com>
+
+I have found a solution that seems to work
+
+SecRule REQUEST_HEADERS:Host "example\.com$"
+"phase:1,setvar:tx.proxytarget=http://172.27.69.53/errors/generic.aspx,pass"
+SecRule REQUEST_HEADERS:Host "example2\.com$"
+"phase:1,setvar:tx.proxytarget=http://172.27.69.54/errors/generic.aspx,pass"
+SecRuleUpdateActionById 981176 "chain,proxy:%{tx.proxytarget}"
+
+On Thu, Apr 12, 2012 at 12:09 PM, Ben WIlliams
+<benwilliams+owasp at joobworld.com> wrote:
+> My site updates the deny rule in
+> modsecurity_crs_49_inbound_blocking.conf with this
+>
+> SecRuleUpdateActionById 981176
+> "chain,proxy:http://172.27.69.53/errors/generic.aspx"
+>
+> This works fine, but now I need to have a different action for each
+> virtual host. Placing the line above within the VirtualHost doesn't
+> change the deny action.
+>
+> Any suggestions on how to set a different action for each VirtualHost?
+>
+> Thanks
+> Ben
+
+From RBarnett at trustwave.com  Thu Apr 12 18:26:10 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 12 Apr 2012 13:26:10 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Two Recent ModSecurity Talks at
+	OWASP AppSecDC
+Message-ID: <CBAC9682.4A78B%rbarnett@trustwave.com>
+
+Hey everyone,
+Just as an FYI ? last week, I gave two talks at the OWASP AppSecDC conference which highlight some cutting edge WAF/ModSecurity research I am doing using the Lua API.  Here are links to the PPTs -
+
+ *   Web Application Defense with Bayesian Attack Analysis - http://speakerdeck.com/u/rcbarnett/p/web-application-defense-with-bayesian-attack-analysis-owasp-appsecdc-2012
+
+ *   Dynamic DAST/WAF Integration - http://speakerdeck.com/u/rcbarnett/p/waf-integration-owasp-appsecdc-2012
+
+Please let me know if anyone has any questions or if you are adventurous and want to try out the PoCs let me know!
+
+Cheers.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+ModSecurity Project Lead
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120412/aa111620/attachment.html>
+

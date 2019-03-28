@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20with%20rules%0A%20981243%2C%20981244%20and%20981248&In-Reply-To=CABB75DD.377F9%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000890.html">
+   <LINK REL="Next"  HREF="000891.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248</H1>
+    <B>Claude.Durocher at mcccf.gouv.qc.ca</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20with%20rules%0A%20981243%2C%20981244%20and%20981248&In-Reply-To=CABB75DD.377F9%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248">Claude.Durocher at mcccf.gouv.qc.ca
+       </A><BR>
+    <I>Fri Oct 21 13:44:16 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000890.html">[Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248
+</A></li>
+        <LI>Next message: <A HREF="000891.html">[Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on	request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#898">[ date ]</a>
+              <a href="thread.html#898">[ thread ]</a>
+              <a href="subject.html#898">[ subject ]</a>
+              <a href="author.html#898">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+I have more cases of false positives with 'div' in the arguments : I tried
+to exclude them with &quot;SecRuleUpdateTargetById 981244 !ARGS_NAMES:div&quot; but
+this doesn't work. I also tried &quot;ajaxDiv&quot;, &quot;Div&quot; with no success. I also
+found cases of the word &quot;div&quot; appearing in the url so I wonder if this
+should be completly removed from the rules.
+
+GET /test/detailBien.do?bienId=103948&amp;methode=consulter&amp;contenuOngletId=emplacement&amp;ajaxDiv=true&amp;ajax=true&amp;ms=1319160007747
+ HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr-ca,fr-fr;q=0.8,fr;q=0.6,en-us;q=0.4,en;q=0.2
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Connection: keep-alive
+Referer:
+<A HREF="http://www.mysite.com/test/detailBien.do?methode=consulter&amp;bienId=103948">http://www.mysite.com/test/detailBien.do?methode=consulter&amp;bienId=103948</A>
+Cookie: jbo.ApplicationCookie.Modeletest={904}054A9A0715B18F3C27;
+JSESSIONID=31a35ba68dfe.e3uai1ynknvrIn0; style=null
+
+--73b83d45-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Keep-Alive: timeout=15, max=100
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html
+
+--73b83d45-H--
+Message: Access denied with code 403 (phase 2). Pattern match &quot;(?i:(?:\\d
+(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s+(\&quot;|'|`|\xc2\xb4|\xe2\x80
+\x99|\xe2\x80\x98)\\s+\\d)|(?:^admin\\s*(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2
+\x80\x98)|(\\/\\*)+(\&quot;|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)+\\s?(?:--|#|
+\\/\\*|{)?)|(?:(\&quot;|'| ...&quot; at ARGS_NAMES:ajaxDiv. [file
+&quot;/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+ [line &quot;533&quot;] [id &quot;981244&quot;] [msg &quot;Detects basic SQL authentication bypass
+attempts 1/3&quot;] [data &quot;Div&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;]
+[tag &quot;WEB_ATTACK/ID&quot;] [tag &quot;WEB_ATTACK/LFI&quot;]
+Action: Intercepted (phase 2)
+
+-------------
+
+
+Right, there is a low chance of false negatives for SQLi attack against
+REQUEST_FILENAME. We will remove it from the TARGET list in the next rev.
+In the meantime, I would add in a SecRuleUpdateTargetById directive to
+exclude it.
+
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME
+
+-Ryan
+
+From:
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Claude.Durocher at mcccf.gouv.qc.ca</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Claude.Durocher at mcccf.gouv.qc.ca</A>&gt;&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Claude.Durocher at mcccf.gouv.qc.ca</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Claude.Durocher at mcccf.gouv.qc.ca</A>&gt;&gt;
+Date: Wed, 12 Oct 2011 15:41:59 -0500
+To:
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot;
+
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: [Owasp-modsecurity-core-rule-set] false positive with rules
+981243, 981244 and 981248
+
+
+[cid:1__=<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">0ABBF3B4DFE2F6398f9e8a9 at mcccf.gouv.qc.ca</A>]
+- Avis: Ce message est confidentiel et ne s'adresse qu'aux destinataires.
+Si vous le recevez par erreur, veuillez le supprimer et nous en aviser.
+-
+Hi,
+
+I'm getting false positive with rules 981243, 981244 and 981248 (core rule
+set 2.2.2 and mod_security 2.6). Seems like the rule don't like &quot;dIv&quot; or
+&quot;div&quot; in the url.
+
+Is there a way to use SecRuleUpdateTargetById to handle this ?
+
+
+--37216702-B--
+GET /uploads/tx_jcarousel/dIversite-culturelle-2_01.gif HTTP/1.1
+Host: www.myhost.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:7.0.1) Gecko/20100101
+Firefox/7.0.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: fr,fr-fr;q=0.8,en;q=0.5,en-us;q=0.3
+Accept-Encoding: gzip, deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+DNT: 1
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+&quot;(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+...&quot; at REQUEST_FILENAME. [file
+&quot;/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+[line &quot;539&quot;] [id &quot;981248&quot;] [msg &quot;Detects chained SQL injection attempts
+1/2&quot;] [data &quot;dIv&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;] [tag
+&quot;WEB_ATTACK/ID&quot;]
+
+Connection: keep-alive
+Cookie: style=normal; user=678843ea0aa41; cookies=true
+Cache-Control: max-age=0
+
+--37216702-F--
+HTTP/1.1 403 Forbidden
+Accept-Ranges: bytes
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Content-Length: 576
+Keep-Alive: timeout=15, max=97
+Connection: Keep-Alive
+Content-Type: text/html
+
+--37216702-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match
+&quot;(?i:(?:@.+=\\s*\\(\\s*select)|(?:\\d+\\s*x?or|div|like|between|and\\s*\\d+
+\\s*[\\-+])|(?:\\/\\w+;?\\s+(?:having|and|x?or|div|like|between|and|
+select)\\W)|(?:\\d\\s+group\\s+by.+\\()|(?:(?:;|#|--)\\s*(?:drop|alter))|
+(?:(?:;|#|--)\\s*(?:update|insert)\\s
+...&quot; at REQUEST_FILENAME. [file
+&quot;/etc/apache2/conf.d/mod_security/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+[line &quot;539&quot;] [id &quot;981248&quot;] [msg &quot;Detects chained SQL injection attempts
+1/2&quot;] [data &quot;dIv&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;] [tag
+&quot;WEB_ATTACK/ID&quot;]
+
+
+Claude
+
+________________________________
+This transmission may contain information that is privileged, confidential,
+and/or exempt from disclosure under applicable law. If you are not the
+intended recipient, you are hereby notified that any disclosure, copying,
+distribution, or use of the information contained herein (including any
+reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+in error, please immediately contact the sender and destroy the material in
+its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111021/3d849f45/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111021/3d849f45/attachment.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000890.html">[Owasp-modsecurity-core-rule-set] false positive with rules 981243, 981244 and 981248
+</A></li>
+	<LI>Next message: <A HREF="000891.html">[Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on	request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#898">[ date ]</a>
+              <a href="thread.html#898">[ thread ]</a>
+              <a href="subject.html#898">[ subject ]</a>
+              <a href="author.html#898">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%22document.gif%22%20got%20denied%0A%20after%20update%20ModSecurity%20to%202.5.10%20with%20Core%20Rules%20v2&In-Reply-To=COL122-W45D670C92FD136B890B78CF2AA0%40phx.gbl">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000148.html">
+   <LINK REL="Next"  HREF="000151.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%22document.gif%22%20got%20denied%0A%20after%20update%20ModSecurity%20to%202.5.10%20with%20Core%20Rules%20v2&In-Reply-To=COL122-W45D670C92FD136B890B78CF2AA0%40phx.gbl"
+       TITLE="[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2">Ryan.Barnett at breach.com
+       </A><BR>
+    <I>Wed Nov 11 12:23:44 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000148.html">[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2
+</A></li>
+        <LI>Next message: <A HREF="000151.html">[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied	after update ModSecurity to 2.5.10 with Core Rules v2
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#149">[ date ]</a>
+              <a href="thread.html#149">[ thread ]</a>
+              <a href="subject.html#149">[ subject ]</a>
+              <a href="author.html#149">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Check in the modsec_audit.log file to see what the Message details are in section H.  This will show you exactly which rules were triggering and what portion of data matched.  i am guessing it is the &quot;document.&quot; data.  What you will want to do is to create an exception in the modsecurity_crs_48_local_exceptions.conf file.  Take a look at the commented out examples in the file for guidance on what rule to use.  Basically, you will want to create a rule that will inspect the TX variable data from the previous XSS rule that matched.  You do this by specifying the correct rule id, and matched variable location and payload.  If all of this matches (which is a false positive in your case) you then simply expire that TX variable and decrement the anomaly score.
+
+Let me know if you need any more help.
+
+-Ryan
+
+________________________________
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A> [<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On Behalf Of DarkRanger DarkRanger [<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">darkranger_red at hotmail.com</A>]
+Sent: Wednesday, November 11, 2009 12:15 PM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: [Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2
+
+File form here:
+<A HREF="http://koji.fedoraproject.org/koji/buildinfo?buildID=140180">http://koji.fedoraproject.org/koji/buildinfo?buildID=140180</A>
+
+Here's my log:
+
+[Thu Nov 12 00:26:05 2009] [error] [client 61.64.173.115] ModSecurity: Warning. Operator GE matched 5 at TX:anomaly_score. [file &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score (score 20): Detects very basic XSS probings&quot;] [hostname &quot;darkranger.no-ip.org&quot;] [uri &quot;/image/document.gif&quot;] [unique_id &quot;SvrlnX8AAAEAAC0TRNwAAAAA&quot;]
+
+I guess this GIF file is just denied by name, because if I rename it to &quot;document2.gif&quot; and got passed. So how to fix in modsecurity?
+
+________________________________
+&#23940;&#26032;&#30340; Windows 7&#65306;&#25214;&#20986;&#36969;&#21512;&#24744;&#30340;&#38651;&#33126;&#12290; &#28145;&#20837;&#20102;&#35299;&#12290;&lt;<A HREF="http://windows.microsoft.com/shop">http://windows.microsoft.com/shop</A>&gt;
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091111/ab397f46/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091111/ab397f46/attachment.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000148.html">[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied after update ModSecurity to 2.5.10 with Core Rules v2
+</A></li>
+	<LI>Next message: <A HREF="000151.html">[Owasp-modsecurity-core-rule-set] &quot;document.gif&quot; got denied	after update ModSecurity to 2.5.10 with Core Rules v2
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#149">[ date ]</a>
+              <a href="thread.html#149">[ thread ]</a>
+              <a href="subject.html#149">[ subject ]</a>
+              <a href="author.html#149">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

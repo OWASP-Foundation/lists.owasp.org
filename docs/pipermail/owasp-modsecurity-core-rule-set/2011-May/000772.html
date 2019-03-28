@@ -1,0 +1,449 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [Mod-security-developers] CRS DoS protection &amp; x-forwarded-for header
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BMod-security-developers%5D%20CRS%0A%20DoS%20protection%20%26%20x-forwarded-for%20header&In-Reply-To=478539.21031.qm%40web37602.mail.mud.yahoo.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000770.html">
+   <LINK REL="Next"  HREF="000774.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [Mod-security-developers] CRS DoS protection &amp; x-forwarded-for header</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BMod-security-developers%5D%20CRS%0A%20DoS%20protection%20%26%20x-forwarded-for%20header&In-Reply-To=478539.21031.qm%40web37602.mail.mud.yahoo.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] [Mod-security-developers] CRS DoS protection &amp; x-forwarded-for header">RBarnett at trustwave.com
+       </A><BR>
+    <I>Fri May  6 20:26:45 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000770.html">[Owasp-modsecurity-core-rule-set] [Mod-security-developers] CRS DoS protection &amp; x-forwarded-for header
+</A></li>
+        <LI>Next message: <A HREF="000774.html">[Owasp-modsecurity-core-rule-set] Unicode Visual Spoofing for Good:	Confusable CAPTCHAs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#772">[ date ]</a>
+              <a href="thread.html#772">[ thread ]</a>
+              <a href="subject.html#772">[ subject ]</a>
+              <a href="author.html#772">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This one seems to work in ModSecurity (verified with the debug log).  I
+matches a single IP, or the 1st one when there a multiple and it handles
+IPv6 addresses as well -
+
+SecRule  REQUEST_HEADERS:User-Agent  &quot;^(.*)$&quot; \
+        &quot;phase:1,t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_
+var}&quot;
+SecRule  REQUEST_HEADERS:x-forwarded-for &quot;^([0-9a-fA-F\.\:]*),?.*$&quot; \
+        &quot;phase:1,t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}
+SecRule  &amp;TX:REAL_IP &quot;@eq  0&quot; \
+        &quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}
+_%{tx.ua_hash},,setvar:tx.real_ip=%{remote_addr}&quot;
+SecRule  &amp;TX:REAL_IP &quot;!@eq  0&quot; \
+        &quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_
+%{tx.ua_hash}&quot;
+
+
+
+By the way - with regards to the pcre matching, switch your single/double
+quotes around to test -
+
+perl -e '&quot;1.2.3.4&quot; =~ m/^([0-9a-fA-F\.\:]*),?.*$/; print &quot;$1\n&quot;;'
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+Email: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>
+Phone: (703) 794-2248
+Cell: (571) 382-0476
+www.trustwave.com
+
+This transmission may contain information that is privileged,
+confidential, and/or exempt from disclosure under applicable law. If you
+are not the intended recipient, you are hereby notified that any
+disclosure, copying, distribution, or use of the information contained
+herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+received this transmission in error, please immediately contact the sender
+and destroy the material in its entirety, whether in electronic or hard
+copy format. Thank you.
+
+
+
+On 5/6/11 5:41 PM, &quot;Oleg Gryb&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&gt; wrote:
+
+&gt;<i>Ryan,
+</I>&gt;<i>That might not work for a single IP in x-forwarded-for header, becuase
+</I>&gt;<i>non-greedy match for (.*?) will return empty string.
+</I>&gt;<i>
+</I>&gt;<i>Try:
+</I>&gt;<i>
+</I>&gt;<i>perl -e &quot;'1.2.3.4' =~ /^(.*?),?.*$/; print $1;&quot;
+</I>&gt;<i>
+</I>&gt;<i>and you'll see what I mean. I'm assuming here that modsecurity uses PCRE.
+</I>&gt;<i>
+</I>&gt;<i>Thanks,
+</I>&gt;<i>Oleg.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>----- Original Message ----
+</I>&gt;&gt;<i> From: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg at gryb.info</A>&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg at gryb.info</A>&gt;;
+</I>&gt;&gt;<i>&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&quot;
+</I>&gt;&gt;<i>&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&gt;
+</I>&gt;&gt;<i> Cc: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;&gt;<i>&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> Sent: Fri, May 6, 2011 10:29:57 AM
+</I>&gt;&gt;<i> Subject: Re: [Mod-security-developers] CRS DoS protection &amp;
+</I>&gt;&gt;<i>x-forwarded-for
+</I>&gt;&gt;<i>header
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Good point about IPv6.  Looks like we could still do this using the
+</I>&gt;&gt;<i>same  #
+</I>&gt;&gt;<i> of SecRules and just not using an IP regex like this -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule  REQUEST_HEADERS:User-Agent  &quot;^(.*)$&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched
+</I>&gt;&gt;<i>_v
+</I>&gt;&gt;<i> ar}&quot;
+</I>&gt;&gt;<i> SecRule  REQUEST_HEADERS:x-forwarded-for  &quot;^(.*?),?.*$&quot;
+</I>&gt;&gt;<i> &quot;phase:1,t:none,pass,nolog,setvar:tx.real_ip=%{matched_var}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule  &amp;TX:REAL_IP &quot;@eq  0&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr
+</I>&gt;&gt;<i>}_
+</I>&gt;&gt;<i> %{tx.ua_hash},,setvar:tx.real_ip=%{remote_addr}&quot;
+</I>&gt;&gt;<i> SecRule  &amp;TX:REAL_IP &quot;!@eq  0&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}
+</I>&gt;&gt;<i>_%
+</I>&gt;&gt;<i> {tx.ua_hash}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On  5/6/11 1:16 PM, &quot;Oleg Gryb&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&gt;  wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt;Ryan,
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;Thanks for the update. It might have  problems with IPv6 though. Here
+</I>&gt;&gt;<i>are
+</I>&gt;&gt;<i> &gt;my rules: they search for ',' and  disregard the IP structure:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;SecRule  REQUEST_HEADERS:User-Agent  &quot;^(.*)$&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matche
+</I>&gt;&gt;&gt;<i>d_
+</I>&gt;&gt;<i> &gt;var}&quot;
+</I>&gt;&gt;<i> &gt;SecRule  REQUEST_HEADERS:x-forwarded-for  &quot;^(.*)$&quot;
+</I>&gt;&gt;<i> &gt;&quot;phase:1,t:none,pass,nolog,setvar:tx.real_ip=%{matched_var}&quot;
+</I>&gt;&gt;<i> &gt;SecRule  TX:REAL_IP  &quot;^(.*?),.*$&quot;
+</I>&gt;&gt;<i> &gt;&quot;phase:1,t:none,pass,nolog,capture,setvar:tx.real_ip=%{TX.1}&quot;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;SecRule  &amp;TX:REAL_IP &quot;@eq  0&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_add
+</I>&gt;&gt;&gt;<i>r}
+</I>&gt;&gt;<i> &gt;_%{tx.ua_hash},,setvar:tx.real_ip=%{remote_addr}&quot;
+</I>&gt;&gt;<i> &gt;SecRule  &amp;TX:REAL_IP &quot;!@eq  0&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip
+</I>&gt;&gt;&gt;<i>}_
+</I>&gt;&gt;<i> &gt;%{tx.ua_hash}&quot;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;Thanks,
+</I>&gt;&gt;<i> &gt;Oleg.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;---  On Thu, 5/5/11, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;  wrote:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;&gt; From: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt;  Subject: Re: [Mod-security-developers] CRS DoS protection  &amp;
+</I>&gt;&gt;<i> &gt;&gt;x-forwarded-for header
+</I>&gt;&gt;<i> &gt;&gt; To: &quot;Oleg Gryb&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg at gryb.info</A>&gt;,
+</I>&gt;&gt;<i> &gt;&gt;&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&quot;
+</I>&gt;&gt;<i> &gt;&gt;&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt;  Cc: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;&gt;<i> &gt;&gt;&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt;  Date: Thursday, May 5, 2011, 10:46 AM
+</I>&gt;&gt;<i> &gt;&gt; FYI - updated the CRS 10  config file
+</I>&gt;&gt;<i> &gt;&gt; to add in this logic and uploaded it to SVN  -
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i><A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/m">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/m</A>
+</I>&gt;&gt;&gt;&gt;<i>od
+</I>&gt;&gt;<i> &gt;&gt;security_crs_10_config.conf.example?revision=1772
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  #
+</I>&gt;&gt;<i> &gt;&gt; # -=[ Global and IP Collections ]=-
+</I>&gt;&gt;<i> &gt;&gt; #
+</I>&gt;&gt;<i> &gt;&gt; #  Create both Global and IP collections for rules to use
+</I>&gt;&gt;<i> &gt;&gt; # There are  some CRS rules that assume that these two
+</I>&gt;&gt;<i> &gt;&gt; collections
+</I>&gt;&gt;<i> &gt;&gt; #  have already been initiated.
+</I>&gt;&gt;<i> &gt;&gt; #
+</I>&gt;&gt;<i> &gt;&gt; SecRule  REQUEST_HEADERS:User-Agent  &quot;^(.*)$&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_
+</I>&gt;&gt;&gt;&gt;<i>ha
+</I>&gt;&gt;<i> &gt;&gt;sh=%{matched_var}&quot;
+</I>&gt;&gt;<i> &gt;&gt;  SecRule REQUEST_HEADERS:x-forwarded-for
+</I>&gt;&gt;<i> &gt;&gt;  &quot;^\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1
+</I>&gt;&gt;&gt;&gt;<i>}&quot;
+</I>&gt;&gt;<i> &gt;&gt;  SecRule &amp;TX:REAL_IP &quot;!@eq  0&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip
+</I>&gt;&gt;&gt;&gt;<i>=%
+</I>&gt;&gt;<i> &gt;&gt;{tx.real_ip}_%{tx.ua_hash}&quot;
+</I>&gt;&gt;<i> &gt;&gt;  SecRule &amp;TX:REAL_IP &quot;@eq  0&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip
+</I>&gt;&gt;&gt;&gt;<i>=%
+</I>&gt;&gt;<i> &gt;&gt;{remote_addr}_%{tx.ua_hash}&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  The new rules will grab the first IP address listed in an
+</I>&gt;&gt;<i> &gt;&gt;  X-Forwared-For header and use that for the IP collection
+</I>&gt;&gt;<i> &gt;&gt; key.   If X-Forwarded-For is not present, then it will
+</I>&gt;&gt;<i> &gt;&gt; use  REMOTE_ADDR.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Thanks for the  suggestion!
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; -Ryan
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; On  4/28/11 8:19 PM, &quot;Oleg Gryb&quot;
+</I>&gt;&gt;<i> &gt;&gt;&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  wrote:
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; I've just realized that there might be a problem  with
+</I>&gt;&gt;<i> &gt;&gt; relying on that header: if
+</I>&gt;&gt;<i> &gt;&gt; an attacker  intentionally sends different random IPs in
+</I>&gt;&gt;<i> &gt;&gt; there, DoS  protection
+</I>&gt;&gt;<i> &gt;&gt; can be efficiently by-passed. In my case it should  not
+</I>&gt;&gt;<i> &gt;&gt; happen, because an LB is
+</I>&gt;&gt;<i> &gt;&gt; the one who adds the  header, but in general we should warn
+</I>&gt;&gt;<i> &gt;&gt; engineers about  the
+</I>&gt;&gt;<i> &gt;&gt; possible exploit.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Actually,  even in LB case: if a request has already had the
+</I>&gt;&gt;<i> &gt;&gt; header, LB  will
+</I>&gt;&gt;<i> &gt;&gt; create a new one with the existing value appended to  the
+</I>&gt;&gt;<i> &gt;&gt; client IP:
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; x-forwarded-for:  real-client-ip,
+</I>&gt;&gt;<i> &gt;&gt; whatever-client-sent-to-LB
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  It means that we would need to rely on the the first IP in
+</I>&gt;&gt;<i> &gt;&gt; the list,  everything
+</I>&gt;&gt;<i> &gt;&gt; else should be considered as  untrusted.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Thanks,
+</I>&gt;&gt;<i> &gt;&gt;  Oleg.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; ----- Original Message  ----
+</I>&gt;&gt;<i> &gt;&gt; From: Ryan Barnett
+</I>&gt;&gt;<i> &gt;&gt;&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  To: Oleg Gryb &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg at gryb.info</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg at gryb.info</A>&gt;&gt;;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&lt;mailto:mod-security-deve
+</I>&gt;&gt;&gt;&gt;<i>lo
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">pers at lists.sourceforge.net</A>&gt;&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&lt;mailto:mod-security-deve
+</I>&gt;&gt;&gt;&gt;<i>lo
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">pers at lists.sourceforge.net</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  Cc:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:owasp-modsecuri
+</I>&gt;&gt;&gt;&gt;<i>ty
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">-core-rule-set at lists.owasp.org</A>&gt;&quot;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:owasp-modsecuri
+</I>&gt;&gt;&gt;&gt;<i>ty
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  Sent: Thu, April 28, 2011 4:41:14 PM
+</I>&gt;&gt;<i> &gt;&gt; Subject: Re:  [Mod-security-developers] CRS DoS protection
+</I>&gt;&gt;<i> &gt;&gt; &amp;  x-forwarded-for
+</I>&gt;&gt;<i> &gt;&gt; header
+</I>&gt;&gt;<i> &gt;&gt; Thanks for the updates  Oleg!  This will certainly be a
+</I>&gt;&gt;<i> &gt;&gt; useful update   to
+</I>&gt;&gt;<i> &gt;&gt; not only the DoS rules buy any rules that will be based  on
+</I>&gt;&gt;<i> &gt;&gt; the client  IP.
+</I>&gt;&gt;<i> &gt;&gt; I will actually go back to check  other uses of REMOTE_ADDR
+</I>&gt;&gt;<i> &gt;&gt; and see if  we
+</I>&gt;&gt;<i> &gt;&gt; can swap  it for tx.real_ip instead.
+</I>&gt;&gt;<i> &gt;&gt; I will add this to the CRS  v2.2.0  that I am working
+</I>&gt;&gt;<i> &gt;&gt; on.
+</I>&gt;&gt;<i> &gt;&gt; For future reference - here is the  OWASP CRS
+</I>&gt;&gt;<i> &gt;&gt; mail-list -
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> &gt;&gt;  --
+</I>&gt;&gt;<i> &gt;&gt; Ryan  Barnett
+</I>&gt;&gt;<i> &gt;&gt; Senior Security  Researcher
+</I>&gt;&gt;<i> &gt;&gt; Trustwave -  SpiderLabs
+</I>&gt;&gt;<i> &gt;&gt; On 4/28/11 7:32  PM, &quot;Oleg Gryb&quot;
+</I>&gt;&gt;<i> &gt;&gt;&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">oleg_gryb at yahoo.com</A>&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;I'm not sure if I can discuss CRS rules here. If  not,
+</I>&gt;&gt;<i> &gt;&gt; please  let me know
+</I>&gt;&gt;<i> &gt;&gt; &gt;what
+</I>&gt;&gt;<i> &gt;&gt;  &gt;the right place is. I want to suggest an
+</I>&gt;&gt;<i> &gt;&gt; improvement to DoS  protection in
+</I>&gt;&gt;<i> &gt;&gt; &gt;CRS
+</I>&gt;&gt;<i> &gt;&gt; &gt;2.1.2. The problem is  that  enterprise
+</I>&gt;&gt;<i> &gt;&gt; applications usually run behind
+</I>&gt;&gt;<i> &gt;&gt;  &gt;load
+</I>&gt;&gt;<i> &gt;&gt; &gt;balancers, so  relying on remote_addr doesn't  make
+</I>&gt;&gt;<i> &gt;&gt; too much sense, because
+</I>&gt;&gt;<i> &gt;&gt; &gt;you'll
+</I>&gt;&gt;<i> &gt;&gt;  &gt;always have an LB's IP in there.
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;  &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;My improved  rules (attached)  check  for
+</I>&gt;&gt;<i> &gt;&gt; x-forwarded-for header and if
+</I>&gt;&gt;<i> &gt;&gt; &gt;it's
+</I>&gt;&gt;<i> &gt;&gt;  &gt;present, this IP will be used to initialize IP
+</I>&gt;&gt;<i> &gt;&gt; collection. If  it's  not
+</I>&gt;&gt;<i> &gt;&gt; &gt;then the
+</I>&gt;&gt;<i> &gt;&gt; &gt;old logic will be  used.
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;It would be  great if we can include  this
+</I>&gt;&gt;<i> &gt;&gt; improvement to the next  CRS
+</I>&gt;&gt;<i> &gt;&gt;  &gt;release.
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;Thanks,
+</I>&gt;&gt;<i> &gt;&gt;  &gt;Oleg.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>-----------------------------------------------------------------------
+</I>&gt;&gt;&gt;&gt;<i>--
+</I>&gt;&gt;<i> &gt;&gt;-----
+</I>&gt;&gt;<i> &gt;&gt;  WhatsUp  Gold - Download Free Network Management
+</I>&gt;&gt;<i> &gt;&gt;  Software
+</I>&gt;&gt;<i> &gt;&gt; The most intuitive,  comprehensive, and  cost-effective
+</I>&gt;&gt;<i> &gt;&gt; network
+</I>&gt;&gt;<i> &gt;&gt; management toolset  available  today.  Delivers
+</I>&gt;&gt;<i> &gt;&gt; lowest initial
+</I>&gt;&gt;<i> &gt;&gt;  acquisition cost and overall TCO of any
+</I>&gt;&gt;<i> &gt;&gt; competing   solution.
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="http://p.sf.net/sfu/whatsupgold-sd">http://p.sf.net/sfu/whatsupgold-sd</A>
+</I>&gt;&gt;<i> &gt;&gt;  _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;  mod-security-developers  mailing list
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&lt;mailto:mod-security-devel
+</I>&gt;&gt;&gt;&gt;<i>op
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ers at lists.sourceforge.net</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.sourceforge.net/lists/listinfo/mod-security-developers">https://lists.sourceforge.net/lists/listinfo/mod-security-developers</A>
+</I>&gt;&gt;<i> &gt;&gt;  ModSecurity  Services from Trustwave's SpiderLabs:
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://www.trustwave.com/spiderLabs.php">https://www.trustwave.com/spiderLabs.php</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>-----------------------------------------------------------------------
+</I>&gt;&gt;&gt;&gt;<i>--
+</I>&gt;&gt;<i> &gt;&gt;-----
+</I>&gt;&gt;<i> &gt;&gt;  WhatsUp Gold - Download Free Network Management Software
+</I>&gt;&gt;<i> &gt;&gt; The most  intuitive, comprehensive, and cost-effective
+</I>&gt;&gt;<i> &gt;&gt; network
+</I>&gt;&gt;<i> &gt;&gt;  management toolset available today.  Delivers lowest
+</I>&gt;&gt;<i> &gt;&gt;  initial
+</I>&gt;&gt;<i> &gt;&gt; acquisition cost and overall TCO of any  competing
+</I>&gt;&gt;<i> &gt;&gt; solution.
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="http://p.sf.net/sfu/whatsupgold-sd">http://p.sf.net/sfu/whatsupgold-sd</A>
+</I>&gt;&gt;<i> &gt;&gt;  _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;  mod-security-developers mailing list
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-developers at lists.sourceforge.net</A>&lt;mailto:mod-security-devel
+</I>&gt;&gt;&gt;&gt;<i>op
+</I>&gt;&gt;<i> &gt;&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ers at lists.sourceforge.net</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.sourceforge.net/lists/listinfo/mod-security-developers">https://lists.sourceforge.net/lists/listinfo/mod-security-developers</A>
+</I>&gt;&gt;<i> &gt;&gt;  ModSecurity Services from Trustwave's SpiderLabs:
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://www.trustwave.com/spiderLabs.php">https://www.trustwave.com/spiderLabs.php</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;  ________________________________
+</I>&gt;&gt;<i> &gt;&gt; This transmission may contain  information that is
+</I>&gt;&gt;<i> &gt;&gt; privileged, confidential, and/or exempt from  disclosure
+</I>&gt;&gt;<i> &gt;&gt; under applicable law. If you are not the intended  recipient,
+</I>&gt;&gt;<i> &gt;&gt; you are hereby notified that any disclosure,  copying,
+</I>&gt;&gt;<i> &gt;&gt; distribution, or use of the information contained  herein
+</I>&gt;&gt;<i> &gt;&gt; (including any reliance thereon) is STRICTLY PROHIBITED.  If
+</I>&gt;&gt;<i> &gt;&gt; you received this transmission in error, please  immediately
+</I>&gt;&gt;<i> &gt;&gt; contact the sender and destroy the material in its  entirety,
+</I>&gt;&gt;<i> &gt;&gt; whether in electronic or hard copy  format.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> This transmission may contain  information that is privileged,
+</I>&gt;&gt;<i>confidential,
+</I>&gt;&gt;<i>and/or exempt from disclosure  under applicable law. If you are not the
+</I>&gt;&gt;<i>intended
+</I>&gt;&gt;<i>recipient, you are hereby  notified that any disclosure, copying,
+</I>&gt;&gt;<i>distribution,
+</I>&gt;&gt;<i>or use of the information  contained herein (including any reliance
+</I>&gt;&gt;<i>thereon) is
+</I>&gt;&gt;<i>STRICTLY PROHIBITED. If you  received this transmission in error, please
+</I>&gt;&gt;<i>immediately contact the sender and  destroy the material in its entirety,
+</I>&gt;&gt;<i>whether in electronic or hard copy  format.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000770.html">[Owasp-modsecurity-core-rule-set] [Mod-security-developers] CRS DoS protection &amp; x-forwarded-for header
+</A></li>
+	<LI>Next message: <A HREF="000774.html">[Owasp-modsecurity-core-rule-set] Unicode Visual Spoofing for Good:	Confusable CAPTCHAs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#772">[ date ]</a>
+              <a href="thread.html#772">[ thread ]</a>
+              <a href="subject.html#772">[ subject ]</a>
+              <a href="author.html#772">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20New%20Detection%20Point%20Candidate%3A%20AE13%3A%0A%20Deviation%20from%20normal%20GEO%20location%20during%20login&In-Reply-To=%3CCE03EC14.ADC88%25ryan.barnett%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000564.html">
+   <LINK REL="Next"  HREF="000568.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20New%20Detection%20Point%20Candidate%3A%20AE13%3A%0A%20Deviation%20from%20normal%20GEO%20location%20during%20login&In-Reply-To=%3CCE03EC14.ADC88%25ryan.barnett%40owasp.org%3E"
+       TITLE="[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login">ryan.barnett at owasp.org
+       </A><BR>
+    <I>Thu Jul 11 09:12:35 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000564.html">[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login
+</A></li>
+        <LI>Next message: <A HREF="000568.html">[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#566">[ date ]</a>
+              <a href="thread.html#566">[ thread ]</a>
+              <a href="subject.html#566">[ subject ]</a>
+              <a href="author.html#566">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Kevin/John,
+You both bring up valid use-case points for consideration.  John, I agree
+with your last paragraph in that this should be used as a potential fraud
+indicator and not something that you would just start blocking on its own.
+While the issues of mobile/VPN usage are valid, I am also looking at fact
+that there are a large percentage of banking users that never use mobile
+devices and only bank from their home computer system.  For these users,
+have some type of GeoLocation validation works great for them and would
+allow securty systems to quickly identify an anomalous event if their source
+location changes.  
+
+For implementation purposes, I would think that this type of Detection Point
+would have some type of learning model that would be able to learn which
+GeoLocations are considered &quot;normal&quot;.  For your VPN scenario &#173; if this was
+applied against myself, then the protect app would learn that I normally
+login from either &quot;Fairfax, VA&quot; or &quot;Chicago, IL&quot;.  If it is any other
+location, then raise a fraud detection flag.  This of course is more
+granular to the Geo City level.  Another easier scenario would be to flag
+only if the Geo Country Code changes.  As you stated, maybe I always login
+from US but then suddently there is a login from a .RU location&#138; This is
+often seen when Banking Trojans phish or form-grab login creds or sessionIDs
+and then send them to the criminals who immediately then login to the
+session.
+
+-Ryan
+
+From:  John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt;
+Date:  Thursday, July 11, 2013 1:44 AM
+To:  &quot;Kevin W. Wall&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">kevin.w.wall at gmail.com</A>&gt;
+Cc:  owasp-appsensor-project &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">owasp-appsensor-project at lists.owasp.org</A>&gt;
+Subject:  Re: [Owasp-appsensor-project] New Detection Point Candidate: AE13:
+Deviation from normal GEO location during login
+
+&gt;<i> I'm trying to think of use cases here. The couple of examples listed are banks
+</I>&gt;<i> authenticating a new IP or a site accessed from a new country. Banks have
+</I>&gt;<i> several mechanisms they use to try and determine if a user is coming from a
+</I>&gt;<i> trusted machine including geolocation, reusing an IP address, a token on the
+</I>&gt;<i> host, etc. Some sites might only allow access from a given IP block presumably
+</I>&gt;<i> (example being your vpn/non-vpn access or something like it) You might only be
+</I>&gt;<i> allowed to login if you came over the VPN IP address/geolocation. I can also
+</I>&gt;<i> see the usage of limiting site access by country. Maybe you are doing
+</I>&gt;<i> something based on language internationalization or you want to naively
+</I>&gt;<i> restrict certain countries visitors from seeing your information.
+</I>&gt;<i> 
+</I>&gt;<i> One of the examples I can see based on what you mentioned is that a user logs
+</I>&gt;<i> in from Western Europe to site X, then logs out. They then hop on the VPN and
+</I>&gt;<i> are routed through central US and then log back onto site X within a few
+</I>&gt;<i> minutes. There is no logical way a user could move that quickly that fast, and
+</I>&gt;<i> that _may_ point to their session being hijacked.
+</I>&gt;<i> 
+</I>&gt;<i> I think the crucial thing here is &quot;some&quot; applications. I think as a general
+</I>&gt;<i> rule, geolocation is only useful as a single indicator, not as the sole
+</I>&gt;<i> decision point. There are just too many technical reasons it could be invalid.
+</I>&gt;<i> If you have a specific use case where you know you can use it as the
+</I>&gt;<i> determining factor and not adversely affect your users, then by all means. I
+</I>&gt;<i> just don't think that's a common situation for geolocation.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Thu, Jul 11, 2013 at 1:07 AM, Kevin W. Wall &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">kevin.w.wall at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> On Thu, Jul 4, 2013 at 8:35 AM, Colin Watson &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">colin.watson at owasp.org</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i> &gt; Added:
+</I>&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;<i> &gt; 
+</I>&gt;&gt;&gt;<i> <A HREF="https://www.owasp.org/index.php/AppSensor_DetectionPoints#AE13:_Deviation_fr">https://www.owasp.org/index.php/AppSensor_DetectionPoints#AE13:_Deviation_fr</A>
+</I>&gt;&gt;&gt;<i> om_Normal_GEO_Location
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> All,
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Hate to be a fly in the ointment, but I think we need to think
+</I>&gt;&gt;<i> this through a bit more.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I think one question that ought to be asked if a person is normally
+</I>&gt;&gt;<i> using a phone or other mobile device with GPS or other location
+</I>&gt;&gt;<i> info made available and then all of a sudden, that information
+</I>&gt;&gt;<i> stops coming, how would / should this detection point react?
+</I>&gt;&gt;<i> Would it even be triggered? Might we consider it a normal thing
+</I>&gt;&gt;<i> that someone disables their GPS? (I do that all the time to save
+</I>&gt;&gt;<i> battery. Even more often since the Snowden leaks, but I digress.)
+</I>&gt;&gt;<i> But if the geo-location information is based on something like
+</I>&gt;&gt;<i> GPS or the courser-grained cell-tower triangulation and then an
+</I>&gt;&gt;<i> app stops getting that? Do we flag it or not? How do we recommend
+</I>&gt;&gt;<i> an application using this detection point in AppSensor proceed
+</I>&gt;&gt;<i> if that information suddenly becomes unavailable?  Note that
+</I>&gt;&gt;<i> having an answer for this is important. If we simply say &quot;okay,
+</I>&gt;&gt;<i> it is normal for people to disable these services to save batteries
+</I>&gt;&gt;<i> or whatever&quot;, then an attacker can just not send that information.
+</I>&gt;&gt;<i> On the other hand, if you try to locate this simply based on
+</I>&gt;&gt;<i> information for IP addresses, that is liable to have a lot of false
+</I>&gt;&gt;<i> positives. For instance, if I login to my company VPN from home
+</I>&gt;&gt;<i> and access your site, it puts me at one location. However, if I
+</I>&gt;&gt;<i> access your site from the same PC directly (while still at my home),
+</I>&gt;&gt;<i> it may look like I'm instantly a thousand miles or more away.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> The other issue that I have with basing location solely on IP
+</I>&gt;&gt;<i> addresses is I'm not sure how well that is actually going to work
+</I>&gt;&gt;<i> once (someday!) we all regularly start using IPv6.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -kevin
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Blog: <A HREF="http://off-the-wall-security.blogspot.com/">http://off-the-wall-security.blogspot.com/</A>
+</I>&gt;&gt;<i> &quot;The most likely way for the world to be destroyed, most experts agree,
+</I>&gt;&gt;<i> is by accident. That's where we come in; we're computer professionals.
+</I>&gt;&gt;<i> We *cause* accidents.&quot;        -- Nathaniel Borenstein
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________ Owasp-appsensor-project
+</I>&gt;<i> mailing list <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130711/d83e6f4b/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130711/d83e6f4b/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000564.html">[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login
+</A></li>
+	<LI>Next message: <A HREF="000568.html">[Owasp-appsensor-project] New Detection Point Candidate: AE13: Deviation from normal GEO location during login
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#566">[ date ]</a>
+              <a href="thread.html#566">[ thread ]</a>
+              <a href="subject.html#566">[ subject ]</a>
+              <a href="author.html#566">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

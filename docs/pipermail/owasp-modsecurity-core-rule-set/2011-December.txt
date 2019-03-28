@@ -1,0 +1,1127 @@
+From tzury.by at reguluslabs.com  Sun Dec  4 07:49:42 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Sun, 4 Dec 2011 14:49:42 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about TX:'/REGEXP/'
+	syntax
+Message-ID: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+
+Hi,
+
+I wonder what is the meaning of rules in the following structure:
+
+    &TX:'/REGEXP/'
+
+since '&' is the counter operator, and as far as I know, at least
+according to "ModSecurity Handboo" by "Ivan Ristic", TX is used to capture
+data and it range from 0 to 9.
+So I would expect a numeric parameter rather than a regular expression
+(e.g. TX:0, TX:1, etc.).
+
+Those are found all over files under '/slr_rules'.
+
+examples:
+
+    SecRule &TX:'/RFI.*ARGS:pathForArdeaCore/' "@gt 0"
+    SecRule &TX:'/RFI.*ARGS:page_include/' "@gt 0"
+    SecRule &TX:'/RFI.*ARGS:LibDir/' "@gt 0"
+
+and many more...
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111204/9e91e1d0/attachment.html 
+
+From jamuse at gmail.com  Sun Dec  4 08:08:03 2011
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Sun, 4 Dec 2011 15:08:03 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about
+	TX:'/REGEXP/' syntax
+In-Reply-To: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+References: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+Message-ID: <CANnPkim7rVPj5A_6a0uwkp7R-_Ci+fmx7LufKc7SSZMwTeQgiw@mail.gmail.com>
+
+On Sun, Dec 4, 2011 at 2:49 PM, Tzury Bar Yochay
+<tzury.by at reguluslabs.com> wrote:
+> Hi,
+>
+> I wonder what is the meaning of rules in the following structure:
+>
+> ? ? &TX:'/REGEXP/'
+
+Hi Tzury,
+
+Like any other collection, you can limit the search inside that
+collection via regex. For example, if you wanted to check there is at
+least one variable whose name includes the string Tzury inside the TX
+collection you could write:
+
+SecRule &TX:'/Tzury/' "@eq 1" "phase:2,t:none,allow"
+
+--
+ - Josh
+
+>
+> since '&' is the counter operator, and as far as I know, at least
+> according?to "ModSecurity Handboo" by "Ivan Ristic", TX is used to capture
+> data and it range from 0 to 9.
+> So I would expect a numeric parameter rather than a regular expression (e.g.
+> TX:0, TX:1, etc.).
+>
+> Those are found all over files under '/slr_rules'.
+>
+> examples:
+>
+> ? ? SecRule &TX:'/RFI.*ARGS:pathForArdeaCore/' "@gt 0"
+> ? ? SecRule &TX:'/RFI.*ARGS:page_include/' "@gt 0"
+> ? ? SecRule &TX:'/RFI.*ARGS:LibDir/' "@gt 0"
+>
+> and many more...
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+From tzury.by at reguluslabs.com  Sun Dec  4 08:13:25 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Sun, 4 Dec 2011 15:13:25 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about
+	TX:'/REGEXP/' syntax
+In-Reply-To: <CANnPkim7rVPj5A_6a0uwkp7R-_Ci+fmx7LufKc7SSZMwTeQgiw@mail.gmail.com>
+References: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+	<CANnPkim7rVPj5A_6a0uwkp7R-_Ci+fmx7LufKc7SSZMwTeQgiw@mail.gmail.com>
+Message-ID: <CAN+tBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA@mail.gmail.com>
+
+Thanks a lot Josh,
+
+In fact, I assumed so, but that means, TX is not only indexed by 0-9,
+rather with strings as well.
+Is this documented anywhere? Or am I missing a key principle in here?
+
+
+On Sun, Dec 4, 2011 at 3:08 PM, Josh Amishav-Zlatin <jamuse at gmail.com>wrote:
+
+> On Sun, Dec 4, 2011 at 2:49 PM, Tzury Bar Yochay
+> <tzury.by at reguluslabs.com> wrote:
+> > Hi,
+> >
+> > I wonder what is the meaning of rules in the following structure:
+> >
+> >     &TX:'/REGEXP/'
+>
+> Hi Tzury,
+>
+> Like any other collection, you can limit the search inside that
+> collection via regex. For example, if you wanted to check there is at
+> least one variable whose name includes the string Tzury inside the TX
+> collection you could write:
+>
+> SecRule &TX:'/Tzury/' "@eq 1" "phase:2,t:none,allow"
+>
+> --
+>  - Josh
+>
+> >
+> > since '&' is the counter operator, and as far as I know, at least
+> > according to "ModSecurity Handboo" by "Ivan Ristic", TX is used to
+> capture
+> > data and it range from 0 to 9.
+> > So I would expect a numeric parameter rather than a regular expression
+> (e.g.
+> > TX:0, TX:1, etc.).
+> >
+> > Those are found all over files under '/slr_rules'.
+> >
+> > examples:
+> >
+> >     SecRule &TX:'/RFI.*ARGS:pathForArdeaCore/' "@gt 0"
+> >     SecRule &TX:'/RFI.*ARGS:page_include/' "@gt 0"
+> >     SecRule &TX:'/RFI.*ARGS:LibDir/' "@gt 0"
+> >
+> > and many more...
+> >
+> >
+> >
+> >
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111204/ae444634/attachment.html 
+
+From jamuse at gmail.com  Sun Dec  4 08:24:30 2011
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Sun, 4 Dec 2011 15:24:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about
+	TX:'/REGEXP/' syntax
+In-Reply-To: <CAN+tBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA@mail.gmail.com>
+References: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+	<CANnPkim7rVPj5A_6a0uwkp7R-_Ci+fmx7LufKc7SSZMwTeQgiw@mail.gmail.com>
+	<CAN+tBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA@mail.gmail.com>
+Message-ID: <CANnPkin5H-f-urctPZ7=LTPSSG-rDDo6JHRcPTNNF-tUm75x=g@mail.gmail.com>
+
+On Sun, Dec 4, 2011 at 3:13 PM, Tzury Bar Yochay
+<tzury.by at reguluslabs.com> wrote:
+> Thanks a lot Josh,
+>
+> In fact, I assumed so, but that means, TX is not only indexed by 0-9, rather
+> with strings as well.
+> Is this documented anywhere? Or am I missing a key principle in here?
+
+The TX collection is meant for transient data, i.e. its only available
+until the transaction is complete. The TX:0-TX:9 syntax allows you to
+access data captured via the capture action. However, not all data in
+the TX collection is captured data, e.g. the anomaly scores in the
+CRS.
+
+--
+ - Josh
+
+
+>
+>
+> On Sun, Dec 4, 2011 at 3:08 PM, Josh Amishav-Zlatin <jamuse at gmail.com>
+> wrote:
+>>
+>> On Sun, Dec 4, 2011 at 2:49 PM, Tzury Bar Yochay
+>> <tzury.by at reguluslabs.com> wrote:
+>> > Hi,
+>> >
+>> > I wonder what is the meaning of rules in the following structure:
+>> >
+>> > ? ? &TX:'/REGEXP/'
+>>
+>> Hi Tzury,
+>>
+>> Like any other collection, you can limit the search inside that
+>> collection via regex. For example, if you wanted to check there is at
+>> least one variable whose name includes the string Tzury inside the TX
+>> collection you could write:
+>>
+>> SecRule &TX:'/Tzury/' "@eq 1" "phase:2,t:none,allow"
+>>
+>> --
+>> ?- Josh
+>>
+>> >
+>> > since '&' is the counter operator, and as far as I know, at least
+>> > according?to "ModSecurity Handboo" by "Ivan Ristic", TX is used to
+>> > capture
+>> > data and it range from 0 to 9.
+>> > So I would expect a numeric parameter rather than a regular expression
+>> > (e.g.
+>> > TX:0, TX:1, etc.).
+>> >
+>> > Those are found all over files under '/slr_rules'.
+>> >
+>> > examples:
+>> >
+>> > ? ? SecRule &TX:'/RFI.*ARGS:pathForArdeaCore/' "@gt 0"
+>> > ? ? SecRule &TX:'/RFI.*ARGS:page_include/' "@gt 0"
+>> > ? ? SecRule &TX:'/RFI.*ARGS:LibDir/' "@gt 0"
+>> >
+>> > and many more...
+>> >
+>> >
+>> >
+>> >
+>> > _______________________________________________
+>> > Owasp-modsecurity-core-rule-set mailing list
+>> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>> >
+>
+>
+
+From tzury.by at reguluslabs.com  Sun Dec  4 08:29:51 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Sun, 4 Dec 2011 15:29:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about
+	TX:'/REGEXP/' syntax
+In-Reply-To: <CANnPkin5H-f-urctPZ7=LTPSSG-rDDo6JHRcPTNNF-tUm75x=g@mail.gmail.com>
+References: <CAN+tBVNOE6KTYGRvgnTpJKPmPQtQVWfMe2_QTnKS7+ycK2jx5w@mail.gmail.com>
+	<CANnPkim7rVPj5A_6a0uwkp7R-_Ci+fmx7LufKc7SSZMwTeQgiw@mail.gmail.com>
+	<CAN+tBVND7xZGd0qwyNO-wSh32SLtAmM0_0YW9eBf7hHWF-RKZA@mail.gmail.com>
+	<CANnPkin5H-f-urctPZ7=LTPSSG-rDDo6JHRcPTNNF-tUm75x=g@mail.gmail.com>
+Message-ID: <CAN+tBVNMKJ=3bREbp=iJDOO9qbUMWEOt5H-H2b-d5sCQV-P5gg@mail.gmail.com>
+
+>
+> The TX collection is meant for transient data, i.e. its only available
+> until the transaction is complete. The TX:0-TX:9 syntax allows you to
+> access data captured via the capture action. However, not all data in
+> the TX collection is captured data, e.g. the anomaly scores in the
+> CRS.
+
+
+thank you very much for your Sunday's explanations
+:-)
+
+Tzury
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111204/6f6f0aaf/attachment.html 
+
+From tzury.by at reguluslabs.com  Mon Dec  5 04:33:26 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Mon, 5 Dec 2011 11:33:26 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about Variables syntax
+	(VAR:&SUB_VAR)
+Message-ID: <CAN+tBVMoygFhFAeSoD31C940Xdhq2WimOCfZGJtx+Yn8=2=VBQ@mail.gmail.com>
+
+Hi all,
+
+When I see a rule such as
+
+    SecRule ARGS:&category "(?i:SELECT.+FROM)" "ctl:auditLogParts=+..."
+
+I wonder what is the role of the ampersand, before the category, so
+far I know, '&' means counting operatoration and usually, it follows
+by a numeric operation, e.g. @eq, @ge and alike.
+
+However, this is a case where I see & which followed by an implicit '@rx'
+
+thanks in advance for the explanation.
+
+From tzury.by at reguluslabs.com  Mon Dec  5 05:18:09 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Mon, 5 Dec 2011 12:18:09 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about Variables
+	syntax (VAR:&SUB_VAR)
+In-Reply-To: <CANnPkim51UFwBdqLgmySB3P_kB9x9x5+rtSK+E+bQH3Y5vsHrQ@mail.gmail.com>
+References: <CAN+tBVMoygFhFAeSoD31C940Xdhq2WimOCfZGJtx+Yn8=2=VBQ@mail.gmail.com>
+	<CAN+tBVM3N6uaWV5pEBFOg15brzQkah1rFcJQHYPRhrkrLxkT4A@mail.gmail.com>
+	<CANnPkim51UFwBdqLgmySB3P_kB9x9x5+rtSK+E+bQH3Y5vsHrQ@mail.gmail.com>
+Message-ID: <CAN+tBVPQV756NsrSz5TBfVYSjc0YYdywcR0_wbHge4DEymfx3A@mail.gmail.com>
+
+On Mon, Dec 5, 2011 at 12:11 PM, Josh Amishav-Zlatin <jamuse at gmail.com> wrote:
+> Hi Tzury,
+>
+> It looks like a mistake in the Joomla CRS rules, unless Joomla has a
+> variable named '&category', though that would be very odd. Hopefully
+> Ryan will comment later when he gets up.
+
+Josh, many thanks again,
+
+note that modsecurity_crs_46_slr_et_joomla_attacks.conf is full of
+them, so I guess it is not a mistake.
+
+Let's wait for the words of wisdom,
+Tzury
+
+From tzury.by at reguluslabs.com  Tue Dec  6 21:31:30 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Wed, 7 Dec 2011 04:31:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] few questions in regards to rules
+Message-ID: <CAN+tBVNHxiqsN3LF30aXFL6Q=6hsVreMbm7JjCaG8pmycOYokw@mail.gmail.com>
+
+While going through rule files i have gathered few questions which I
+will appreciate if someone can help me with them.
+
+1) I have seen several cases where setvar is stated without the right
+part, e.g.
+
+        SecRule TX:'/MISSING_HEADER_/' "TX\:(.*)"
+"capture,t:none,setvar:!tx.%{tx.1}"
+
+   I wonder what it means, as normally, set is in the form of x = y,
+and not x, or !x in this case.
+
+2) There seems to be a typo at line:
+
+        SecRule REQUEST_LINE "^GET /$"
+"chain,phase:2,id:981020',t:none,pass,nolog"
+
+    There is a trailing apostrophe (') after the id
+
+3) Few days ago I asked the following question but yet not got answer for
+    When I see a rule such as
+
+        SecRule ARGS:&category "(?i:SELECT.+FROM)" "ctl:auditLogParts=+..."
+
+    I wonder what is the role of the ampersand, before the category, so
+    far I know, '&' means counting operatoration and usually, it follows
+    by a numeric operation, e.g. @eq, @ge and alike.
+
+    However, this is a case where I see & which followed by an implicit '@rx'
+
+
+Thanks in advance for your help,
+Tzury
+
+From RBarnett at trustwave.com  Thu Dec  8 16:25:58 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 8 Dec 2011 15:25:58 -0600
+Subject: [Owasp-modsecurity-core-rule-set] few questions in regards to
+ rules
+In-Reply-To: <CAN+tBVNHxiqsN3LF30aXFL6Q=6hsVreMbm7JjCaG8pmycOYokw@mail.gmail.com>
+Message-ID: <CB0694BB.3D8CA%rbarnett@trustwave.com>
+
+
+
+On 12/6/11 9:31 PM, "Tzury Bar Yochay" <tzury.by at reguluslabs.com> wrote:
+
+>While going through rule files i have gathered few questions which I
+>will appreciate if someone can help me with them.
+>
+>1) I have seen several cases where setvar is stated without the right
+>part, e.g.
+>
+>        SecRule TX:'/MISSING_HEADER_/' "TX\:(.*)"
+>"capture,t:none,setvar:!tx.%{tx.1}"
+>
+>   I wonder what it means, as normally, set is in the form of x = y,
+>and not x, or !x in this case.
+
+This is the syntax to remove a TX variable entirely.
+
+>
+>2) There seems to be a typo at line:
+>
+>        SecRule REQUEST_LINE "^GET /$"
+>"chain,phase:2,id:981020',t:none,pass,nolog"
+>
+>    There is a trailing apostrophe (') after the id
+
+There actually should have been a single quote at the beginning of the id
+data like this - id:'981020'.  I fixed it locally and it will be updated
+in SNV soon.
+
+
+>
+>3) Few days ago I asked the following question but yet not got answer for
+>    When I see a rule such as
+>
+>        SecRule ARGS:&category "(?i:SELECT.+FROM)"
+>"ctl:auditLogParts=+..."
+>
+>    I wonder what is the role of the ampersand, before the category, so
+>    far I know, '&' means counting operatoration and usually, it follows
+>    by a numeric operation, e.g. @eq, @ge and alike.
+>
+>    However, this is a case where I see & which followed by an implicit
+>'@rx'
+
+This was a bug in the snort2modsec.pl script.  The & should have been
+removed when creating the SecRule.  I will take a look.
+
+-Ryan
+
+>
+>
+>Thanks in advance for your help,
+>Tzury
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From tzury.by at reguluslabs.com  Thu Dec  8 20:56:53 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Fri, 9 Dec 2011 03:56:53 +0200
+Subject: [Owasp-modsecurity-core-rule-set] few questions in regards to
+	rules
+In-Reply-To: <CB0694BB.3D8CA%rbarnett@trustwave.com>
+References: <CAN+tBVNHxiqsN3LF30aXFL6Q=6hsVreMbm7JjCaG8pmycOYokw@mail.gmail.com>
+	<CB0694BB.3D8CA%rbarnett@trustwave.com>
+Message-ID: <CAN+tBVMb+tjFHPiSTbTNh87PNPBBr=YWG-eQgAdR_iOXB1=QGg@mail.gmail.com>
+
+thank you very much Rian for all clarifications, there were some other
+typos I have found along the files, shall I spot them all?
+
+
+On Thu, Dec 8, 2011 at 11:25 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+>
+>
+> On 12/6/11 9:31 PM, "Tzury Bar Yochay" <tzury.by at reguluslabs.com> wrote:
+>
+> >While going through rule files i have gathered few questions which I
+> >will appreciate if someone can help me with them.
+> >
+> >1) I have seen several cases where setvar is stated without the right
+> >part, e.g.
+> >
+> >        SecRule TX:'/MISSING_HEADER_/' "TX\:(.*)"
+> >"capture,t:none,setvar:!tx.%{tx.1}"
+> >
+> >   I wonder what it means, as normally, set is in the form of x = y,
+> >and not x, or !x in this case.
+>
+> This is the syntax to remove a TX variable entirely.
+>
+> >
+> >2) There seems to be a typo at line:
+> >
+> >        SecRule REQUEST_LINE "^GET /$"
+> >"chain,phase:2,id:981020',t:none,pass,nolog"
+> >
+> >    There is a trailing apostrophe (') after the id
+>
+> There actually should have been a single quote at the beginning of the id
+> data like this - id:'981020'.  I fixed it locally and it will be updated
+> in SNV soon.
+>
+>
+> >
+> >3) Few days ago I asked the following question but yet not got answer for
+> >    When I see a rule such as
+> >
+> >        SecRule ARGS:&category "(?i:SELECT.+FROM)"
+> >"ctl:auditLogParts=+..."
+> >
+> >    I wonder what is the role of the ampersand, before the category, so
+> >    far I know, '&' means counting operatoration and usually, it follows
+> >    by a numeric operation, e.g. @eq, @ge and alike.
+> >
+> >    However, this is a case where I see & which followed by an implicit
+> >'@rx'
+>
+> This was a bug in the snort2modsec.pl script.  The & should have been
+> removed when creating the SecRule.  I will take a look.
+>
+> -Ryan
+>
+> >
+> >
+> >Thanks in advance for your help,
+> >Tzury
+> >_______________________________________________
+> >Owasp-modsecurity-core-rule-set mailing list
+> >Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+>
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111209/2fdf5633/attachment.html 
+
+From rainer.jung at kippdata.de  Sat Dec 10 05:01:00 2011
+From: rainer.jung at kippdata.de (Rainer Jung)
+Date: Sat, 10 Dec 2011 11:01:00 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Missing parts in CRS commit
+ 1854(Watcher Cookie Checks)?
+In-Reply-To: <4EA7CD72.7030606@kippdata.de>
+References: <4EA7CD72.7030606@kippdata.de>
+Message-ID: <4EE32DDC.2030300@kippdata.de>
+
+There were no changes to CRS after 1854. Anyone interested in checking 
+the below?
+
+Thanks!
+
+Rainer
+
+On 26.10.2011 11:05, Rainer Jung wrote:
+> Hi,
+>
+> CRS commit 1854 includes in the CHANGELOG:
+>
+> Improvements:
+> - Added Watcher Cookie Checks to
+> optional_rules/modsecurity_crs_55_app_defects.conf file
+>    http://websecuritytool.codeplex.com/wikipage?title=Checks#cookies
+>
+> but there is no change in
+> optional_rules/modsecurity_crs_55_application_defects.conf since r1820.
+>
+> Maybe the change was missing in the commit, or the CHANGELOG ne3eds fixing.
+>
+> Regards,
+>
+> Rainer
+
+From rainer.jung at kippdata.de  Sat Dec 10 05:02:12 2011
+From: rainer.jung at kippdata.de (Rainer Jung)
+Date: Sat, 10 Dec 2011 11:02:12 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Empty directory
+ activated_rulesproblematic (CVS etc.)
+In-Reply-To: <4EA58C61.9030309@kippdata.de>
+References: <4EA58C61.9030309@kippdata.de>
+Message-ID: <4EE32E24.3080709@kippdata.de>
+
+A short reply whether you tend to accept or reject this proposal would 
+be nice.
+
+Rainer
+
+On 24.10.2011 18:03, Rainer Jung wrote:
+> Hi everyone,
+>
+> the new activated_rules directory is a nice idea. But when transferring
+> mod_security e.g. into CVS an empty directory is a problem (vanishes in
+> CVS). Would it be possible to put some small dummy file into the empty
+> directory in gthe default distribution? Or a simple README?
+>
+> Regards,
+>
+> Rainer
+
+From danil at whiterose.org  Thu Dec 15 18:52:19 2011
+From: danil at whiterose.org (danil at whiterose.org)
+Date: Thu, 15 Dec 2011 13:52:19 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problems with Brute Force rules
+Message-ID: <380-220111241518521941@M2W108.mail2web.com>
+
+
+My test team is reporting unfortunate results with the brute force rules.
+
+CentOS release 5.7 (Final)
+
+Server version: Apache/2.2.21 (Unix)
+Server built:   Sep 22 2011 17:34:16
+
+ModSecurity 2.5.9
+SecComponentSignature "core ruleset/2.2.2"
+
+The symptom that we are seeing is that 981042 doesn't seem to be picking up
+the 
+value of tx.brute_force_counter_threshold.  If I enable logging on that
+rule, 
+the entry in the mod security log reads
+
+Message: Warning. Operator GT matched 0 at IP:brute_force_counter. [file 
+"/etc/httpd/conf.d/modsecurity_crs/experimental_rules/modsecurity_crs_11_bru
+te_f
+orce.conf"] [line "53"] [id "981042"]
+
+Our configuration of rule 981214 is almost right out of the box
+
+SecAction "phase:1,id:'981214',t:none,nolog,pass, \
+setvar:'tx.brute_force_protected_urls=/protectThisUrl', \
+setvar:'tx.brute_force_burst_time_slice=60', \
+setvar:'tx.brute_force_counter_threshold=10', \
+setvar:'tx.brute_force_block_timeout=60'"
+
+My development sandbox behaves as I would expect:
+
+Message: Warning. Operator GT matched 10 at IP:brute_force_counter. [file 
+"C:/Program Files (x86)/Apache Software 
+Foundation/Apache2.2/conf/modsecurity_crs/experimental_rules/modsecurity_crs
+_11_
+brute_force.conf"] [line "53"] [id "981042"]
+
+However, the development sandbox is running windows, and is using the
+binaries I 
+downloaded for ModSecurity 2.6.2
+
+Have I simply loaded the experimental rules into a version of modsecurity
+that 
+doesn't support them, or is something more sinister going on?  I'm running
+out 
+of ideas on how to trouble shoot this.
+
+Thanks,
+Danil
+
+
+
+--------------------------------------------------------------------
+mail2web - Check your email from the web at
+http://link.mail2web.com/mail2web
+
+
+
+From RBarnett at trustwave.com  Thu Dec 15 19:16:30 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 15 Dec 2011 13:16:30 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Problems with Brute Force
+ rules
+In-Reply-To: <380-220111241518521941@M2W108.mail2web.com>
+Message-ID: <CB0FB0CB.3DF14%rbarnett@trustwave.com>
+
+
+On 12/15/11 1:52 PM, "danil at whiterose.org" <danil at whiterose.org> wrote:
+
+>
+>My test team is reporting unfortunate results with the brute force rules.
+>
+>CentOS release 5.7 (Final)
+>
+>Server version: Apache/2.2.21 (Unix)
+>Server built:   Sep 22 2011 17:34:16
+>
+>ModSecurity 2.5.9
+>SecComponentSignature "core ruleset/2.2.2"
+>
+>The symptom that we are seeing is that 981042 doesn't seem to be picking
+>up
+>the
+>value of tx.brute_force_counter_threshold.  If I enable logging on that
+>rule,
+>the entry in the mod security log reads
+>
+>Message: Warning. Operator GT matched 0 at IP:brute_force_counter. [file
+>"/etc/httpd/conf.d/modsecurity_crs/experimental_rules/modsecurity_crs_11_b
+>ru
+>te_f
+>orce.conf"] [line "53"] [id "981042"]
+>
+>Our configuration of rule 981214 is almost right out of the box
+>
+>SecAction "phase:1,id:'981214',t:none,nolog,pass, \
+>setvar:'tx.brute_force_protected_urls=/protectThisUrl', \
+>setvar:'tx.brute_force_burst_time_slice=60', \
+>setvar:'tx.brute_force_counter_threshold=10', \
+>setvar:'tx.brute_force_block_timeout=60'"
+>
+>My development sandbox behaves as I would expect:
+>
+>Message: Warning. Operator GT matched 10 at IP:brute_force_counter. [file
+>"C:/Program Files (x86)/Apache Software
+>Foundation/Apache2.2/conf/modsecurity_crs/experimental_rules/modsecurity_c
+>rs
+>_11_
+>brute_force.conf"] [line "53"] [id "981042"]
+>
+>However, the development sandbox is running windows, and is using the
+>binaries I
+>downloaded for ModSecurity 2.6.2
+>
+>Have I simply loaded the experimental rules into a version of modsecurity
+>that
+>doesn't support them, or is something more sinister going on?  I'm running
+>out
+>of ideas on how to trouble shoot this.
+>
+>Thanks,
+>Danil
+
+Those rules are tracking and inspecting data in the IP persistent
+collection data.  Do you have the IP collection initiation rules activated
+at the end of the modsecurity_crs_10_config.conf file?
+
+#
+# -=[ Global and IP Collections ]=-
+#
+# Create both Global and IP collections for rules to use
+# There are some CRS rules that assume that these two collections
+# have already been initiated.
+#
+SecRule REQUEST_HEADERS:User-Agent "^(.*)$"
+"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash
+=%{matched_var}"
+SecRule REQUEST_HEADERS:x-forwarded-for
+"^\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
+"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}"
+SecRule &TX:REAL_IP "!@eq 0"
+"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{t
+x.real_ip}_%{tx.ua_hash}"
+SecRule &TX:REAL_IP "@eq 0"
+"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{r
+emote_addr}_%{tx.ua_hash}"
+
+
+-Ryan
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From danil at whiterose.org  Thu Dec 15 20:11:00 2011
+From: danil at whiterose.org (danil at whiterose.org)
+Date: Thu, 15 Dec 2011 15:11:00 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problems with Brute Forcerules
+Message-ID: <380-220111241520110316@M2W108.mail2web.com>
+
+
+Hi Ryan, thanks for your prompt reply....
+
+"Those rules are tracking and inspecting data in the IP persistent
+collection data.  Do you have the IP collection initiation rules activated
+at the end of the modsecurity_crs_10_config.conf file?"
+
+We haven't changed those rules from what was provided in 
+modsecurity_crs_10_config.conf.example, which means those rules are
+activated.  
+They match the rules you pasted in precisely.
+
+Additionally, I've learned that if I replace the variable in 981042 with a 
+constant, the rule fires as I would exect.
+
+
+SecRule IP:BRUTE_FORCE_COUNTER "@gt 10" 
+"phase:5,id:'981042',t:none,log,pass,t:none,setvar:ip.brute_force_burst_coun
+ter=
++1,expirevar:ip.brute_force_burst_counter=%
+{tx.brute_force_burst_time_slice},setvar:!ip.brute_force_counter"
+
+
+Is there a way to confirm that 981214 is actually setting the variables 
+correctly?
+
+Thanks,
+Danil
+
+
+
+--------------------------------------------------------------------
+myhosting.com - Premium Microsoft? Windows? and Linux web and application
+hosting - http://link.myhosting.com/myhosting
+
+
+
+From danil at whiterose.org  Thu Dec 15 23:27:26 2011
+From: danil at whiterose.org (danil at whiterose.org)
+Date: Thu, 15 Dec 2011 18:27:26 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problems with Brute Forcerules
+Message-ID: <380-2201112415232726172@M2W108.mail2web.com>
+
+
+It seems my problem was here:
+
+>ModSecurity 2.5.9
+
+981042 needs the macro expansion support that was added to the numeric
+operators  
+in 2.5.12.
+
+https://www.modsecurity.org/tracker/browse/MODSEC-109
+
+
+Danil
+
+--------------------------------------------------------------------
+mail2web.com ? Enhanced email for the mobile individual based on Microsoft?
+Exchange - http://link.mail2web.com/Personal/EnhancedEmail
+
+
+
+From dreamice.jiang at gmail.com  Sat Dec 17 11:34:41 2011
+From: dreamice.jiang at gmail.com (dreamice)
+Date: Sat, 17 Dec 2011 19:34:41 +0800
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity v2.6.1 & V2.6.2 also
+ truncate the request body when the request length is larger than the
+ RequestBodyLen in detection only mode
+Message-ID: <CAE2E0r01idPOYhx9=EYLa0Y+WvVqvUYNLBW=K7w8a1UScA8f-Q@mail.gmail.com>
+
+Dear all,
+I have tested V2,6,1 and V2.6.2. Even I use detection only mode,
+modsecurity also truncate the request body, and I capture the package in
+the backend server, the content-length is 0.
+I find this bug is fixed in V2.6.1 as noticed in the Changelog.
+Any one has tested this problem?
+Thanks.
+
+
+dreamice
+2011-12-17
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111217/cc50c403/attachment.html>
+
+From RBarnett at trustwave.com  Sat Dec 17 14:58:21 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 17 Dec 2011 08:58:21 -0600
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity v2.6.1 & V2.6.2
+ also truncate the request body when the request length is larger than the
+ RequestBodyLen in detection only mode
+In-Reply-To: <CAE2E0r01idPOYhx9=EYLa0Y+WvVqvUYNLBW=K7w8a1UScA8f-Q@mail.gmail.com>
+References: <CAE2E0r01idPOYhx9=EYLa0Y+WvVqvUYNLBW=K7w8a1UScA8f-Q@mail.gmail.com>
+Message-ID: <FEBD2D56-F699-4D07-AE6E-A5DB2B7A5A3D@trustwave.com>
+
+Please see SecRequestBodyLimitAction info -
+http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecRequestBodyLimitAction
+
+This is supposed to only effect the data in memory used by modsecurity and not the live transaction. I this is the case let us know.
+
+Ryan.
+
+On Dec 17, 2011, at 6:40 AM, "dreamice" <dreamice.jiang at gmail.com> wrote:
+
+> Dear all,
+> I have tested V2,6,1 and V2.6.2. Even I use detection only mode, modsecurity also truncate the request body, and I capture the package in the backend server, the content-length is 0.
+> I find this bug is fixed in V2.6.1 as noticed in the Changelog.
+> Any one has tested this problem?
+> Thanks.
+>
+>
+> dreamice
+> 2011-12-17
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From dreamice.jiang at gmail.com  Sun Dec 18 11:29:24 2011
+From: dreamice.jiang at gmail.com (dreamice)
+Date: Sun, 18 Dec 2011 19:29:24 +0800
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity v2.6.1 & V2.6.2
+ also truncate the request body when the request length is larger than the
+ RequestBodyLen in detection only mode
+In-Reply-To: <FEBD2D56-F699-4D07-AE6E-A5DB2B7A5A3D@trustwave.com>
+References: <CAE2E0r01idPOYhx9=EYLa0Y+WvVqvUYNLBW=K7w8a1UScA8f-Q@mail.gmail.com>
+	<FEBD2D56-F699-4D07-AE6E-A5DB2B7A5A3D@trustwave.com>
+Message-ID: <CAE2E0r0NtxYxH-QySUoNH4OVUuZ8LBbanHq3AOefvbt-MxkgFg@mail.gmail.com>
+
+Dear Ryan, I have just set it with ProcessPartial.
+
+2011/12/17 Ryan Barnett <RBarnett at trustwave.com>
+
+> Please see SecRequestBodyLimitAction info -
+>
+> http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecRequestBodyLimitAction
+>
+> This is supposed to only effect the data in memory used by modsecurity and
+> not the live transaction. I this is the case let us know.
+>
+> Ryan.
+>
+> On Dec 17, 2011, at 6:40 AM, "dreamice" <dreamice.jiang at gmail.com> wrote:
+>
+> > Dear all,
+> > I have tested V2,6,1 and V2.6.2. Even I use detection only mode,
+> modsecurity also truncate the request body, and I capture the package in
+> the backend server, the content-length is 0.
+> > I find this bug is fixed in V2.6.1 as noticed in the Changelog.
+> > Any one has tested this problem?
+> > Thanks.
+> >
+> >
+> > dreamice
+> > 2011-12-17
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111218/8dd93901/attachment.html>
+
+From tzury.by at reguluslabs.com  Mon Dec 19 15:05:23 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Mon, 19 Dec 2011 17:05:23 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about rules 981173 as
+	an example (and others alike)
+Message-ID: <CAN+tBVN-4atKeWdTSWiVKmKW1OvjCNPRQMrBZKX3cY+53AhEYA@mail.gmail.com>
+
+The rule is as follows:
+
+SecRule ARGS_NAMES|ARGS|XML:/*
+"([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*){4,}"
+"phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2.2.2',msg:'Restricted
+SQL Character Anomaly Detection Alert - Total # of special characters
+exceeded',capture,logdata:'%{tx.1}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+
+This seemed should match request such as /?a=&lt;script&gt;
+
+Question is, is this by design?
+Shall I enable by default such restricting rules?
+Should there I expect legitimate user input escaped somehow differently?
+
+
+
+------8<------ my pcre matching test case below ------8<------
+
+Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+> require "rex_pcre"
+> return rex_pcre.new([====[([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*){4,}]====]):exec("&lt;script&gt;")
+1       14      table: 0x907d80
+
+From RBarnett at trustwave.com  Mon Dec 19 21:46:28 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 19 Dec 2011 15:46:28 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Announcing release of OWASP
+	ModSecurity CRS v2.2.3
+Message-ID: <CB151AE4.3E234%rbarnett@trustwave.com>
+
+The SpiderLabs Research Team is pleased to announce the ModSecurity OWASP Core Rule Set<https://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project>v2.2.3 release.  You can download the TAR/GZ or ZIP archive here<https://sourceforge.net/projects/mod-security/files/modsecurity-crs/0-CURRENT/>.
+
+There are a few significant updates, most notably:
+
+ *   We have added more application defect checks based largely on the Watcher tool by Casaba Security<http://websecuritytool.codeplex.com/wikipage?title=Checks> which is used for passive vulnerability assessments.
+ *   SpiderLabs Consultant Andrew Wilson identified a potential evasion issue if the client specifies an abnormal/unexpected Content-Type request header.  In some cases, the application may disregard the data specified by the Content-Type header and process the request body data normally, however, ModSecurity would no inspect the payload.  We have addressed this issue by updating an existing rule that will dynamically force the population of the REQUEST_BODY variable if an unexpected Content-Type is used.
+
+CHANGES
+
+--------------------------
+Version 2.2.3 - 12/19/2011
+--------------------------
+
+Improvements:
+- Added Watcher Cookie Checks to optional_rules/modsecurity_crs_55_appication_defects.conf file
+  http://websecuritytool.codeplex.com/wikipage?title=Checks#cookies
+- Added Watcher Charset Checks to optional_rules/modsecurity_crs_55_application_defects.conf file
+  http://websecuritytool.codeplex.com/wikipage?title=Checks#charset
+- Added Watcher Header Checks to optional_rules/modsecurity_crs_55_application_defects.conf file
+  http://websecuritytool.codeplex.com/wikipage?title=Checks#header
+
+Bug Fixes:
+- Fixed Content-Type evasion issue by adding ctl:forceRequestBodyVariable action to
+  rule ID 960010. (Identified by Andrew Wilson of Trustwave SpiderLabs).
+- Updated the regex and added tags for RFI rules.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+OWASP ModSecurity CRS Project Lead
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Dec 19 22:26:06 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 19 Dec 2011 16:26:06 -0600
+Subject: [Owasp-modsecurity-core-rule-set] a question about rules 981173
+ as	an example (and others alike)
+In-Reply-To: <CAN+tBVN-4atKeWdTSWiVKmKW1OvjCNPRQMrBZKX3cY+53AhEYA@mail.gmail.com>
+References: <CAN+tBVN-4atKeWdTSWiVKmKW1OvjCNPRQMrBZKX3cY+53AhEYA@mail.gmail.com>
+Message-ID: <1163F571-9CC0-4969-8AE8-0E3EB9F045A9@trustwave.com>
+
+The purpose of that rule is to identify repeated meta characters in a row (at least 4).  We developed this rule based on analysis of evasion methods of basic filters.
+
+The example you gave did he 2 meta characters (< and >) however they were repetitive.
+
+Ryan
+
+On Dec 19, 2011, at 10:12 AM, "Tzury Bar Yochay" <tzury.by at reguluslabs.com> wrote:
+
+> The rule is as follows:
+>
+> SecRule ARGS_NAMES|ARGS|XML:/*
+> "([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*){4,}"
+> "phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2.2.2',msg:'Restricted
+> SQL Character Anomaly Detection Alert - Total # of special characters
+> exceeded',capture,logdata:'%{tx.1}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}"
+>
+> This seemed should match request such as /?a=&lt;script&gt;
+>
+> Question is, is this by design?
+> Shall I enable by default such restricting rules?
+> Should there I expect legitimate user input escaped somehow differently?
+>
+>
+>
+> ------8<------ my pcre matching test case below ------8<------
+>
+> Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+>> require "rex_pcre"
+>> return rex_pcre.new([====[([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*){4,}]====]):exec("&lt;script&gt;")
+> 1       14      table: 0x907d80
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From tzury.by at reguluslabs.com  Tue Dec 20 03:39:12 2011
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Tue, 20 Dec 2011 05:39:12 +0200
+Subject: [Owasp-modsecurity-core-rule-set] a question about rules 981173
+ as an example (and others alike)
+In-Reply-To: <1163F571-9CC0-4969-8AE8-0E3EB9F045A9@trustwave.com>
+References: <CAN+tBVN-4atKeWdTSWiVKmKW1OvjCNPRQMrBZKX3cY+53AhEYA@mail.gmail.com>
+	<1163F571-9CC0-4969-8AE8-0E3EB9F045A9@trustwave.com>
+Message-ID: <CAN+tBVPv7PuLz=LKrn9-f94HkNmkjssNWi=5OgPb55RT9Q79Ww@mail.gmail.com>
+
+> The example you gave did he 2 meta characters (< and >) however they were repetitive.
+
+
+Hi Ryan,
+
+I am not sure?whether?my example was escaped or not at your end.
+I my example I used & lt ; and & gt ; ?and not the '<' and '>'.
+In such case, there are 2 ';' + 2 '&', all together makes 4.
+however, such an input is?fairly?legitimate, and properly escaped, so
+I wonder what's the solution?
+
+> >> return rex_pcre.new([====[([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*){4,}]====]):exec("&lt;script&gt;")
+> > 1 ? ? ? 14 ? ? ?table: 0x907d80
+
+From chintan2010visani at gmail.com  Mon Dec 26 09:14:21 2011
+From: chintan2010visani at gmail.com (chintan visani)
+Date: Mon, 26 Dec 2011 14:44:21 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Fwd: About Mod security Rules
+In-Reply-To: <CAEJVizw8a+A-OEbRfUhcKoisLeF7VhNcNmWyRoUjMWZ5McAyjw@mail.gmail.com>
+References: <CAEJVizw8a+A-OEbRfUhcKoisLeF7VhNcNmWyRoUjMWZ5McAyjw@mail.gmail.com>
+Message-ID: <CAEJVizw8e5JqniNu7EWwZULNzDwpzvGS01MZL4=k-e10G5ppew@mail.gmail.com>
+
+---------- Forwarded message ----------
+From: chintan visani <chintan2010visani at gmail.com>
+Date: Mon, Dec 26, 2011 at 2:39 PM
+Subject: About Mod security Rules
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+
+
+Hello,
+
+I am chintan visani , student of computer science.
+I am making the gui to handle mod security rules as my term project.
+
+I have difficulty to integrate mod security rules with database.
+I am using mod security 2.6.2 and mysql.
+
+So please help me to integrate database with the mod security.
+Regards
+Chintan
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111226/b7fbc60c/attachment.html>
+
+From RBarnett at trustwave.com  Thu Dec 29 15:31:35 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 29 Dec 2011 09:31:35 -0600
+Subject: [Owasp-modsecurity-core-rule-set] 404 Project Initiative
+Message-ID: <CB21F207.3E63D%rbarnett@trustwave.com>
+
+Would anyone be willing to participate in a ModSecurity project similar to what SANS Internet Storm Center is doing here -
+
+Project announcement - http://isc.sans.edu/diary.html?storyid=11272
+Project Scripts - http://isc.sans.edu/tools/404project.html
+Some stats - http://isc.sans.edu/diary.html?storyid=11323
+
+The idea would be to use live ModSecurity installations as pseudo-sensors to collect scanning data for 404 errors by adding in a new custom SecRule that would trigger an exec script.  The benefit of this approach is that there is less likelihood of exposing sensitive data while still identifying automatic probes.
+
+If you are interested in participating, please email me directly.
+
+Thanks,
+Ryan Barnett
+ModSecurity Project Lead
+Trustwave SpiderLabs Research Team
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+

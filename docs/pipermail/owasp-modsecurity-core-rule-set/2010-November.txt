@@ -1,0 +1,1695 @@
+From pr at batix.com  Mon Nov  1 13:09:13 2010
+From: pr at batix.com (Paul Rosenbusch)
+Date: Mon, 1 Nov 2010 18:09:13 +0100
+Subject: [Owasp-modsecurity-core-rule-set] SQL Rules - SQLi Score isn't set
+	properly
+Message-ID: <6EC0E8A7FE27A34689D6CC3B5C421CC3D22F093A59@BXOFFICE.batix.local>
+
+Hi,
+
+when I simulate SQL-Injection Attacks while using the owasp-modsecurity-core-rule-set, the SQLi Score shows up empty in my audit logfile. The inbound anomaly score is exceeded and the attack is classified as "SQL Injection Attack", but there seems to be a bug with the SQLi Score. 
+
+I use modsecurity-crs_2.0.8 and checked the modsecurity_crs_41_sql_injection_attacks.conf - setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score} seems to be called properly on every entry.
+
+Does anybody have a clue why this happens?
+
+Thanks for your Help
+
+PR
+
+From RBarnett at trustwave.com  Mon Nov  1 13:21:27 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 1 Nov 2010 12:21:27 -0500
+Subject: [Owasp-modsecurity-core-rule-set] SQL Rules - SQLi Score isn't
+ set properly
+In-Reply-To: <6EC0E8A7FE27A34689D6CC3B5C421CC3D22F093A59@BXOFFICE.batix.local>
+Message-ID: <C8F46F57.16AB8%rbarnett@trustwave.com>
+
+On 11/1/10 1:09 PM, "Paul Rosenbusch" <pr at batix.com> wrote:
+
+> Hi,
+> 
+> when I simulate SQL-Injection Attacks while using the
+> owasp-modsecurity-core-rule-set, the SQLi Score shows up empty in my audit
+> logfile. The inbound anomaly score is exceeded and the attack is classified as
+> "SQL Injection Attack", but there seems to be a bug with the SQLi Score.
+> 
+> I use modsecurity-crs_2.0.8 and checked the
+> modsecurity_crs_41_sql_injection_attacks.conf -
+> setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score} seems to be called
+> properly on every entry.
+> 
+> Does anybody have a clue why this happens?
+> 
+> Thanks for your Help
+> 
+
+Hey Paul.  I am assuming that you are referring to the TX SQLI macro
+expansions in the modsecurity_crs_49_inbound_blocking.conf file (
+SQLi=%{TX.SQLI_SCORE})?  If so, then yes, I see the problem.  The rules were
+actually updated to use this TX collection name instead -
+setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score}.
+
+So, you can update the TX data in the 49 file to properly reference it -
+
+# Alert and Block based on Anomaly Scores
+#
+SecRule TX:ANOMALY_SCORE "@gt 0" \
+    "chain,phase:2,t:none,nolog,auditlog,block,msg:'Inbound Anomaly Score
+Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+XSS=%{TX.XSS_SCORE}):
+%{tx.msg}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_scor
+e=%{tx.anomaly_score}"
+        SecRule TX:ANOMALY_SCORE "@ge %{tx.inbound_anomaly_score_level}"
+
+
+# Alert and Block on a specific attack category such as SQL Injection
+#
+#SecRule TX:SQL_INJECTION_SCORE "@gt 0" \
+#    "phase:2,t:none,log,block,msg:'SQL Injection Detected (score
+%{TX.SQL_INJECTION_SCORE}): %{tx.msg}'"
+
+
+
+I will update the CRS as well and it will be fixed in V2.0.9
+
+-Ryan
+
+
+
+> PR
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+
+
+From pr at batix.com  Tue Nov  2 07:08:44 2010
+From: pr at batix.com (Paul Rosenbusch)
+Date: Tue, 2 Nov 2010 12:08:44 +0100
+Subject: [Owasp-modsecurity-core-rule-set] SQL Rules - SQLi Score isn't
+ set properly
+Message-ID: <6EC0E8A7FE27A34689D6CC3B5C421CC3D22F093A69@BXOFFICE.batix.local>
+
+Hi Ray,
+
+In addition to your fix I needed to update TX.SQLI_SCORE in modsecurity_crs_60_correlation.conf too. Now everything works fine.
+
+Thank you very much.
+
+-Paul
+
+-----Urspr?ngliche Nachricht-----
+Von: Ryan Barnett [mailto:RBarnett at trustwave.com] 
+Gesendet: Montag, 1. November 2010 18:21
+An: Paul Rosenbusch; owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: Re: [Owasp-modsecurity-core-rule-set] SQL Rules - SQLi Score isn't set properly
+
+On 11/1/10 1:09 PM, "Paul Rosenbusch" <pr at batix.com> wrote:
+
+> Hi,
+> 
+> when I simulate SQL-Injection Attacks while using the 
+> owasp-modsecurity-core-rule-set, the SQLi Score shows up empty in my 
+> audit logfile. The inbound anomaly score is exceeded and the attack is 
+> classified as "SQL Injection Attack", but there seems to be a bug with the SQLi Score.
+> 
+> I use modsecurity-crs_2.0.8 and checked the 
+> modsecurity_crs_41_sql_injection_attacks.conf - 
+> setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score} seems to 
+> be called properly on every entry.
+> 
+> Does anybody have a clue why this happens?
+> 
+> Thanks for your Help
+> 
+
+Hey Paul.  I am assuming that you are referring to the TX SQLI macro expansions in the modsecurity_crs_49_inbound_blocking.conf file ( SQLi=%{TX.SQLI_SCORE})?  If so, then yes, I see the problem.  The rules were actually updated to use this TX collection name instead - setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score}.
+
+So, you can update the TX data in the 49 file to properly reference it -
+
+# Alert and Block based on Anomaly Scores # SecRule TX:ANOMALY_SCORE "@gt 0" \
+    "chain,phase:2,t:none,nolog,auditlog,block,msg:'Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+XSS=%{TX.XSS_SCORE}):
+%{tx.msg}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_scor
+e=%{tx.anomaly_score}"
+        SecRule TX:ANOMALY_SCORE "@ge %{tx.inbound_anomaly_score_level}"
+
+
+# Alert and Block on a specific attack category such as SQL Injection # #SecRule TX:SQL_INJECTION_SCORE "@gt 0" \
+#    "phase:2,t:none,log,block,msg:'SQL Injection Detected (score
+%{TX.SQL_INJECTION_SCORE}): %{tx.msg}'"
+
+
+
+I will update the CRS as well and it will be fixed in V2.0.9
+
+-Ryan
+
+
+
+> PR
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list 
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-s
+> et
+> 
+
+
+
+From luis.silva at axiomasoft.pt  Tue Nov  2 12:14:10 2010
+From: luis.silva at axiomasoft.pt (=?utf-8?b?THXDrXM=?= Miguel dos Reis Oliveira e Silva)
+Date: Tue, 02 Nov 2010 16:14:10 +0000
+Subject: [Owasp-modsecurity-core-rule-set] WHY Rule "950109" matches	for
+	ARG "passed_id=81" ?
+In-Reply-To: <1283960384.2566.97.camel@luis-port>
+References: <C8AD2110.13AC1%rbarnett@trustwave.com>
+	<1283960384.2566.97.camel@luis-port>
+Message-ID: <20101102161410.17410ou0hv5w0n2q@webmail.axiomasoft.pt>
+
+Hello,
+
+I'm sorry to bring this up again, but my questions didn't get an answer, so I still thing these rules to be prone to false positives.
+
+As a new release of the rules is comming out soon, I though I should bring this up for discussion again.
+
+Shouldn't rules 950107, 950109 and 950108 be rewriten to be something more like this: "\%[0-9a-fA-F]{2}(?![0-9a-fA-F])|\%u[0-9a-fA-F]{4}(?![0-9a-fA-F])"? Like they are now, "%1" would match and, unless I missed the point on what the rules should do, this would be a false positive, am I right?
+
+Thanks and sorry for all the noise.
+Lu?s Silva
+
+Quoting "Lu?s Silva" <luis.silva at axiomasoft.pt>:
+
+> Hello,
+>
+> On Wed, 2010-09-08 at 10:16 -0500, Ryan Barnett wrote:
+>
+>> On 9/8/10 10:44 AM, "Dirk Caspari" <d.caspari at eurodata.de> wrote:
+>>
+>> > --411a3f76-B--
+>> > GET /src/read_body.php?mailbox=INBOX&passed_id=81&startMessage=1 HTTP/1.1
+>> > Host: xxx.xxxxxxxx.de
+>> > User-Agent: Mozilla/5.0 (X11; U; Linux i686; de-DE; rv:1.9.2.3)
+>> > Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3
+>> > Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+>> > Accept-Language: de-DE,de;q=0.8,de-de;q=0.6,en-us;q=0.4,en;q=0.2
+>> > Accept-Encoding: gzip,deflate
+>> > Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+>> > Keep-Alive: 115
+>> > Connection: keep-alive
+>> > Referer:
+>> > 
+>> https://xxx.xxxxxxxxx.de/src/right_main.php?PG_SHOWALL=0&sort=0&startMessage=1[1]
+>> > &mailbox=INBOX
+>> > Cookie: xxxxx
+>> >
+>> >
+>> > --411a3f76-H--
+>> > Message: Pattern match "\%(?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}" at
+>> > ARGS:passed_id. [file
+>> > 
+>> "/etc/apache2/modsecurity/rules-enabled/modsecurity_crs_20_protocol_violations
+>> > .conf"]
+>> > [line "185"] [id "950109"] [rev "2.0.8"] [msg "Multiple URL Encoding
+>> > Detected"] [severity "NOTICE"] [tag "PROTOCOL_VIOLATION/EVASION"]
+>> > Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score.
+>> > [file
+>> > 
+>> "/etc/apache2/modsecurity/rules-enabled/modsecurity_crs_60_correlation.conf"]
+>> > [line "31"] [msg "Inbound Anomaly Score (Total Inbound Score: 5, SQLi=,
+>> > XSS=): Multiple URL Encoding Detected !
+>> > %{matched_var_name}=%{matched_var} !"]
+>> >
+>> > Thanks.
+>> >   D I R K
+>> >
+>> >
+>> >
+>>
+>> Hmm.. Looks like the previous version in SVN was missing the parentheses in
+>> the RegEx.  Use this latest version -
+>>
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_r[2]
+>> ules/modsecurity_crs_20_protocol_violations.conf?revision=1535
+>>
+>>
+>
+> The regular expression in rules 950107, 950109 and 950108 shouldn't
+> instead be something like "\%[0-9a-fA-F]{2}(?![0-9a-fA-F])|\%
+> u[0-9a-fA-F]{4}(?![0-9a-fA-F])"?
+> The expression provided will still match for example "%1" and, unless I
+> missed the point on what the rules should do, this would be a false
+> positive.
+>
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set[3]
+>>
+>
+> Thanks,
+> Lu?s
+>
+
+
+Links:
+------
+[1] https://xxx.xxxxxxxxx.de/src/right_main.php?PG_SHOWALL=0&amp;sort=0&amp;startMessage=1
+[2] http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_r
+[3] https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101102/75272c4f/attachment.html 
+
+From RBarnett at trustwave.com  Tue Nov  2 14:22:47 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 2 Nov 2010 13:22:47 -0500
+Subject: [Owasp-modsecurity-core-rule-set] WHY Rule "950109" matches for
+ ARG "passed_id=81" ?
+In-Reply-To: <20101102161410.17410ou0hv5w0n2q@webmail.axiomasoft.pt>
+Message-ID: <C8F5CF37.16B91%rbarnett@trustwave.com>
+
+On 11/2/10 12:14 PM, "Lu?s Miguel dos Reis Oliveira e Silva"
+<luis.silva at axiomasoft.pt> wrote:
+
+>    
+> 
+>  Hello,
+>  
+>  I'm sorry to bring this up again, but my questions didn't get an answer, so I
+> still thing these rules to be prone to false positives.
+>  
+>  As a new release of the rules is comming out soon, I though I should bring
+> this up for discussion again.
+>  
+>  Shouldn't rules 950107, 950109 and 950108 be rewriten to be something more
+> like this: "\%[0-9a-fA-F]{2}(?![0-9a-fA-F])|\%u[0-9a-fA-F]{4}(?![0-9a-fA-F])"?
+> Like they are now, "%1" would match and, unless I missed the point on what the
+> rules should do, this would be a false positive, am I right?
+>  
+>  Thanks and sorry for all the noise.
+>  Lu?s Silva
+>  
+
+Hey Luis,
+OK, I had to think on this one a bit.  Keep in mind that this is a chained
+rule.  The initial regex check is being used to try and determine if there
+*might* be some URL encoded data in the request variable.  If there is, then
+it will proceed to the @validateUrlEncoding operator check.
+
+The way the regex is writter now, I agree that there can be some false
+positives where the data is not actually encoded and thus would generate
+errors when the URL encoding operation is run.  On the flip side, we don't
+want to miss any encoded data.
+
+I tried out this new regex and it seems to work -
+
+\%([0-9a-zA-Z]{2}|u[0-9a-fA-F]{4})\%
+
+This regex will look for the common encoding format and it also checks for a
+trailing % as encoded data normally consists of multiple characters encoded
+in sequence.
+
+Please test this out and see if it works for you.  If anyone else can test
+it and let me know if it works that would be great too.  After some more
+tests, I will update the CRS.
+
+-Ryan
+
+
+>  Quoting "Lu?s Silva" <luis.silva at axiomasoft.pt>:
+>  
+>> Hello,
+>> 
+>> On Wed, 2010-09-08 at 10:16 -0500, Ryan Barnett wrote:
+>> 
+>>> On 9/8/10 10:44 AM, "Dirk Caspari" <d.caspari at eurodata.de> wrote:
+>>> 
+>>>> --411a3f76-B--
+>>>> GET /src/read_body.php?mailbox=INBOX&passed_id=81&startMessage=1 HTTP/1.1
+>>>> Host: xxx.xxxxxxxx.de
+>>>> User-Agent: Mozilla/5.0 (X11; U; Linux i686; de-DE; rv:1.9.2.3)
+>>>> Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3
+>>>> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+>>>> Accept-Language: de-DE,de;q=0.8,de-de;q=0.6,en-us;q=0.4,en;q=0.2
+>>>> Accept-Encoding: gzip,deflate
+>>>> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+>>>> Keep-Alive: 115
+>>>> Connection: keep-alive
+>>>> Referer:
+>>>> 
+>>> https://xxx.xxxxxxxxx.de/src/right_main.php?PG_SHOWALL=0&sort=0&startMessage
+>>> =1
+>>>> &mailbox=INBOX
+>>>> Cookie: xxxxx
+>>>> 
+>>>> 
+>>>> --411a3f76-H--
+>>>> Message: Pattern match "\%(?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}" at
+>>>> ARGS:passed_id. [file
+>>>> 
+>>> "/etc/apache2/modsecurity/rules-enabled/modsecurity_crs_20_protocol_violatio
+>>> ns
+>>>> .conf"]
+>>>> [line "185"] [id "950109"] [rev "2.0.8"] [msg "Multiple URL Encoding
+>>>> Detected"] [severity "NOTICE"] [tag "PROTOCOL_VIOLATION/EVASION"]
+>>>> Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score.
+>>>> [file
+>>>> 
+>>> 
+"/etc/apache2/modsecurity/rules-enabled/modsecurity_crs_60_correlation.conf">>>
+]
+>>>> [line "31"] [msg "Inbound Anomaly Score (Total Inbound Score: 5, SQLi=,
+>>>> XSS=): Multiple URL Encoding Detected !
+>>>> %{matched_var_name}=%{matched_var} !"]
+>>>> 
+>>>> Thanks.
+>>>> ? ?D I R K
+>>>> 
+>>>> 
+>>>> 
+>>> 
+>>> Hmm.. Looks like the previous version in SVN was missing the parentheses in
+>>> the RegEx.? Use this latest version -
+>>> 
+>>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_r
+>>> ules/modsecurity_crs_20_protocol_violations.conf?revision=1535
+>>> 
+>>> 
+>> 
+>> The regular expression in rules 950107, 950109 and 950108 shouldn't
+>> instead be something like "\%[0-9a-fA-F]{2}(?![0-9a-fA-F])|\%
+>> u[0-9a-fA-F]{4}(?![0-9a-fA-F])"?
+>> The expression provided will still match for example "%1" and, unless I
+>> missed the point on what the rules should do, this would be a false
+>> positive.
+>> 
+>>> 
+>>> _______________________________________________
+>>> Owasp-modsecurity-core-rule-set mailing list
+>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>> 
+>> 
+>> Thanks,
+>> Lu?s
+>> 
+>  
+>  
+>  ----------------------------------------------------------------
+>  This message was sent using IMP, the Internet Messaging Program.
+>  
+
+
+
+From RBarnett at trustwave.com  Wed Nov  3 15:57:49 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 3 Nov 2010 14:57:49 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Detection Malice with
+	ModSecurity: IP Forensics
+Message-ID: <C8F736FD.16C2F%rbarnett@trustwave.com>
+
+This week?s blog post - http://blog.modsecurity.org/2010/11/detecting-malice-with-modsecurity-ip-forensics.html
+
+-Ryan
+
+
+From pr at batix.com  Thu Nov  4 06:20:45 2010
+From: pr at batix.com (Paul Rosenbusch)
+Date: Thu, 4 Nov 2010 11:20:45 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 950901 - Many false
+	positives [v2.0.8]
+Message-ID: <6EC0E8A7FE27A34689D6CC3B5C421CC3D22F093A8C@BXOFFICE.batix.local>
+
+Hi,
+
+could someone check Rule 950901? It leads to many false positives on standard text with single quotes and "or".
+Maybe this rule should be moved to paranoid setting, as it leads to SQLi scores of 20-40 on spam posts.
+I can also send a sample text, but I preferred to exclude the spam from this mail.
+
+Kind Regards
+
+Paul
+----
+base_rules/modsecurity_crs_41_sql_injection_attacks.conf
+id:'950901'
+
+SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/* "\b(\d+) ?(?:=|<>|<=>|<|>|!=) ?\1\b|[\'\"\`\?\'\'](\d+)[\'\"\`\?\'\'] ?(?:=|<>|<=>|<|>|!=) ?[\'\"\`\?\'\']\2\b|[\'\"\`\?\'\'](\w+)[\'\"\`\?\'\'] ?(?:=|<>|<=>|<|>|!=) ?[\'\"\`\?\'\']\3\b|[\'\"\;\`\?\'\']*\s+or\s+[\s\'\"\`\?\'\']*\w+[\s\'\"\`\?\'\']*[=<>!]*[\s\'\"\`\?\'\']*\w+[\s\'\"\`\?\'\']*" \
+"phase:2,rev:'2.0.8',capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,pass,nolog,auditlog,msg:'SQL Injection Attack',id:'950901',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.msg}',setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+
+From RBarnett at trustwave.com  Tue Nov  9 20:08:19 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 9 Nov 2010 19:08:19 -0600
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Site Issues
+Message-ID: <C8FF5AB3.16EB5%rbarnett@trustwave.com>
+
+FYI ? we are having some connectivity issues with the www.modsecurity.org website.  We are looking into it...  We will let you know when it is back up.  Remember, you can still download the ModSec software and CRS from SourceForge.
+
+Also, if you haven?t done so already, I suggest that those of you on Twitter follow @modsecurity ( http://twitter.com/modsecurity).  We will give updates there as well.
+
+Thanks,
+Ryan
+
+
+From rbarnett at trustwave.com  Fri Nov 12 14:52:31 2010
+From: rbarnett at trustwave.com (Ryan Barnett (JIRA))
+Date: Fri, 12 Nov 2010 11:52:31 -0800
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-33)
+	duplicate rule ids
+Message-ID: <11774350.45.1289591551488.JavaMail.jira@modsec-apps.colo.breach.com>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-33?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Ryan Barnett resolved CORERULES-33.
+-----------------------------------
+
+    Resolution: Fixed
+
+should be fixed
+
+> duplicate rule ids
+> ------------------
+>
+>                 Key: CORERULES-33
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-33
+>             Project: Core Rules
+>          Issue Type: Bug
+>      Security Level: Normal
+>          Components: Configuration
+>    Affects Versions: 2.0
+>         Environment: modsecurity-crs_2.0.5
+>            Reporter: Christoph Moench-Tegeder
+>            Assignee: Ryan Barnett
+>
+> Hi,
+> the following id are assigned to different and unrelated (as far as I can see) rules:
+> 950001 (modsecurity_crs_41_sql_injection_attacks.conf)
+> 958710 (modsecurity_crs_40_generic_attacks.conf)
+> 960021 (modsecurity_crs_20_protocol_violations.conf, modsecurity_crs_21_protocol_anomalies.conf)
+> Can one of them (respectively) be assigned a new id?
+> Additionally, I'm not that sure if the duplicated ids between modsecurity_crs_40_generic_attacks.conf and modsecurity_crs_50_outbound.conf are helpful for use with SecRuleRemoveById.
+> Best regards,
+> Christoph
+
+-- 
+This message is automatically generated by JIRA.
+-
+If you think it was sent incorrectly contact one of the administrators: https://www.modsecurity.org/tracker/secure/Administrators.jspa
+-
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+From misc.lists at blueyonder.co.uk  Sat Nov 13 10:10:18 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Sat, 13 Nov 2010 15:10:18 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+Message-ID: <1289661018.3312.81.camel@localhost>
+
+Hello all,
+
+I am not really a network guy. I have a small home server running Fedora
+13. As well as hosting my small family web site it is also a mail server
+running Procmail, Spamassassin, Dovecot and Squirrelmail. 
+
+I also have an iPhone.
+
+I was thrilled, recently, to discover an application called z-push which
+allows me to "push" emails from my server to my iPhone. It uses a php
+script running php-imap on the server to spoof
+Microsoft-Server-ActiveSync. It works brilliantly with Mod_security
+disabled. ModSec however blocks it. I have tried creating a local rule
+in modsecurity_localrules.conf but I couldn't get it quite right - plus
+I was not sure what the safest way to allow this access would be without
+opening up the server too much...
+
+I get two types of report in the console:
+
+
+METHOD: POST   URI: /Microsoft-Server-ActiveSync 
+1) Request content type is not allowed by policy 2) Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy
+
+and
+
+METHOD: OPTIONS   URI: /Microsoft-Server-ActiveSync 
+ Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required.
+
+The second of those, obviously, is actually blocked. It is blocked by a
+rule which I put into my local rules having worked through Magnus
+Mischel's book.
+
+This is the rule in question:
+# Rule to block non-standard methods (See Modsec book p50)
+SecRule REQUEST_METHOD "!^(GET|POST|HEAD)$" "deny,status:405"
+
+
+Please see below the detail for the denial. How can I craft a safe rule
+to allow this through?
+
+Thanks in advance....
+
+Mark
+
+
+--fa24db00-B--
+OPTIONS /Microsoft-Server-ActiveSync HTTP/1.1
+Host: mydomain.example.com
+Content-Length: 0
+User-Agent: Apple-iPhone2C1/802.117
+X-Ms-Policykey: 0
+Authorization: Basic bWFyazppbEhhYWRIUA==
+Accept: */*
+Accept-Language: en-us
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+
+--fa24db00-F--
+HTTP/1.1 405 Method Not Allowed
+Allow: TRACE
+Content-Length: 337
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+
+--fa24db00-H--
+Message: Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required. [file "/etc/httpd/modsecurity.d/modsecurity_localrules.conf"] [line "20"]
+Action: Intercepted (phase 2)
+Apache-Handler: php5-script
+Stopwatch: 1289655765198610 1406 (534 728 -)
+Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+Server: Apache/2.2.16 (Fedora)
+
+--fa24db00-Z--
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101113/0d37ff8b/attachment.bin 
+
+From misc.lists at blueyonder.co.uk  Sat Nov 13 10:44:37 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Sat, 13 Nov 2010 15:44:37 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <1289661018.3312.81.camel@localhost>
+References: <1289661018.3312.81.camel@localhost>
+Message-ID: <1289663077.3312.86.camel@localhost>
+
+On Sat, 2010-11-13 at 15:10 +0000, Arthur Dent wrote:
+> Hello all,
+> 
+> I am not really a network guy. I have a small home server running Fedora
+> 13. As well as hosting my small family web site it is also a mail server
+> running Procmail, Spamassassin, Dovecot and Squirrelmail. 
+> 
+> I also have an iPhone.
+> 
+> I was thrilled, recently, to discover an application called z-push which
+> allows me to "push" emails from my server to my iPhone. It uses a php
+> script running php-imap on the server to spoof
+> Microsoft-Server-ActiveSync. It works brilliantly with Mod_security
+> disabled. ModSec however blocks it. I have tried creating a local rule
+> in modsecurity_localrules.conf but I couldn't get it quite right - plus
+> I was not sure what the safest way to allow this access would be without
+> opening up the server too much...
+> 
+> I get two types of report in the console:
+> 
+> 
+> METHOD: POST   URI: /Microsoft-Server-ActiveSync 
+> 1) Request content type is not allowed by policy 2) Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy
+> 
+> and
+> 
+> METHOD: OPTIONS   URI: /Microsoft-Server-ActiveSync 
+>  Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required.
+> 
+> The second of those, obviously, is actually blocked. It is blocked by a
+> rule which I put into my local rules having worked through Magnus
+> Mischel's book.
+> 
+> This is the rule in question:
+> # Rule to block non-standard methods (See Modsec book p50)
+> SecRule REQUEST_METHOD "!^(GET|POST|HEAD)$" "deny,status:405"
+
+Replying to my own message...
+        
+Looking closer, I have modified this rule to read:
+        SecRule REQUEST_METHOD "!^(GET|POST|HEAD|OPTIONS)$" "deny,status:405"
+        
+Is that safe?
+        
+It now results in this however:
+        --e00ab306-H--
+        Message: Match of "within %{tx.allowed_request_content_type}" against "TX:0" required. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_30_http_policy.conf"] [line "63"] [id "960010"] [msg "Request content type is not allowed by policy"] [data "application/vnd.ms-sync.wbxml"] [severity "WARNING"] [tag "POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+        Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "31"] [msg "Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy"]
+        Apache-Handler: php5-script
+        Stopwatch: 1289661517966736 246643 (536 11498 -)
+        Response-Body-Transformed: Dechunked
+        Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+        Server: Apache/2.2.16 (Fedora)
+> 
+> Please see below the detail for the denial. How can I craft a safe rule
+> to allow this through?
+> 
+> Thanks in advance....
+> 
+> Mark
+> 
+> 
+> --fa24db00-B--
+> OPTIONS /Microsoft-Server-ActiveSync HTTP/1.1
+> Host: mydomain.example.com
+> Content-Length: 0
+> User-Agent: Apple-iPhone2C1/802.117
+> X-Ms-Policykey: 0
+> Authorization: Basic bWFyazppbEhhYWRIUA==
+> Accept: */*
+> Accept-Language: en-us
+> Accept-Encoding: gzip, deflate
+> Connection: keep-alive
+> 
+> --fa24db00-F--
+> HTTP/1.1 405 Method Not Allowed
+> Allow: TRACE
+> Content-Length: 337
+> Connection: close
+> Content-Type: text/html; charset=iso-8859-1
+> 
+> --fa24db00-H--
+> Message: Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required. [file "/etc/httpd/modsecurity.d/modsecurity_localrules.conf"] [line "20"]
+> Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1289655765198610 1406 (534 728 -)
+> Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+> Server: Apache/2.2.16 (Fedora)
+> 
+> --fa24db00-Z--
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101113/609d0db8/attachment.bin 
+
+From RBarnett at trustwave.com  Sat Nov 13 10:54:49 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 13 Nov 2010 09:54:49 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <1289661018.3312.81.camel@localhost>
+References: <1289661018.3312.81.camel@localhost>
+Message-ID: <24743FFC-AD86-41DC-A271-103B19558C4A@trustwave.com>
+
+Since you don't have a rule ID for your rule, you could add the following rule right before it. It will check the URL and request method and if it is for z-push it will then skip the existing rule that is blocking it. 
+
+> # Rule to allow z-push method
+> SecRule REQUEST_FILENAME "/Microsoft-Server-ActiveSync" "chain,phase:1,t:none,pass,nolog,skip:1"
+
+> SecRule REQUEST_METHOD "^OPTIONS$" 
+
+> # Rule to block non-standard methods (See Modsec book p50)
+> SecRule REQUEST_METHOD "!^(GET|POST|HEAD)$" "deny,status:405"
+
+--
+Ryan Barnett
+
+
+On Nov 13, 2010, at 10:11 AM, "Arthur Dent" <misc.lists at blueyonder.co.uk> wrote:
+
+> Hello all,
+> 
+> I am not really a network guy. I have a small home server running Fedora
+> 13. As well as hosting my small family web site it is also a mail server
+> running Procmail, Spamassassin, Dovecot and Squirrelmail. 
+> 
+> I also have an iPhone.
+> 
+> I was thrilled, recently, to discover an application called z-push which
+> allows me to "push" emails from my server to my iPhone. It uses a php
+> script running php-imap on the server to spoof
+> Microsoft-Server-ActiveSync. It works brilliantly with Mod_security
+> disabled. ModSec however blocks it. I have tried creating a local rule
+> in modsecurity_localrules.conf but I couldn't get it quite right - plus
+> I was not sure what the safest way to allow this access would be without
+> opening up the server too much...
+> 
+> I get two types of report in the console:
+> 
+> 
+> METHOD: POST   URI: /Microsoft-Server-ActiveSync 
+> 1) Request content type is not allowed by policy 2) Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy
+> 
+> and
+> 
+> METHOD: OPTIONS   URI: /Microsoft-Server-ActiveSync 
+> Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required.
+> 
+> The second of those, obviously, is actually blocked. It is blocked by a
+> rule which I put into my local rules having worked through Magnus
+> Mischel's book.
+> 
+> This is the rule in question:
+> # Rule to block non-standard methods (See Modsec book p50)
+> SecRule REQUEST_METHOD "!^(GET|POST|HEAD)$" "deny,status:405"
+> 
+> 
+> Please see below the detail for the denial. How can I craft a safe rule
+> to allow this through?
+> 
+> Thanks in advance....
+> 
+> Mark
+> 
+> 
+> --fa24db00-B--
+> OPTIONS /Microsoft-Server-ActiveSync HTTP/1.1
+> Host: mydomain.example.com
+> Content-Length: 0
+> User-Agent: Apple-iPhone2C1/802.117
+> X-Ms-Policykey: 0
+> Authorization: Basic bWFyazppbEhhYWRIUA==
+> Accept: */*
+> Accept-Language: en-us
+> Accept-Encoding: gzip, deflate
+> Connection: keep-alive
+> 
+> --fa24db00-F--
+> HTTP/1.1 405 Method Not Allowed
+> Allow: TRACE
+> Content-Length: 337
+> Connection: close
+> Content-Type: text/html; charset=iso-8859-1
+> 
+> --fa24db00-H--
+> Message: Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required. [file "/etc/httpd/modsecurity.d/modsecurity_localrules.conf"] [line "20"]
+> Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1289655765198610 1406 (534 728 -)
+> Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+> Server: Apache/2.2.16 (Fedora)
+> 
+> --fa24db00-Z--
+> <signature.asc>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From rcbarnett at gmail.com  Sat Nov 13 10:58:20 2010
+From: rcbarnett at gmail.com (Rcbarnett)
+Date: Sat, 13 Nov 2010 10:58:20 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <1289663077.3312.86.camel@localhost>
+References: <1289661018.3312.81.camel@localhost>
+	<1289663077.3312.86.camel@localhost>
+Message-ID: <33897E83-E9A5-455E-B354-853BAFF52BFA@gmail.com>
+
+You need to add the z-push content-type (application/vnd.ms-sync.wbxml) to the allowed content-type list in the 10 config file. 
+
+--
+Ryan Barnett
+
+
+On Nov 13, 2010, at 10:44 AM, Arthur Dent <misc.lists at blueyonder.co.uk> wrote:
+
+> On Sat, 2010-11-13 at 15:10 +0000, Arthur Dent wrote:
+>> Hello all,
+>> 
+>> I am not really a network guy. I have a small home server running Fedora
+>> 13. As well as hosting my small family web site it is also a mail server
+>> running Procmail, Spamassassin, Dovecot and Squirrelmail. 
+>> 
+>> I also have an iPhone.
+>> 
+>> I was thrilled, recently, to discover an application called z-push which
+>> allows me to "push" emails from my server to my iPhone. It uses a php
+>> script running php-imap on the server to spoof
+>> Microsoft-Server-ActiveSync. It works brilliantly with Mod_security
+>> disabled. ModSec however blocks it. I have tried creating a local rule
+>> in modsecurity_localrules.conf but I couldn't get it quite right - plus
+>> I was not sure what the safest way to allow this access would be without
+>> opening up the server too much...
+>> 
+>> I get two types of report in the console:
+>> 
+>> 
+>> METHOD: POST   URI: /Microsoft-Server-ActiveSync 
+>> 1) Request content type is not allowed by policy 2) Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy
+>> 
+>> and
+>> 
+>> METHOD: OPTIONS   URI: /Microsoft-Server-ActiveSync 
+>> Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required.
+>> 
+>> The second of those, obviously, is actually blocked. It is blocked by a
+>> rule which I put into my local rules having worked through Magnus
+>> Mischel's book.
+>> 
+>> This is the rule in question:
+>> # Rule to block non-standard methods (See Modsec book p50)
+>> SecRule REQUEST_METHOD "!^(GET|POST|HEAD)$" "deny,status:405"
+> 
+> Replying to my own message...
+> 
+> Looking closer, I have modified this rule to read:
+>        SecRule REQUEST_METHOD "!^(GET|POST|HEAD|OPTIONS)$" "deny,status:405"
+> 
+> Is that safe?
+> 
+> It now results in this however:
+>        --e00ab306-H--
+>        Message: Match of "within %{tx.allowed_request_content_type}" against "TX:0" required. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_30_http_policy.conf"] [line "63"] [id "960010"] [msg "Request content type is not allowed by policy"] [data "application/vnd.ms-sync.wbxml"] [severity "WARNING"] [tag "POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>        Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "31"] [msg "Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): Request content type is not allowed by policy"]
+>        Apache-Handler: php5-script
+>        Stopwatch: 1289661517966736 246643 (536 11498 -)
+>        Response-Body-Transformed: Dechunked
+>        Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+>        Server: Apache/2.2.16 (Fedora)
+>> 
+>> Please see below the detail for the denial. How can I craft a safe rule
+>> to allow this through?
+>> 
+>> Thanks in advance....
+>> 
+>> Mark
+>> 
+>> 
+>> --fa24db00-B--
+>> OPTIONS /Microsoft-Server-ActiveSync HTTP/1.1
+>> Host: mydomain.example.com
+>> Content-Length: 0
+>> User-Agent: Apple-iPhone2C1/802.117
+>> X-Ms-Policykey: 0
+>> Authorization: Basic bWFyazppbEhhYWRIUA==
+>> Accept: */*
+>> Accept-Language: en-us
+>> Accept-Encoding: gzip, deflate
+>> Connection: keep-alive
+>> 
+>> --fa24db00-F--
+>> HTTP/1.1 405 Method Not Allowed
+>> Allow: TRACE
+>> Content-Length: 337
+>> Connection: close
+>> Content-Type: text/html; charset=iso-8859-1
+>> 
+>> --fa24db00-H--
+>> Message: Access denied with code 405 (phase 2). Match of "rx ^(GET|POST|HEAD)$" against "REQUEST_METHOD" required. [file "/etc/httpd/modsecurity.d/modsecurity_localrules.conf"] [line "20"]
+>> Action: Intercepted (phase 2)
+>> Apache-Handler: php5-script
+>> Stopwatch: 1289655765198610 1406 (534 728 -)
+>> Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/); core ruleset/2.0.8.
+>> Server: Apache/2.2.16 (Fedora)
+>> 
+>> --fa24db00-Z--
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From misc.lists at blueyonder.co.uk  Sat Nov 13 11:51:29 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Sat, 13 Nov 2010 16:51:29 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <33897E83-E9A5-455E-B354-853BAFF52BFA@gmail.com>
+References: <1289661018.3312.81.camel@localhost>
+	<1289663077.3312.86.camel@localhost>
+	<33897E83-E9A5-455E-B354-853BAFF52BFA@gmail.com>
+Message-ID: <1289667089.3312.98.camel@localhost>
+
+On Sat, 2010-11-13 at 10:58 -0500, Rcbarnett wrote:
+> You need to add the z-push content-type (application/vnd.ms-sync.wbxml) to the allowed content-type list in the 10 config file. 
+
+I think that's done it Ryan. Thank you...
+
+Just to be certain (I don't fully understand this) my
+modsecurity_crs_10_config.conf file now looks like this:
+
+
+SecAction "phase:1,t:none,nolog,pass, \
+setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded multipart/form-data text/xml application/xml application/x-amf/application/vnd.ms-sync.wbxml', \
+setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/ /Content-Range/ /Translate/ /via/ /if/'"
+
+Is that right - or have I got the syntax wrong?
+
+Cheers!
+
+Mark
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101113/4e8dbd57/attachment.bin 
+
+From RBarnett at trustwave.com  Sat Nov 13 11:59:22 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 13 Nov 2010 10:59:22 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <1289667089.3312.98.camel@localhost>
+References: <1289661018.3312.81.camel@localhost>
+	<1289663077.3312.86.camel@localhost>
+	<33897E83-E9A5-455E-B354-853BAFF52BFA@gmail.com>
+	<1289667089.3312.98.camel@localhost>
+Message-ID: <8754BD59-8418-4FD3-B8F5-052569A62D51@trustwave.com>
+
+I would put a space before your new entry for readability sake but this would still work. 
+
+--
+Ryan Barnett
+
+
+On Nov 13, 2010, at 11:51 AM, "Arthur Dent" <misc.lists at blueyonder.co.uk> wrote:
+
+> On Sat, 2010-11-13 at 10:58 -0500, Rcbarnett wrote:
+>> You need to add the z-push content-type (application/vnd.ms-sync.wbxml) to the allowed content-type list in the 10 config file. 
+> 
+> I think that's done it Ryan. Thank you...
+> 
+> Just to be certain (I don't fully understand this) my
+> modsecurity_crs_10_config.conf file now looks like this:
+> 
+> 
+> SecAction "phase:1,t:none,nolog,pass, \
+> setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+> setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded multipart/form-data text/xml application/xml application/x-amf/application/vnd.ms-sync.wbxml', \
+> setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+> setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+> setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/ /Content-Range/ /Translate/ /via/ /if/'"
+> 
+> Is that right - or have I got the syntax wrong?
+> 
+> Cheers!
+> 
+> Mark
+> 
+> <signature.asc>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From misc.lists at blueyonder.co.uk  Sat Nov 13 12:03:10 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Sat, 13 Nov 2010 17:03:10 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Allowing z-push
+In-Reply-To: <8754BD59-8418-4FD3-B8F5-052569A62D51@trustwave.com>
+References: <1289661018.3312.81.camel@localhost>
+	<1289663077.3312.86.camel@localhost>
+	<33897E83-E9A5-455E-B354-853BAFF52BFA@gmail.com>
+	<1289667089.3312.98.camel@localhost>
+	<8754BD59-8418-4FD3-B8F5-052569A62D51@trustwave.com>
+Message-ID: <1289667790.3312.99.camel@localhost>
+
+On Sat, 2010-11-13 at 10:59 -0600, Ryan Barnett wrote:
+> I would put a space before your new entry for readability sake but this would still work. 
+
+Done!
+
+Thanks again. Your help is much appreciated...
+
+Mark
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101113/f56bcd60/attachment.bin 
+
+From RBarnett at trustwave.com  Mon Nov 15 10:52:45 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 15 Nov 2010 09:52:45 -0600
+Subject: [Owasp-modsecurity-core-rule-set] CRS Documentation Effort
+Message-ID: <C906C17D.17101%rbarnett@trustwave.com>
+
+Greetings everyone,
+We (Trustwave SpiderLabs) are planning to work on the CRS documentation - http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project#tab=Documentation
+
+If you want to help in the effort, please let me know.  One of the first items we will be focusing on is to create the Rule ID documentation pages.  These pages will follow the Rule ID template listed here -
+http://www.owasp.org/index.php/ModSecurity_CRS_Rule_Description_Template
+
+If you have any comments about the Rule ID Templates (are we missing any important items, etc...), please let me know.
+
+I will be sending out individual emails when each Rule ID documentation template is created.  The email will contain the Rule ID in the Subject line so that we can better track the discussions.  One of the big items that we want to get a better handle on is the False Positive (FP) rates of individual rules.  If you are running into a FP with a specific rule we are discussing, please let us know why it as a FP ? so that we can fix the issue.
+
+Keep an eye our for these emails!
+
+-Ryan
+
+
+
+From RBarnett at trustwave.com  Mon Nov 15 10:54:31 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 15 Nov 2010 09:54:31 -0600
+Subject: [Owasp-modsecurity-core-rule-set] CRS Rule ID Documentation - 960911
+Message-ID: <C906C1E7.17105%rbarnett@trustwave.com>
+
+Here is the first CRS Rule ID Documentation file - http://www.owasp.org/index.php/ModSecurity_CRS_RuleID-960911
+
+Please provide feedback to the list.  Any recommended updates to this page and/or FP rate data would be helpful.
+
+Thanks,
+Ryan
+
+
+From brectanu at gmail.com  Mon Nov 15 12:41:13 2010
+From: brectanu at gmail.com (Brian Rectanus)
+Date: Mon, 15 Nov 2010 09:41:13 -0800
+Subject: [Owasp-modsecurity-core-rule-set] CRS Documentation Effort
+In-Reply-To: <C906C17D.17101%rbarnett@trustwave.com>
+References: <C906C17D.17101%rbarnett@trustwave.com>
+Message-ID: <AANLkTikTEsfgAswSZ2hwUicqDVKP4AAddw31=LpDsUV5@mail.gmail.com>
+
+Just keep in mind the reserved ranges:
+
+http://modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-reference.html#N118D0
+
+You may want to re-iterate the reservations on the CRS site.
+
+-B
+
+On Mon, Nov 15, 2010 at 7:52 AM, Ryan Barnett <RBarnett at trustwave.com> wrote:
+> Greetings everyone,
+> We (Trustwave SpiderLabs) are planning to work on the CRS documentation - http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project#tab=Documentation
+>
+> If you want to help in the effort, please let me know. ?One of the first items we will be focusing on is to create the Rule ID documentation pages. ?These pages will follow the Rule ID template listed here -
+> http://www.owasp.org/index.php/ModSecurity_CRS_Rule_Description_Template
+>
+> If you have any comments about the Rule ID Templates (are we missing any important items, etc...), please let me know.
+>
+> I will be sending out individual emails when each Rule ID documentation template is created. ?The email will contain the Rule ID in the Subject line so that we can better track the discussions. ?One of the big items that we want to get a better handle on is the False Positive (FP) rates of individual rules. ?If you are running into a FP with a specific rule we are discussing, please let us know why it as a FP ? so that we can fix the issue.
+>
+> Keep an eye our for these emails!
+>
+> -Ryan
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+From RBarnett at trustwave.com  Wed Nov 17 17:26:55 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 17 Nov 2010 16:26:55 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week:
+ Traditional vs. Anomaly Scoring Detection Modes
+Message-ID: <C909C0DF.17D36%rbarnett@trustwave.com>
+
+Greetings everyone,
+I have a very important, and long overdue, blog post to announce -
+http://blog.modsecurity.org/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+
+Hopefully this information will help users to better understand their options for operating modes and the pros/cons of each.
+
+Cheers.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+ModSecurity Community Manager
+OWASP ModSecurity CRS Project Leader
+
+
+From RBarnett at trustwave.com  Thu Nov 18 10:17:39 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 18 Nov 2010 09:17:39 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Announcing release of OWASP
+	Modsecurity CRS v2.0.9
+Message-ID: <C90AADC3.17D6B%rbarnett@trustwave.com>
+
+Greetings everyone,
+I am pleased to announce the release of the OWASP ModSecurity Core Rule Set (CRS) v2.0.9.
+
+The most significant change is that users can now easily toggle between Traditional or Anomaly Scoring Detection modes.
+http://blog.modsecurity.org/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+
+CHANGE LOG -
+--------------------------
+Version 2.0.9 - 11/17/2010
+--------------------------
+
+Improvements:
+- Changed the name of the main config file to modsecurity_crs_10_config.conf.example so that
+  it will not overwrite existing config settings.  Users should rename this file to activate
+  it.
+- Traditional detection mode is now the current default
+- Users can now more easily toggle between traditional/standard mode vs. anomaly scoring mode
+  by editing the modsecurity_crs_10_config.conf file
+- Updated the disruptive actions in most rules to use "block" action instead of "pass".  This
+  is to allow for the toggling between traditional vs. anomaly scoring modes.
+- Removed logging actions from most rules so that it can be controlled from the SecDefaultAction
+  setting in the modsecurity_crs_10_config.conf file
+- Updated the anomaly scores in the modsecurity_crs_10_config.conf file to more closely match
+  what is used in the PHPIDS rules.  These still have the same factor of severity even though
+  the numbers themselves are smaller.
+- Updated the 49 and 59 blocking rules to include the matched logdata
+- Updated the TAG data to further classify attack/vuln categories.
+- Updated the SQL Injection filters to detect more boolean logic attacks
+- Moved some files to optional_rules directory (phpids, Emerging Threats rules)
+
+Bug Fixes:
+- Fixed Rule ID 960023 in optional_rules/modsecurity_crs_40_experimental.conf is missing 1 single quote
+  https://www.modsecurity.org/tracker/browse/CORERULES-63
+- Moved all skipAfter actions in chained rules to the rule starter line (must have ModSec v2.5.13 or higher)
+  https://www.modsecurity.org/tracker/browse/MODSEC-159
+- Fixed restricted file extension bug with macro expansion
+  https://www.modsecurity.org/tracker/browse/CORERULES-60
+- Updated the SQLI TX variable macro expansion data in the 49 and 60 files so that
+  it matches what is being set in the sql injection conf file
+- Fixed typo in SQL Injection regexs - missing backslash for word boundary (\b)
+  https://www.modsecurity.org/tracker/browse/CORERULES-62
+
+--------------------------
+DOWNLOADING
+--------------------------
+Manual Downloading:
+You can always download the latest CRS version here -
+https://sourceforge.net/projects/mod-security/files/modsecurity-crs/0-CURRENT/
+
+Automated Downloading:
+Use the rules-updater.pl script in the CRS /util directory
+
+# Get a list of what the repository contains:
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -l
+
+Repository: http://www.modsecurity.org/autoupdate/repository
+
+modsecurity-crs {
+          2.0.0: modsecurity-crs_2.0.0.zip
+          2.0.1: modsecurity-crs_2.0.1.zip
+          2.0.2: modsecurity-crs_2.0.2.zip
+          2.0.3: modsecurity-crs_2.0.3.zip
+          2.0.4: modsecurity-crs_2.0.4.zip
+          2.0.5: modsecurity-crs_2.0.5.zip
+          2.0.6: modsecurity-crs_2.0.6.zip
+          2.0.7: modsecurity-crs_2.0.7.zip
+          2.0.8: modsecurity-crs_2.0.8.zip
+          2.0.9: modsecurity-crs_2.0.9.zip
+}
+
+# Get the latest stable version of "modsecurity-crs":
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -prules -Smodsecurity-crs
+Fetching: modsecurity-crs/modsecurity-crs_2.0.9.zip ...
+$ ls -R rules
+modsecurity-crs
+
+rules/modsecurity-crs:
+modsecurity-crs_2.0.9.zip    modsecurity-crs_2.0.9.zip.sig
+
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+ModSecurity Community Manager
+OWASP ModSecurity CRS Project Leader
+
+
+From RBarnett at trustwave.com  Tue Nov 23 20:44:35 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 23 Nov 2010 19:44:35 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week:
+	Mitigating Slow HTTP DoS Attacks
+Message-ID: <2685FA5E-4A7B-4FE8-87F6-0C5695595024@trustwave.com>
+
+This week's blog post -
+
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-mitigating-slow-http-dos-attacks.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+
+From christian.folini at post.ch  Wed Nov 24 02:17:26 2010
+From: christian.folini at post.ch (christian.folini at post.ch)
+Date: Wed, 24 Nov 2010 08:17:26 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Advanced Topic of the
+	Week:	Mitigating Slow HTTP DoS Attacks
+In-Reply-To: <2685FA5E-4A7B-4FE8-87F6-0C5695595024@trustwave.com>
+References: <2685FA5E-4A7B-4FE8-87F6-0C5695595024@trustwave.com>
+Message-ID: <B99BC770CB46D6428EFBC95DFA7C36BF2D68017143@hxmb01.pnet.ch>
+
+Hi Ryan,
+
+Nice post. Thanks. Especially the combination of mod_reqtimeout and ModS
+is very elegant in my eyes.
+
+I am not so happy with SecReadStateLimit looking only at the IP address. 
+How do protect proxies from your countermeasures? A proxy might share multiple 
+hundred legitimate connections with your server for multiple hundred legitimate 
+clients, all appearing to come from the same IP address.
+
+Regs,
+
+Christian
+
+
+-----Urspr?ngliche Nachricht-----
+Von: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] Im Auftrag von Ryan Barnett
+Gesendet: Mittwoch, 24. November 2010 02:45
+An: mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+
+This week's blog post -
+
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-mitigating-slow-http-dos-attacks.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From christian.folini at post.ch  Wed Nov 24 07:31:13 2010
+From: christian.folini at post.ch (christian.folini at post.ch)
+Date: Wed, 24 Nov 2010 13:31:13 +0100
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users] Advanced
+ Topic of the Week: Mitigating Slow HTTP DoS Attacks
+In-Reply-To: <AANLkTin6aJXp-3Jot2rZyEYwCWO-XGwK2Km-Z2v+Exi4@mail.gmail.com>
+References: <2685FA5E-4A7B-4FE8-87F6-0C5695595024@trustwave.com>
+	<B99BC770CB46D6428EFBC95DFA7C36BF2D68017143@hxmb01.pnet.ch>
+	<AANLkTin6aJXp-3Jot2rZyEYwCWO-XGwK2Km-Z2v+Exi4@mail.gmail.com>
+Message-ID: <B99BC770CB46D6428EFBC95DFA7C36BF2D68017276@hxmb01.pnet.ch>
+
+Hi Breno,
+
+Could explain the term "bad connection" a bit? Ryan's blog post implies a client IP is considered bad
+when it has too many connections in read state. Your entry in the CHANGES document reads,
+"Add SecReadStateLimit to limit the number of BUSY connections".
+
+I can't see why a proxy can't have a lot of legitimate connections
+in read state. AFAIK Request Body reading is also considered "read".
+So uploads can remain in READ for a certain time - depending on service.
+
+I do not want to pester you too much, but I just want to make sure I
+get this correctly - and people are aware that telling good from bad
+connections is very tricky. Especially when it comes to request delaying and
+you want to make sure you are not locking legitimate users.
+
+Best Regs,
+
+Christian
+
+
+
+
+Von: Breno Silva [mailto:breno.silva at gmail.com]
+Gesendet: Mittwoch, 24. November 2010 13:20
+An: Folini Christian, IT222 extern
+Cc: RBarnett at trustwave.com; mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: Re: [mod-security-users] [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+
+Hi Christian,
+
+The SecReadStateLimit is not only a threshold for ip address. It is looking for an "anomaly" in connection process. So if you are behind a proxy or a NAT only the bad connections will be dropped. The good ones will pass normally. So legit connections behind the proxy will works fine.
+
+Thanks
+
+Breno
+On Wed, Nov 24, 2010 at 1:17 AM, <christian.folini at post.ch<mailto:christian.folini at post.ch>> wrote:
+Hi Ryan,
+
+Nice post. Thanks. Especially the combination of mod_reqtimeout and ModS
+is very elegant in my eyes.
+
+I am not so happy with SecReadStateLimit looking only at the IP address.
+How do protect proxies from your countermeasures? A proxy might share multiple
+hundred legitimate connections with your server for multiple hundred legitimate
+clients, all appearing to come from the same IP address.
+
+Regs,
+
+Christian
+
+
+-----Urspr?ngliche Nachricht-----
+Von: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>] Im Auftrag von Ryan Barnett
+Gesendet: Mittwoch, 24. November 2010 02:45
+An: mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>; owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Betreff: [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+
+This week's blog post -
+
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-mitigating-slow-http-dos-attacks.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+------------------------------------------------------------------------------
+Increase Visibility of Your 3D Game App & Earn a Chance To Win $500!
+Tap into the largest installed PC base & get more eyes on your game by
+optimizing for Intel(R) Graphics Technology. Get started today with the
+Intel(R) Software Partner Program. Five $500 cash prizes are up for grabs.
+http://p.sf.net/sfu/intelisp-dev2dev
+_______________________________________________
+mod-security-users mailing list
+mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>
+https://lists.sourceforge.net/lists/listinfo/mod-security-users
+Commercial ModSecurity Appliances, Rule Sets and Support:
+http://www.modsecurity.org/breach/index.html
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101124/10a0b21e/attachment.html 
+
+From yersinia.spiros at gmail.com  Fri Nov 26 10:43:10 2010
+From: yersinia.spiros at gmail.com (yersinia)
+Date: Fri, 26 Nov 2010 16:43:10 +0100
+Subject: [Owasp-modsecurity-core-rule-set] import of mod_security/CRS code
+	on launchpad
+Message-ID: <AANLkTi=dPUCefpq=krc-jABzYVX-tuRvXQMJyZE6t3Bu@mail.gmail.com>
+
+Hi,
+
+For my pleasure i have imported the subversion trunk on sourceforge of
+mod_security/CRS (bazaar) on launchpad
+
+https://code.launchpad.net/~pinto-elia/mod-security/trunk<https://code.launchpad.net/%7Epinto-elia/mod-security/trunk>
+
+Perhaps there are also other interested in following in the WEB launchpad
+interface
+the mod_security/CRS development.
+
+Best Regards
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101126/d60d1c21/attachment.html 
+
+From RBarnett at trustwave.com  Tue Nov 30 11:41:14 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 30 Nov 2010 10:41:14 -0600
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the
+	Week: Exception Handling
+Message-ID: <C91A935A.18210%rbarnett@trustwave.com>
+
+This blog post will most likely be a very useful to many of you -
+
+http://blog.spiderlabs.com/2010/11/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+From jczucco at gmail.com  Tue Nov 30 14:05:05 2010
+From: jczucco at gmail.com (Jeronimo Zucco)
+Date: Tue, 30 Nov 2010 17:05:05 -0200
+Subject: [Owasp-modsecurity-core-rule-set] Error in
+	optional_rules/modsecurity_crs_43_csrf_protection.conf
+Message-ID: <AANLkTinPkqCKYXckMSYn68da96Y2qmtKKxTaRVJZAhCo@mail.gmail.com>
+
+I am upgrading my servers to the ModSecurity 2.5.13 and core
+ruleset/2.0.10 and got this error in my config:
+
+ ModSecurity: Could not set variable "session.sessionid" as the
+collection does not exist.
+
+
+In the default optional_rules/modsecurity_crs_43_csrf_protection.conf has:
+
+SecMarker BEGIN_SESSION_STARTUP
+
+SecRule REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+".*" "chain,phase:1,t:none,pass,nolog,auditlog,msg:'Invalid SessionID
+Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+       SecRule SESSION:VALID "!@eq 1" "t:none"
+
+SecAction "phase:1,t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid}"
+
+SecMarker END_SESSION_STARTUP
+
+
+SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+"(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)"
+"chain,phase:3,t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:session.valid=1"
+       SecRule SESSION:SESSIONID "(.*)"
+"t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+
+
+
+-- 
+Jeronimo Zucco - CISSP
+http://jczucco.blogspot.com
+
+From RBarnett at trustwave.com  Tue Nov 30 14:17:39 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 30 Nov 2010 13:17:39 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Error in
+ optional_rules/modsecurity_crs_43_csrf_protection.conf
+In-Reply-To: <AANLkTinPkqCKYXckMSYn68da96Y2qmtKKxTaRVJZAhCo@mail.gmail.com>
+Message-ID: <C91AB803.18233%rbarnett@trustwave.com>
+
+On 11/30/10 2:05 PM, "Jeronimo Zucco" <jczucco at gmail.com> wrote:
+
+> I am upgrading my servers to the ModSecurity 2.5.13 and core
+> ruleset/2.0.10 and got this error in my config:
+> 
+>  ModSecurity: Could not set variable "session.sessionid" as the
+> collection does not exist.
+> 
+
+This error is generated when a rule is using setvar:session.... However the
+SESSION collection has not yet been initialized with the setsid action.
+
+
+> 
+> In the default optional_rules/modsecurity_crs_43_csrf_protection.conf has:
+> 
+
+Is this happening all the time or only when you initially started ModSec
+with the new CRS 43 csrf rules?
+
+> SecMarker BEGIN_SESSION_STARTUP
+> 
+> SecRule 
+> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|c
+> f(id|token)|sid)/'
+> ".*" "chain,phase:1,t:none,pass,nolog,auditlog,msg:'Invalid SessionID
+> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter
+> :END_SESSION_STARTUP"
+>        SecRule SESSION:VALID "!@eq 1" "t:none"
+> 
+> SecAction 
+> "phase:1,t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid
+> =%{tx.sessionid}"
+> 
+> SecMarker END_SESSION_STARTUP
+> 
+
+This initial section is checking to see if the client is submitting a
+SESSIONID cookie value.  If they are, then it is using setsid to initialize
+the collection with the session id being submitted by the client as the key.
+The 2nd part of the chained rule is then looking to see if the SESSION
+collection has a variable set called VALID, which is previously set by
+ModSecurity (in the rules below) when the application is initially handing
+out the SESSIONID in a Set-Cookie response header.  If the VALID variable is
+not present, then the client has submitted a bogus SESSIONID value.
+
+If the SESSIONID submitted is VALID, then it proceeds as normal.
+
+> 
+> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|s
+> id)=([^\s]+)\;\s?)"
+> "chain,phase:3,t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.session
+> id=%{TX.6},setvar:session.valid=1"
+>        SecRule SESSION:SESSIONID "(.*)"
+> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+> 
+> 
+
+This ruleset is inspecting the response headers looking for Set-Cookie
+headers that are sending common SessionID names.  If this is found, then a
+SESSION collection is initialized with the SessionID as the key and a
+variable called VALID is created.  We know this SESSIONID is valid since the
+application is handing it out.
+
+Do you have an audit_log example of this transaction?  You can then look to
+see if the transaction has a SessionID in it or not.
+
+-Ryan
+
+
+
+From jczucco at gmail.com  Tue Nov 30 14:36:25 2010
+From: jczucco at gmail.com (Jeronimo Zucco)
+Date: Tue, 30 Nov 2010 17:36:25 -0200
+Subject: [Owasp-modsecurity-core-rule-set] Error in
+	optional_rules/modsecurity_crs_43_csrf_protection.conf
+In-Reply-To: <C91AB803.18233%rbarnett@trustwave.com>
+References: <AANLkTinPkqCKYXckMSYn68da96Y2qmtKKxTaRVJZAhCo@mail.gmail.com>
+	<C91AB803.18233%rbarnett@trustwave.com>
+Message-ID: <AANLkTimd4CYmS8QcrS1F-Grxr1ux3ahBMUKHwMSZPYV3@mail.gmail.com>
+
+2010/11/30 Ryan Barnett <RBarnett at trustwave.com>:
+> On 11/30/10 2:05 PM, "Jeronimo Zucco" <jczucco at gmail.com> wrote:
+>
+>> I am upgrading my servers to the ModSecurity 2.5.13 and core
+>> ruleset/2.0.10 and got this error in my config:
+>>
+>> ?ModSecurity: Could not set variable "session.sessionid" as the
+>> collection does not exist.
+>>
+>
+> This error is generated when a rule is using setvar:session.... However the
+> SESSION collection has not yet been initialized with the setsid action.
+>
+>
+>>
+>> In the default optional_rules/modsecurity_crs_43_csrf_protection.conf has:
+>>
+>
+> Is this happening all the time or only when you initially started ModSec
+> with the new CRS 43 csrf rules?
+
+All the time, each access I do in the browser, got this error in
+apache error_log. Even with files in the apache does not exist or
+exist.
+
+
+>
+>> SecMarker BEGIN_SESSION_STARTUP
+>>
+>> SecRule
+>> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|c
+>> f(id|token)|sid)/'
+>> ".*" "chain,phase:1,t:none,pass,nolog,auditlog,msg:'Invalid SessionID
+>> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter
+>> :END_SESSION_STARTUP"
+>> ? ? ? ?SecRule SESSION:VALID "!@eq 1" "t:none"
+>>
+>> SecAction
+>> "phase:1,t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid
+>> =%{tx.sessionid}"
+>>
+>> SecMarker END_SESSION_STARTUP
+>>
+>
+> This initial section is checking to see if the client is submitting a
+> SESSIONID cookie value. ?If they are, then it is using setsid to initialize
+> the collection with the session id being submitted by the client as the key.
+> The 2nd part of the chained rule is then looking to see if the SESSION
+> collection has a variable set called VALID, which is previously set by
+> ModSecurity (in the rules below) when the application is initially handing
+> out the SESSIONID in a Set-Cookie response header. ?If the VALID variable is
+> not present, then the client has submitted a bogus SESSIONID value.
+>
+> If the SESSIONID submitted is VALID, then it proceeds as normal.
+>
+>>
+>> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+>> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|s
+>> id)=([^\s]+)\;\s?)"
+>> "chain,phase:3,t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.session
+>> id=%{TX.6},setvar:session.valid=1"
+>> ? ? ? ?SecRule SESSION:SESSIONID "(.*)"
+>> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+>>
+>>
+>
+> This ruleset is inspecting the response headers looking for Set-Cookie
+> headers that are sending common SessionID names. ?If this is found, then a
+> SESSION collection is initialized with the SessionID as the key and a
+> variable called VALID is created. ?We know this SESSIONID is valid since the
+> application is handing it out.
+>
+> Do you have an audit_log example of this transaction? ?You can then look to
+> see if the transaction has a SessionID in it or not.
+
+
+Log bellow:
+
+modsec_debug.log:
+
+[30/Nov/2010:10:52:06 --0200]
+[vares04.ucs.br/sid#194bc180][rid#1c436ff8][/][3] Could not set
+variable "session.sessionid" as the collection does not exist.
+
+
+modsec_audit.log:
+
+-6cf66e6f-A--
+[30/Nov/2010:17:30:53 --0200] TPVQ7X8AAAEAAC9zNQkAAABD X.X.X.X 7801 Y.Y.Y.Y 5003
+--6cf66e6f-B--
+GET / HTTP/1.0
+Host: server.domain.com:5003
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; pt-BR; rv:1.9.2.12)
+Gecko/20101027 Fedora/3.6.12-1.fc14 Firefox/3.6.12
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-br,pt;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: identity
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Cache-Control: max-age=259200
+
+--6cf66e6f-F--
+HTTP/1.1 200 OK
+Last-Modified: Sat, 20 Nov 2004 20:16:24 GMT
+ETag: "31ff0b-2c-3e9564c23b600"
+Accept-Ranges: bytes
+Content-Length: 44
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/html
+
+--6cf66e6f-H--
+Message: Could not set variable "session.sessionid" as the collection
+does not exist.
+Stopwatch: 1291145453154984 3024 (1017 2402 -)
+Producer: ModSecurity for Apache/2.5.13 (http://www.modsecurity.org/);
+core ruleset/2.0.10.
+Server: Apache/2.2.17 (Unix) mod_ssl/2.2.17 OpenSSL/0.9.8e-fips-rhel5
+WebApp-Info: "default" "-" ""
+
+--6cf66e6f-Z--
+
+
+-- 
+Jeronimo Zucco - CISSP
+http://jczucco.blogspot.com
+

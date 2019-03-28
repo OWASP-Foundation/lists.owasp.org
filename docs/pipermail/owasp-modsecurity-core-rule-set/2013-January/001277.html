@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%27Multiple%20URL%20Encoding%0A%20Detected%27%2C%20id%3A%27950109%27%20--%20am%20I%20confused%3F&In-Reply-To=%3CCD108226.85B4%25mmitchell%40backstopsolutions.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001274.html">
+   <LINK REL="Next"  HREF="001275.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?</H1>
+    <B>Matt Mitchell</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%27Multiple%20URL%20Encoding%0A%20Detected%27%2C%20id%3A%27950109%27%20--%20am%20I%20confused%3F&In-Reply-To=%3CCD108226.85B4%25mmitchell%40backstopsolutions.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?">mmitchell at backstopsolutions.com
+       </A><BR>
+    <I>Mon Jan  7 19:57:17 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001274.html">[Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?
+</A></li>
+        <LI>Next message: <A HREF="001275.html">[Owasp-modsecurity-core-rule-set] Inbound Anomaly Score Filter
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1277">[ date ]</a>
+              <a href="thread.html#1277">[ thread ]</a>
+              <a href="subject.html#1277">[ subject ]</a>
+              <a href="author.html#1277">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks Ryan.
+
+I was taking a crack at this and it looks like the decoding of the '%25' to '%' is happening before this rule is getting applied (despite the t:none). Is that the case? I started using curl to poke it to see when things were triggering, and only the %25 appearance is causing issues (when followed by 2 [0-9a-fA-F] characters in this case). Which looks like it makes it impossible to submit a literal '%' as a parameter in the general case (if it's followed by something that matches the regex).
+
+I might just have to disable this rule unless you have any ideas of how to improve it. It seems really hard to solve in the general case, as there are lots of things that can follow a literal '%25' and without attempting to actually do the decoding until decode(input) == input you won't know if there's an attack being attempted or if it's legitimately encoded data.
+
+-m
+
+
+From: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;
+Date: Friday, January 4, 2013 3:35 PM
+To: Matt Mitchell &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mmitchell at backstopsolutions.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mmitchell at backstopsolutions.com</A>&gt;&gt;, &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: Re: [Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?
+
+Matt,
+Comments inline below.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+From: Matt Mitchell &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mmitchell at backstopsolutions.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mmitchell at backstopsolutions.com</A>&gt;&gt;
+Date: Friday, January 4, 2013 3:22 PM
+To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: [Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?
+
+Hi all,
+
+Thanks in advance for any help you can provide. I'm attempting to configure mod_security and the core rule set to handle traffic for our web application and am getting stuck trying to figure out the intended behavior of rule 950107. The problem I'm running into seems to stem from the fact that a literal % is being URI-encoded inside a query string (done &quot;automagically&quot; by jQuery in my case). As I'm reading rule 950109, it looks like any encoded character will cause it to trigger, which seems like not the intent of the rule (based on the name). I'd expect the rule to fire only in the case where the encoded % (%25) were then followed by two more (or u+4 more) digits, which would result from URI-encoding a string twice. While the encoding of the % as %25 isn't strictly necessary, I don't think it is, in and of itself, necessarily a problem. Here is an example request:
+
+GET /searchController.jsp?searchText=%25name&amp;maxResults=50
+
+So I suppose I have a three-part question:
+
+  1.  What, if anything, am I missing about the intent and implementation of 950109?
+
+The purpose of this rule is to identify multiple encodings.  The key to understanding the rule processing is the fact that the ARGS collection automatically applies 1 URL decode to the content before passing to the operator.  This is key as it means that if there is any % char following by at least 2 alpha-numeric chars, then it is probably encoded content remaining.
+
+
+  1.  If its behavior is deemed to be &quot;correct&quot;, how would you suggest working around this? I have been trying to be surgical about modifying the core rules, only either whitelisting entire endpoints or by removing selected rules by ID after all had been loaded. I am sure I could re-add a modified version of 950109 that will not trigger on the particular endpoint in question, but is there a better way?
+
+I think that we might be able to improve the Regex to look for multiple, continued encoding and not just 1 encoded char such as %25.
+
+I will see about updating the Regex and let the list know.
+
+-Ryan
+
+
+  1.  If its behavior is deemed to be incorrect, how should we (I) change it?
+
+-m
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130107/b56090c7/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130107/b56090c7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001274.html">[Owasp-modsecurity-core-rule-set] 'Multiple URL Encoding Detected', id:'950109' -- am I confused?
+</A></li>
+	<LI>Next message: <A HREF="001275.html">[Owasp-modsecurity-core-rule-set] Inbound Anomaly Score Filter
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1277">[ date ]</a>
+              <a href="thread.html#1277">[ thread ]</a>
+              <a href="subject.html#1277">[ subject ]</a>
+              <a href="author.html#1277">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

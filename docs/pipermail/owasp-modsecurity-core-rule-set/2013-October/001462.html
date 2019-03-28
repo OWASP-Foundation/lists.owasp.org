@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Can%20Rules%20drop%20offending%0A%20cookie/arg%20without%20dropping%20the%20entire%20request%3F&In-Reply-To=%3CCE7195A6.BA568%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001461.html">
+   <LINK REL="Next"  HREF="001463.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Can%20Rules%20drop%20offending%0A%20cookie/arg%20without%20dropping%20the%20entire%20request%3F&In-Reply-To=%3CCE7195A6.BA568%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Wed Oct  2 13:51:13 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001461.html">[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?
+</A></li>
+        <LI>Next message: <A HREF="001463.html">[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1462">[ date ]</a>
+              <a href="thread.html#1462">[ thread ]</a>
+              <a href="subject.html#1462">[ subject ]</a>
+              <a href="author.html#1462">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+On 10/2/13 8:33 AM, &quot;John McGowan&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">john at lynch2.com</A>&gt; wrote:
+
+&gt;<i>On Wed, Oct 2, 2013 at 5:08 AM, Josh Amishav-Zlatin &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at owasp.org</A>&gt;
+</I>&gt;<i>wrote:
+</I>&gt;&gt;<i> On Tue, Oct 1, 2013 at 10:56 PM, John McGowan &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">john at lynch2.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Is it possible for a mod_security rule to drop a cookie or an argument
+</I>&gt;&gt;&gt;<i> from a request without dropping the entire request?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi John,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> While I would not recommend this approach, you could use mod_headers to
+</I>&gt;&gt;<i> remove the cookie and the rsub action to remove POST body data from
+</I>&gt;&gt;<i>requests
+</I>&gt;&gt;<i> if you know the cookie/parameter name ahead of time.
+</I>&gt;<i>
+</I>&gt;<i>But I don't, the problem I'm dealing with is that 3rd parties set
+</I>&gt;<i>cookies on domains.  Cookies that my application doesn't read, or even
+</I>&gt;<i>know that they exist.  And when one of those cookies looks bad to the
+</I>&gt;<i>CRS, the entire request is dropped.  Meaning that the application is
+</I>&gt;<i>now broken for that user until we add an exxception.
+</I>&gt;<i>
+</I>&gt;&gt;<i> There is a good chance
+</I>&gt;&gt;<i> that this will negatively affect the functionality of the web
+</I>&gt;&gt;<i>application
+</I>&gt;&gt;<i> though.
+</I>&gt;<i>
+</I>&gt;<i>I'd rather have the application continue to move forward, ignoring the
+</I>&gt;<i>offending parameters, and log that action.   We would still have to
+</I>&gt;<i>look at the logged &quot;dropped parameters&quot; and decide if it was a false
+</I>&gt;<i>positive, true positive or a &quot;who cares&quot; positive.  A &quot;who cares&quot;
+</I>&gt;<i>positive would be one where I know my application doesn't use the
+</I>&gt;<i>offending parameter, so it's safe to just let mod_sec remove it from
+</I>&gt;<i>the request.
+</I>&gt;<i>
+</I>&gt;&gt;<i> If your getting too many false positives for a given
+</I>&gt;&gt;<i> cookie/parameter value and you know that they are not vulnerable to a
+</I>&gt;&gt;<i>given
+</I>&gt;&gt;<i> attack type, have you tried disabling rules by tag name? This may be a
+</I>&gt;&gt;<i> cleaner approach to solving your problem.
+</I>&gt;<i>
+</I>&gt;<i>I'm writing exceptions for ruleid/parameter combination when they come up.
+</I>&gt;<i>
+</I>&gt;<i>The problem is, when a NEW third party cookie appears the application
+</I>&gt;<i>is broken, and I'd rather that things move along and have that new
+</I>&gt;<i>cookie ignored.
+</I>&gt;<i>
+</I>&gt;<i>/John
+</I>
+
+John,
+What I would recommend is that you utilize the SecRuleUpdateTargetById,
+SecRuleUpdateTargetByTag, etc&#352; directives to customize which local
+variables are inspected. For your scenario, lets say that you only want to
+inspect some Cookie values that your site specifically sets (SESISONID,
+FOO_COOKIE and BAR_COOKIE).  You could add the following to a local custom
+rules file that is processed at the end of Apache/ModSecurity
+initialization (for example in a file called -
+modsecurity_crs_99_custom.conf).  You could place the following in the
+file to replace REQUEST_COOKIES with only your defined cookie values for
+all SQL Injection rules -
+
+
+SecRuleUpdateTargetByTag &quot;SQL_INJECTION&quot; REQUEST_COOKIES
+REQUEST_COOKIES:SESSIONID,REQUEST_COOKIES:FOO_COOKIE,REQUEST_COOKIES:BAR_CO
+OKIE
+
+
+
+Let me know if this works for you.
+
+-Ryan
+
+
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001461.html">[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?
+</A></li>
+	<LI>Next message: <A HREF="001463.html">[Owasp-modsecurity-core-rule-set] Can Rules drop offending cookie/arg without dropping the entire request?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1462">[ date ]</a>
+              <a href="thread.html#1462">[ thread ]</a>
+              <a href="subject.html#1462">[ subject ]</a>
+              <a href="author.html#1462">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-turkey] Onerileriniz
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%20Onerileriniz&In-Reply-To=5c4369570706091516o634281f9nc8a36abec3f39817%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000145.html">
+   <LINK REL="Next"  HREF="000150.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-turkey] Onerileriniz</H1>
+    <B>volkan uzun</B> 
+    <A HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%20Onerileriniz&In-Reply-To=5c4369570706091516o634281f9nc8a36abec3f39817%40mail.gmail.com"
+       TITLE="[Owasp-turkey] Onerileriniz">vuzun at csusb.edu
+       </A><BR>
+    <I>Mon Jun 11 11:31:05 EDT 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000145.html">[Owasp-turkey] Onerileriniz
+</A></li>
+        <LI>Next message: <A HREF="000150.html">[Owasp-turkey] Kod Analizi yapacak eleman arayisi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#152">[ date ]</a>
+              <a href="thread.html#152">[ thread ]</a>
+              <a href="subject.html#152">[ subject ]</a>
+              <a href="author.html#152">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Selamlar tekrardan,
+
+Sifreleme isleminden sorumlu sinif asagidaki gibi bir yapiya sahip ; umarim
+cok kod copy paste yuzunden sizleri sikmam.
+
+ 
+
+public class EncDec
+
+{
+
+    public static string strAlgoName = &quot;TripleDES&quot;;    
+
+    public static byte[] GenerateKey(bool bWriteToFile,string targetFile)
+
+    {
+
+        SymmetricAlgorithm des3Algo =
+SymmetricAlgorithm.Create(strAlgoName);
+
+       // des3Algo.KeySize = 192;        
+
+        des3Algo.GenerateKey();
+
+        byte[] key = des3Algo.Key;
+
+        if (bWriteToFile == true)
+
+        {
+
+            using (FileStream fs = new FileStream(targetFile,
+FileMode.Create))
+
+            {
+
+                fs.Write(key, 0, key.Length);
+
+            }
+
+        }
+
+        return key;
+
+    }
+
+ 
+
+    public static byte[] GetKeyFromFile(string keyFile)
+
+    {
+
+        byte[] key;
+
+        using (FileStream fs = new FileStream(keyFile, FileMode.Open))
+
+        {
+
+            key = new byte[fs.Length];
+
+            fs.Read(key, 0, (int)fs.Length);
+
+        }
+
+        return key;
+
+    }
+
+ 
+
+    public static string DecryptData(byte[] key, byte[] data)
+
+    {
+
+        SymmetricAlgorithm algo = SymmetricAlgorithm.Create(strAlgoName);
+
+        algo.Key = key;
+
+        MemoryStream memStream = new MemoryStream();
+
+        int ReadPos = 0;
+
+        byte[] IV = new byte[algo.IV.Length];
+
+        Array.Copy(data, IV, IV.Length);
+
+        algo.IV = IV;
+
+ 
+
+        ReadPos += algo.IV.Length;
+
+        CryptoStream cs = new CryptoStream(memStream,
+algo.CreateDecryptor(), CryptoStreamMode.Write);
+
+        cs.Write(data, ReadPos, data.Length - ReadPos);
+
+      //  cs.Write(data,0,data.Length);
+
+        cs.FlushFinalBlock();
+
+        return Encoding.UTF8.GetString(memStream.ToArray());
+
+    }
+
+ 
+
+    public static byte[] EncryptData(byte[] key, string data)
+
+    {
+
+        //convert data in the byte arr
+
+        byte[] clearTextData = Encoding.UTF8.GetBytes(data);
+
+        SymmetricAlgorithm algo = SymmetricAlgorithm.Create(strAlgoName);
+
+        algo.Key = key;
+
+ 
+
+        MemoryStream memStream = new MemoryStream();
+
+        //append IV
+
+        algo.GenerateIV();
+
+        memStream.Write(algo.IV, 0, algo.IV.Length);
+
+        CryptoStream cs = new CryptoStream(memStream,
+algo.CreateEncryptor(), CryptoStreamMode.Write);
+
+        cs.Write(clearTextData, 0, clearTextData.Length);
+
+        cs.FlushFinalBlock();
+
+        cs.Close();
+
+        return memStream.ToArray();
+
+    }
+
+    public EncDec()
+
+      {
+
+            //
+
+            // TODO: Add constructor logic here
+
+            //
+
+      }
+
+}
+
+ 
+
+Algoritmanin kullandigi key web.configte tutuluyor, ve aspnet_regiis -p ile
+bu kisim sifreleniyor. Bu sayede web.config en azindan bir derece daha
+guvenli.
+
+Sql server ile windows makine arasinda windows authtentication yapmam icin
+bunlari ayni domaine almam gerekir mi ? gerekmez ise, sql makinesi, iisden
+gelen ticket I nasil authorize edecek ?; ayni domaine almak gerekirsede;
+internete actigim makine ile sql serveri nedense ayni domaine almak istemem;
+bu konuda ne dusunuyorsunuz?
+
+ 
+
+Bu arada basitce sifrelemeyi soyle kullaniyorum :
+
+Configuration webConfig = WebConfigurationManager.OpenWebConfiguration(&quot;~&quot;);
+
+            AppSettingsSection appSettings =
+webConfig.GetSection(&quot;appSettings&quot;) as AppSettingsSection;
+
+            string strkey = appSettings.Settings[&quot;TripleDesKey&quot;].Value;
+
+            byte[] key = Convert.FromBase64String(strkey);
+
+ 
+
+            byte[] arrSSN = EncDec.EncryptData(key, ssn);
+
+            byte[] arrDOB = EncDec.EncryptData(key, dateofBirth.ToString());
+
+
+ 
+
+bunun disinda hastalari ziyaret eden danismanlar, yazdiklari raporlari
+sisteme yukleyecekler, ve bu dosyalari daha sonra isterlerse sisteme giris
+hakki olan diger danismanlarla paylasabilecekler. Benim yapmak istedigim bir
+sekilde, dosyayi ilk yukleyen kisinin imzasini dosyaya atabilmek; bunu nasil
+yaparim henuz bilemiyorum; ( kullaniciya kibar bir mesajla lutfen imzalayin
+demeden )
+
+ 
+
+ 
+
+Saygilar
+
+Volkan
+
+
+
+
+
+-------------- sonraki b&#246;l&#252;m --------------
+Bir HTML eklentisi temizlendi...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-turkey/attachments/20070611/34a7dc36/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-turkey/attachments/20070611/34a7dc36/attachment-0001.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000145.html">[Owasp-turkey] Onerileriniz
+</A></li>
+	<LI>Next message: <A HREF="000150.html">[Owasp-turkey] Kod Analizi yapacak eleman arayisi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#152">[ date ]</a>
+              <a href="thread.html#152">[ thread ]</a>
+              <a href="subject.html#152">[ subject ]</a>
+              <a href="author.html#152">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-turkey">More information about the Owasp-turkey
+mailing list</a><br>
+</body></html>

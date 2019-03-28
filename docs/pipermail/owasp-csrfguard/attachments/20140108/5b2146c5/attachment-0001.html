@@ -1,0 +1,216 @@
+<tt>
+&lt;div&nbsp;dir=&quot;ltr&quot;&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;Hi&nbsp;Erwin,&lt;br&gt;&lt;/div&gt;Is&nbsp;this&nbsp;OK&nbsp;for&nbsp;you&nbsp;to&nbsp;add&nbsp;your&nbsp;installation&nbsp;steps&nbsp;on&nbsp;the&nbsp;CSRFGuard&nbsp;wiki&nbsp;project&nbsp;?&lt;br&gt;&lt;/div&gt;I&nbsp;will&nbsp;install&nbsp;a&nbsp;complete&nbsp;WS&nbsp;environnement&nbsp;to&nbsp;tests&nbsp;each&nbsp;steps.&lt;br&gt;&lt;/div&gt;Regards,&lt;br&gt;<br>
+Azzeddine&lt;br&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;gmail_extra&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Tue,&nbsp;Jan&nbsp;7,&nbsp;2014&nbsp;at&nbsp;9:10&nbsp;PM,&nbsp;Erwin,&nbsp;Christy&nbsp;L&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:Christy.L.Erwin@boeing.com&quot;&nbsp;target=&quot;_blank&quot;&gt;Christy.L.Erwin@boeing.com&lt;/a&gt;&gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex&quot;&gt;Hello&nbsp;Ragha,&lt;br&gt;<br>
+&lt;br&gt;<br>
+I&nbsp;recently&nbsp;implemented&nbsp;CSRFGuard&nbsp;in&nbsp;an&nbsp;application&nbsp;using&nbsp;IBM&nbsp;WebSphere&nbsp;8.0.&nbsp;There&nbsp;are&nbsp;some&nbsp;changes&nbsp;that&nbsp;need&nbsp;to&nbsp;be&nbsp;made&nbsp;to&nbsp;the&nbsp;code&nbsp;in&nbsp;order&nbsp;to&nbsp;get&nbsp;it&nbsp;to&nbsp;work&nbsp;with&nbsp;the&nbsp;WebSphere&nbsp;server.&nbsp;I&nbsp;found&nbsp;that&nbsp;the&nbsp;Installation&nbsp;Guide&nbsp;and&nbsp;other&nbsp;documentation&nbsp;on&nbsp;the&nbsp;OWASP&nbsp;site&nbsp;does&nbsp;not&nbsp;address&nbsp;this.&lt;br&gt;<br>
+<br>
+&lt;br&gt;<br>
+In&nbsp;particular,&nbsp;in&nbsp;the&nbsp;csrfguard.properties&nbsp;file,&nbsp;I&nbsp;had&nbsp;to&nbsp;change&nbsp;the&nbsp;org.owasp.csrfguard.PRNG&nbsp;property&lt;br&gt;<br>
+From:&nbsp;org.owasp.csrfguard.PRNG&nbsp;=SHA1PRNG&lt;br&gt;<br>
+To:&nbsp;org.owasp.csrfguard.PRNG=IBMSecureRandom&lt;br&gt;<br>
+&lt;br&gt;<br>
+And&nbsp;in&nbsp;the&nbsp;CsrfGuard.java&nbsp;file,&nbsp;defaults&nbsp;are&nbsp;hard-coded&nbsp;for&nbsp;the&nbsp;following&nbsp;two&nbsp;values,&nbsp;which&nbsp;have&nbsp;to&nbsp;be&nbsp;changed&nbsp;for&nbsp;WebSphere&nbsp;servers&lt;br&gt;<br>
+From:&nbsp;org.owasp.csrfguard.PRNG=SHA1PRNG&lt;br&gt;<br>
+To:&nbsp;org.owasp.csrfguard.PRNG=IBMSecureRandom&lt;br&gt;<br>
+---&lt;br&gt;<br>
+From:&nbsp;org.owasp.csrfguard.PRNG.Provider=SUN&lt;br&gt;<br>
+To:&nbsp;org.owasp.csrfguard.PRNG.Provider=IBMJCE&lt;br&gt;<br>
+---&lt;br&gt;<br>
+&lt;br&gt;<br>
+Because&nbsp;of&nbsp;the&nbsp;change&nbsp;to&nbsp;the&nbsp;.java&nbsp;file,&nbsp;the&nbsp;code&nbsp;had&nbsp;to&nbsp;be&nbsp;recompiled.&nbsp;The&nbsp;OWASP&nbsp;CSRFGuard&nbsp;Install&nbsp;Guide&nbsp;shows&nbsp;how&nbsp;to&nbsp;list&nbsp;the&nbsp;CSRFGuardListener&nbsp;class&nbsp;in&nbsp;its&nbsp;example&nbsp;web.xml&nbsp;file.&nbsp;And&nbsp;the&nbsp;CSRFGuard.jar&nbsp;file&nbsp;on&nbsp;my&nbsp;company&#39;s&nbsp;application&nbsp;security&nbsp;web&nbsp;site&nbsp;contains&nbsp;this&nbsp;class&nbsp;file.&nbsp;But&nbsp;I&nbsp;was&nbsp;not&nbsp;able&nbsp;to&nbsp;find&nbsp;this&nbsp;java&nbsp;code&nbsp;anywhere.&nbsp;So&nbsp;instead,&nbsp;I&nbsp;used&nbsp;the&nbsp;CsrfGuardServletContextListener&nbsp;and&nbsp;CsrfGuardHttpSessionListener&nbsp;classes,&nbsp;and&nbsp;put&nbsp;them&nbsp;in&nbsp;my&nbsp;web.xml&nbsp;as&nbsp;follows:&lt;br&gt;<br>
+<br>
+ &nbsp; &nbsp;&lt;listener&gt;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardServletContextListener&lt;/listener-class&gt;&lt;br&gt;<br>
+ &nbsp; &nbsp;&lt;/listener&gt;&lt;br&gt;<br>
+ &nbsp; &nbsp;&lt;listener&gt;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardHttpSessionListener&lt;/listener-class&gt;&lt;br&gt;<br>
+ &nbsp; &nbsp;&lt;/listener&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+I&nbsp;would&nbsp;think&nbsp;that&nbsp;it&nbsp;would&nbsp;be&nbsp;possible&nbsp;to&nbsp;put&nbsp;both&nbsp;properties&nbsp;in&nbsp;csrfguard.properties&nbsp;and&nbsp;forgo&nbsp;the&nbsp;recompile&nbsp;of&nbsp;the&nbsp;Java&nbsp;code,&nbsp;but&nbsp;I&nbsp;didn&#39;t&nbsp;try&nbsp;this&nbsp;myself.&nbsp;It&nbsp;would&nbsp;look&nbsp;like&nbsp;this:&lt;br&gt;<br>
+org.owasp.csrfguard.PRNG=IBMSecureRandom&lt;br&gt;<br>
+org.owasp.csrfguard.PRNG.Provider=IBMJCE&lt;br&gt;<br>
+&lt;br&gt;<br>
+This&nbsp;is&nbsp;where&nbsp;info&nbsp;is&nbsp;on&nbsp;these&nbsp;properties&nbsp;for&nbsp;WebSphere:&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;http://files.jscape.com/secureftpserver/docs/index.html?running_under_ibm_jvm.htm&quot;&nbsp;target=&quot;_blank&quot;&gt;http://files.jscape.com/secureftpserver/docs/index.html?running_under_ibm_jvm.htm&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+Since&nbsp;I&nbsp;only&nbsp;needed&nbsp;to&nbsp;protect&nbsp;a&nbsp;couple&nbsp;pages&nbsp;in&nbsp;the&nbsp;application&nbsp;I&nbsp;worked&nbsp;on,&nbsp;I&nbsp;found&nbsp;it&nbsp;much&nbsp;simpler&nbsp;to&nbsp;use&nbsp;the&nbsp;provided&nbsp;JSP&nbsp;Tag&nbsp;Library,&nbsp;csrfguard.tld,&nbsp;and&nbsp;insert&nbsp;tokens&nbsp;into&nbsp;specific&nbsp;links.&nbsp;For&nbsp;me,&nbsp;this&nbsp;was&nbsp;preferable&nbsp;to&nbsp;using&nbsp;the&nbsp;default&nbsp;JavaScript&nbsp;token&nbsp;injection,&nbsp;which&nbsp;for&nbsp;my&nbsp;application,&nbsp;which&nbsp;has&nbsp;many&nbsp;links&nbsp;and&nbsp;older&nbsp;and&nbsp;faulty&nbsp;JavaScript&nbsp;code,&nbsp;surfaced&nbsp;a&nbsp;lot&nbsp;of&nbsp;previously&nbsp;unseen&nbsp;JS&nbsp;errors.&lt;br&gt;<br>
+<br>
+&lt;br&gt;<br>
+Feel&nbsp;free&nbsp;to&nbsp;contact&nbsp;me&nbsp;if&nbsp;you&nbsp;have&nbsp;additional&nbsp;questions&nbsp;about&nbsp;CSRFGuard&nbsp;in&nbsp;WebSphere.&lt;br&gt;<br>
+&lt;br&gt;<br>
+Christa&nbsp;Erwin&lt;br&gt;<br>
+Programmer/Analyst,&nbsp;Boeing&nbsp;Enterprise&nbsp;Supplier&nbsp;Tools&nbsp;(BEST)&lt;br&gt;<br>
+Mon-Thurs,&nbsp;8:00&nbsp;-&nbsp;4:30&nbsp;pm&lt;br&gt;<br>
+Work:&nbsp;&lt;a&nbsp;href=&quot;tel:425-234-5942&quot;&nbsp;value=&quot;+14252345942&quot;&gt;425-234-5942&lt;/a&gt;&lt;br&gt;<br>
+Cell:&nbsp;&lt;a&nbsp;href=&quot;tel:206-427-1787&quot;&nbsp;value=&quot;+12064271787&quot;&gt;206-427-1787&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+-----Original&nbsp;Message-----&lt;br&gt;<br>
+From:&nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard-bounces@lists.owasp.org&quot;&gt;owasp-csrfguard-bounces@lists.owasp.org&lt;/a&gt;&nbsp;[mailto:&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard-bounces@lists.owasp.org&quot;&gt;owasp-csrfguard-bounces@lists.owasp.org&lt;/a&gt;]&nbsp;On&nbsp;Behalf&nbsp;Of&nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard-request@lists.owasp.org&quot;&gt;owasp-csrfguard-request@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+<br>
+Sent:&nbsp;Thursday,&nbsp;December&nbsp;26,&nbsp;2013&nbsp;4:00&nbsp;AM&lt;br&gt;<br>
+To:&nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+Subject:&nbsp;Owasp-csrfguard&nbsp;Digest,&nbsp;Vol&nbsp;40,&nbsp;Issue&nbsp;1&lt;br&gt;<br>
+&lt;br&gt;<br>
+Send&nbsp;Owasp-csrfguard&nbsp;mailing&nbsp;list&nbsp;submissions&nbsp;to&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+To&nbsp;subscribe&nbsp;or&nbsp;unsubscribe&nbsp;via&nbsp;the&nbsp;World&nbsp;Wide&nbsp;Web,&nbsp;visit&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&lt;/a&gt;&lt;br&gt;<br>
+or,&nbsp;via&nbsp;email,&nbsp;send&nbsp;a&nbsp;message&nbsp;with&nbsp;subject&nbsp;or&nbsp;body&nbsp;&#39;help&#39;&nbsp;to&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard-request@lists.owasp.org&quot;&gt;owasp-csrfguard-request@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+You&nbsp;can&nbsp;reach&nbsp;the&nbsp;person&nbsp;managing&nbsp;the&nbsp;list&nbsp;at&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard-owner@lists.owasp.org&quot;&gt;owasp-csrfguard-owner@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+When&nbsp;replying,&nbsp;please&nbsp;edit&nbsp;your&nbsp;Subject&nbsp;line&nbsp;so&nbsp;it&nbsp;is&nbsp;more&nbsp;specific&nbsp;than&nbsp;&quot;Re:&nbsp;Contents&nbsp;of&nbsp;Owasp-csrfguard&nbsp;digest...&quot;&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+Today&#39;s&nbsp;Topics:&lt;br&gt;<br>
+&lt;br&gt;<br>
+ &nbsp; 1.&nbsp;Query&nbsp;on&nbsp;CSRFGuard&nbsp;and&nbsp;usage&nbsp;in&nbsp;IBM&nbsp;Websphere&nbsp;6.1&nbsp;(Raghu&nbsp;Vedu)&lt;br&gt;<br>
+ &nbsp; 2.&nbsp;Re:&nbsp;Query&nbsp;on&nbsp;CSRFGuard&nbsp;and&nbsp;usage&nbsp;in&nbsp;IBM&nbsp;Websphere&nbsp;6.1&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp;(Azzeddine&nbsp;Ramrami)&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+----------------------------------------------------------------------&lt;br&gt;<br>
+&lt;br&gt;<br>
+Message:&nbsp;1&lt;br&gt;<br>
+Date:&nbsp;26&nbsp;Dec&nbsp;2013&nbsp;04:58:27&nbsp;-0000&lt;br&gt;<br>
+From:&nbsp;&quot;Raghu&nbsp;Vedu&quot;&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:vedeshwar777@rediffmail.com&quot;&gt;vedeshwar777@rediffmail.com&lt;/a&gt;&gt;&lt;br&gt;<br>
+To:&nbsp;&quot;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&quot;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&gt;&lt;br&gt;<br>
+Subject:&nbsp;[Owasp-csrfguard]&nbsp;Query&nbsp;on&nbsp;CSRFGuard&nbsp;and&nbsp;usage&nbsp;in&nbsp;IBM&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;Websphere&nbsp;6.1&lt;br&gt;<br>
+Message-ID:&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:20131226045827.26979.qmail@f4mail-235-197.rediffmail.com&quot;&gt;20131226045827.26979.qmail@f4mail-235-197.rediffmail.com&lt;/a&gt;&gt;&lt;br&gt;<br>
+Content-Type:&nbsp;text/plain;&nbsp;charset=&quot;utf-8&quot;&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+Hi,&lt;br&gt;<br>
+&amp;nbsp;&lt;br&gt;<br>
+I&nbsp;am&nbsp;trying&nbsp;to&nbsp;use&nbsp;the&nbsp;source&nbsp;from&nbsp;&lt;a&nbsp;href=&quot;https://github.com/esheri3/OWASP-CSRFGuard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://github.com/esheri3/OWASP-CSRFGuard&lt;/a&gt;&nbsp;and&nbsp;my&nbsp;need&nbsp;is&nbsp;to&nbsp;use&nbsp;the&nbsp;library&nbsp;in&nbsp;web&nbsp;application&nbsp;using&nbsp;IBM&nbsp;Websphere&nbsp;6.1&nbsp;server.&lt;br&gt;<br>
+<br>
+&amp;nbsp;&lt;br&gt;<br>
+I&nbsp;am&nbsp;seeing&nbsp;it&nbsp;is&nbsp;written&nbsp;for&nbsp;Maven,&nbsp;so&nbsp;please&nbsp;let&nbsp;me&nbsp;know&nbsp;if&nbsp;IBM&nbsp;websphere&nbsp;based&nbsp;project&nbsp;is&nbsp;also&nbsp;available.&lt;br&gt;<br>
+&amp;nbsp;&lt;br&gt;<br>
+I&nbsp;am&nbsp;bit&nbsp;new&nbsp;to&nbsp;this,&nbsp;so&nbsp;please&nbsp;let&nbsp;me&nbsp;know&nbsp;the&nbsp;feasibility&nbsp;of&nbsp;using&nbsp;the&nbsp;CSRFguard&nbsp;in&nbsp;IBM&nbsp;server.&lt;br&gt;<br>
+&amp;nbsp;&lt;br&gt;<br>
+Thanks&lt;br&gt;<br>
+Ragha&lt;br&gt;<br>
+--------------&nbsp;next&nbsp;part&nbsp;--------------&lt;br&gt;<br>
+An&nbsp;HTML&nbsp;attachment&nbsp;was&nbsp;scrubbed...&lt;br&gt;<br>
+URL:&nbsp;&lt;&lt;a&nbsp;href=&quot;http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/9a1ded72/attachment-0001.html&quot;&nbsp;target=&quot;_blank&quot;&gt;http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/9a1ded72/attachment-0001.html&lt;/a&gt;&gt;&lt;br&gt;<br>
+<br>
+&lt;br&gt;<br>
+------------------------------&lt;br&gt;<br>
+&lt;br&gt;<br>
+Message:&nbsp;2&lt;br&gt;<br>
+Date:&nbsp;Thu,&nbsp;26&nbsp;Dec&nbsp;2013&nbsp;09:08:24&nbsp;+0100&lt;br&gt;<br>
+From:&nbsp;Azzeddine&nbsp;Ramrami&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:azzeddine.ramrami@owasp.org&quot;&gt;azzeddine.ramrami@owasp.org&lt;/a&gt;&gt;&lt;br&gt;<br>
+To:&nbsp;Raghu&nbsp;Vedu&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:vedeshwar777@rediffmail.com&quot;&gt;vedeshwar777@rediffmail.com&lt;/a&gt;&gt;&lt;br&gt;<br>
+Cc:&nbsp;&quot;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&quot;&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:owasp-csrfguard@lists.owasp.org&quot;&gt;owasp-csrfguard@lists.owasp.org&lt;/a&gt;&gt;&lt;br&gt;<br>
+Subject:&nbsp;Re:&nbsp;[Owasp-csrfguard]&nbsp;Query&nbsp;on&nbsp;CSRFGuard&nbsp;and&nbsp;usage&nbsp;in&nbsp;IBM&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;Websphere&nbsp; &nbsp; &nbsp; &nbsp;6.1&lt;br&gt;<br>
+Message-ID:&lt;br&gt;<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:CAL4seLGp93CD61jEh8HTYxmBZiN3yqG871Jwf%2Bxz9qO8G2Sz9A@mail.gmail.com&quot;&gt;CAL4seLGp93CD61jEh8HTYxmBZiN3yqG871Jwf+xz9qO8G2Sz9A@mail.gmail.com&lt;/a&gt;&gt;&lt;br&gt;<br>
+Content-Type:&nbsp;text/plain;&nbsp;charset=&quot;iso-8859-1&quot;&lt;br&gt;<br>
+&lt;br&gt;<br>
+Dear&nbsp;Sir,&lt;br&gt;<br>
+I&nbsp;ma&nbsp;the&nbsp;Leader&nbsp;of&nbsp;this&nbsp;project.&lt;br&gt;<br>
+You&nbsp;can&nbsp;use&nbsp;the&nbsp;CSRFGuard&nbsp;library&nbsp;with&nbsp;IBM&nbsp;WS&nbsp;as&nbsp;JavaEE&nbsp;filter.&lt;br&gt;<br>
+&lt;br&gt;<br>
+OWASP&nbsp;CSRFGuard&nbsp;utilizes&nbsp;request&nbsp;tokens&nbsp;to&nbsp;address&nbsp;Cross-Site&nbsp;Request&nbsp;Forgery.&nbsp; CSRF&nbsp;is&nbsp;an&nbsp;attack&nbsp;where&nbsp;the&nbsp;victim&nbsp;is&nbsp;tricked&nbsp;into&nbsp;interacting&nbsp;with&nbsp;a&nbsp;website&nbsp;where&nbsp;they&nbsp;are&nbsp;already&nbsp;authenticated.&lt;br&gt;<br>
+CSRFGuard&nbsp;Provides&nbsp;code&nbsp;to&nbsp;generate&nbsp;unique&nbsp;request&nbsp;tokens&nbsp;to&nbsp;mitigate&nbsp;CSRF&nbsp;risks.&lt;br&gt;<br>
+&lt;br&gt;<br>
+You&nbsp;can&nbsp;integrate&nbsp;the&nbsp;source&nbsp;code&nbsp;using&nbsp;you&nbsp;own&nbsp;method&nbsp;(if&nbsp;you&nbsp;don&#39;t&nbsp;use&nbsp;Maven).&lt;br&gt;<br>
+&lt;br&gt;<br>
+The&nbsp;following&nbsp;link&nbsp;show&nbsp;how&nbsp;to&nbsp;integrate&nbsp;CSRFGuard&nbsp;with&nbsp;you&nbsp;application&nbsp;:&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://www.owasp.org/index.php/CSRFGuard_3_Installation&quot;&nbsp;target=&quot;_blank&quot;&gt;https://www.owasp.org/index.php/CSRFGuard_3_Installation&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+If&nbsp;you&nbsp;have&nbsp;any&nbsp;question&nbsp;contact&nbsp;me.&lt;br&gt;<br>
+Regards,&lt;br&gt;<br>
+Azzeddine&nbsp;RAMRAMI&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+On&nbsp;Thu,&nbsp;Dec&nbsp;26,&nbsp;2013&nbsp;at&nbsp;5:58&nbsp;AM,&nbsp;Raghu&nbsp;Vedu&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:vedeshwar777@rediffmail.com&quot;&gt;vedeshwar777@rediffmail.com&lt;/a&gt;&gt;wrote:&lt;br&gt;<br>
+&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; Hi,&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;I&nbsp;am&nbsp;trying&nbsp;to&nbsp;use&nbsp;the&nbsp;source&nbsp;from&lt;br&gt;<br>
+&gt;&nbsp;&lt;a&nbsp;href=&quot;https://github.com/esheri3/OWASP-CSRFGuard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://github.com/esheri3/OWASP-CSRFGuard&lt;/a&gt;&lt;&lt;a&nbsp;href=&quot;https://mail.cognizant.com/&quot;&nbsp;target=&quot;_blank&quot;&gt;https://mail.cognizant.com/&lt;/a&gt;&lt;br&gt;<br>
+&gt;&nbsp;owa/redir.aspx?C=gctwdUlqRE6Dy9yipRCHDBaTrkSO1dAITOgP44EdTmawQQ3YMLYMT&lt;br&gt;<br>
+&gt;&nbsp;Ok3pVLoRqRK1yF4wY8ha-4.&amp;URL=https%3a%2f%&lt;a&nbsp;href=&quot;http://2fgithub.com&quot;&nbsp;target=&quot;_blank&quot;&gt;2fgithub.com&lt;/a&gt;%2fesheri3%2fOWASP&lt;br&gt;<br>
+&gt;&nbsp;-CSRFGuard&gt;and&nbsp;my&nbsp;need&nbsp;is&nbsp;to&nbsp;use&nbsp;the&nbsp;library&nbsp;in&nbsp;web&nbsp;application&nbsp;using&lt;br&gt;<br>
+&gt;&nbsp;IBM&nbsp;Websphere&lt;br&gt;<br>
+&gt;&nbsp;6.1&nbsp;server.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;I&nbsp;am&nbsp;seeing&nbsp;it&nbsp;is&nbsp;written&nbsp;for&nbsp;Maven,&nbsp;so&nbsp;please&nbsp;let&nbsp;me&nbsp;know&nbsp;if&nbsp;IBM&lt;br&gt;<br>
+&gt;&nbsp;websphere&nbsp;based&nbsp;project&nbsp;is&nbsp;also&nbsp;available.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;I&nbsp;am&nbsp;bit&nbsp;new&nbsp;to&nbsp;this,&nbsp;so&nbsp;please&nbsp;let&nbsp;me&nbsp;know&nbsp;the&nbsp;feasibility&nbsp;of&nbsp;using&lt;br&gt;<br>
+&gt;&nbsp;the&nbsp;CSRFguard&nbsp;in&nbsp;IBM&nbsp;server.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Thanks&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Ragha&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;&lt;&lt;a&nbsp;href=&quot;http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.co&quot;&nbsp;target=&quot;_blank&quot;&gt;http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.co&lt;/a&gt;&lt;br&gt;<br>
+&gt;&nbsp;m/signatureline.htm@Middle?&gt;&nbsp;Get&nbsp;your&nbsp;own&nbsp;*FREE*&nbsp;website,&nbsp;*FREE*&lt;br&gt;<br>
+&gt;&nbsp;domain&nbsp;&amp;&nbsp;*FREE*&nbsp;mobile&nbsp;app&nbsp;with&nbsp;Company&nbsp;email.&lt;br&gt;<br>
+&gt;&nbsp;*Know&nbsp;More&lt;br&gt;<br>
+&gt;&nbsp;&gt;*&lt;&lt;a&nbsp;href=&quot;http://track.rediff.com/click?url=___http://businessemail.rediff.co&quot;&nbsp;target=&quot;_blank&quot;&gt;http://track.rediff.com/click?url=___http://businessemail.rediff.co&lt;/a&gt;&lt;br&gt;<br>
+&gt;&nbsp;m/company-email-hosting-services?sc_cid=sign-1-10-13___&amp;cmp=host&amp;lnk=s&lt;br&gt;<br>
+&gt;&nbsp;ign-1-10-13&amp;nsrv1=host&gt;&lt;br&gt;<br>
+&gt;&nbsp;_______________________________________________&lt;br&gt;<br>
+&gt;&nbsp;Owasp-csrfguard&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&gt;&nbsp;&lt;a&nbsp;href=&quot;mailto:Owasp-csrfguard@lists.owasp.org&quot;&gt;Owasp-csrfguard@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&gt;&nbsp;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&lt;/a&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+--&lt;br&gt;<br>
+Azzeddine&nbsp;RAMRAMI&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;tel:%2B33%206%2065%2048%2090%2004&quot;&nbsp;value=&quot;+33665489004&quot;&gt;+33&nbsp;6&nbsp;65&nbsp;48&nbsp;90&nbsp;04&lt;/a&gt;.&lt;br&gt;<br>
+Enterprise&nbsp;Security&nbsp;Architect&lt;br&gt;<br>
+OWASP&nbsp;Leader&nbsp;(Morocco&nbsp;Chapter)&lt;br&gt;<br>
+Mozilla&nbsp;Security&nbsp;Projects&nbsp;Mentor&lt;br&gt;<br>
+--------------&nbsp;next&nbsp;part&nbsp;--------------&lt;br&gt;<br>
+An&nbsp;HTML&nbsp;attachment&nbsp;was&nbsp;scrubbed...&lt;br&gt;<br>
+URL:&nbsp;&lt;&lt;a&nbsp;href=&quot;http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/a1922fc9/attachment-0001.html&quot;&nbsp;target=&quot;_blank&quot;&gt;http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/a1922fc9/attachment-0001.html&lt;/a&gt;&gt;&lt;br&gt;<br>
+<br>
+&lt;br&gt;<br>
+------------------------------&lt;br&gt;<br>
+&lt;br&gt;<br>
+_______________________________________________&lt;br&gt;<br>
+Owasp-csrfguard&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-csrfguard@lists.owasp.org&quot;&gt;Owasp-csrfguard@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+End&nbsp;of&nbsp;Owasp-csrfguard&nbsp;Digest,&nbsp;Vol&nbsp;40,&nbsp;Issue&nbsp;1&lt;br&gt;<br>
+**********************************************&lt;br&gt;<br>
+_______________________________________________&lt;br&gt;<br>
+Owasp-csrfguard&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-csrfguard@lists.owasp.org&quot;&gt;Owasp-csrfguard@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-csrfguard&lt;/a&gt;&lt;br&gt;<br>
+&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;br&nbsp;clear=&quot;all&quot;&gt;&lt;br&gt;--&nbsp;&lt;br&gt;&lt;div&nbsp;dir=&quot;ltr&quot;&gt;&lt;div&gt;Azzeddine&nbsp;RAMRAMI&lt;br&gt;&nbsp;+33&nbsp;6&nbsp;65&nbsp;48&nbsp;90&nbsp;04.&lt;br&gt;Enterprise&nbsp;Security&nbsp;Architect&lt;br&gt;OWASP&nbsp;Leader&nbsp;(Morocco&nbsp;Chapter)&lt;br&gt;&lt;/div&gt;Mozilla&nbsp;Security&nbsp;Projects&nbsp;Mentor&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+
+</tt>

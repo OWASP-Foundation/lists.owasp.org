@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] I need help with the detection of the cookie modification
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20I%20need%20help%20with%20the%20detection%20of%20the%0A%20cookie%20modification&In-Reply-To=%3CCAOPE6Pi4rxadZxUZTdiEJ5wFZ4xa25kWFmxCgAwn9iyCL8e%2BXw%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000459.html">
+   <LINK REL="Next"  HREF="000461.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] I need help with the detection of the cookie modification</H1>
+    <B>Kevin W. Wall</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20I%20need%20help%20with%20the%20detection%20of%20the%0A%20cookie%20modification&In-Reply-To=%3CCAOPE6Pi4rxadZxUZTdiEJ5wFZ4xa25kWFmxCgAwn9iyCL8e%2BXw%40mail.gmail.com%3E"
+       TITLE="[Owasp-appsensor-project] I need help with the detection of the cookie modification">kevin.w.wall at gmail.com
+       </A><BR>
+    <I>Thu Oct 25 14:57:52 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000459.html">[Owasp-appsensor-project] I need help with the detection of the	cookie modification
+</A></li>
+        <LI>Next message: <A HREF="000461.html">[Owasp-appsensor-project] I need help with the detection of the cookie modification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#460">[ date ]</a>
+              <a href="thread.html#460">[ thread ]</a>
+              <a href="subject.html#460">[ subject ]</a>
+              <a href="author.html#460">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think how you would do that would depending on what cookie it was.
+For any other cookie other than the &quot;session&quot; cookie (e.g., JSESSIONID,
+ASPSESSIONID, etc.), you could store the original value of the session
+in the associated HTTP session object and whenever you receive it,
+compare it to what you have there.
+
+If it is something like JSESSIONID though, storing it there won't work.
+I'd recommend trying to detect something like that using a JavaEE
+servlet filter or (in IIS, an HTTPModule).
+
+Of course, you could always make the tampering self-evident by
+adding an HMAC to it and then validate the HMAC whenever you
+validate the cookies' value. That would be the best approach, but
+if you are dealing with cookies from 3rd party libraries / applications
+you may not be able to do that.
+
+Hope that makes sense.
+-kevin
+
+On Thu, Oct 25, 2012 at 8:41 AM, panos &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">panosx13 at gmail.com</A>&gt; wrote:
+
+&gt;<i> **
+</I>&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> I'm looking to find a way to detect the modification of a cookie in a
+</I>&gt;<i> webapp,
+</I>&gt;<i>
+</I>&gt;<i> as I saw in <A HREF="https://www.owasp.org/index.php/AppSensor_DetectionPoints">https://www.owasp.org/index.php/AppSensor_DetectionPoints</A>
+</I>&gt;<i>
+</I>&gt;<i> it is the SE1 but I can't find a propriate function.
+</I>&gt;<i>
+</I>&gt;<i> As I read here
+</I>&gt;<i> <A HREF="http://www.jarvana.com/jarvana/view/org/owasp/appsensor/AppSensor/0.1.3/AppSensor-0.1.3-javadoc.jar!/index.html?org/owasp/appsensor/ASObjFactory.html">http://www.jarvana.com/jarvana/view/org/owasp/appsensor/AppSensor/0.1.3/AppSensor-0.1.3-javadoc.jar!/index.html?org/owasp/appsensor/ASObjFactory.html</A>
+</I>&gt;<i>
+</I>&gt;<i> the verifyCookiesPresent is for finding if a cookie is added or deleted,
+</I>&gt;<i> not if it modified.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Is there any advice on how I can detect the modifications of a cookie?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Blog: <A HREF="http://off-the-wall-security.blogspot.com/">http://off-the-wall-security.blogspot.com/</A>
+&quot;The most likely way for the world to be destroyed, most experts agree,
+is by accident. That's where we come in; we're computer professionals.
+We *cause* accidents.&quot;        -- Nathaniel Borenstein
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20121025/3fba54a7/attachment.html">http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20121025/3fba54a7/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000459.html">[Owasp-appsensor-project] I need help with the detection of the	cookie modification
+</A></li>
+	<LI>Next message: <A HREF="000461.html">[Owasp-appsensor-project] I need help with the detection of the cookie modification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#460">[ date ]</a>
+              <a href="thread.html#460">[ thread ]</a>
+              <a href="subject.html#460">[ subject ]</a>
+              <a href="author.html#460">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

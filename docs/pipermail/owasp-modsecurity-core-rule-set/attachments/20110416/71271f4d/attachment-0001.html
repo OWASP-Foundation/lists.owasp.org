@@ -1,0 +1,202 @@
+<tt>
+&lt;div&gt;A&nbsp;little&nbsp;more&nbsp;information&nbsp;on&nbsp;the&nbsp;200&nbsp;return&nbsp;code:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;It&nbsp;seems&nbsp;that&nbsp;mod_reqtimeout&nbsp;is&nbsp;not&nbsp;closing&nbsp;the&nbsp;connection&nbsp;after&nbsp;the&nbsp;20 seconds,&nbsp;but&nbsp;rather&nbsp;truncating&nbsp;the&nbsp;request&nbsp;and&nbsp;letting&nbsp;it&nbsp;go&nbsp;through.&nbsp; So the&nbsp;request&nbsp;is&nbsp;actually&nbsp;processed,&nbsp;and&nbsp;since&nbsp;the&nbsp;URL&nbsp;is&nbsp;referring&nbsp;to&nbsp;an actual&nbsp;resource,&nbsp;a&nbsp;200&nbsp;code&nbsp;is&nbsp;returned.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Surely&nbsp;there&nbsp;must&nbsp;be&nbsp;a&nbsp;problem&nbsp;with&nbsp;our&nbsp;configuration?&nbsp; Or&nbsp;maybe&nbsp;our&nbsp;Apache&nbsp;build?&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Cheers,&lt;/div&gt;&lt;div&gt;GB&lt;/div&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Sat,&nbsp;Apr&nbsp;16,&nbsp;2011&nbsp;at&nbsp;12:55&nbsp;AM,&nbsp;Brian&nbsp;Rectanus&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&amp;lt;&lt;a&nbsp;href=&quot;mailto:brectanu@gmail.com&quot;&gt;brectanu@gmail.com&lt;/a&gt;&amp;gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex;&quot;&gt;Probably&nbsp;not&nbsp;&amp;quot;disastrous&amp;quot;&nbsp;:)&nbsp; You&nbsp;have&nbsp;the&nbsp;overhead&nbsp;of&nbsp;the&nbsp;TCP&nbsp;3-way&lt;br&gt;<br>
+handshake&nbsp;and&nbsp;also&nbsp;the&nbsp;shutdown,&nbsp;but&nbsp;the&nbsp;browsers&nbsp;should&nbsp;be&nbsp;using&nbsp;SSL&lt;br&gt;<br>
+session&nbsp;resumption,&nbsp;which&nbsp;is&nbsp;not&nbsp;connection&nbsp;based.&nbsp; It&nbsp;uses&nbsp;cached&nbsp;SSL&lt;br&gt;<br>
+session&nbsp;IDs&nbsp;and&nbsp;should&nbsp;be&nbsp;reused&nbsp;on&nbsp;each&nbsp;connection&nbsp;up&nbsp;to&nbsp;the&nbsp;timeout&lt;br&gt;<br>
+-&nbsp;just&nbsp;make&nbsp;sure&nbsp;this&nbsp;is&nbsp;enabled&nbsp;in&nbsp;the&nbsp;Apache&nbsp;config.&nbsp; Personally,&nbsp;I&lt;br&gt;<br>
+find&nbsp;that&nbsp;about&nbsp;3&nbsp;second&nbsp;timeouts&nbsp;w/low&nbsp;request&nbsp;limit&nbsp;works&nbsp;well&nbsp;for&lt;br&gt;<br>
+keepalives,&nbsp;so&nbsp;it&nbsp;may&nbsp;be&nbsp;enough&nbsp;to&nbsp;just&nbsp;limit&nbsp;the&nbsp;keepalive&nbsp;timeout&lt;br&gt;<br>
+and&nbsp;number&nbsp;of&nbsp;requests&nbsp; (say&nbsp;3&nbsp;second&nbsp;timeout&nbsp;w/9&nbsp;requests&nbsp;limit&lt;br&gt;<br>
+instead&nbsp;of&nbsp;completely&nbsp;disabling&nbsp;them).&nbsp; It&nbsp;really&nbsp;depends&nbsp;on&nbsp;your&lt;br&gt;<br>
+latency&nbsp;requirements&nbsp;for&nbsp;your&nbsp;site.&lt;br&gt;<br>
+&lt;br&gt;<br>
+-B&lt;br&gt;<br>
+&lt;br&gt;<br>
+On&nbsp;Thu,&nbsp;Apr&nbsp;14,&nbsp;2011&nbsp;at&nbsp;2:37&nbsp;PM,&nbsp;Guillaume&nbsp;Bilodeau&lt;br&gt;<br>
+&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;&amp;lt;&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;gt;&nbsp;wrote:&lt;br&gt;<br>
+&amp;gt;&nbsp;We&nbsp;will&nbsp;try&nbsp;turning&nbsp;off&nbsp;connection&nbsp;keep-alive&nbsp;to&nbsp;see&nbsp;how&nbsp;Apache&nbsp;will&nbsp;react.&lt;br&gt;<br>
+&amp;gt;&nbsp; However,&nbsp;isn&amp;#39;t&nbsp;turning&nbsp;this&nbsp;off&nbsp;going&nbsp;to&nbsp;have&nbsp;a&nbsp;disastrous&nbsp;impact&nbsp;on&lt;br&gt;<br>
+&amp;gt;&nbsp;connection&nbsp;performance,&nbsp;especially&nbsp;since&nbsp;all&nbsp;traffic&nbsp;will&nbsp;be&nbsp;SSL?&lt;br&gt;<br>
+&amp;gt;&lt;br&gt;<br>
+&amp;gt;&nbsp;On&nbsp;Thu,&nbsp;Apr&nbsp;14,&nbsp;2011&nbsp;at&nbsp;3:19&nbsp;PM,&nbsp;Ivan&nbsp;Ristic&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:ivan.ristic@gmail.com&quot;&gt;ivan.ristic@gmail.com&lt;/a&gt;&amp;gt;&nbsp;wrote:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;Yes,&nbsp;it&amp;#39;s&nbsp;probably&nbsp;because&nbsp;of&nbsp;keep-alives.&nbsp;Sounds&nbsp;like&nbsp;a&nbsp;bug&nbsp;in&nbsp;the&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;reqtimeout&nbsp;module,&nbsp;because,&nbsp;if&nbsp;the&nbsp;connection&nbsp;stays&nbsp;open,&nbsp;the&nbsp;module&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;isn&amp;#39;t&nbsp;achieving&nbsp;much.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;IIRC,&nbsp;ModSecurity&nbsp;will&nbsp;turn&nbsp;off&nbsp;keep-alives&nbsp;on&nbsp;a&nbsp;connection&nbsp;on&nbsp;which&nbsp;it&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;blocks.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;On&nbsp;Thu,&nbsp;Apr&nbsp;14,&nbsp;2011&nbsp;at&nbsp;8:11&nbsp;PM,&nbsp;Guillaume&nbsp;Bilodeau&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;gt;&nbsp;wrote:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;Hi&nbsp;Ryan,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;We&nbsp;installed&nbsp;WireShark&nbsp;and&nbsp;started&nbsp;sniffing&nbsp;on&nbsp;all&nbsp;traffic.&nbsp; It&nbsp;seems&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;that&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;Apache&nbsp;is&nbsp;returning&nbsp;a&nbsp;200&nbsp;status&nbsp;code&nbsp;instead&nbsp;of&nbsp;a&nbsp;408&nbsp;when&nbsp;the&nbsp;request&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;reaches&nbsp;30&nbsp;seconds,&nbsp;so&nbsp;from&nbsp;what&nbsp;I&nbsp;understand&nbsp;ModSecurity&nbsp;can&amp;#39;t&nbsp;do&nbsp;much&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;about&nbsp;that.&nbsp; The&nbsp;funny&nbsp;thing&nbsp;is,&nbsp;if&nbsp;we&nbsp;follow&nbsp;one&nbsp;of&nbsp;the&nbsp;TCP&nbsp;streams,&nbsp;we&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;see&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;that&nbsp;http_dos_cli&nbsp;keeps&nbsp;sending&nbsp;data&nbsp;even&nbsp;after&nbsp;receiving&nbsp;the&nbsp;200&nbsp;code.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp; Maybe&nbsp;something&nbsp;to&nbsp;do&nbsp;with&nbsp; keep-alive&nbsp;connections?&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;Cheers,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;GB&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;On&nbsp;Thu,&nbsp;Apr&nbsp;14,&nbsp;2011&nbsp;at&nbsp;2:12&nbsp;PM,&nbsp;Ryan&nbsp;Barnett&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:RBarnett@trustwave.com&quot;&gt;RBarnett@trustwave.com&lt;/a&gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;wrote:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;OK,&nbsp;if&nbsp;mod_reqtimeout&nbsp;is&nbsp;installed&nbsp;and&nbsp;that&nbsp;directive&nbsp;is&nbsp;working,&nbsp;then&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;after&nbsp;30&nbsp;sec&nbsp;if&nbsp;Apache&nbsp;has&nbsp;not&nbsp;received&nbsp;the&nbsp;entire&nbsp;request&nbsp;body&nbsp;then&nbsp;it&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;should&nbsp;terminate&nbsp;the&nbsp;request&nbsp;with&nbsp;a&nbsp;408&nbsp;status&nbsp;code.&nbsp; The&nbsp;ModSecurity&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;CRS&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;rules&nbsp;are&nbsp;simply&nbsp;monitoring&nbsp;if/how&nbsp;many&nbsp;408&nbsp;alerts&nbsp;are&nbsp;generated&nbsp;by&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Apache&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;per&nbsp;client.&nbsp; After&nbsp;a&nbsp;certain&nbsp;amount,&nbsp;then&nbsp;ModSecurity&nbsp;will&nbsp;step&nbsp;in&nbsp;on&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;subsequent&nbsp;requests&nbsp;in&nbsp;phase:1&nbsp;and&nbsp;do&nbsp;drop&nbsp;actions.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;So,&nbsp;by&nbsp;monitoring&nbsp;your&nbsp;Apache&nbsp;error&nbsp;log&nbsp;while&nbsp;you&nbsp;are&nbsp;running&nbsp;your&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;http_dos_cli&nbsp;tool,&nbsp;does&nbsp;Apache&nbsp;generate&nbsp;408&nbsp;alerts&nbsp;after&nbsp;30&nbsp;secs?&nbsp; If&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;not,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;then&nbsp;I&nbsp;don&amp;#39;t&nbsp;think&nbsp;that&nbsp;the&nbsp;mod_reqtimeout&nbsp;module&nbsp;or&nbsp;directive&nbsp;is&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;working.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;-Ryan&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;From:&nbsp;Guillaume&nbsp;Bilodeau&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Date:&nbsp;Thu,&nbsp;14&nbsp;Apr&nbsp;2011&nbsp;13:07:41&nbsp;-0500&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;To:&nbsp;Ryan&nbsp;Barnett&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:rbarnett@trustwave.com&quot;&gt;rbarnett@trustwave.com&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:rbarnett@trustwave.com&quot;&gt;rbarnett@trustwave.com&lt;/a&gt;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Cc:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;quot;&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;quot;&lt;br&gt;<br>
+<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;gt;&lt;br&gt;<br>
+<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Subject:&nbsp;Re:&nbsp;[Owasp-modsecurity-core-rule-set]&nbsp;Slow&nbsp;HTTP&nbsp;DOS&nbsp;protection&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;not&nbsp;behaving&nbsp;as&nbsp;expected&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Hi&nbsp;Ryan,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;I&amp;#39;m&nbsp;no&nbsp;Apache&nbsp;expert,&nbsp;but&nbsp;AFAICT&nbsp;the&nbsp;req_timeout&nbsp;module&nbsp;is&nbsp;installed.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp; A&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;/server-info&nbsp;shows&nbsp;the&nbsp;req_timeout.c&nbsp;module&nbsp;with&nbsp;the&nbsp;RequestReadTimeout&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;parameter.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Thanks,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;GB&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;On&nbsp;Thu,&nbsp;Apr&nbsp;14,&nbsp;2011&nbsp;at&nbsp;1:56&nbsp;PM,&nbsp;Ryan&nbsp;Barnett&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:RBarnett@trustwave.com&quot;&gt;RBarnett@trustwave.com&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:RBarnett@trustwave.com&quot;&gt;RBarnett@trustwave.com&lt;/a&gt;&amp;gt;&amp;gt;&nbsp;wrote:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Did&nbsp;you&nbsp;install&nbsp;the&nbsp;reqtimeout&nbsp;module?&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&nbsp;Mitigate&nbsp;Slow&nbsp;HTTP&nbsp;POST&nbsp;attacks&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&nbsp;Must&nbsp;have&nbsp;the&nbsp;mod_reqtimeout&nbsp;module&nbsp;installed&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&nbsp;You&nbsp;should&nbsp;adjust&nbsp;the&nbsp;RequestReadTimeout&nbsp;body&nbsp;directive&nbsp;setting&nbsp;to&nbsp;a&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;limit&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&nbsp;that&nbsp;will&nbsp;allow&nbsp;any&nbsp;legitimate&nbsp;slow&nbsp;clients&nbsp;or&nbsp;large&nbsp;file&nbsp;uplaods.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;#&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;IfModule&nbsp;reqtimeout_module&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;RequestReadTimeout&nbsp;body=30&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;/IfModule&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;-Ryan&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;From:&nbsp;Guillaume&nbsp;Bilodeau&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:guillaume.bilodeau@gmail.com&quot;&gt;guillaume.bilodeau@gmail.com&lt;/a&gt;&amp;gt;&amp;gt;&amp;gt;&lt;br&gt;<br>
+<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Date:&nbsp;Thu,&nbsp;14&nbsp;Apr&nbsp;2011&nbsp;12:33:52&nbsp;-0500&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;To:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;quot;&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;gt;&amp;quot;&lt;br&gt;<br>
+<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;&amp;lt;&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;lt;mailto:&lt;a&nbsp;href=&quot;mailto:owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&amp;gt;&amp;gt;&amp;gt;&lt;br&gt;<br>
+<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Subject:&nbsp;[Owasp-modsecurity-core-rule-set]&nbsp;Slow&nbsp;HTTP&nbsp;DOS&nbsp;protection&nbsp;not&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;behaving&nbsp;as&nbsp;expected&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Hi&nbsp;all,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;We&nbsp;are&nbsp;trying&nbsp;to&nbsp;setup&nbsp;the&nbsp;OWASP&nbsp;Core&nbsp;Rule&nbsp;Set&nbsp;to&nbsp;protect&nbsp;our&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;application&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;from&nbsp;Slow&nbsp;HTTP&nbsp;DOS&nbsp;attacks.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;We&nbsp;have&nbsp;setup&nbsp;ModSecurity&nbsp;2.5.13&nbsp;on&nbsp;our&nbsp;Apache&nbsp;2.2.17&nbsp;instance,&nbsp;loaded&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;the&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;module,&nbsp;and&nbsp;included&nbsp;all&nbsp;CRS&nbsp;base&nbsp;rules&nbsp;plus&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;modsecurity_crs_11_slow_dos_protection.conf.&nbsp; We&nbsp;didn&amp;#39;t&nbsp;change&nbsp;the&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;settings&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;defined&nbsp;in&nbsp;the&nbsp;conf&nbsp;file,&nbsp;so&nbsp;SecReadStateLimit&nbsp;is&nbsp;set&nbsp;to&nbsp;5&nbsp;and&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;RequestReadTimeout&nbsp;is&nbsp;set&nbsp;to&nbsp;body=30.&nbsp; We&nbsp;are&nbsp;using&nbsp;the&nbsp;http_dos_cli&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;command&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;line&nbsp;tool&nbsp;to&nbsp;do&nbsp;our&nbsp;tests,&nbsp;with&nbsp;the&nbsp;connection&nbsp;parameter&nbsp;set&nbsp;to&nbsp;500.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;When&nbsp;running&nbsp;the&nbsp;slow-headers&nbsp;test,&nbsp;ModSecurity&nbsp;seems&nbsp;to&nbsp;be&nbsp;protecting&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;the&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;application&nbsp;correctly,&nbsp;dropping&nbsp;most&nbsp;(all?)&nbsp;requests&nbsp;from&nbsp;the&nbsp;tester&amp;#39;s&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;IP&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;and&nbsp;allowing&nbsp;requests&nbsp;from&nbsp;a&nbsp;different&nbsp;IP&nbsp;to&nbsp;be&nbsp;served.&nbsp; However,&nbsp;when&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;running&nbsp;the&nbsp;slow-post&nbsp;test,&nbsp;ModSecurity&nbsp;doesn&amp;#39;t&nbsp;seem&nbsp;to&nbsp;be&nbsp;doing&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;anything.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp; From&nbsp;what&nbsp;I&nbsp;understand,&nbsp;the&nbsp;test&nbsp;successfully&nbsp;creates&nbsp;the&nbsp;500&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;connections&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;and&nbsp;keeps&nbsp;them&nbsp;open;&nbsp;none&nbsp;of&nbsp;them&nbsp;are&nbsp;dropped.&nbsp; Requests&nbsp;coming&nbsp;from&nbsp;a&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;different&nbsp;IP&nbsp;are&nbsp;not&nbsp;served&nbsp;and&nbsp;eventually&nbsp;time&nbsp;out.&nbsp; A&nbsp;tail&nbsp;-f&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;error_log&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;shows&nbsp;nothing&nbsp;except&nbsp;the&nbsp;eventual&nbsp;message&nbsp;on&nbsp;MaxClients&nbsp;(set&nbsp;to&nbsp;300&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;now)&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;being&nbsp;reached.&nbsp; Interestingly,&nbsp;when&nbsp;we&nbsp;kill&nbsp;the&nbsp;http_dos_cli&nbsp;process,&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;the&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;error_log&nbsp;is&nbsp;then&nbsp;flooded&nbsp;with&nbsp;hundreds&nbsp;of&nbsp;entries&nbsp;such&nbsp;as&nbsp;this:&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;[Mon&nbsp;Nov&nbsp;22&nbsp;17:44:46&nbsp;2010]&nbsp;[warn]&nbsp;ModSecurity:&nbsp;Access&nbsp;denied&nbsp;with&nbsp;code&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;400.&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Too&nbsp;many&nbsp;connections&nbsp;[6]&nbsp;of&nbsp;5&nbsp;allowed&nbsp;in&nbsp;READ&nbsp;state&nbsp;from&nbsp;211.144.112.20&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;-&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Possible&nbsp;DoS&nbsp;Consumption&nbsp;Attack&nbsp;[Rejected]&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;(this&nbsp;has&nbsp;been&nbsp;taken&nbsp;from&nbsp;the&nbsp;SpiderLabs&nbsp;blog&nbsp;entry,&nbsp;dates&nbsp;and&nbsp;IPs&nbsp;are&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;obviously&nbsp;different)&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Any&nbsp;idea&nbsp;on&nbsp;why&nbsp;this&nbsp;isn&amp;#39;t&nbsp;behaving&nbsp;like&nbsp;we&amp;#39;re&nbsp;expecting&nbsp;it&nbsp;to&nbsp;be?&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;Thanks!&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&nbsp;GB&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;_______________________________________________&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;Owasp-modsecurity-core-rule-set&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;&lt;a&nbsp;href=&quot;mailto:Owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;Owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&nbsp;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;/a&gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;--&lt;br&gt;<br>
+&amp;gt;&amp;gt;&nbsp;Ivan&nbsp;Ristić&lt;br&gt;<br>
+&amp;gt;&lt;br&gt;<br>
+&amp;gt;&lt;br&gt;<br>
+&amp;gt;&nbsp;_______________________________________________&lt;br&gt;<br>
+&amp;gt;&nbsp;Owasp-modsecurity-core-rule-set&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&amp;gt;&nbsp;&lt;a&nbsp;href=&quot;mailto:Owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;Owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&amp;gt;&nbsp;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;/a&gt;&lt;br&gt;<br>
+&amp;gt;&lt;br&gt;<br>
+&amp;gt;&lt;br&gt;<br>
+&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;<br>
+
+</tt>

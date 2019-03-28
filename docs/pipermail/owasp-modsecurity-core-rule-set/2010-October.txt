@@ -1,0 +1,2137 @@
+From RBarnett at trustwave.com  Mon Oct  4 16:49:57 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 4 Oct 2010 15:49:57 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Call for Assistance:
+	ModSecurity/CRS Event Data Statistics
+Message-ID: <C8CFB635.1480E%rbarnett@trustwave.com>
+
+Greetings everyone,
+I am asking for some assistance from the ModSecurity user-base.  I am working on a project and need to gather some high level statistics of ModSecurity event data.  Our long-term goal is to eventually have a statistical reporting utility that ModSec users can run through cron or something to report data in semi-realtime batches.  We can then post this data onto the ModSecurity.org website.  This data would only be an anonymous count of the ModSecurity/CRS Event message data (SQL Injection Attack, Invalid character in request, etc....).  It will not include any sensitive data identifying web sites, users or their data.
+
+In the short-term, what I am asking for you all to do to help with this initial effort, is to simply run the following command pipeline against their saved ModSecurity audit log data.  The audit log can be either serial or concurrent.  All you need to do is to traverse into your logs directory (example - /usr/local/apache/logs).  This directory needs to be the directory that holds either the serial modsec_audit.log file or where the concurrent SecDataDir directory is located.  Next, execute the following command (you may need to use sudo or something if you do not have the correct permissions to view the file) -
+
+$egrep -R '^Message\:' . | awk -F' \\[msg ' '{ print $2 }' | awk -F'"' '{print $2}' | egrep -v '^(Inbound Anomaly Score|$)' | sort | uniq -c | sort -nr
+
+This command will extract out the ModSecurity Message lines from the audit_log data and then sort and unique the ModSecurity event message ?msg? data from all of the events.  The output format should be similar to this -
+
+3809 Rogue web site crawler
+  3809 Request Indicates a Security Scanner Scanned the Site
+  3808 Request Missing an Accept Header
+   795 Cross-site Scripting (XSS) Attack
+   538 Detects very basic XSS probings
+   478 Detects possibly malicious html elements including some attributes
+   474 Detects obfuscated script tags and XML wrapped HTML
+   434 Detects specific directory and path traversal
+   421 XSS Attack Detected
+   396 IE XSS Filters - Attack Detected
+   359 Remote File Access Attempt
+   324 Possible XSS Attack Detected - HTML Tag Handler
+   318 Detects basic directory traversal
+   274 Detects etc/passwd inclusion attempts
+   155 Host header is a numeric IP address
+   155 finds html breaking injections including whitespace attacks
+   145 Detects JavaScript object properties and methods
+   116 Detects basic SQL authentication bypass attempts 2/3
+   112 Detects common XSS concatenation patterns 1/2
+    96 Detects classic SQL injection probings 2/2
+    94 Detects self-executing JavaScript functions
+    84 Detects possible includes and typical script methods
+    83 Invalid character in request
+    69 Restricted Character Anomaly Detection Alert - Repetative Non-Word Characters
+    54 System Command Injection
+    32 Detects common comment types
+    31 Detects possible includes, VBSCript/JScript encodeed and packed functions
+    30 Comment Evasion Attempt
+    27 System Command Access
+    25 More than 3 times special encode  Error
+    25 Detects JavaScript location/document property access and window access obfuscation
+    18 GET or HEAD requests with bodies
+    18 Detects basic SQL authentication bypass attempts 3/3
+    14 Restricted Character Anomaly Detection Alert - Total # of special characters exceeded
+    13 Detects JavaScript language constructs
+    12 HTTP protocol version is not allowed by policy
+    10 Detects data: URL injections, VBS injections and common URI schemes
+     9 Detects classic SQL injection probings 1/2
+     8 Input Validation  Error
+     8 Detects code injection attempts 3/3
+     7 Detects chained SQL injection attempts 1/2
+     6 Invalid HTTP Request Line
+     6 finds attribute breaking injections including whitespace attacks
+     5 Method is not allowed by policy
+     4 SQL Injection Attack
+     4 Detects obfuscated JavaScript script injections
+     4 Detects halfwidth/fullwidth encoded unicode HTML breaking attempts
+     4 Detects common function declarations and special JS operators
+     4 Detects code injection attempts 2/3
+     3 Request Missing a Host Header
+     3 Detects MySQL comment-/space-obfuscated injections
+     3 Detects basic obfuscated JavaScript script injections
+     2 Unicode Full/Half Width Abuse Attack Attempt
+     2 Remote File Inclusion Attack
+     2 Hexadecimal Charcode Pattern Found
+     2 finds unquoted attribute breaking injections
+     2 Detects the IE octal, hex and unicode entities
+     2 Detects nullbytes and other dangerous characters
+     2 Detects JavaScript string properties and methods
+     2 Detects basic SQL authentication bypass attempts 1/3
+     1 URL Encoding Abuse Attack Attempt
+     1 Request Missing a User Agent Header
+     1 Possible RegEx DoS Payload
+     1 Detects basic XSS DoS attempts
+     1 Blind SQL Injection Attack
+     1 Backdoor access
+
+Once you have run this against your saved logs, please send them to me in email to the following email address ? security at modsecurity.org.  If you could, also please specify the following in the email body -
+
+
+ 1.  How many websites ModSecurity is monitoring, and
+ 2.  The date range of the data included in the stats report (we are looking for all data from 2010).
+
+Thanks for your help in this research effort.
+
+Ryan Barnett
+ModSecurity Community Manager
+OWASP ModSecurity Core Rule Set Project Lead
+
+
+From chris at jwall.org  Mon Oct  4 19:12:31 2010
+From: chris at jwall.org (Christian Bockermann)
+Date: Tue, 5 Oct 2010 01:12:31 +0200
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users] Call for
+	Assistance: ModSecurity/CRS Event Data Statistics
+In-Reply-To: <C8CFB635.1480E%rbarnett@trustwave.com>
+References: <C8CFB635.1480E%rbarnett@trustwave.com>
+Message-ID: <78F23A46-D550-4AA6-BB3F-14C1FF92C345@jwall.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi all,
+
+sounds like a nice plan by Ryan.
+
+I just extended my jwall-tools package to provide the information you requested (either by
+applying it onto a serial audit-log file or by applying it to a directory in which case it will
+recursively scan for audit-event data files).
+
+@Ryan:
+Right now, the tools just output the data in plain text. I plan to provide the data in CSV format
+and XML format as well and though about providing an auto-upload function to push the data to
+a statistics-service (anonymously, of course).
+(If you're interested in working on that jointly, just drop me a line)
+
+
+The updated jwall-tools can be found at:
+
+	https://secure.jwall.org/download/jwall-tools.jar
+
+The md5-checksum of that file is 4cc35f5d07d6503357907473307e7609
+These updates jwall-tools contain a new command "stats" which can be issued as:
+
+     java -jar jwall-tools.jar stats /path/to/audit.log
+or 
+     java -jar jwall-tools.jar stats /path/to/concurrent/audit/dir
+
+
+The following is given as output of the above command:
+
+
+[chris at jwall: ~]$  java -jar jwall-tools.jar stats audit.log
+..............................................................................................................................................................................................................................................................................................................................................................
+53754 events processed in 16 seconds.
+Event date range from 02/26/2010 08:00 to 09/03/2010 08:33.
+
+- ------------------------------------------------------
+Rule Messages:
+       118   Detects JavaScript location/document property access and window access obfuscation
+       114   Detects common XSS concatenation patterns 1/2
+        51   The application is not available
+        27   Detects possible includes and typical script methods
+        24   Invalid request
+        23   Possible HTTP Parameter Pollution Attack: Multiple Parameters with the same Name.
+        21   Request Missing an Accept Header
+        20   Detects common XSS concatenation patterns 2/2
+        17   Detects obfuscated JavaScript script injections
+        14   Comment Evasion Attempt7
+        13   Detects self-executing JavaScript functions
+         8   Detects data: URL injections, VBS injections and common URI schemes
+         7   Detects JavaScript with(), ternary operators and XML predicate attacks
+         7   Detects basic directory traversal
+         5   Detects JavaScript object properties and methods
+         5   Detects common function declarations and special JS operators
+         5   Detects self
+         4   Detects JavaScript language constructs
+         4   Detects nullbytes and other dangerous characters
+         2   Host header is a numeric IP address
+
+- ------------------------------------------------------
+Rule-IDs:
+        67   phpids-3
+        57   phpids-30
+        35   phpids-2
+        30   phpids-23
+        21   960015
+        17   970901
+        15   phpids-1
+        13   phpids-16
+        12   960913
+        12   phpids-31
+         8   hpp-1
+         7   phpids-27
+         7   phpids-7
+         5   phpids-25
+         5   phpids-8
+         4   phpids-converter-comment-evasion
+         3   phpids-10
+         3   phpids-20
+         2   960017
+         2   phpids-39
+         1   phpids-17
+         1   phpids-6
+         1   phpids-62
+
+- ------------------------------------------------------
+Tags:
+        21   PROTOCOL_VIOLATION/MISSING_HEADER
+         2   PROTOCOL_VIOLATION/IP_HOST
+- ------------------------------------------------------
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (Darwin)
+
+iD8DBQFMql9fpc5/RcXDlTwRAjAIAJ9Ir67ie/BhHvk/q/iKVHxzbJKGwACeK5/1
+/4G55FMohjj4DxZVCdjpyGg=
+=pMZK
+-----END PGP SIGNATURE-----
+
+From RBarnett at trustwave.com  Mon Oct  4 22:03:40 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 4 Oct 2010 21:03:40 -0500
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users] Call for
+ Assistance: ModSecurity/CRS Event Data Statistics
+In-Reply-To: <78F23A46-D550-4AA6-BB3F-14C1FF92C345@jwall.org>
+References: <C8CFB635.1480E%rbarnett@trustwave.com>
+	<78F23A46-D550-4AA6-BB3F-14C1FF92C345@jwall.org>
+Message-ID: <E0BC2ED5-5771-464D-B461-EB6C5E60F00F@trustwave.com>
+
+This is a great addition Christian!  Yeah, let's chat about posting this data to a stats service that we can host on the ModSecurity site. 
+
+Sent from my iPhone
+
+On Oct 4, 2010, at 7:12 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hi all,
+> 
+> sounds like a nice plan by Ryan.
+> 
+> I just extended my jwall-tools package to provide the information you requested (either by
+> applying it onto a serial audit-log file or by applying it to a directory in which case it will
+> recursively scan for audit-event data files).
+> 
+> @Ryan:
+> Right now, the tools just output the data in plain text. I plan to provide the data in CSV format
+> and XML format as well and though about providing an auto-upload function to push the data to
+> a statistics-service (anonymously, of course).
+> (If you're interested in working on that jointly, just drop me a line)
+> 
+> 
+> The updated jwall-tools can be found at:
+> 
+>    https://secure.jwall.org/download/jwall-tools.jar
+> 
+> The md5-checksum of that file is 4cc35f5d07d6503357907473307e7609
+> These updates jwall-tools contain a new command "stats" which can be issued as:
+> 
+>     java -jar jwall-tools.jar stats /path/to/audit.log
+> or 
+>     java -jar jwall-tools.jar stats /path/to/concurrent/audit/dir
+> 
+> 
+> The following is given as output of the above command:
+> 
+> 
+> [chris at jwall: ~]$  java -jar jwall-tools.jar stats audit.log
+> ..............................................................................................................................................................................................................................................................................................................................................................
+> 53754 events processed in 16 seconds.
+> Event date range from 02/26/2010 08:00 to 09/03/2010 08:33.
+> 
+> - ------------------------------------------------------
+> Rule Messages:
+>       118   Detects JavaScript location/document property access and window access obfuscation
+>       114   Detects common XSS concatenation patterns 1/2
+>        51   The application is not available
+>        27   Detects possible includes and typical script methods
+>        24   Invalid request
+>        23   Possible HTTP Parameter Pollution Attack: Multiple Parameters with the same Name.
+>        21   Request Missing an Accept Header
+>        20   Detects common XSS concatenation patterns 2/2
+>        17   Detects obfuscated JavaScript script injections
+>        14   Comment Evasion Attempt7
+>        13   Detects self-executing JavaScript functions
+>         8   Detects data: URL injections, VBS injections and common URI schemes
+>         7   Detects JavaScript with(), ternary operators and XML predicate attacks
+>         7   Detects basic directory traversal
+>         5   Detects JavaScript object properties and methods
+>         5   Detects common function declarations and special JS operators
+>         5   Detects self
+>         4   Detects JavaScript language constructs
+>         4   Detects nullbytes and other dangerous characters
+>         2   Host header is a numeric IP address
+> 
+> - ------------------------------------------------------
+> Rule-IDs:
+>        67   phpids-3
+>        57   phpids-30
+>        35   phpids-2
+>        30   phpids-23
+>        21   960015
+>        17   970901
+>        15   phpids-1
+>        13   phpids-16
+>        12   960913
+>        12   phpids-31
+>         8   hpp-1
+>         7   phpids-27
+>         7   phpids-7
+>         5   phpids-25
+>         5   phpids-8
+>         4   phpids-converter-comment-evasion
+>         3   phpids-10
+>         3   phpids-20
+>         2   960017
+>         2   phpids-39
+>         1   phpids-17
+>         1   phpids-6
+>         1   phpids-62
+> 
+> - ------------------------------------------------------
+> Tags:
+>        21   PROTOCOL_VIOLATION/MISSING_HEADER
+>         2   PROTOCOL_VIOLATION/IP_HOST
+> - ------------------------------------------------------
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.8 (Darwin)
+> 
+> iD8DBQFMql9fpc5/RcXDlTwRAjAIAJ9Ir67ie/BhHvk/q/iKVHxzbJKGwACeK5/1
+> /4G55FMohjj4DxZVCdjpyGg=
+> =pMZK
+> -----END PGP SIGNATURE-----
+> 
+
+
+From florian.lier at uni-bielefeld.de  Tue Oct  5 12:21:18 2010
+From: florian.lier at uni-bielefeld.de (Florian Lier)
+Date: Tue, 05 Oct 2010 18:21:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CoreRules Beginner Question |
+ Message: Operator GT matched 0 at ARGS_NAMES
+Message-ID: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+
+Hello all,
+
+this is my first encounter with this mailing list and I
+(probably) have a noobish question...
+
+I'm running mod_security 2.5.11 on an Apache 2.x
+WS with the 2.0.8 core rule set. The only webapp
+which Apache serves is a freshly installed up-to-date
+drupal 6.19.
+
+After having the core rules installed and set the filter engine
+on I'm experiencing weird logs in the audit_log like the following:
+
+---------------------------------------
+
+--e640b336-A--
+[05/Oct/2010:18:00:49 +0200] TKtLsX8AAQEAAGMRAskAAAAB xxx.xxx.xxx.12 48772 192.168.1.4 80
+--e640b336-B--
+GET / HTTP/1.0
+Host: fl0.xxx.xx
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.10) Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 115
+Referer: http://fl0.ath.cx/
+Cookie: SESSfed0fce205fc7295ffe987ef538e635b=39i0rkv38ov7e8l1atl3jjg5l4
+If-Modified-Since: Tue, 05 Oct 2010 16:00:39 GMT
+Via: 1.1 proxy (squid)
+X-Forwarded-For: unknown
+Cache-Control: max-age=259200
+Connection: keep-alive
+
+--e640b336-F--
+HTTP/1.1 200 OK
+Expires: Sun, 19 Nov 1978 05:00:00 GMT
+Last-Modified: Tue, 05 Oct 2010 16:00:49 GMT
+Cache-Control: store, no-cache, must-revalidate
+Cache-Control: post-check=0, pre-check=0
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 1867
+Keep-Alive: timeout=15, max=98
+Connection: Keep-Alive
+Content-Type: text/html; charset=utf-8
+
+--e640b336-H--
+Message: Operator GT matched 0 at ARGS_NAMES. [file "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"] [line "22"] [id "1"] [rev "2.0.8"] [msg "Argument name too long"] [severity "WARNING"]
+Message: Operator GT matched 0 at ARGS. [file "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"] [line "26"] [id "2"] [rev "2.0.8"] [msg "Argument value too long"] [severity "WARNING"]
+Apache-Handler: application/x-httpd-php
+Stopwatch: 1286294449838083 140002 (1358 2902 -)
+Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/); core ruleset/2.0.8.
+Server: Apache/2.2.14 (Ubuntu)
+
+--e640b336-Z--
+
+------------------------
+
+"modsecurity_crs_62_my.conf" is basically a copy of "modsecurity_crs_23_request_limits.conf"  because I wanted to
+experiment with that rule, actually I haven't changed anything
+in both files. The same messages apply for several "css" files
+which are requested by my client. 
+
+The HTTP Policy Settings are the following:
+
+------------------------
+
+#
+# -=[ HTTP Policy Settings ]=-
+# Set the following policy settings here and they will be propagated to the 23 rules
+# file (modsecurity_common_23_request_limits.conf) by using macro expansion.  
+# If you run into false positives, you can adjust the settings here.
+#
+# Only the max number of args is uncommented by default as there are a high rate
+# of false positives.  Uncomment the items you wish to set.
+# 
+## Maximum number of arguments in request limited
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_num_args=500"
+
+## Limit argument name length
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=200"
+
+## Limit value name length
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_length=400"
+
+## Limit arguments total length
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000"
+
+## Individual file size is limited
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576"
+
+## Combined file size is limited
+SecAction "phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576"
+
+
+----------------------
+
+
+Can someone please explain to me what is happening here?
+>From what I know atm, I think mod_sec complains about having
+"0" arguments in the GET request? I have "googled" this of course,
+but couldn't find any sufficient answer. I hope you guys can help me
+out.
+
+Cheers, Flo
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101005/486a929d/attachment.html 
+
+From jamuse at gmail.com  Thu Oct  7 04:19:18 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Thu, 7 Oct 2010 10:19:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CoreRules Beginner Question |
+ Message: Operator GT matched 0 at ARGS_NAMES
+In-Reply-To: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+References: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+Message-ID: <AANLkTinxZC6nsRN0SS9wroL-abUcqDrH5yg8n4_6bsv1@mail.gmail.com>
+
+Hi Flo,
+
+Can you show us line 22 and 26 of modsecurity_crs_62_my.conf"?
+
+--
+ - Josh
+
+On Tue, Oct 5, 2010 at 6:21 PM, Florian Lier
+<florian.lier at uni-bielefeld.de>wrote:
+
+> Hello all,
+>
+> this is my first encounter with this mailing list and I
+> (probably) have a noobish question...
+>
+> I'm running mod_security 2.5.11 on an Apache 2.x
+> WS with the 2.0.8 core rule set. The only webapp
+> which Apache serves is a freshly installed up-to-date
+> drupal 6.19.
+>
+> After having the core rules installed and set the filter engine
+> on I'm experiencing weird logs in the audit_log like the following:
+>
+> ---------------------------------------
+>
+> --e640b336-A--
+> [05/Oct/2010:18:00:49 +0200] TKtLsX8AAQEAAGMRAskAAAAB xxx.xxx.xxx.12 48772
+> 192.168.1.4 80
+> --e640b336-B--
+> GET / HTTP/1.0
+> Host: fl0.xxx.xx
+> User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.10)
+> Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10
+> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+> Accept-Language: en-us,en;q=0.5
+> Accept-Encoding: gzip,deflate
+> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+> Keep-Alive: 115
+> Referer: http://fl0.ath.cx/
+> Cookie: SESSfed0fce205fc7295ffe987ef538e635b=39i0rkv38ov7e8l1atl3jjg5l4
+> If-Modified-Since: Tue, 05 Oct 2010 16:00:39 GMT
+> Via: 1.1 proxy (squid)
+> X-Forwarded-For: unknown
+> Cache-Control: max-age=259200
+> Connection: keep-alive
+>
+> --e640b336-F--
+> HTTP/1.1 200 OK
+> Expires: Sun, 19 Nov 1978 05:00:00 GMT
+> Last-Modified: Tue, 05 Oct 2010 16:00:49 GMT
+> Cache-Control: store, no-cache, must-revalidate
+> Cache-Control: post-check=0, pre-check=0
+> Vary: Accept-Encoding
+> Content-Encoding: gzip
+> Content-Length: 1867
+> Keep-Alive: timeout=15, max=98
+> Connection: Keep-Alive
+> Content-Type: text/html; charset=utf-8
+>
+> --e640b336-H--
+> Message: Operator GT matched 0 at ARGS_NAMES. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "22"] [id "1"] [rev "2.0.8"] [msg "Argument name too long"] [severity
+> "WARNING"]
+> Message: Operator GT matched 0 at ARGS. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "26"] [id "2"] [rev "2.0.8"] [msg "Argument value too long"] [severity
+> "WARNING"]
+> Apache-Handler: application/x-httpd-php
+> Stopwatch: 1286294449838083 140002 (1358 2902 -)
+> Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/);
+> core ruleset/2.0.8.
+> Server: Apache/2.2.14 (Ubuntu)
+>
+> --e640b336-Z--
+>
+> ------------------------
+>
+> "modsecurity_crs_62_my.conf" is basically a copy of
+> "modsecurity_crs_23_request_limits.conf"  because I wanted to
+> experiment with that rule, actually I haven't changed anything
+> in both files. The same messages apply for several "css" files
+> which are requested by my client.
+>
+> The HTTP Policy Settings are the following:
+>
+> ------------------------
+>
+> #
+> # -=[ HTTP Policy Settings ]=-
+> # Set the following policy settings here and they will be propagated to the
+> 23 rules
+> # file (modsecurity_common_23_request_limits.conf) by using macro
+> expansion.
+> # If you run into false positives, you can adjust the settings here.
+> #
+> # Only the max number of args is uncommented by default as there are a high
+> rate
+> # of false positives.  Uncomment the items you wish to set.
+> #
+> ## Maximum number of arguments in request limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_num_args=500"
+>
+> ## Limit argument name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=200"
+>
+> ## Limit value name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_length=400"
+>
+> ## Limit arguments total length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000"
+>
+> ## Individual file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576"
+>
+> ## Combined file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576"
+>
+>
+> ----------------------
+>
+>
+> Can someone please explain to me what is happening here?
+> From what I know atm, I think mod_sec complains about having
+> "0" arguments in the GET request? I have "googled" this of course,
+> but couldn't find any sufficient answer. I hope you guys can help me
+> out.
+>
+> Cheers, Flo
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101007/bb7f853c/attachment.html 
+
+From jamuse at gmail.com  Thu Oct  7 04:19:18 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Thu, 7 Oct 2010 10:19:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CoreRules Beginner Question |
+ Message: Operator GT matched 0 at ARGS_NAMES
+In-Reply-To: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+References: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+Message-ID: <AANLkTinxZC6nsRN0SS9wroL-abUcqDrH5yg8n4_6bsv1@mail.gmail.com>
+
+Hi Flo,
+
+Can you show us line 22 and 26 of modsecurity_crs_62_my.conf"?
+
+--
+ - Josh
+
+On Tue, Oct 5, 2010 at 6:21 PM, Florian Lier
+<florian.lier at uni-bielefeld.de>wrote:
+
+> Hello all,
+>
+> this is my first encounter with this mailing list and I
+> (probably) have a noobish question...
+>
+> I'm running mod_security 2.5.11 on an Apache 2.x
+> WS with the 2.0.8 core rule set. The only webapp
+> which Apache serves is a freshly installed up-to-date
+> drupal 6.19.
+>
+> After having the core rules installed and set the filter engine
+> on I'm experiencing weird logs in the audit_log like the following:
+>
+> ---------------------------------------
+>
+> --e640b336-A--
+> [05/Oct/2010:18:00:49 +0200] TKtLsX8AAQEAAGMRAskAAAAB xxx.xxx.xxx.12 48772
+> 192.168.1.4 80
+> --e640b336-B--
+> GET / HTTP/1.0
+> Host: fl0.xxx.xx
+> User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.10)
+> Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10
+> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+> Accept-Language: en-us,en;q=0.5
+> Accept-Encoding: gzip,deflate
+> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+> Keep-Alive: 115
+> Referer: http://fl0.ath.cx/
+> Cookie: SESSfed0fce205fc7295ffe987ef538e635b=39i0rkv38ov7e8l1atl3jjg5l4
+> If-Modified-Since: Tue, 05 Oct 2010 16:00:39 GMT
+> Via: 1.1 proxy (squid)
+> X-Forwarded-For: unknown
+> Cache-Control: max-age=259200
+> Connection: keep-alive
+>
+> --e640b336-F--
+> HTTP/1.1 200 OK
+> Expires: Sun, 19 Nov 1978 05:00:00 GMT
+> Last-Modified: Tue, 05 Oct 2010 16:00:49 GMT
+> Cache-Control: store, no-cache, must-revalidate
+> Cache-Control: post-check=0, pre-check=0
+> Vary: Accept-Encoding
+> Content-Encoding: gzip
+> Content-Length: 1867
+> Keep-Alive: timeout=15, max=98
+> Connection: Keep-Alive
+> Content-Type: text/html; charset=utf-8
+>
+> --e640b336-H--
+> Message: Operator GT matched 0 at ARGS_NAMES. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "22"] [id "1"] [rev "2.0.8"] [msg "Argument name too long"] [severity
+> "WARNING"]
+> Message: Operator GT matched 0 at ARGS. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "26"] [id "2"] [rev "2.0.8"] [msg "Argument value too long"] [severity
+> "WARNING"]
+> Apache-Handler: application/x-httpd-php
+> Stopwatch: 1286294449838083 140002 (1358 2902 -)
+> Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/);
+> core ruleset/2.0.8.
+> Server: Apache/2.2.14 (Ubuntu)
+>
+> --e640b336-Z--
+>
+> ------------------------
+>
+> "modsecurity_crs_62_my.conf" is basically a copy of
+> "modsecurity_crs_23_request_limits.conf"  because I wanted to
+> experiment with that rule, actually I haven't changed anything
+> in both files. The same messages apply for several "css" files
+> which are requested by my client.
+>
+> The HTTP Policy Settings are the following:
+>
+> ------------------------
+>
+> #
+> # -=[ HTTP Policy Settings ]=-
+> # Set the following policy settings here and they will be propagated to the
+> 23 rules
+> # file (modsecurity_common_23_request_limits.conf) by using macro
+> expansion.
+> # If you run into false positives, you can adjust the settings here.
+> #
+> # Only the max number of args is uncommented by default as there are a high
+> rate
+> # of false positives.  Uncomment the items you wish to set.
+> #
+> ## Maximum number of arguments in request limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_num_args=500"
+>
+> ## Limit argument name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=200"
+>
+> ## Limit value name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_length=400"
+>
+> ## Limit arguments total length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000"
+>
+> ## Individual file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576"
+>
+> ## Combined file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576"
+>
+>
+> ----------------------
+>
+>
+> Can someone please explain to me what is happening here?
+> From what I know atm, I think mod_sec complains about having
+> "0" arguments in the GET request? I have "googled" this of course,
+> but couldn't find any sufficient answer. I hope you guys can help me
+> out.
+>
+> Cheers, Flo
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101007/bb7f853c/attachment-0001.html 
+
+From jamuse at gmail.com  Thu Oct  7 04:19:18 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Thu, 7 Oct 2010 10:19:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CoreRules Beginner Question |
+ Message: Operator GT matched 0 at ARGS_NAMES
+In-Reply-To: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+References: <10513_1286295679_ZZh0_1Hme6tFj.00_fc74d8a5195b3.4cab6c9e@uni-bielefeld.de>
+Message-ID: <AANLkTinxZC6nsRN0SS9wroL-abUcqDrH5yg8n4_6bsv1@mail.gmail.com>
+
+Hi Flo,
+
+Can you show us line 22 and 26 of modsecurity_crs_62_my.conf"?
+
+--
+ - Josh
+
+On Tue, Oct 5, 2010 at 6:21 PM, Florian Lier
+<florian.lier at uni-bielefeld.de>wrote:
+
+> Hello all,
+>
+> this is my first encounter with this mailing list and I
+> (probably) have a noobish question...
+>
+> I'm running mod_security 2.5.11 on an Apache 2.x
+> WS with the 2.0.8 core rule set. The only webapp
+> which Apache serves is a freshly installed up-to-date
+> drupal 6.19.
+>
+> After having the core rules installed and set the filter engine
+> on I'm experiencing weird logs in the audit_log like the following:
+>
+> ---------------------------------------
+>
+> --e640b336-A--
+> [05/Oct/2010:18:00:49 +0200] TKtLsX8AAQEAAGMRAskAAAAB xxx.xxx.xxx.12 48772
+> 192.168.1.4 80
+> --e640b336-B--
+> GET / HTTP/1.0
+> Host: fl0.xxx.xx
+> User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.10)
+> Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10
+> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+> Accept-Language: en-us,en;q=0.5
+> Accept-Encoding: gzip,deflate
+> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+> Keep-Alive: 115
+> Referer: http://fl0.ath.cx/
+> Cookie: SESSfed0fce205fc7295ffe987ef538e635b=39i0rkv38ov7e8l1atl3jjg5l4
+> If-Modified-Since: Tue, 05 Oct 2010 16:00:39 GMT
+> Via: 1.1 proxy (squid)
+> X-Forwarded-For: unknown
+> Cache-Control: max-age=259200
+> Connection: keep-alive
+>
+> --e640b336-F--
+> HTTP/1.1 200 OK
+> Expires: Sun, 19 Nov 1978 05:00:00 GMT
+> Last-Modified: Tue, 05 Oct 2010 16:00:49 GMT
+> Cache-Control: store, no-cache, must-revalidate
+> Cache-Control: post-check=0, pre-check=0
+> Vary: Accept-Encoding
+> Content-Encoding: gzip
+> Content-Length: 1867
+> Keep-Alive: timeout=15, max=98
+> Connection: Keep-Alive
+> Content-Type: text/html; charset=utf-8
+>
+> --e640b336-H--
+> Message: Operator GT matched 0 at ARGS_NAMES. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "22"] [id "1"] [rev "2.0.8"] [msg "Argument name too long"] [severity
+> "WARNING"]
+> Message: Operator GT matched 0 at ARGS. [file
+> "/etc/apache2/conf.d/modsecurity/msconfs/base_rules/modsecurity_crs_62_my.conf"]
+> [line "26"] [id "2"] [rev "2.0.8"] [msg "Argument value too long"] [severity
+> "WARNING"]
+> Apache-Handler: application/x-httpd-php
+> Stopwatch: 1286294449838083 140002 (1358 2902 -)
+> Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/);
+> core ruleset/2.0.8.
+> Server: Apache/2.2.14 (Ubuntu)
+>
+> --e640b336-Z--
+>
+> ------------------------
+>
+> "modsecurity_crs_62_my.conf" is basically a copy of
+> "modsecurity_crs_23_request_limits.conf"  because I wanted to
+> experiment with that rule, actually I haven't changed anything
+> in both files. The same messages apply for several "css" files
+> which are requested by my client.
+>
+> The HTTP Policy Settings are the following:
+>
+> ------------------------
+>
+> #
+> # -=[ HTTP Policy Settings ]=-
+> # Set the following policy settings here and they will be propagated to the
+> 23 rules
+> # file (modsecurity_common_23_request_limits.conf) by using macro
+> expansion.
+> # If you run into false positives, you can adjust the settings here.
+> #
+> # Only the max number of args is uncommented by default as there are a high
+> rate
+> # of false positives.  Uncomment the items you wish to set.
+> #
+> ## Maximum number of arguments in request limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_num_args=500"
+>
+> ## Limit argument name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=200"
+>
+> ## Limit value name length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.arg_length=400"
+>
+> ## Limit arguments total length
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000"
+>
+> ## Individual file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576"
+>
+> ## Combined file size is limited
+> SecAction "phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576"
+>
+>
+> ----------------------
+>
+>
+> Can someone please explain to me what is happening here?
+> From what I know atm, I think mod_sec complains about having
+> "0" arguments in the GET request? I have "googled" this of course,
+> but couldn't find any sufficient answer. I hope you guys can help me
+> out.
+>
+> Cheers, Flo
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101007/bb7f853c/attachment-0005.html 
+
+From RBarnett at trustwave.com  Thu Oct  7 10:25:27 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 7 Oct 2010 09:25:27 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Call for Assistance:
+	ModSecurity/CRS Event Data Statistics
+In-Reply-To: <C8CFB635.1480E%rbarnett@trustwave.com>
+Message-ID: <C8D35097.1496E%rbarnett@trustwave.com>
+
+I wanted to say thanks to those of you who have sent in some stats!  I see that some users are already using Christian Bockermann?s updated jwall-tools.jar file to gather stats which is cool.
+
+We still needs more stats sent in though, so if you have a minute, please send them in.
+
+Thanks again for your help.
+
+-Ryan
+
+On 10/4/10 4:49 PM, "Ryan Barnett" <RBarnett at trustwave.com> wrote:
+
+Greetings everyone,
+I am asking for some assistance from the ModSecurity user-base.  I am working on a project and need to gather some high level statistics of ModSecurity event data.  Our long-term goal is to eventually have a statistical reporting utility that ModSec users can run through cron or something to report data in semi-realtime batches.  We can then post this data onto the ModSecurity.org website.  This data would only be an anonymous count of the ModSecurity/CRS Event message data (SQL Injection Attack, Invalid character in request, etc....).  It will not include any sensitive data identifying web sites, users or their data.
+
+In the short-term, what I am asking for you all to do to help with this initial effort, is to simply run the following command pipeline against their saved ModSecurity audit log data.  The audit log can be either serial or concurrent.  All you need to do is to traverse into your logs directory (example - /usr/local/apache/logs).  This directory needs to be the directory that holds either the serial modsec_audit.log file or where the concurrent SecDataDir directory is located.  Next, execute the following command (you may need to use sudo or something if you do not have the correct permissions to view the file) -
+
+$egrep -R '^Message\:' . | awk -F' \\[msg ' '{ print $2 }' | awk -F'"' '{print $2}' | egrep -v '^(Inbound Anomaly Score|$)' | sort | uniq -c | sort -nr
+
+This command will extract out the ModSecurity Message lines from the audit_log data and then sort and unique the ModSecurity event message ?msg? data from all of the events.  The output format should be similar to this -
+
+3809 Rogue web site crawler
+  3809 Request Indicates a Security Scanner Scanned the Site
+  3808 Request Missing an Accept Header
+   795 Cross-site Scripting (XSS) Attack
+   538 Detects very basic XSS probings
+   478 Detects possibly malicious html elements including some attributes
+   474 Detects obfuscated script tags and XML wrapped HTML
+   434 Detects specific directory and path traversal
+   421 XSS Attack Detected
+   396 IE XSS Filters - Attack Detected
+   359 Remote File Access Attempt
+   324 Possible XSS Attack Detected - HTML Tag Handler
+   318 Detects basic directory traversal
+   274 Detects etc/passwd inclusion attempts
+   155 Host header is a numeric IP address
+   155 finds html breaking injections including whitespace attacks
+   145 Detects JavaScript object properties and methods
+   116 Detects basic SQL authentication bypass attempts 2/3
+   112 Detects common XSS concatenation patterns 1/2
+    96 Detects classic SQL injection probings 2/2
+    94 Detects self-executing JavaScript functions
+    84 Detects possible includes and typical script methods
+    83 Invalid character in request
+    69 Restricted Character Anomaly Detection Alert - Repetative Non-Word Characters
+    54 System Command Injection
+    32 Detects common comment types
+    31 Detects possible includes, VBSCript/JScript encodeed and packed functions
+    30 Comment Evasion Attempt
+    27 System Command Access
+    25 More than 3 times special encode  Error
+    25 Detects JavaScript location/document property access and window access obfuscation
+    18 GET or HEAD requests with bodies
+    18 Detects basic SQL authentication bypass attempts 3/3
+    14 Restricted Character Anomaly Detection Alert - Total # of special characters exceeded
+    13 Detects JavaScript language constructs
+    12 HTTP protocol version is not allowed by policy
+    10 Detects data: URL injections, VBS injections and common URI schemes
+     9 Detects classic SQL injection probings 1/2
+     8 Input Validation  Error
+     8 Detects code injection attempts 3/3
+     7 Detects chained SQL injection attempts 1/2
+     6 Invalid HTTP Request Line
+     6 finds attribute breaking injections including whitespace attacks
+     5 Method is not allowed by policy
+     4 SQL Injection Attack
+     4 Detects obfuscated JavaScript script injections
+     4 Detects halfwidth/fullwidth encoded unicode HTML breaking attempts
+     4 Detects common function declarations and special JS operators
+     4 Detects code injection attempts 2/3
+     3 Request Missing a Host Header
+     3 Detects MySQL comment-/space-obfuscated injections
+     3 Detects basic obfuscated JavaScript script injections
+     2 Unicode Full/Half Width Abuse Attack Attempt
+     2 Remote File Inclusion Attack
+     2 Hexadecimal Charcode Pattern Found
+     2 finds unquoted attribute breaking injections
+     2 Detects the IE octal, hex and unicode entities
+     2 Detects nullbytes and other dangerous characters
+     2 Detects JavaScript string properties and methods
+     2 Detects basic SQL authentication bypass attempts 1/3
+     1 URL Encoding Abuse Attack Attempt
+     1 Request Missing a User Agent Header
+     1 Possible RegEx DoS Payload
+     1 Detects basic XSS DoS attempts
+     1 Blind SQL Injection Attack
+     1 Backdoor access
+
+Once you have run this against your saved logs, please send them to me in email to the following email address ? security at modsecurity.org.  If you could, also please specify the following in the email body -
+
+
+ 1.  How many websites ModSecurity is monitoring, and
+ 2.  The date range of the data included in the stats report (we are looking for all data from 2010).
+
+Thanks for your help in this research effort.
+
+Ryan Barnett
+ModSecurity Community Manager
+OWASP ModSecurity Core Rule Set Project Lead
+
+
+
+
+From jay at synfosys.com  Fri Oct  8 01:14:45 2010
+From: jay at synfosys.com (Jay Kiran)
+Date: Fri, 08 Oct 2010 05:14:45 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Call for
+ Assistance:	ModSecurity/CRS Event Data Statistics
+Message-ID: <W1481013855168761286514885@webmail4>
+
+Hi Ryan,
+
+Here is the output of the command:
+
+ 330 Cross-site Scripting (XSS) Attack
+ 256 XSS Attack Detected
+ 208 Detects basic directory traversal
+ 206 Request content type is not allowed by policy
+ 197 IE XSS Filters - Attack Detected
+ 177 Remote File Access Attempt
+ 174 Detects specific directory and path traversal
+ 169 Detects etc/passwd inclusion attempts
+ 162 SQL Injection Attack
+ 147 Possible XSS Attack Detected - HTML Tag Handler
+ 145 Detects very basic XSS probings
+ 140 Detects possibly malicious html elements including some attributes
+ 136 Detects obfuscated script tags and XML wrapped HTML
+ 132 Host header is a numeric IP address
+ 98 Detects basic SQL authentication bypass attempts 2/3
+ 97 The application is not available
+ 93 Detects concatenated basic SQL injection and SQLLFI attempts
+ 85 finds html breaking injections including whitespace attacks
+ 77 Detects classic SQL injection probings 2/2
+ 75 Invalid character in request
+ 66 Protocol Violations Detected (score 5): 900012-Detects etc/passwd inclusion attempts
+ 65 XSS Detected (score 120): IE XSS Filters - Attack Detected
+ 59 Detects common comment types
+ 51 XSS Detected (score 140): IE XSS Filters - Attack Detected
+ 45 Anomaly Score Exceeded (score 55): 900012-Detects etc/passwd inclusion attempts
+ 44 Outbound Anomaly Score Exceeded (score 15): The application is not available
+ 43 Anomaly Score Exceeded (score 35): 900012-Detects etc/passwd inclusion attempts
+ 42 Phreebooks Local file inclusion vulnerability
+ 38 Anomaly Score Exceeded (score 141): IE XSS Filters - Attack Detected
+ 35 Detects chained SQL injection attempts 2/2
+ 34 MyNews CMS XSS Vulnerability
+ 34 Anomaly Score Exceeded (score 81): SQL Injection Attack
+ 34 Anomaly Score Exceeded (score 60): 900012-Detects etc/passwd inclusion attempts
+ 32 MyNews CMS Local File Inclusion Vulnerability
+ 26 phpckSec file inclusion vulnerability
+ 24 RFI Detected (score 20): 900012-Detects etc/passwd inclusion attempts
+ 23 Anomaly Score Exceeded (score 40): 900012-Detects etc/passwd inclusion attempts
+ 21 Comment Evasion Attempt
+ 21 Anomaly Score Exceeded (score 25): 900010-Detects basic directory traversal
+ 20 XSS Detected (score 20): 900012-Detects etc/passwd inclusion attempts
+ 20 uigaproxy remote file inclusion vulnerability
+ 19 ccTiddly Remote File Inclusion Vulnerability
+ 18 MACS-CMS XSS vulnerability
+ 18 Anomaly Score Exceeded (score 55): SQL Injection Attack
+ 16 XSS Detected (score 100): IE XSS Filters - Attack Detected
+ 16 Anomaly Score Exceeded (score 151): IE XSS Filters - Attack Detected
+ 15 Detects JavaScript object properties and methods
+ 15 Correlated Attack Attempt Identified: (Total Score: 35, SQLi=, XSS=)Inbound Attack (900012-Detects etc/passwd inclusion attempts InboundAnomaly Score: 35) + Outbound Application Error (The application is notavailable - Outbound Anomaly Score: 15)
+ 15 Anomaly Score Exceeded (score 156): IE XSS Filters - Attack Detected
+ 14 Anomaly Score Exceeded (score 161): IE XSS Filters - Attack Detected
+ 12 Anomaly Score Exceeded (score 80): 900012-Detects etc/passwd inclusion attempts
+ 12 Anomaly Score Exceeded (score 121): IE XSS Filters - Attack Detected
+ 10 RFI Detected (score 20): 900010-Detects basic directory traversal
+ 10 phpckSec XSS vulnerability
+ 9 XSS Detected (score 160): IE XSS Filters - Attack Detected
+ 9 MegaFileManager prone to file inclusion vulnerability
+ 9 Anomaly Score Exceeded (score 75): 900012-Detects etc/passwd inclusion attempts
+ 8 RFI Detected (score 20):
+ 8 Anomaly Score Exceeded (score 20):
+ 7 XSS Detected (score 20): Cross-site Scripting (XSS) Attack
+ 7 Izumi local file inclusion vulnerability
+ 7 eliteCMS XSS Attack
+ 7 Anomaly Score Exceeded (score 60): SQL Injection Attack
+ 7 Anomaly Score Exceeded (score 20): Cross-site Scripting (XSS) Attack
+ 7 Anomaly Score Exceeded (score 171): IE XSS Filters - Attack Detected
+ 6 XSS Detected (score 60): XSS Attack Detected
+ 6 uigaproxy prone to file inclusion vulnerability
+ 6 phportal Remote File Inclusion Vulnerability
+ 6 phpMyAdmin XSS vulnerability
+ 6 nuBuilder File Inclusion Vulnerability
+ 6 Detects url-, name-, JSON, and referrer-contained payload attacks
+ 6 collaborative File Inclusion Vulnerability
+ 6 Anomaly Score Exceeded (score 175): IE XSS Filters - Attack Detected
+ 5 Tiki XSS Vulnerability
+ 5 Anomaly Score Exceeded (score 146): IE XSS Filters - Attack Detected
+ 4 XSS Detected (score 80): IE XSS Filters - Attack Detected
+ 4 Tiki Wiki CMS Groupware XSS Vulnerability
+ 4 Storyteller CMS (var) Local File Inclusion Vulnerability
+ 4 Possible RegEx DoS Payload
+ 4 finds unquoted attribute breaking injections
+ 4 clearBudget Remote File Inclusion Vulnerability
+ 4 Anomaly Score Exceeded (score 73): XSS Attack Detected
+ 3 webmail local file inclusion vulnerability
+ 3 Tiki Wiki CMS XSS Vulnerability
+ 3 Anomaly Score Exceeded (score 88): IE XSS Filters - Attack Detected
+ 2 System Command Injection
+ 2 hobcms / hertzCMS File Inclusion Vulnerability
+ 2 Gaestebuch remote file inclusion vulnerability
+ 2 flatpress prone to local file inclusion vulnerability
+ 2 Detects self contained xss via with(), common loops and regex to string conversion
+ 2 Detects attributes in closing tags and conditional compilation tokens
+ 2 CF Image Hosting Script v1.3.8 Remote File Inclusion
+ 2 CF Image Hosting Script Remote File Inclusion
+ 2 Anomaly Score Exceeded (score 68): XSS Attack Detected
+ 2 Anomaly Score Exceeded (score 20): System Command Injection
+ 2 Anomaly Score Exceeded (score 176): IE XSS Filters - Attack Detected
+ 1 XSS Detected (score 40): XSS Attack Detected
+ 1 XSS Detected (score 20):
+ 1 Visitor Logger Remote file inclusion vulnerability
+ 1 Protocol Violations Detected (score 5): 900011-Detects specific directory and path traversal
+ 1 php-fusion local file inclusion vulnerability
+ 1 Detects nullbytes and other dangerous characters
+ 1 Anomaly Score Exceeded (score 76): SQL Injection Attack
+ 1 Anomaly Score Exceeded (score 65): 900012-Detects etc/passwd inclusion attempts
+ 1 Anomaly Score Exceeded (score 53): XSS Attack Detected
+ 1 Anomaly Score Exceeded (score 52): SQL Injection Attack
+ 1 Anomaly Score Exceeded (score 40):
+ 1 Anomaly Score Exceeded (score 35): 900011-Detects specific directory and path traversal
+ 1 Anomaly Score Exceeded (score 131): IE XSS Filters - Attack Detected
+
+Jay.
+
+
+
+I wanted to say thanks to those of youwho have sent in some stats! I see that some users are already usingChristian Bockermann?s updated jwall-tools.jar file to gather statswhich is cool.
+
+We still needs more stats sent in though, so if you have a minute, please send them in.
+
+Thanks again for your help.
+
+-Ryan
+
+On 10/4/10 4:49 PM, "Ryan Barnett" <RBarnett at trustwave.com> wrote:
+
+Greetings everyone,
+Iam asking for some assistance from the ModSecurity user-base. I amworking on a project and need to gather some high level statistics ofModSecurity event data. Our long-term goal is to eventually have astatistical reporting utility that ModSec users can run through cron orsomething to report data in semi-realtime batches. We can then postthis data onto the ModSecurity.org website. This data would only be ananonymous count of the ModSecurity/CRS Event message data (SQLInjection Attack, Invalid character in request, etc....). It will notinclude any sensitive data identifying web sites, users or their data.
+
+Inthe short-term, what I am asking for you all to do to help with thisinitial effort, is to simply run the following command pipeline againsttheir saved ModSecurity audit log data. The audit log can be eitherserial or concurrent. All you need to do is to traverse into your logsdirectory (example - /usr/local/apache/logs). This directory needs tobe the directory that holds either the serial modsec_audit.log file orwhere the concurrent SecDataDir directory is located. Next, execute thefollowing command (you may need to use sudo or something if you do nothave the correct permissions to view the file) -
+
+$egrep -R'^Message\:' . | awk -F' \\[msg ' '{ print $2 }' | awk -F'"' '{print$2}' | egrep -v '^(Inbound Anomaly Score|$)' | sort | uniq -c | sort -nr
+
+Thiscommand will extract out the ModSecurity Message lines from theaudit_log data and then sort and unique the ModSecurity event message?msg? data from all of the events. The output format should be similarto this -
+
+3809 Rogue web site crawler
+ 3809 Request Indicates a Security Scanner Scanned the Site
+ 3808 Request Missing an Accept Header
+ 795 Cross-site Scripting (XSS) Attack
+ 538 Detects very basic XSS probings
+ 478 Detects possibly malicious html elements including some attributes
+ 474 Detects obfuscated script tags and XML wrapped HTML
+ 434 Detects specific directory and path traversal
+ 421 XSS Attack Detected
+ 396 IE XSS Filters - Attack Detected
+ 359 Remote File Access Attempt
+ 324 Possible XSS Attack Detected - HTML Tag Handler
+ 318 Detects basic directory traversal
+ 274 Detects etc/passwd inclusion attempts
+ 155 Host header is a numeric IP address
+ 155 finds html breaking injections including whitespace attacks
+ 145 Detects JavaScript object properties and methods
+ 116 Detects basic SQL authentication bypass attempts 2/3
+ 112 Detects common XSS concatenation patterns 1/2
+ 96 Detects classic SQL injection probings 2/2
+ 94 Detects self-executing JavaScript functions
+ 84 Detects possible includes and typical script methods
+ 83 Invalid character in request
+ 69 Restricted Character Anomaly Detection Alert - Repetative Non-Word Characters
+ 54 System Command Injection
+ 32 Detects common comment types
+ 31 Detects possible includes, VBSCript/JScript encodeed and packed functions
+ 30 Comment Evasion Attempt
+ 27 System Command Access
+ 25 More than 3 times special encode Error
+ 25 Detects JavaScript location/document property access and window access obfuscation
+ 18 GET or HEAD requests with bodies
+ 18 Detects basic SQL authentication bypass attempts 3/3
+ 14 Restricted Character Anomaly Detection Alert - Total # of special characters exceeded
+ 13 Detects JavaScript language constructs
+ 12 HTTP protocol version is not allowed by policy
+ 10 Detects data: URL injections, VBS injections and common URI schemes
+ 9 Detects classic SQL injection probings 1/2
+ 8 Input Validation Error
+ 8 Detects code injection attempts 3/3
+ 7 Detects chained SQL injection attempts 1/2
+ 6 Invalid HTTP Request Line
+ 6 finds attribute breaking injections including whitespace attacks
+ 5 Method is not allowed by policy
+ 4 SQL Injection Attack
+ 4 Detects obfuscated JavaScript script injections
+ 4 Detects halfwidth/fullwidth encoded unicode HTML breaking attempts
+ 4 Detects common function declarations and special JS operators
+ 4 Detects code injection attempts 2/3
+ 3 Request Missing a Host Header
+ 3 Detects MySQL comment-/space-obfuscated injections
+ 3 Detects basic obfuscated JavaScript script injections
+ 2 Unicode Full/Half Width Abuse Attack Attempt
+ 2 Remote File Inclusion Attack
+ 2 Hexadecimal Charcode Pattern Found
+ 2 finds unquoted attribute breaking injections
+ 2 Detects the IE octal, hex and unicode entities
+ 2 Detects nullbytes and other dangerous characters
+ 2 Detects JavaScript string properties and methods
+ 2 Detects basic SQL authentication bypass attempts 1/3
+ 1 URL Encoding Abuse Attack Attempt
+ 1 Request Missing a User Agent Header
+ 1 Possible RegEx DoS Payload
+ 1 Detects basic XSS DoS attempts
+ 1 Blind SQL Injection Attack
+ 1 Backdoor access
+
+Onceyou have run this against your saved logs, please send them to me inemail to the following email address ? security at modsecurity.org. If youcould, also please specify the following in the email body -
+
+
+ 1. How many websites ModSecurity is monitoring, and
+ 2. The date range of the data included in the stats report (we are looking for all data from 2010).
+
+Thanks for your help in this research effort.
+
+Ryan Barnett
+ModSecurity Community Manager
+OWASP ModSecurity Core Rule Set Project Lead
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101008/0e350b05/attachment-0001.html 
+
+From RBarnett at trustwave.com  Fri Oct  8 09:27:55 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 8 Oct 2010 08:27:55 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Anyone using the Correlated Event
+	Data?
+Message-ID: <C8D4949B.153B0%rbarnett@trustwave.com>
+
+As I am receiving ModSec CRS Event Stats from the community (thanks to everyone who is helping with this effort), I am seeing many of the new inbound/outbound event correlation entries being generated.  Here is an example -
+
+Correlated Successful Attack Identified: (Total Score: 25, SQLi=, XSS=) Inbound Attack (SQL Injection Attack - Inbound Anomaly Score: 25) + Outbound Data Leakage (SQL Information Leakage - Outbound
+Anomaly Score: 30)
+
+>From the Documentation link on the project site -
+http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project#tab=Documentation
+
+Inbound/Outbound Correlation
+After the transaction has completed (in the logging phase), the rules in the base_rules/modsecurity_crs_60_correlation.conf file will conduct further post-processing by analyzing any inbound events with any outbound events in order to provide a more intelligent/priority correlated event.
+
+- Was there an inbound attack?
+- Was there an HTTP Status Code Error (4xx/5xx level)?
+- Was there an application information leak?
+
+If an inbound attack was detected and either an outbound application status code error or infolead was detected, then the overall event severity is raised -
+
+- 0: Emergency - is generated from correlation where there is an inbound attack and   an outbound leakage.
+- 1: Alert - is generated from correlation where there is an inbound attack and an outbound application level error.
+
+A question for the community, the rationale for adding in the inbound/outbound correlation concept was to try and help users to prioritize alert investigations.  Obviously, the correlated events should be looked at first!  Is anyone actually using this feature?  Has it helped you with doing incident response, etc...?
+
+Please let me know as I would love to hear real user feedback on this.
+
+Thanks,
+Ryan
+
+
+
+
+
+
+From RBarnett at trustwave.com  Tue Oct 12 15:01:07 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 12 Oct 2010 14:01:07 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New ModSecurity FAQ Page and
+	Project Updates
+Message-ID: <C8DA28B3.15619%rbarnett@trustwave.com>
+
+We just updated the ModSecurity FAQ page - http://www.modsecurity.org/documentation/faq.html#01-introduction
+
+As you can see, we have a much larger team now supporting ModSecurity here in Trustwave?s SpiderLabs!  Specifically, I want to welcome aboard Breno Silva who is now the ModSecurity Lead Developer.  I am very excited as this means that you will be seeing more frequent updates which is good news as there are a number of outstanding JIRA functionality tickets that need to be addressed.
+
+As an FYI to the community, we are having some internal ModSecurity Development meetings this week at Trustwave HQ where we will be reviewing the results of the ModSecurity User Survey (thanks to those of you who took the time to fill it out) and discuss the roadmap, etc....
+
+Exciting times here with ModSecurity :)
+
+-Ryan
+
+
+
+
+
+
+From christian.folini at post.ch  Wed Oct 13 02:14:19 2010
+From: christian.folini at post.ch (christian.folini at post.ch)
+Date: Wed, 13 Oct 2010 08:14:19 +0200
+Subject: [Owasp-modsecurity-core-rule-set] New ModSecurity FAQ Page and
+	Project Updates
+In-Reply-To: <C8DA28B3.15619%rbarnett@trustwave.com>
+References: <C8DA28B3.15619%rbarnett@trustwave.com>
+Message-ID: <B99BC770CB46D6428EFBC95DFA7C36BF2C123E50A5@hxmb01.pnet.ch>
+
+Hi Ryan,
+
+Wow. That is an impressive list of people. Please keep us informed about those development meetings.
+And one question: Are all these people supposed to work 100% on ModSecurity?
+
+Best,
+
+Christian
+
+-----Urspr?ngliche Nachricht-----
+Von: Ryan Barnett [mailto:RBarnett at trustwave.com] 
+Gesendet: Dienstag, 12. Oktober 2010 21:01
+An: mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: [mod-security-users] New ModSecurity FAQ Page and Project Updates
+
+We just updated the ModSecurity FAQ page - http://www.modsecurity.org/documentation/faq.html#01-introduction
+
+As you can see, we have a much larger team now supporting ModSecurity here in Trustwave's SpiderLabs!  Specifically, I want to welcome aboard Breno Silva who is now the ModSecurity Lead Developer.  I am very excited as this means that you will be seeing more frequent updates which is good news as there are a number of outstanding JIRA functionality tickets that need to be addressed.
+
+As an FYI to the community, we are having some internal ModSecurity Development meetings this week at Trustwave HQ where we will be reviewing the results of the ModSecurity User Survey (thanks to those of you who took the time to fill it out) and discuss the roadmap, etc....
+
+Exciting times here with ModSecurity :)
+
+-Ryan
+
+
+
+
+
+
+------------------------------------------------------------------------------
+Beautiful is writing same markup. Internet Explorer 9 supports
+standards for HTML5, CSS3, SVG 1.1,  ECMAScript5, and DOM L2 & L3.
+Spend less time writing and  rewriting code and more time creating great
+experiences on the web. Be a part of the beta today.
+http://p.sf.net/sfu/beautyoftheweb
+_______________________________________________
+mod-security-users mailing list
+mod-security-users at lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/mod-security-users
+Commercial ModSecurity Appliances, Rule Sets and Support:
+http://www.modsecurity.org/breach/index.html
+
+From timlegge at gmail.com  Mon Oct 18 09:37:43 2010
+From: timlegge at gmail.com (Timothy Legge)
+Date: Mon, 18 Oct 2010 10:37:43 -0300
+Subject: [Owasp-modsecurity-core-rule-set] False positive?
+Message-ID: <AANLkTi=yPhmNU1f0_G8dY7KzCwvKjx3=0_aR+R_b4Cad@mail.gmail.com>
+
+Hi
+
+We have an application that is sending the following data that is
+getting blocked with the Core Rules 2.0.5:
+
+GET /pl-ws/json/ReAnon?langID=en-ca&answers=%5B%7B%22q_id%22%3A%221%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%222%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%223%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%224%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%225%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%226%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%227%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%228%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%229%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2210%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2211%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2212%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2213%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2214%22%2C%22value%22%3A%220%22%7D%2C%7B%22q_id%22%3A%2215%22%2C%22value%22%3A%220%22%7D%5D
+
+The logs show:
+
+Message: Pattern match
+"(?:union\s*(?:all|distinct|[(!@]*)?\s*[([]*\s*select)|(?:\w+\s+like\s+")|(?:like\s*"\%)|(?:"\s*like\W*["\d])|(?:"\s*(?:n?and|x?or|not
+|\|\||\&\&)\s+[\s\w]+=\s*\w+\s*having)|(?:"\s*\*\s*\w+\W+")|(?:"\s*[^?\w\s=.,;)(]+\s*[(@"]*\s*\w+\W+\w)|(?:select\s*[\
+..." at ARGS:answers. [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "156"] [id "900045"] [msg "Detects basic SQL authentication
+bypass attempts 2/3"] [data "\x22:\x221\x22,\x22v"] [severity
+"CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag
+"WEB_ATTACK/LFI"]
+Message: Pattern match
+"(?:\\x(?:23|27|3d))|(?:^.?"$)|(?:^.*\\".+(?<!\\)")|(?:(?:^["\\]*(?:[\d"]+|[^"]+"))+\s*(?:n?and|x?or|not|\|\||\&\&)\s*[\w"[+&!@(),.-])|(?:[^\w\s]\w+\s*[|-]\s*"\s*\w)|(?:@\w+\s+(and|or)\s*["\d]+)|(?:@[\w-]+\s(and|or)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]
+..." at ARGS:answers. [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "256"] [id "900042"] [msg "Detects classic SQL injection
+probings 1/2"] [data "\x221\x22,\x22v"] [severity "CRITICAL"] [tag
+"WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+Message: Pattern match "(?:(?:n?and|x?or|not
+|\|\||\&\&)\s+[\s\w+]+(?:regexp\s*\(|sounds\s+like\s*"|[=\d]+x))|("\s*\d\s*(?:--|#))|(?:"[\%&<>^=]+\d\s*(=|or))|(?:"\W+[\w+-]+\s*=\s*\d\W+")|(?:"\s*is\s*\d.+"?\w)|(?:"\|?[\w-]{3,}[^\w\s.,]+")|(?:"\s*is\s*[\d.]+\s*\W.*")"
+at ARGS:answers. [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "261"] [id "900046"] [msg "Detects basic SQL authentication
+bypass attempts 3/3"] [data "\x22q_id\x22:\x22"] [severity "CRITICAL"]
+[tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+Message: Pattern match
+"(?:\([\w\s]+\([\w\s]+\)[\w\s]+\))|(?:(?<!(?:mozilla\/\d\.\d\s))\([^)[]+\[[^\]]+\][^)]*\))|(?:[^\s!][{([][^({[]+[{([][^}\])]+[}\])][\s+",\d]*[}\])])|(?:"\)?\]\W*\[)|(?:=\s*[^\s:;]+\s*[{([][^}\])]+[}\])];)"
+at ARGS:answers. [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "301"] [id "90008"] [msg "Detects self-executing JavaScript
+functions"] [data
+",{\x22q_id\x22:\x2214\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x2215\x22,\x22value\x22:\x220\x22}]"]
+[severity "CRITICAL"] [tag "WEB_ATTACK/XSS"] [tag "WEB_ATTACK/CSRF"]
+Message: Pattern match
+"(?:"\s*\*.+(?:or|id)\W*"\d)|(?:\^")|(?:^[\w\s"-]+(?<=and\s)(?<=or\s)(?<=xor\s)(?<=nand\s)(?<=not\s)(?<=\|\|)(?<=\&\&)\w+\()|(?:"[\s\d]*[^\w\s]+\W*\d\W*.*["\d])|(?:"\s*[^\w\s?]+\s*[^\w\s]+\s*")|(?:"\s*[^\w\s]+\s*[\W\d].*(?:#|--))|(?:".*\*\s*\d)|(?:"\s*o
+..." at ARGS:answers. [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "326"] [id "900043"] [msg "Detects classic SQL injection
+probings 2/2"] [data
+"\x22:\x221\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x222\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x223\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x224\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x225\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x226\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x227\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x228\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x229\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x2210\x22,\x22value\x22:\x220\x22},{\x22q_id\x22:\x2211\x22,\x..."]
+[severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"]
+[tag "WEB_ATTACK/LFI"]
+Message: Access denied with code 403 (phase 2). [file
+"/usr/local/apache2/conf/modsecurity/base_rules/modsecurity_crs_49_enforcement.conf"]
+[line "25"] [msg "Anomaly Score Exceeded (score 31): 900043-Detects
+classic SQL injection probings 2/2"]
+
+What is the best way to resolve this so the application works while
+still preventing real SQL Injection attempts?
+
+regards
+
+Tim
+
+From dreamice.jiang at gmail.com  Tue Oct 19 03:52:14 2010
+From: dreamice.jiang at gmail.com (dreamice)
+Date: Tue, 19 Oct 2010 15:52:14 +0800
+Subject: [Owasp-modsecurity-core-rule-set] The modsecurity auditlog problem
+Message-ID: <AANLkTiniPzcZj05GzQvDo+rkViAXLkudLZKVc4a=26m+@mail.gmail.com>
+
+Dear all,
+
+I use modsecurity SecAuditLogRelevantStatus option to record the attack log.
+The auditlog engine is saperated with the rule engine, so if I set the
+ruleEngin=Off, the audit log also record the logs.
+I really only want record the logs those are relevant with the rules, so how
+can I configure my auditlog engine?
+
+Thanks a lot!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101019/81844fb8/attachment.html 
+
+From jamuse at gmail.com  Tue Oct 19 10:45:56 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Tue, 19 Oct 2010 16:45:56 +0200
+Subject: [Owasp-modsecurity-core-rule-set] False positive?
+In-Reply-To: <AANLkTi=yPhmNU1f0_G8dY7KzCwvKjx3=0_aR+R_b4Cad@mail.gmail.com>
+References: <AANLkTi=yPhmNU1f0_G8dY7KzCwvKjx3=0_aR+R_b4Cad@mail.gmail.com>
+Message-ID: <AANLkTimZ=M8z7AGB4X79YYBBt3AZNFqyTyuT+=QN=Dyi@mail.gmail.com>
+
+On Mon, Oct 18, 2010 at 3:37 PM, Timothy Legge <timlegge at gmail.com> wrote:
+
+> What is the best way to resolve this so the application works while
+> still preventing real SQL Injection attempts?
+>
+
+Perhaps something like:
+
+<Location /pl-ws/json/ReAnon>
+  SecRuleRemoveById 90008
+  SecRuleRemoveById 900042
+  SecRuleRemoveById 900043
+  SecRuleRemoveById 900045
+  SecRuleRemoveById 900046
+</Location>
+
+--
+ - Josh
+
+From RBarnett at trustwave.com  Fri Oct 22 09:37:56 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 22 Oct 2010 08:37:56 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Results from User Survey
+Message-ID: <C8E70BF4.165E3%rbarnett@trustwave.com>
+
+We have released the results of the ModSecurity User Survey - http://blog.modsecurity.org/2010/10/modsecurity-user-survey-results-released.html
+
+Thanks to those of you who participated.
+
+-Ryan
+
+
+From lists at flashgenie.net  Fri Oct 29 03:46:54 2010
+From: lists at flashgenie.net (R.A. Imhoff)
+Date: Fri, 29 Oct 2010 09:46:54 +0200
+Subject: [Owasp-modsecurity-core-rule-set] correct use of inbound and
+	outbound blocking
+Message-ID: <4B166870-7C45-41D9-967E-4339954713F1@flashgenie.net>
+
+Hello,
+
+I would be most grateful for advice on correctly using the TX:ANOMALY_SCORE in the final modsecurity_crs_49_inbound_blocking.conf & modsecurity_crs_59_outbound_blocking.conf
+
+My goal would be to arrive at something where at the end of all the rule evaluations, I could use different disruptive actions depending on the anomaly score.
+Such that requests with a moderate anomaly would be simply blocked, but those with a high anomaly score would blacklist the source IP.
+
+In modsecurity_crs_10_config.conf, I have:
+
+SecAction "phase:1,t:none,nolog,pass, \
+setvar:tx.critical_anomaly_score=20, \
+setvar:tx.error_anomaly_score=15, \
+setvar:tx.warning_anomaly_score=10, \
+setvar:tx.notice_anomaly_score=5" 
+
+These appear to be the amounts that the anomaly score is increased in the different rules, but there doesn't otherwise seem to be anything that differentiates the disruptive action in function of these scores.
+
+Would it be correct if I added something like:
+
+SecRule TX:ANOMALY_SCORE "@gt 30" "log,drop,skip:1,exec:/sbin/blacklist_web,msg:'blacklisting (Total Score: %{TX.ANOMALY_SCORE})'"
+SecRule TX:ANOMALY_SCORE "@gt 10" "log,block,msg:'blocking (Total Score: %{TX.ANOMALY_SCORE})'"
+
+Many thanks in advance!
+Robert
+
+From RBarnett at trustwave.com  Fri Oct 29 14:48:31 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 29 Oct 2010 13:48:31 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+Message-ID: <C8F08F3F.1695D%rbarnett@trustwave.com>
+
+I wanted to let you all know that a new CRS v2.0.9 is up in SVN.
+
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/
+
+CHANGELOG -
+
+--------------------------
+Version 2.0.9 - 10/18/2010
+--------------------------
+
+Improvements:
+- Users can now more easily toggle between traditional/standard mode vs. anomaly scoring mode
+  by editing the modsecurity_crs_10_config.conf file
+- Updated the disruptive actions in most rules to use "block" action instead of "pass".  This
+  is to allow for the toggling between traditional vs. anomaly scoring modes.
+- Removed logging actions from most rules so that it can be controlled from the SecDefaultAction
+  setting in the modsecurity_crs_10_config.conf file
+- Updated the anomaly scores in the modsecurity_crs_10_config.conf file to more closely match
+  what is used in the PHPIDS rules.  These still have the same factor of severity even though
+  the numbers themselves are smaller.
+- Updated the TAG data to further classify attack/vuln categories.
+- Updated the SQL Injection filters to detect more boolean logic attacks
+
+Bug Fixes:
+- Fixed restricted file extension bug with macro expansion
+  https://www.modsecurity.org/tracker/browse/CORERULES-60
+
+One of the big changes is that we are trying to make it easier for users to be able to switch back/forth between Anomaly Scoring and Standard operating modes.  You can now control this from within the modsecurity_crs_10_config.conf file.
+
+I would like to get some feedback on these changes before creating a complete TAR/GZ archive.
+
+-Ryan
+
+
+From gnot at g-loaded.eu  Fri Oct 29 15:28:04 2010
+From: gnot at g-loaded.eu (George Notaras)
+Date: Fri, 29 Oct 2010 22:28:04 +0300
+Subject: [Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+In-Reply-To: <C8F08F3F.1695D%rbarnett@trustwave.com>
+References: <C8F08F3F.1695D%rbarnett@trustwave.com>
+Message-ID: <4CCB2044.4080207@g-loaded.eu>
+
+On 29/10/2010 21:48, Ryan Barnett wrote:
+> - Users can now more easily toggle between traditional/standard mode vs. anomaly scoring mode
+>   by editing the modsecurity_crs_10_config.conf file
+
+Hello list,
+
+This is the first time I post to this mailing list, so I'd like to say
+thanks to all who have contributed to this project.
+
+I have several questions about the ruleset, but, for now, reading about
+this new feature I'd like to ask whether toggling to standard mode also
+reverts logging back to the mod-security default, which records every
+message to the apache's error_log using the old format.
+
+Thanks in advance.
+
+From RBarnett at trustwave.com  Fri Oct 29 15:37:29 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 29 Oct 2010 14:37:29 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+In-Reply-To: <4CCB2044.4080207@g-loaded.eu>
+Message-ID: <C8F09AB9.1696C%rbarnett@trustwave.com>
+
+On 10/29/10 3:28 PM, "George Notaras" <gnot at g-loaded.eu> wrote:
+
+> On 29/10/2010 21:48, Ryan Barnett wrote:
+>> - Users can now more easily toggle between traditional/standard mode vs.
+>> anomaly scoring mode
+>>   by editing the modsecurity_crs_10_config.conf file
+> 
+> Hello list,
+> 
+> This is the first time I post to this mailing list, so I'd like to say
+> thanks to all who have contributed to this project.
+> 
+> I have several questions about the ruleset, but, for now, reading about
+> this new feature I'd like to ask whether toggling to standard mode also
+> reverts logging back to the mod-security default, which records every
+> message to the apache's error_log using the old format.
+> 
+> Thanks in advance.
+
+Good question and the answer is yes.  In the 10 config file, you can edit
+the SecDefaultAction setting to suit your needs -
+
+# You can also decide how you want to handle logging actions.  You have
+three options -
+#
+#       - To log to both the Apache error_log and ModSecurity audit_log file
+use - log
+#       - To log *only* to the ModSecurity audit_log file use -
+nolog,auditlog
+#       - To log *only* to the Apache error_log file use - log,noauditlog
+#
+SecDefaultAction "phase:2,pass,nolog,auditlog"
+
+
+
+
+From RBarnett at trustwave.com  Fri Oct 29 15:40:57 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 29 Oct 2010 14:40:57 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+In-Reply-To: <C8F09AB9.1696C%rbarnett@trustwave.com>
+Message-ID: <C8F09B89.16973%rbarnett@trustwave.com>
+
+On 10/29/10 3:37 PM, "Ryan Barnett" <RBarnett at trustwave.com> wrote:
+
+> On 10/29/10 3:28 PM, "George Notaras" <gnot at g-loaded.eu> wrote:
+> 
+>> On 29/10/2010 21:48, Ryan Barnett wrote:
+>>> - Users can now more easily toggle between traditional/standard mode vs.
+>>> anomaly scoring mode
+>>>   by editing the modsecurity_crs_10_config.conf file
+>> 
+>> Hello list,
+>> 
+>> This is the first time I post to this mailing list, so I'd like to say
+>> thanks to all who have contributed to this project.
+>> 
+>> I have several questions about the ruleset, but, for now, reading about
+>> this new feature I'd like to ask whether toggling to standard mode also
+>> reverts logging back to the mod-security default, which records every
+>> message to the apache's error_log using the old format.
+>> 
+>> Thanks in advance.
+> 
+> Good question and the answer is yes.  In the 10 config file, you can edit
+> the SecDefaultAction setting to suit your needs -
+> 
+> # You can also decide how you want to handle logging actions.  You have
+> three options -
+> #
+> #       - To log to both the Apache error_log and ModSecurity audit_log file
+> use - log
+> #       - To log *only* to the ModSecurity audit_log file use -
+> nolog,auditlog
+> #       - To log *only* to the Apache error_log file use - log,noauditlog
+> #
+> SecDefaultAction "phase:2,pass,nolog,auditlog"
+> 
+
+Just to clarify - the Anomaly Scoring Mode vs. Standard Mode is really about
+whether you want a single rule to block or not.  When talking about logging,
+you can choose where you want to log events regardless of anomaly scoring or
+standard detection mode.
+
+So, you can run in anomaly scoring mode *and* also log to both the audit and
+error logs if you wish.
+
+Hope this helps,
+Ryan
+
+
+
+From gnot at g-loaded.eu  Fri Oct 29 15:56:12 2010
+From: gnot at g-loaded.eu (George Notaras)
+Date: Fri, 29 Oct 2010 22:56:12 +0300
+Subject: [Owasp-modsecurity-core-rule-set] New CRS v2.0.9 Released in SVN
+In-Reply-To: <C8F09B89.16973%rbarnett@trustwave.com>
+References: <C8F09B89.16973%rbarnett@trustwave.com>
+Message-ID: <4CCB26DC.3050907@g-loaded.eu>
+
+On 29/10/2010 22:40, Ryan Barnett wrote:
+> On 10/29/10 3:37 PM, "Ryan Barnett" <RBarnett at trustwave.com> wrote:
+> 
+>> On 10/29/10 3:28 PM, "George Notaras" <gnot at g-loaded.eu> wrote:
+>>
+>>> On 29/10/2010 21:48, Ryan Barnett wrote:
+>>>> - Users can now more easily toggle between traditional/standard mode vs.
+>>>> anomaly scoring mode
+>>>>   by editing the modsecurity_crs_10_config.conf file
+>>>
+>>> Hello list,
+>>>
+>>> This is the first time I post to this mailing list, so I'd like to say
+>>> thanks to all who have contributed to this project.
+>>>
+>>> I have several questions about the ruleset, but, for now, reading about
+>>> this new feature I'd like to ask whether toggling to standard mode also
+>>> reverts logging back to the mod-security default, which records every
+>>> message to the apache's error_log using the old format.
+>>>
+>>> Thanks in advance.
+>>
+>> Good question and the answer is yes.  In the 10 config file, you can edit
+>> the SecDefaultAction setting to suit your needs -
+>>
+>> # You can also decide how you want to handle logging actions.  You have
+>> three options -
+>> #
+>> #       - To log to both the Apache error_log and ModSecurity audit_log file
+>> use - log
+>> #       - To log *only* to the ModSecurity audit_log file use -
+>> nolog,auditlog
+>> #       - To log *only* to the Apache error_log file use - log,noauditlog
+>> #
+>> SecDefaultAction "phase:2,pass,nolog,auditlog"
+>>
+> 
+> Just to clarify - the Anomaly Scoring Mode vs. Standard Mode is really about
+> whether you want a single rule to block or not.  When talking about logging,
+> you can choose where you want to log events regardless of anomaly scoring or
+> standard detection mode.
+> 
+> So, you can run in anomaly scoring mode *and* also log to both the audit and
+> error logs if you wish.
+> 
+> Hope this helps,
+> Ryan
+
+Thanks for the clarification. Although you had also written it in the
+first message:
+
+  - Removed logging actions from most rules so that it can be controlled
+from the SecDefaultAction setting in the modsecurity_crs_10_config.conf file
+
+... it seems that I didn't pay much attention to that new improvement.
+
+Some of my questions had to do with the logging actions being hard-coded
+into every rule, but now this is no more an issue for me.
+
+Thanks for your reply and also for these excellent improvements.
+
+From jason at mi-squared.com  Sat Oct 30 11:34:35 2010
+From: jason at mi-squared.com (Jason Brooks)
+Date: Sat, 30 Oct 2010 08:34:35 -0700
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via localhost
+	interface through mod_security
+Message-ID: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+
+Hello,
+
+I need to solve this problem, but don't quite grok the mod_security  
+rules yet.  I am running CRS 2.0.5.
+
+I have enabled phpmyadmin only via the localhost interface 127.0.0.1.   
+That way the tool may only be used after port-forwarding through ssh.   
+My trouble is that I get the messsge "You don't have permission to  
+access /ppc/openemr/phpmyadmin/tbl_change.php on this server.".
+
+I am fairly certain this message is correct: the selection I make in  
+phpmyadmin is indeed embedding sql into the request.  However, the  
+solutions I find through google pretty much entirely disable sql  
+injection checking.  I don't want this.
+
+I would like to simply disable sql injection checking for web server  
+access via the localhost port.  Can anyone point me in the correct  
+direction?
+
+I really appreciate your help in advance.
+
+--jason
+
+
+
+From jason at mi-squared.com  Sat Oct 30 11:40:51 2010
+From: jason at mi-squared.com (Jason Brooks)
+Date: Sat, 30 Oct 2010 08:40:51 -0700
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+	localhost interface through mod_security
+In-Reply-To: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+Message-ID: <A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+
+Now I feel silly: because this only addresses part of the problem.   
+The application I am running under apache ALSO has phpmyadmin embedded  
+in it.  I need to also modify the CRS to allow direct phpmyadmin  
+access via the standard use of a web browser (not port forwarding)
+
+So to clarify, it looks like I need two answers:
+
+1) how to enable/disable some or all of CRS based on the incoming  
+interface, or ip address
+and
+2) how to enable/disable some or all of CRS based on the request url,  
+or the request path.
+
+I have only searched the archives for #1.  I will be searching for  
+#2.  If there is already an answer to #2, I apologize in advance.
+
+--jason
+
+
+On Oct 30, 2010, at 8:34 AM, Jason Brooks wrote:
+
+> Hello,
+>
+> I need to solve this problem, but don't quite grok the mod_security
+> rules yet.  I am running CRS 2.0.5.
+>
+> I have enabled phpmyadmin only via the localhost interface 127.0.0.1.
+> That way the tool may only be used after port-forwarding through ssh.
+> My trouble is that I get the messsge "You don't have permission to
+> access /ppc/openemr/phpmyadmin/tbl_change.php on this server.".
+>
+> I am fairly certain this message is correct: the selection I make in
+> phpmyadmin is indeed embedding sql into the request.  However, the
+> solutions I find through google pretty much entirely disable sql
+> injection checking.  I don't want this.
+>
+> I would like to simply disable sql injection checking for web server
+> access via the localhost port.  Can anyone point me in the correct
+> direction?
+>
+> I really appreciate your help in advance.
+>
+> --jason
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+From jamuse at gmail.com  Sat Oct 30 14:30:05 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Sat, 30 Oct 2010 20:30:05 +0200
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+ localhost interface through mod_security
+In-Reply-To: <A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+	<A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+Message-ID: <AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+
+On Sat, Oct 30, 2010 at 5:40 PM, Jason Brooks <jason at mi-squared.com> wrote:
+
+[...snip]
+
+> So to clarify, it looks like I need two answers:
+>
+> 1) how to enable/disable some or all of CRS based on the incoming
+> interface, or ip address
+
+Hi Jason,
+
+There are a couple of ways to handle this, but here's one example that
+disables both the rule and audit engine for a specific IP:
+
+SecRule REMOTE_ADDR "@streq xxx.xxx.xxx.xxx" "phase:1,nolog,allow, \
+  ctl:ruleEngine=Off,ctl:auditEngine=Off"
+
+> and
+> 2) how to enable/disable some or all of CRS based on the request url,
+> or the request path.
+
+To disable some of the rules based on URI you can use something like:
+
+<LocationMatch /phpmyadmin/>
+  SecRuleRemoveById 900000-900010
+  SecRuleRemoveById 999999
+</LocationMatch>
+
+another variant could be:
+
+SecRule REQUEST_URI phpmyadmin "phase:2,t:none,t:lowercase,nolog, \
+  ctl:ruleRemoveById=999999"
+
+--
+ - Josh
+
+From jason at mi-squared.com  Sat Oct 30 18:41:08 2010
+From: jason at mi-squared.com (Jason Brooks)
+Date: Sat, 30 Oct 2010 15:41:08 -0700
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+	localhost interface through mod_security
+In-Reply-To: <AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+	<A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+	<AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+Message-ID: <FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+
+First, thank you for your reply.
+
+>
+> There are a couple of ways to handle this, but here's one example that
+> disables both the rule and audit engine for a specific IP:
+>
+> SecRule REMOTE_ADDR "@streq xxx.xxx.xxx.xxx" "phase:1,nolog,allow, \
+>  ctl:ruleEngine=Off,ctl:auditEngine=Off"
+>
+
+Does the equivalent string "LOCAL_ADDR" exist?  It's the listening  
+address of localhost i want to unblock...
+
+
+
+>> and
+>> 2) how to enable/disable some or all of CRS based on the request url,
+>> or the request path.
+>
+> To disable some of the rules based on URI you can use something like:
+>
+> <LocationMatch /phpmyadmin/>
+>  SecRuleRemoveById 900000-900010
+>  SecRuleRemoveById 999999
+> </LocationMatch>
+
+Silly question: how do I determine what the various ruleids will be?
+
+
+>
+> another variant could be:
+>
+> SecRule REQUEST_URI phpmyadmin "phase:2,t:none,t:lowercase,nolog, \
+>  ctl:ruleRemoveById=999999"
+>
+> --
+> - Josh
+>
+
+I think i need to buy the book.   :)
+
+--jason
+
+
+
+From jamuse at gmail.com  Sun Oct 31 04:02:51 2010
+From: jamuse at gmail.com (Jamuse)
+Date: Sun, 31 Oct 2010 10:02:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+ localhost interface through mod_security
+In-Reply-To: <FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+	<A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+	<AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+	<FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+Message-ID: <AANLkTin9h60wQvtdCHSdaGN73e98uTYoLvxoLsqf2gBJ@mail.gmail.com>
+
+On Sun, Oct 31, 2010 at 12:41 AM, Jason Brooks <jason at mi-squared.com> wrote:
+
+> Does the equivalent string "LOCAL_ADDR" exist? ?It's the listening
+> address of localhost i want to unblock...
+>
+
+Hi Jason,
+
+The REMOTE_ADDR variable just holds the IP address of the remote
+client. In this case, you can probably just use 127.0.0.1.
+
+>
+> Silly question: how do I determine what the various ruleids will be?
+
+Take a look at section K (and H) in the ModSec audit log to see which
+rules are stopping traffic. Look for the 'id' directive which contains
+the rule's unique ID.
+
+
+>
+> I think i need to buy the book. ? :)
+
+FWIW, I highly recommend Ivan's ModSecurity Handbook, well worth the investment.
+
+--
+ - Josh
+
+From chris at jwall.org  Sun Oct 31 06:23:47 2010
+From: chris at jwall.org (Christian Bockermann)
+Date: Sun, 31 Oct 2010 11:23:47 +0100
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+	localhost interface through mod_security
+In-Reply-To: <FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+	<A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+	<AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+	<FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+Message-ID: <ECD13560-820F-4E95-B2E1-0F192CFBF1EC@jwall.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi Jason!
+
+Am 31.10.2010 um 00:41 schrieb Jason Brooks:
+>> SecRule REMOTE_ADDR "@streq xxx.xxx.xxx.xxx" "phase:1,nolog,allow, \
+>> ctl:ruleEngine=Off,ctl:auditEngine=Off"
+>> 
+> 
+> Does the equivalent string "LOCAL_ADDR" exist?  It's the listening  
+> address of localhost i want to unblock...
+
+Yes, there exists an equivalent, which is  SERVER_ADDR
+
+
+>> To disable some of the rules based on URI you can use something like:
+>> 
+>> <LocationMatch /phpmyadmin/>
+>> SecRuleRemoveById 900000-900010
+>> SecRuleRemoveById 999999
+>> </LocationMatch>
+> 
+> Silly question: how do I determine what the various ruleids will be?
+
+In no way a silly question.
+Currently, you'll have to manually walk throught he core-rules to figure out
+which rules are hit by a range of (900000-900010).
+
+Another way to address this is the following:
+The rule-IDs will be logged. If you don't have a log-management tool, yet,
+then I'd recommend for you to have a look at the audit-console at
+
+	http://www.jwall.org/AuditConsole
+
+which provides a web-interface for that.
+(There will be an easy  "apt-get install auditconsole" way coming soon to
+ make installing more easy).
+
+With the AuditConsole you will be able to filter all requests/alerts by
+RULE_ID and check which URLs have triggered a specific rule id.
+
+Another way would be to filter by "REQUEST_URI @sx /phpmyadmin/*" which
+will give you all alerts for requests to phpadmin-URLs and allows you to
+skip through these to check which rules you need to exclude.
+
+
+
+> 
+> I think i need to buy the book.   :)
+> 
+
+You won't regret it!
+It's really well written and has a very nice concept of "up-to-date"-ness :-)
+
+I'd recommend to obtain the bundle (including paper-back).
+
+Regards,
+    Chris
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (Darwin)
+
+iD8DBQFMzUOzpc5/RcXDlTwRAuAvAJ9mxb4ABplMXuBLb1/Bfi9Sd7UoygCfVu6n
+x5D1jwQ4lbjm1UBmfCe6KkU=
+=EvtU
+-----END PGP SIGNATURE-----
+
+From RBarnett at trustwave.com  Sun Oct 31 10:25:58 2010
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sun, 31 Oct 2010 09:25:58 -0500
+Subject: [Owasp-modsecurity-core-rule-set] phpmyadmin usage via
+ localhost interface through mod_security
+In-Reply-To: <FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+References: <2CBECF70-04E2-49F2-96BA-0528EA7DFC7E@mi-squared.com>
+	<A8BA5F14-C205-4968-91C6-43F379182283@mi-squared.com>
+	<AANLkTi=4hPOWjXk8oHAe9khY4dFarsrqQ6d5Wj3higCn@mail.gmail.com>
+	<FB5EC5B3-010B-4AAC-86E1-424EB837B079@mi-squared.com>
+Message-ID: <74DB53F7-32FC-423E-B6AF-A3B7B8476A72@trustwave.com>
+
+If you want to remove entire categories of rules, I would suggest you use SecRuleRemoveByMsg - http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-reference.html#N10B9F
+
+You could do - 
+
+>> <LocationMatch /phpmyadmin/>
+>> SecRuleRemoveByMsg "SQL Injection"
+>> </LocationMatch>
+
+While this does make it easier to remove groups o rules, it doesn't contain the logic you want (remote_addr). We need to enhance the ctl action to include this capability so you can do conditional exceptions based on more data then the URI. 
+
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+On Oct 30, 2010, at 6:41 PM, Jason Brooks <jason at mi-squared.com> wrote:
+
+> First, thank you for your reply.
+> 
+>> 
+>> There are a couple of ways to handle this, but here's one example that
+>> disables both the rule and audit engine for a specific IP:
+>> 
+>> SecRule REMOTE_ADDR "@streq xxx.xxx.xxx.xxx" "phase:1,nolog,allow, \
+>> ctl:ruleEngine=Off,ctl:auditEngine=Off"
+>> 
+> 
+> Does the equivalent string "LOCAL_ADDR" exist?  It's the listening  
+> address of localhost i want to unblock...
+> 
+> 
+> 
+>>> and
+>>> 2) how to enable/disable some or all of CRS based on the request url,
+>>> or the request path.
+>> 
+>> To disable some of the rules based on URI you can use something like:
+>> 
+>> <LocationMatch /phpmyadmin/>
+>> SecRuleRemoveById 900000-900010
+>> SecRuleRemoveById 999999
+>> </LocationMatch>
+> 
+> Silly question: how do I determine what the various ruleids will be?
+> 
+> 
+>> 
+>> another variant could be:
+>> 
+>> SecRule REQUEST_URI phpmyadmin "phase:2,t:none,t:lowercase,nolog, \
+>> ctl:ruleRemoveById=999999"
+>> 
+>> --
+>> - Josh
+>> 
+> 
+> I think i need to buy the book.   :)
+> 
+> --jason
+> 
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+

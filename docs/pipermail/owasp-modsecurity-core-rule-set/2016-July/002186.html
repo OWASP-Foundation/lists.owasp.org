@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rule Writing Exercise: chaining
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20Writing%20Exercise%3A%20chaining&In-Reply-To=%3C20160706074448.GA32539%40elias%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="002187.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rule Writing Exercise: chaining</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20Writing%20Exercise%3A%20chaining&In-Reply-To=%3C20160706074448.GA32539%40elias%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rule Writing Exercise: chaining">christian.folini at netnea.com
+       </A><BR>
+    <I>Wed Jul  6 07:44:48 UTC 2016</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="002187.html">[Owasp-modsecurity-core-rule-set] Problems with false positives.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2186">[ date ]</a>
+              <a href="thread.html#2186">[ thread ]</a>
+              <a href="subject.html#2186">[ subject ]</a>
+              <a href="author.html#2186">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+This message is going to the ModSec users ML and the CRS ML. It's a
+new rule idea I have for the CRS, but maybe the wider audience has a
+solution.
+
+It is fairly simple to do a rule which takes a parameter, runs a
+transformation and checks if the transformation changed anything.
+Here a simple example with t:lowercase on parameter a.
+
+SecRule ARGS:foo     &quot;^.&quot;  &quot;id:1001,phase:2,deny,\
+   msg:'%{MATCHED_VAR_NAME} : Transformation revealed difference',chain&quot;
+   SecRule ARGS:foo  &quot;!@streq %{MATCHED_VARS}&quot;  &quot;t:lowercase&quot;
+
+I have tried to get this working for _all_ ARGS. Thus a generic rule
+working no matter what parameters are sent to the server. But to no
+avail.
+
+The problem is that chains are execute in the order of the rules,
+not the order of the parameters. In other words: First all the
+parameters are matched against the first SecRule. Then all the
+parameters are matched against the 2nd SecRule. A match on the first
+SecRule on parameter #1 will thus be overwritten by the match on
+parameter #2 when ModSec reaches the 2nd rule for parameter #1.
+This behaviour is a bit counterintuitive and it kills many interesting
+rule ideas (it probably also allows many interesting rule ideas, but
+who cares about things that work, if you can complain about things
+that don't). It's also killing this idea. Or let's say I have been
+grinding my teeth into this problem on and off for a few days and
+I have not found a solution.
+
+So the question is: Is there a way around this limitation?
+Can we create a SecRule as above that works for all parameters?
+
+Ahoj,
+
+Christian
+
+-- 
+<A HREF="https://www.feistyduck.com/training/modsecurity-training-course">https://www.feistyduck.com/training/modsecurity-training-course</A>
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+twitter: @ChrFolini
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="002187.html">[Owasp-modsecurity-core-rule-set] Problems with false positives.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2186">[ date ]</a>
+              <a href="thread.html#2186">[ thread ]</a>
+              <a href="subject.html#2186">[ subject ]</a>
+              <a href="author.html#2186">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

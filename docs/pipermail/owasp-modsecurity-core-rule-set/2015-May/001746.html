@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rule 960009 generates false	positives from my own server IP
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20960009%20generates%20false%0A%09positives%20from%20my%20own%20server%20IP&In-Reply-To=%3CDUB406-EAS2976B3847DC98A14B6A790482C60%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001745.html">
+   <LINK REL="Next"  HREF="001748.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rule 960009 generates false	positives from my own server IP</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20960009%20generates%20false%0A%09positives%20from%20my%20own%20server%20IP&In-Reply-To=%3CDUB406-EAS2976B3847DC98A14B6A790482C60%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rule 960009 generates false	positives from my own server IP">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Sat May 16 05:38:19 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001745.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+        <LI>Next message: <A HREF="001748.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1746">[ date ]</a>
+              <a href="thread.html#1746">[ thread ]</a>
+              <a href="subject.html#1746">[ subject ]</a>
+              <a href="author.html#1746">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>No. Chaim is saying you cannot remove rule 960009 if it's already been defined previously in your config.
+
+Some overrides need to be defined before the rule they are overriding and some after, depending on what command you use to do the override. It's a bit confusing alright which was why it was discussed to change on the link Chaim gave - though ultimately it looks like they decided to leave as is.
+
+Anyway, it's important to understand how your rules are loaded. Let's you have something like this in your config:
+
+   Include modsecurity_crs_10_setup.conf
+   Include rules/*.conf
+
+Then rule 960009 is defined in rules/modsecurity_crs_21_protocol_anomalies.conf. So you must define your rule, which switches off that rule for certain scenarios, before that file is loaded.
+
+There are lots of ways to do this. You could change your setup to something like this, for example:
+
+   Include my_modsecurity_before_rules.conf
+   Include modsecurity_crs_10_setup.conf
+   Include rules/*.conf
+   Include my_modsecurity_after_rules.conf
+
+Then your new rule should go in the my_modsecurity_before_rules.conf file so it is processed before any of the other rules.
+
+Or you could add to a rules/modsecurity_crs_15_customrules.conf file, which will automatically be included with above code and, as they are loaded in alphabetical order, this file would be loaded before the rules/modsecurity_crs_21_protocol_anomalies.conf file.
+
+Point is, that if you add your rule to the my_modsecurity_after_overrides.conf file, in above example, then it won't work as rule 960009 will have already been loaded and will be defined at that stage, so it will be too late so you can't use ctl:ruleRemoveById on it.
+
+My personal preference is to put any &quot;before&quot; rules and tweaks directly the modsecurity_crs_10_setup.conf file (since you have to edit this file anyway to define your own customisations) and the also have an &quot;after&quot; rules file where any other rules and tweaks are defined. I also don't like * including files as sounds risky to me, so have an individual &quot;Include&quot; line for each rules file I want included, in the order I want it included. So my set up looks something like this:
+
+   Include conf/modsecurity/modsecurity_crs_10_setup.conf
+   Include conf/modsecurity/crs/base_rules/modsecurity_crs_20_protocol_violations.conf
+   Include conf/modsecurity/crs/base_rules/modsecurity_crs_21_protocol_anomalies.conf
+   ...etc.
+   Include conf/modsecurity/my_custom_rules.conf
+
+And I make any edits in either modsecurity_crs_10_setup.conf (for tweaks I want before the rest of the rules load) or in my_custom_rules.conf (for tweaks I want after the rest of the rules load). I never edit anything in the conf/modsecurity/crs/ folder which makes it easy to drop a new version of the crs rules in here.
+
+But it's all a personal preference as to how you set it up. The downside with this flexibility, is that it's difficult to help people like you, when they ask for help without knowing exactly how they've set their own ModSecurity up.
+
+Thanks,
+Barry
+
+&gt;<i> On 16 May 2015, at 00:53, Guilherme Y &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> Tks Chaim!
+</I>&gt;<i> But now I really got confused.
+</I>&gt;<i> I am tring to use this line:
+</I>&gt;<i> 
+</I>&gt;<i> SecRule REMOTE_ADDR &quot;@ipMatch 999.99.99.99&quot; &quot;id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009&quot; 
+</I>&gt;<i> You&#180;re telling me to use this:
+</I>&gt;<i> 
+</I>&gt;<i> &quot;ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass&quot; SecRule REMOTE_ADDR &quot;@ipMatch 999.99.99.99&quot; 
+</I>&gt;<i> YIs this right?
+</I>&gt;<i> I probably got it all wrong....
+</I>&gt;<i> Tks a lot!
+</I>&gt;<i> Best regards!
+</I>&gt;<i> Luiz
+</I>&gt;<i> 
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</I>&gt;<i> Date: Fri, 15 May 2015 16:48:07 +0000
+</I>&gt;<i> 
+</I>&gt;<i> ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (<A HREF="https://github.com/SpiderLabs/ModSecurity/issues/209">https://github.com/SpiderLabs/ModSecurity/issues/209</A>). Hope this isn&#8217;t too confusing :)
+</I>&gt;<i> 
+</I>&gt;<i> From: Guilherme Y &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A>&gt;
+</I>&gt;<i> Date: Friday, May 15, 2015 at 10:51 AM
+</I>&gt;<i> To: Barry Pollard &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt;, &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</I>&gt;<i> 
+</I>&gt;<i> ctl:ruleRemoveById 
+</I>&gt;<i> 
+</I>&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information  contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/dc2161b4/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/dc2161b4/attachment.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001745.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+	<LI>Next message: <A HREF="001748.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1746">[ date ]</a>
+              <a href="thread.html#1746">[ thread ]</a>
+              <a href="subject.html#1746">[ subject ]</a>
+              <a href="author.html#1746">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

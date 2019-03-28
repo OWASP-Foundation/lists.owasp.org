@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Experimental ruleset to detect	Floating Point DoS Payloads
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Experimental%20ruleset%20to%20detect%0A%09Floating%20Point%20DoS%20Payloads&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000622.html">
+   <LINK REL="Next"  HREF="000624.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Experimental ruleset to detect	Floating Point DoS Payloads</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Experimental%20ruleset%20to%20detect%0A%09Floating%20Point%20DoS%20Payloads&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Experimental ruleset to detect	Floating Point DoS Payloads">RBarnett at trustwave.com
+       </A><BR>
+    <I>Tue Feb 15 09:37:21 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000622.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+        <LI>Next message: <A HREF="000624.html">[Owasp-modsecurity-core-rule-set] False positives
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#623">[ date ]</a>
+              <a href="thread.html#623">[ thread ]</a>
+              <a href="subject.html#623">[ subject ]</a>
+              <a href="author.html#623">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As many of you may have heard, there is an interesting Java DoS scenario out -
+
+<A HREF="http://www.exploringbinary.com/php-hangs-on-numeric-value-2-2250738585072011e-308/">http://www.exploringbinary.com/php-hangs-on-numeric-value-2-2250738585072011e-308/</A>
+<A HREF="http://blog.fortify.com/blog/2011/02/08/Double-Trouble">http://blog.fortify.com/blog/2011/02/08/Double-Trouble</A>
+<A HREF="http://blogs.adobe.com/asset/2011/02/year-of-the-snail.html">http://blogs.adobe.com/asset/2011/02/year-of-the-snail.html</A>
+
+When I first saw this issue, I quickly tweeted out a modsec rule that would identify if anyone submitted the example payload being shown in many PoC payloads -
+
+SecRule ARGS|REQUEST_HEADERS &quot;@contains 2.2250738585072012e-308&quot; &quot;phase:2,block,msg:'Java Floating Point DoS Attack',tag:'CVE-2010-4476'&quot;
+
+While this provides some protection, it was by no means comprehensive.  So
+here is an updated ModSecurity ruleset.  With the use of the
+ModSecurity Lua API, we (myself and Josh Zatlin/Jamuse of PureHacking) came up
+with a new Generation 2 detection mechanism similar to what Brian Sullivan
+(Adobe) presented below.
+
+First step is to inspect the ARGS and REQUEST_HEADERS data using a regex
+to match on potential floating point payloads -
+
+SecRule ARGS|REQUEST_HEADERS &quot;[0-9\.]{12,}e-[0-9]{3,}&quot;
+&quot;phase:2,t:none,t:lowercase,nolog,pass,exec:/usr/local/apache/conf/modsec_c
+urrent/base_rules/FloatingPointDoSAttack.lua&quot;
+
+If a payload is found that matches the regex check, ModSecurity will
+execute an external Lua script.  The lua script then extracts out
+payloads, strips out the &quot;.&quot; and then searches for the MagicDoSNumber.  If
+this is found, then a TX variable is exported -
+
+#################################
+#!/opt/local/bin/lua
+
+function main()
+
+  local Pattern = 2225073858507201;
+
+  -- Get the ModSec collections
+  local Headers = m.getvars(&quot;REQUEST_HEADERS&quot;);
+  local Args = m.getvars(&quot;ARGS&quot;);
+
+  for i = 1, #Headers do
+    FilteredPattern,NumChanges=string.gsub(Headers[i].value, &quot;[.]&quot;, &quot;&quot;)
+    if string.gmatch(FilteredPattern, Pattern) then
+      m.setvar(&quot;tx.floatingpointdos&quot;, Headers[i].name)
+      return (&quot;Potential Floating Point DoS Attack via variable: &quot;
+..Headers[i].name ..  &quot;.&quot;);
+    end
+  end
+  for i = 1, #Args do
+    FilteredPattern,NumChanges=string.gsub(Args[i].value, &quot;[.]&quot;, &quot;&quot;)
+    if string.gmatch(FilteredPattern, Pattern) then
+      m.setvar(&quot;tx.floatingpointdos&quot;, Args[i].name)
+      return (&quot;Potential Floating Point DoS Attack via variable: &quot;
+..Args[i].name ..  &quot;.&quot;);
+    end
+  end
+  return nil;
+end
+
+#################################
+
+Then we have one follow-up rule that checks if the TX:FLOATINGPOINTDOS
+variable is set -
+
+SecRule TX:FLOATINGPOINTDOS &quot;.*&quot; &quot;phase:2,t:none,log,block,msg:'Floating
+Point DoS Payload Found.',logdata:'Location:
+%{matched_var}',tag:'CVE-2010-4476'&quot;
+
+We have conducted some tests with different payloads and this appears to
+work pretty well.  If you find any issues please let me know.
+
+Cheers,
+Ryan
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000622.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+	<LI>Next message: <A HREF="000624.html">[Owasp-modsecurity-core-rule-set] False positives
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#623">[ date ]</a>
+              <a href="thread.html#623">[ thread ]</a>
+              <a href="subject.html#623">[ subject ]</a>
+              <a href="author.html#623">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

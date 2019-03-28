@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Potential false positive?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Potential%20false%20positive%3F&In-Reply-To=%3C89CE2704-4E17-4681-AB8E-0AD55EDE0552%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000957.html">
+   <LINK REL="Next"  HREF="000961.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Potential false positive?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Potential%20false%20positive%3F&In-Reply-To=%3C89CE2704-4E17-4681-AB8E-0AD55EDE0552%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Potential false positive?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Sat Jan  7 15:58:07 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000957.html">[Owasp-modsecurity-core-rule-set] Potential false positive?
+</A></li>
+        <LI>Next message: <A HREF="000961.html">[Owasp-modsecurity-core-rule-set] Potential false positive?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#958">[ date ]</a>
+              <a href="thread.html#958">[ thread ]</a>
+              <a href="subject.html#958">[ subject ]</a>
+              <a href="author.html#958">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Joakim,
+Thanks for posting to the list.  You can also open a jira ticket for the CRS here - <A HREF="https://www.modsecurity.org/tracker/">https://www.modsecurity.org/tracker/</A>
+
+Looks like we will want to review those SQL Injection rules to tune them a bit better.  We added a bunch of rules as a result of the SQLi Challenge results - <A HREF="http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html">http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html</A>
+
+While these new rules do help to reduce false negatives for SQLi, there seem to be a fair amount of false positives.
+
+We can probably look to update the regex as this is triggering on &quot;div&quot;. The quick fix for you would be to use SecRuleUpdateTargetById to remove REQUEST_FILENAME from the list - <A HREF="http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html">http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html</A>
+
+Ryan
+
+On Jan 7, 2012, at 9:26 AM, &quot;Joakim Schramm&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">joakim at astrocalc.com</A>&gt; wrote:
+
+&gt;<i> Hi List,
+</I>&gt;<i>
+</I>&gt;<i> my first post here so hope I get it right.
+</I>&gt;<i>
+</I>&gt;<i> Setting up and testing a site I run in to what I think is a false
+</I>&gt;<i> positive block, at least it doesn't make sense to me. The hit or hits I
+</I>&gt;<i> may say as 3 rules seem to be triggered and a 4th as a result there of,
+</I>&gt;<i> comes from an url item in a css file pointing to a image file. How that
+</I>&gt;<i> can be judged as an critical web attack and sql injection attempt is
+</I>&gt;<i> over my head, although I understand there probably exists a logical
+</I>&gt;<i> explaination... and can it possibly be that these rules should exclude
+</I>&gt;<i> common image files?
+</I>&gt;<i>
+</I>&gt;<i> Anyway, here is the related log lines and I hope it's understandable as
+</I>&gt;<i> there is no way to format it here. I have disguised ip and host names.
+</I>&gt;<i>
+</I>&gt;<i> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+</I>&gt;<i> Warning. Pattern match
+</I>&gt;<i> &quot;(?i:(?:\\\\d(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+\\\\d)|(?:^admin\\\\s*(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)|(\\\\/\\\\*)+(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)+\\\\s?(?:--|#|\\\\/\\\\*|{)?)|(?:(\\&quot;|'|
+</I>&gt;<i> ...&quot; at REQUEST_FILENAME. [file
+</I>&gt;<i> &quot;/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+</I>&gt;<i> [line &quot;533&quot;] [id &quot;981244&quot;] [msg &quot;Detects basic SQL authentication bypass
+</I>&gt;<i> attempts 1/3&quot;] [data &quot;div&quot;] [severity &quot;CRITICAL&quot;] [tag
+</I>&gt;<i> &quot;WEB_ATTACK/SQLI&quot;] [tag &quot;WEB_ATTACK/ID&quot;] [tag &quot;WEB_ATTACK/LFI&quot;]
+</I>&gt;<i> [hostname &quot;shop.domain.com&quot;] [uri
+</I>&gt;<i> &quot;/skin/frontend/domain/default/images/bkg_divider1.gif&quot;] [unique_id
+</I>&gt;<i> &quot;TwhAtsCoAWgAADYlFsAAAAAF&quot;]
+</I>&gt;<i> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+</I>&gt;<i> Warning. Pattern match
+</I>&gt;<i> &quot;(?i:(?:@.+=\\\\s*\\\\(\\\\s*select)|(?:\\\\d+\\\\s*x?or|div|like|between|and\\\\s*\\\\d+\\\\s*[\\\\-+])|(?:\\\\/\\\\w+;?\\\\s+(?:having|and|x?or|div|like|between|and|select)\\\\W)|(?:\\\\d\\\\s+group\\\\s+by.+\\\\()|(?:(?:;|#|--)\\\\s*(?:drop|alter))|(?:(?:;|#|--)\\\\s*(?:update|insert)\\\\s
+</I>&gt;<i> ...&quot; at REQUEST_FILENAME. [file
+</I>&gt;<i> &quot;/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+</I>&gt;<i> [line &quot;539&quot;] [id &quot;981248&quot;] [msg &quot;Detects chained SQL injection attempts
+</I>&gt;<i> 1/2&quot;] [data &quot;div&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;] [tag
+</I>&gt;<i> &quot;WEB_ATTACK/ID&quot;] [hostname &quot;shop.domain.com&quot;] [uri
+</I>&gt;<i> &quot;/skin/frontend/domain/default/images/bkg_divider1.gif&quot;] [unique_id
+</I>&gt;<i> &quot;TwhAtsCoAWgAADYlFsAAAAAF&quot;]
+</I>&gt;<i> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+</I>&gt;<i> Warning. Pattern match
+</I>&gt;<i> &quot;(?i:(?:(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s*\\\\*.+(?:x?or|div|like|between|and|id)\\\\W*(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\d)|(?:\\\\^(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98))|(?:^[\\\\w\\\\s(\\&quot;|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)-]+(
+</I>&gt;<i> ...&quot; at REQUEST_FILENAME. [file
+</I>&gt;<i> &quot;/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+</I>&gt;<i> [line &quot;573&quot;] [id &quot;981243&quot;] [msg &quot;Detects classic SQL injection probings
+</I>&gt;<i> 2/2&quot;] [data &quot;div&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/SQLI&quot;] [tag
+</I>&gt;<i> &quot;WEB_ATTACK/ID&quot;] [tag &quot;WEB_ATTACK/LFI&quot;] [hostname &quot;shop.domain.com&quot;]
+</I>&gt;<i> [uri &quot;/skin/frontend/domain/default/images/bkg_divider1.gif&quot;] [unique_id
+</I>&gt;<i> &quot;TwhAtsCoAWgAADYlFsAAAAAF&quot;]
+</I>&gt;<i> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+</I>&gt;<i> Warning. Operator GE matched 5 at TX:inbound_anomaly_score. [file
+</I>&gt;<i> &quot;/etc/modsecurity/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line
+</I>&gt;<i> &quot;37&quot;] [id &quot;981204&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total Inbound
+</I>&gt;<i> Score: 19, SQLi=, XSS=): 981243-Detects classic SQL injection probings
+</I>&gt;<i> 2/2&quot;] [hostname &quot;shop.domain.com&quot;] [uri
+</I>&gt;<i> &quot;/skin/frontend/domain/default/images/bkg_divider1.gif&quot;] [unique_id
+</I>&gt;<i> &quot;TwhAtsCoAWgAADYlFsAAAAAF&quot;]
+</I>&gt;<i>
+</I>&gt;<i> The css line that triggers looks like this:
+</I>&gt;<i> .dashboard .box .box-title { background:url(../images/bkg_divider1.gif)
+</I>&gt;<i> 0 100% repeat-x; padding:0 0 2px; margin:0 0 8px; text-align:right; }
+</I>&gt;<i>
+</I>&gt;<i> Nothing scary really but how can this false positive be avoided? Is it
+</I>&gt;<i> best to improve the regexp or can well known image files be filtered out
+</I>&gt;<i> any other way?
+</I>&gt;<i>
+</I>&gt;<i> TIA,
+</I>&gt;<i>
+</I>&gt;<i> Joakim
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000957.html">[Owasp-modsecurity-core-rule-set] Potential false positive?
+</A></li>
+	<LI>Next message: <A HREF="000961.html">[Owasp-modsecurity-core-rule-set] Potential false positive?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#958">[ date ]</a>
+              <a href="thread.html#958">[ thread ]</a>
+              <a href="subject.html#958">[ subject ]</a>
+              <a href="author.html#958">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

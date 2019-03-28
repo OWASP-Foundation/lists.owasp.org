@@ -1,0 +1,470 @@
+From jai.harpalani at mulesoft.com  Wed Jan  2 20:09:06 2019
+From: jai.harpalani at mulesoft.com (Jai Harpalani)
+Date: Wed, 2 Jan 2019 14:09:06 -0600
+Subject: [Owasp-modsecurity-core-rule-set] XML Variable
+Message-ID: <CANExQKtkoG+Pz335QJ+fTb_H03TRo4v3dXEB64BCiJhc6TXhsw@mail.gmail.com>
+
+There are many OWASP CRS rules which have XML in the list of operators, but
+not REQUEST_BODY. An example of one is below.
+
+SecRule
+REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
+"@pmf lfi-os-files.data" \
+    "phase:request,\
+    msg:'OS File Access Attempt',\
+    rev:'4',\
+    ver:'OWASP_CRS/3.0.0',\
+    maturity:'9',\
+    accuracy:'9',\
+    capture,\
+    t:none,t:utf8toUnicode,t:urlDecodeUni,t:normalizePathWin,t:lowercase,\
+    block,\
+    id:930120,\
+. . .
+
+This rule is searching for patterns specified in lfi-os-files.data. It is
+not using Xpath expressions. The XML operator will be empty for non-xml
+requests or when the xml parser is disabled. In these cases, wouldn't we
+still want to search the request body for patterns specified in
+lfi-os-files.data? Is there a reason that the patterns are only searched
+for in the request body for XML requests?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20190102/704a2ef4/attachment.html>
+
+From christian.folini at netnea.com  Wed Jan  2 20:24:02 2019
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 2 Jan 2019 21:24:02 +0100
+Subject: [Owasp-modsecurity-core-rule-set] XML Variable
+In-Reply-To: <CANExQKtkoG+Pz335QJ+fTb_H03TRo4v3dXEB64BCiJhc6TXhsw@mail.gmail.com>
+References: <CANExQKtkoG+Pz335QJ+fTb_H03TRo4v3dXEB64BCiJhc6TXhsw@mail.gmail.com>
+Message-ID: <20190102202402.GA3398@leander>
+
+Hello Jai,
+
+That's a good question.
+
+We are not overly happy with the way this is done. So there are discussions to
+overhaul this completely.
+
+However, when you have an non-xml request, then ARGS and ARGS_NAMES will be
+populated. And there are a few cases where REQUEST_BODY is indeed covered
+and this can result in double hits on the same rule on the same payload.
+
+Cheers,
+
+Christian
+
+On Wed, Jan 02, 2019 at 02:09:06PM -0600, Jai Harpalani wrote:
+> There are many OWASP CRS rules which have XML in the list of operators, but
+> not REQUEST_BODY. An example of one is below.
+> 
+> SecRule
+> REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAMES|ARGS|XML:/*
+> "@pmf lfi-os-files.data" \
+>     "phase:request,\
+>     msg:'OS File Access Attempt',\
+>     rev:'4',\
+>     ver:'OWASP_CRS/3.0.0',\
+>     maturity:'9',\
+>     accuracy:'9',\
+>     capture,\
+>     t:none,t:utf8toUnicode,t:urlDecodeUni,t:normalizePathWin,t:lowercase,\
+>     block,\
+>     id:930120,\
+> . . .
+> 
+> This rule is searching for patterns specified in lfi-os-files.data. It is
+> not using Xpath expressions. The XML operator will be empty for non-xml
+> requests or when the xml parser is disabled. In these cases, wouldn't we
+> still want to search the request body for patterns specified in
+> lfi-os-files.data? Is there a reason that the patterns are only searched
+> for in the request body for XML requests?
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From airween at gmail.com  Sun Jan  6 18:31:29 2019
+From: airween at gmail.com (Ervin =?utf-8?Q?Heged=C3=BCs?=)
+Date: Sun, 6 Jan 2019 19:31:29 +0100
+Subject: [Owasp-modsecurity-core-rule-set] State of regression tests
+Message-ID: <20190106183129.GA9316@arxnet.hu>
+
+Hi,
+
+I've made the libnginx-mod-http-modsecurity package for
+Debian[1], and would like to test it. I've installed the
+modsecurity-crs (version 3.1 - Debian contains it), and set up
+the Nginx.
+
+Cloned the current owasp-modsecurity-crs repository, and made
+some modifications[2][3], now the CRS_Tests.py able to parse the Nginx
+error_log.
+
+Some tests are passed now, and consists with error log (what the
+test expects in error_log by yaml file, there is it), but most of
+them are failed - eg. the tests/test.yaml.
+
+In this file, I see the request is a simple GET, and URI is
+"/?test=test%FF1". The Nginx serves this request without any
+warning or notice, with response HTTP 200.
+
+Other failed test: tests/REQUEST-920-PROTOCOL-ENFORCEMENT/920300.yaml.
+Also I got HTTP 200 answer.
+
+
+But - for example - this is passed:
+tests/REQUEST-921-PROTOCOL-ATTACK/921110.yaml
+
+Does it need passed all tests, when I run it with
+--ruledir_recurse? Is there any know issue(s), why these tests
+failed?
+
+
+
+Thanks for your help,
+
+
+a.
+
+ps: note, that few small modifications remain on Nginx module,
+(in Debian package) but looks like it works as well.
+
+[1]: https://salsa.debian.org/airween-guest/nginx/tree/modsecurity
+[2]: https://github.com/airween/owasp-modsecurity-crs/tree/nginxlogformat
+[3]: https://github.com/airween/owasp-modsecurity-crs/commit/77efec1fe91472a06096b3082ec9bd79e4ad8e84
+
+From airween at gmail.com  Mon Jan  7 10:07:37 2019
+From: airween at gmail.com (Ervin =?utf-8?Q?Heged=C3=BCs?=)
+Date: Mon, 7 Jan 2019 11:07:37 +0100
+Subject: [Owasp-modsecurity-core-rule-set] State of regression tests
+In-Reply-To: <20190106205336.GB18023@leander>
+References: <20190106183129.GA9316@arxnet.hu> <20190106192403.GA5599@leander>
+	<20190106200533.GA10559@arxnet.hu> <20190106205336.GB18023@leander>
+Message-ID: <20190107100737.GA22217@arxnet.hu>
+
+Hi Christian,
+
+On Sun, Jan 06, 2019 at 09:53:36PM +0100, Christian Folini wrote:
+> Hello Ervin,
+> 
+> On Sun, Jan 06, 2019 at 09:05:33PM +0100, Ervin Heged?s wrote:
+> > > As of this writing, all the tests are passing on Apache, but there are various
+> > > failures.
+> > 
+> > sorry, I don't understand this - all test are passing, BUT there
+> > are various problems? It's a little bit contradiction for me :).
+> 
+> Sorry. Meant to say.
+> 
+> As of this writing, all the tests are passing on Apache, but there are various
+> failures on nginx.
+
+thanks - now it's clear :)
+ 
+> > thanks - I forgot to write, that I'm using ModSecurity 3,
+> > especially libmodsecurity3, version 3.0.3 with some patches (not
+> > relevants from this aspect), so may be the differences comes from
+> > the version mismatch?
+> 
+> It's more subtle differences with ModSec3 on NGINX.
+
+yep'
+ 
+> > But the mentioned examples are disquietings: the 920300, or the
+> > simple test cases are failed... these are not so difficult cases, I
+> > thought those would be passed - but no security alert triggered...
+> 
+> I agree. We need to look into this.
+> 
+> If you feel like you would like to give us a hand, that would be much
+> appreciated.
+
+:)
+
+yes, I feel like as you described :)
+
+
+
+Regards,
+
+
+a.
+ 
+
+From christian.folini at netnea.com  Fri Jan 25 20:13:13 2019
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 25 Jan 2019 21:13:13 +0100
+Subject: [Owasp-modsecurity-core-rule-set] CRS News for January 2019
+	published
+Message-ID: <20190125201312.GA13692@leander>
+
+Hello,
+
+The OWASP ModSecurity Core Rule Set project news for January 2019 are out
+
+https://coreruleset.org/20190124/crs-project-news-january-2019/
+
+Retweets are welcome:
+
+https://twitter.com/CoreRuleSet/status/1088786400433094656
+
+This month, we announce detailed plans for the Cloudfest Hackathon in late
+March in Germany and many, many pull requests covering bypasses and other
+problems.
+
+Best,
+
+Christian
+
+
+-- 
+One sign that you?ve approached actual mastery of a subject is that 
+you get less arrogant; because you?ve spent so much time being wrong.
+-- Matthew D. Green
+
+From info at digitalkube.com  Wed Jan 30 14:58:18 2019
+From: info at digitalkube.com (Ritesh Saini)
+Date: Wed, 30 Jan 2019 20:28:18 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Modsecurity 403 server errors in
+	WordPress
+Message-ID: <79330162-987F-4CA8-A56C-68343EB103AD@digitalkube.com>
+
+Hello,
+
+This page of my site: https://www.digitalkube.com/elegant-themes-coupon/ <https://www.digitalkube.com/elegant-themes-coupon/> is returning 404 errors randomly.
+
+It shows: Access denied with code 403
+
+I did some Google search and found that it is due to mod security rules. My site is hosted on a DigitalOcean droplet with nginx server.
+
+Please suggest me a fix. If you need any details from my side then kindly let me know.
+
+Thanks & Regards,
+Ritesh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20190130/9bda39bb/attachment.html>
+
+From wbmilleriii at comcast.net  Wed Jan 30 15:25:45 2019
+From: wbmilleriii at comcast.net (Bill Miller)
+Date: Wed, 30 Jan 2019 09:25:45 -0600
+Subject: [Owasp-modsecurity-core-rule-set] GeoIP databases
+Message-ID: <6dc0b115-4632-69ed-faa9-7ed3e3e8b405@comcast.net>
+
+Hello all,
+
+Long-time but unsophisticated user here.
+
+It appears that the free GeoIP database from MaxMind is not supported 
+any more. But there is a GeoIP2 database available.? Is this a direct 
+replacement?
+
+I notice in the 3.1.0 version I downloaded, the geo-location folder in 
+utils does not have anything in it but a readme. It used to have a 
+GeoIP.dat database.
+
+I use geo based rules, so I'd like to continue having an updated database.
+
+Any advice would be appreciated.
+
+Bill
+
+From christian.folini at netnea.com  Wed Jan 30 15:38:12 2019
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 30 Jan 2019 16:38:12 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Modsecurity 403 server errors
+ in WordPress
+In-Reply-To: <79330162-987F-4CA8-A56C-68343EB103AD@digitalkube.com>
+References: <79330162-987F-4CA8-A56C-68343EB103AD@digitalkube.com>
+Message-ID: <20190130153812.GB21609@leander>
+
+Hello Ritesh,
+
+This is likely a false positive. If you do not have control over the
+configuration, then you need to complain to your vendor.
+
+If you do have control over the configuration, you will need to educate
+yourself about ModSecurity and likely the Core Rule Set a bit.
+
+Our website https://coreruleset.org is a good starting point.
+
+Best,
+
+Christian
+
+
+On Wed, Jan 30, 2019 at 08:28:18PM +0530, Ritesh Saini wrote:
+> Hello,
+> 
+> This page of my site: https://www.digitalkube.com/elegant-themes-coupon/ <https://www.digitalkube.com/elegant-themes-coupon/> is returning 404 errors randomly.
+> 
+> It shows: Access denied with code 403
+> 
+> I did some Google search and found that it is due to mod security rules. My site is hosted on a DigitalOcean droplet with nginx server.
+> 
+> Please suggest me a fix. If you need any details from my side then kindly let me know.
+> 
+> Thanks & Regards,
+> Ritesh
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From tshrinivasan at gmail.com  Thu Jan 31 11:29:14 2019
+From: tshrinivasan at gmail.com (Shrinivasan T)
+Date: Thu, 31 Jan 2019 16:59:14 +0530
+Subject: [Owasp-modsecurity-core-rule-set] is there any tool to analyse
+	apache access logs against CRS?
+Message-ID: <CAND2795Cvpdo8GeKAF85vOiJ9FxhYCxO0OQGq3KSUxvH6B=ywA@mail.gmail.com>
+
+Hello CRS Team,
+
+Thanks for the great works.
+
+I am looking for a tool to analyse my apache access logs against CRS to get
+report on any XSS/CSRF/etc issues.
+
+Is there any tool to do this?
+
+Thanks.
+
+-- 
+Regards,
+T.Shrinivasan
+
+
+My Life with GNU/Linux : http://goinggnu.wordpress.com
+Free E-Magazine on Free Open Source Software in Tamil : http://kaniyam.com
+
+Get Free Tamil Ebooks for Android, iOS, Kindle, Computer :
+http://FreeTamilEbooks.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20190131/08808aa9/attachment.html>
+
+From christian.folini at netnea.com  Thu Jan 31 19:06:41 2019
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 31 Jan 2019 20:06:41 +0100
+Subject: [Owasp-modsecurity-core-rule-set] is there any tool to analyse
+ apache access logs against CRS?
+In-Reply-To: <CAND2795Cvpdo8GeKAF85vOiJ9FxhYCxO0OQGq3KSUxvH6B=ywA@mail.gmail.com>
+References: <CAND2795Cvpdo8GeKAF85vOiJ9FxhYCxO0OQGq3KSUxvH6B=ywA@mail.gmail.com>
+Message-ID: <20190131190641.GA2665@leander>
+
+Hi there,
+
+The information you are looking for is not in the access log, but in the
+error or the audit log.
+
+I you look through my tutorials at https://netnea.com, you will find a few
+techniques and scripts that help you with the task at hand.
+
+Otherwise, the JWall Audit Console does a pretty good job extracting this
+information.
+
+Best,
+
+Christian
+
+On Thu, Jan 31, 2019 at 04:59:14PM +0530, Shrinivasan T wrote:
+> Hello CRS Team,
+> 
+> Thanks for the great works.
+> 
+> I am looking for a tool to analyse my apache access logs against CRS to get
+> report on any XSS/CSRF/etc issues.
+> 
+> Is there any tool to do this?
+> 
+> Thanks.
+> 
+> -- 
+> Regards,
+> T.Shrinivasan
+> 
+> 
+> My Life with GNU/Linux : http://goinggnu.wordpress.com
+> Free E-Magazine on Free Open Source Software in Tamil : http://kaniyam.com
+> 
+> Get Free Tamil Ebooks for Android, iOS, Kindle, Computer :
+> http://FreeTamilEbooks.com
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From spartantri at gmail.com  Thu Jan 31 20:00:16 2019
+From: spartantri at gmail.com (Manuel Spartan)
+Date: Thu, 31 Jan 2019 15:00:16 -0500
+Subject: [Owasp-modsecurity-core-rule-set] is there any tool to analyse
+	apache access logs against CRS?
+In-Reply-To: <20190131190641.GA2665@leander>
+References: <CAND2795Cvpdo8GeKAF85vOiJ9FxhYCxO0OQGq3KSUxvH6B=ywA@mail.gmail.com>
+	<20190131190641.GA2665@leander>
+Message-ID: <F25E07A7-6E53-472E-823C-728A0B128D00@gmail.com>
+
+If you have nothing else than the access log try lorg with phpids, or replay the access log to a local apache with crs and a rewrite rule to reply 200ok and look at the error log for the interesting stuff as Christian said
+
+Good luck!
+
+Sent from my iPhone
+
+> On 31 Jan 2019, at 14:06, Christian Folini <christian.folini at netnea.com> wrote:
+> 
+> Hi there,
+> 
+> The information you are looking for is not in the access log, but in the
+> error or the audit log.
+> 
+> I you look through my tutorials at https://netnea.com, you will find a few
+> techniques and scripts that help you with the task at hand.
+> 
+> Otherwise, the JWall Audit Console does a pretty good job extracting this
+> information.
+> 
+> Best,
+> 
+> Christian
+> 
+>> On Thu, Jan 31, 2019 at 04:59:14PM +0530, Shrinivasan T wrote:
+>> Hello CRS Team,
+>> 
+>> Thanks for the great works.
+>> 
+>> I am looking for a tool to analyse my apache access logs against CRS to get
+>> report on any XSS/CSRF/etc issues.
+>> 
+>> Is there any tool to do this?
+>> 
+>> Thanks.
+>> 
+>> -- 
+>> Regards,
+>> T.Shrinivasan
+>> 
+>> 
+>> My Life with GNU/Linux : http://goinggnu.wordpress.com
+>> Free E-Magazine on Free Open Source Software in Tamil : http://kaniyam.com
+>> 
+>> Get Free Tamil Ebooks for Android, iOS, Kindle, Computer :
+>> http://FreeTamilEbooks.com
+> 
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+

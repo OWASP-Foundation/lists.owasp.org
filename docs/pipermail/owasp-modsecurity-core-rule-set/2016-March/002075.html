@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%20entries%20of%20stricter%20siblings&In-Reply-To=%3CCALrdzmKuiwooynUA269OqO%2BhQNQ9yCJryNpL2aU3jfZhWypFbg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002065.html">
+   <LINK REL="Next"  HREF="002076.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings</H1>
+    <B>Franziska Buehler</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%20entries%20of%20stricter%20siblings&In-Reply-To=%3CCALrdzmKuiwooynUA269OqO%2BhQNQ9yCJryNpL2aU3jfZhWypFbg%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings">franziska.buehler.schmocker at gmail.com
+       </A><BR>
+    <I>Tue Mar  8 07:50:43 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002065.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+        <LI>Next message: <A HREF="002076.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2075">[ date ]</a>
+              <a href="thread.html#2075">[ thread ]</a>
+              <a href="subject.html#2075">[ subject ]</a>
+              <a href="author.html#2075">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>When I started reading Christian&#8217;s answer I was sure, I will defend my
+point of view and we absolutely have to limit the firing sibling rules
+to only one per request.
+But when I continued reading I have to admit, that Christian has a point.
+
+Confusing people by adding new rules, apparently at random, by
+changing the paranoia level, is really not nice. That&#8217;s true.
+
+On this point I don&#8217;t entirely agree with you, Christian:
+&#8220;The higher you go. The more alerts you get and the higher the score.
+This is what I would expect from a paranoia setting.&#8221;
+We already have a stricter rule on a higher level. We don&#8217;t also need
+a higher score, triggered by more matching rules.
+I don&#8217;t like the fact, that with a higher paranoia level you get a
+higher score, caused by these stricter siblings. You also don&#8217;t. That
+is what you described with: &#8220;So cumulation has an unbalancing effect.&#8220;
+That could mislead to raise the anomaly threshold at a higher paranoia
+level. That&#8217;s dangerous.
+But I also agree, that if someone chooses a higher paranoia level, he
+knows what he does and will instead tune the rules.
+And your approach to choose a low paranoia level, then tune and choose
+a higher level also makes sense.
+
+With our numbering scheme (incrementing last digit) we always see at a
+glance which rules belong together: 9xxxx0, 9xxxx1, 9xxxx2.
+That should simplify the log&#8217;s readability and If someone is familiar
+with these stricter siblings he immediately understands the system and
+identifies why a request was blocked.
+
+At the end I agree with both of you. Let&#8217;s keep it simple and avoid
+unnecessary complexity!
+
+Regards,
+Franziska
+
+
+2016-03-06 22:48 GMT+01:00 Walter Hop &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">modsec at spam.lifeforms.nl</A>&gt;:
+&gt;<i> Hi Christian,
+</I>&gt;<i>
+</I>&gt;<i> Some very good points!
+</I>&gt;<i>
+</I>&gt;<i> I agree with your assessment about the rule complexities. I agree that
+</I>&gt;<i> keeping rules simple is extremely important, especially given our low
+</I>&gt;<i> resources.
+</I>&gt;<i>
+</I>&gt;<i> But of course, a real attack will trigger 3 times. And I
+</I>&gt;<i> do not mind that. If there is a real attack then I am
+</I>&gt;<i> very open for anomaly score to grow at great velocity. And
+</I>&gt;<i> in fact that is the behaviour of the 2.2.X core rules:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This is true, too. This unbalanced distribution of anomaly scores between
+</I>&gt;<i> parts of the CRS is already there since CRS v2. And it&#8217;s not that big of a
+</I>&gt;<i> problem.
+</I>&gt;<i>
+</I>&gt;<i> If you are paranoid, you should probably use 5 as your blocking threshold
+</I>&gt;<i> anyway. In that case, a higher anomaly score has no difference on a blocking
+</I>&gt;<i> decision.
+</I>&gt;<i>
+</I>&gt;<i> In a way, it might even be useful to an admin to get the multiple rules
+</I>&gt;<i> logged if they run at high paranoia level. They can instantly see all the
+</I>&gt;<i> relevant rule ID&#8217;s, there is no magic, and people can simply apply their
+</I>&gt;<i> whitelistings so that they also cover the lower rules.
+</I>&gt;<i>
+</I>&gt;<i> When I read Franziska's message, I was ready to agree. But
+</I>&gt;<i> then I thought about it and I came to the conclusion, that
+</I>&gt;<i> alert cumulation is not ideal, but everything else is even
+</I>&gt;<i> worse.
+</I>&gt;<i>
+</I>&gt;<i> Let's keep it simple even if it brings a few more alerts.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Good characterization. Let&#8217;s keep it simple, the drawbacks of multiple
+</I>&gt;<i> alerts are likely not worth the added burden of reducing them.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Walter Hop | PGP key: <A HREF="https://lifeforms.nl/pgp">https://lifeforms.nl/pgp</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002065.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+	<LI>Next message: <A HREF="002076.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2075">[ date ]</a>
+              <a href="thread.html#2075">[ thread ]</a>
+              <a href="subject.html#2075">[ subject ]</a>
+              <a href="author.html#2075">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,221 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] LibInjection
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20LibInjection&In-Reply-To=%3CSNT128-DS1588F9D7B90AA1851BA9AAA4080%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001305.html">
+   <LINK REL="Next"  HREF="001307.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] LibInjection</H1>
+    <B>Rolling Stone</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20LibInjection&In-Reply-To=%3CSNT128-DS1588F9D7B90AA1851BA9AAA4080%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] LibInjection">jzy2000 at hotmail.com
+       </A><BR>
+    <I>Wed Feb 13 17:08:55 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001305.html">[Owasp-modsecurity-core-rule-set] Apache start-up issue with Rule	Sets
+</A></li>
+        <LI>Next message: <A HREF="001307.html">[Owasp-modsecurity-core-rule-set] LibInjection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1306">[ date ]</a>
+              <a href="thread.html#1306">[ thread ]</a>
+              <a href="subject.html#1306">[ subject ]</a>
+              <a href="author.html#1306">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ryan, 
+
+ 
+
+Adding &quot;t:normalizeSQLi&quot; for custom SQLi rules make perfect sense to me. 
+
+ 
+
+I am also thinking if it makes sense to transform existing ModSecurity
+signatures to libinjection fingerprints as well. So that ModSecurity will
+work uniformly by calling libinjection using a single set of fingerprint
+merged from both sources for SQLi and also share same level of accuracy, as
+supposed to chaining the two together?
+
+ 
+
+However, it will be interesting to learn the coverage in libinjection
+fingerprint and Modsecurity signature, any thoughts on that?
+
+ 
+
+I am about to plan this work based upon your feedback.
+
+ 
+
+Thanks,
+
+RS.
+
+ 
+
+From: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>] 
+Sent: January-31-13 5:22 PM
+To: Rolling Stone; 'Ryan Barnett';
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] LibInjection
+
+ 
+
+I agree with you that libinjection could be used potentially in all three of
+the scenarios you outlined.  Our discussions so far have centered around
+adding it as a new operator such as - @detectSQLi and you would pass it a
+parameter which is the fingerprints.txt file -
+
+ 
+
+SecRule ARGS &quot;@detectSQLi fingerprints.txt&quot;
+
+ 
+
+The libinjection code would need to be updated to allow for passing the
+fingerprints.txt file data rather than to have it compiled in as it is
+today.  This would allow for updating fingerprints without the need to
+recompile ModSecurity code.
+
+ 
+
+As to your first point - I see value there as well.  The idea would be to
+add a new transformation function such as - t:normalizeSQLi and then add it
+to all SQLi signatures that you write.  This transformation function would
+do the normalization/tokenization of the data.  This would then allow you to
+write your signatures and rules in an easier manner as you wouldn't have to
+account for the myriad of permutations and combinations of evasion.
+
+ 
+
+Bottom line is that I see a lot of uses for this feature :)  I would LOVE
+for someone to help.
+
+ 
+
+-RB
+
+ 
+
+ 
+
+From: Rolling Stone &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jzy2000 at hotmail.com</A>&gt;
+Date: Thursday, January 31, 2013 11:11 AM
+To: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at owasp.org</A>&gt;,
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: Re: [Owasp-modsecurity-core-rule-set] LibInjection
+
+ 
+
+If my understanding correctly, there are possible 3 ways for libinjection to
+be useful:
+
+-Normalizing user input, to make CRS signature-based SQLi detection works
+better.
+
+-Streamlining signature-based SQLi detection and libinjection to improve
+SQLi detection rate.
+
+-Or, libinjection and fingerprint detection as replacement to
+signature-based SQLi.
+
+ 
+
+Which direction makes more sense if community support available?
+
+Thanks,
+
+-RS
+
+ 
+
+From: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at owasp.org</A>] 
+Sent: January-30-13 11:23 AM
+To: Rolling Stone; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] LibInjection
+
+ 
+
+No, not yet.  Breno will get to it eventually, however this could be
+expedited if someone from the community wants to help.
+
+ 
+
+-Ryan
+
+ 
+
+From: Rolling Stone &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jzy2000 at hotmail.com</A>&gt;
+Date: Wednesday, January 30, 2013 11:20 AM
+To: &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: [Owasp-modsecurity-core-rule-set] LibInjection
+
+ 
+
+CRS Roadmap has plan to include C Libinjection, any idea when will this
+integration be completed?
+
+ 
+
+Thanks,
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;  
+
+ 
+
+  _____  
+
+
+This transmission may contain information that is privileged, confidential,
+and/or exempt from disclosure under applicable law. If you are not the
+intended recipient, you are hereby notified that any disclosure, copying,
+distribution, or use of the information contained herein (including any
+reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+in error, please immediately contact the sender and destroy the material in
+its entirety, whether in electronic or hard copy format.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130213/a7c993aa/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130213/a7c993aa/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001305.html">[Owasp-modsecurity-core-rule-set] Apache start-up issue with Rule	Sets
+</A></li>
+	<LI>Next message: <A HREF="001307.html">[Owasp-modsecurity-core-rule-set] LibInjection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1306">[ date ]</a>
+              <a href="thread.html#1306">[ thread ]</a>
+              <a href="subject.html#1306">[ subject ]</a>
+              <a href="author.html#1306">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

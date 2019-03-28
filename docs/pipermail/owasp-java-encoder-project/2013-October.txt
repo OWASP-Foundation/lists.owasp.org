@@ -1,0 +1,74 @@
+From aaron.weaver at pearson.com  Mon Oct 21 20:43:51 2013
+From: aaron.weaver at pearson.com (Weaver, Aaron)
+Date: Mon, 21 Oct 2013 16:43:51 -0400
+Subject: [Owasp-java-encoder-project] Link Injection
+Message-ID: <CABudUj4KAu=qKoA_v0wt2zJ81858fQC5CKtn3sM3qHTZqxng+A@mail.gmail.com>
+
+Quick question: What method do you recommend to encode for link injection?
+For example:
+
+<a href="javascript:alert(1)">click here</a>
+
+Thanks
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20131021/d5cb117f/attachment.html>
+
+From jeremy.long at gmail.com  Tue Oct 22 01:05:01 2013
+From: jeremy.long at gmail.com (Jeremy Long)
+Date: Mon, 21 Oct 2013 21:05:01 -0400
+Subject: [Owasp-java-encoder-project] Link Injection
+In-Reply-To: <CABudUj4KAu=qKoA_v0wt2zJ81858fQC5CKtn3sM3qHTZqxng+A@mail.gmail.com>
+References: <CABudUj4KAu=qKoA_v0wt2zJ81858fQC5CKtn3sM3qHTZqxng+A@mail.gmail.com>
+Message-ID: <CAKAumBHoAPyxpkrwj1trfd-JFn_0z7+eX3Ajk6i+X2TJQmd2Rw@mail.gmail.com>
+
+Aaron,
+
+Please provide a more specific example of what you want to do. Encoding for
+content into links can be complicated; especially if you are allowing the
+javascript protocol. My recommendation would be to completely avoid inline
+script (i.e. the javascript protocol and all of the onclick, onerror, etc.
+attributes). Instead utilize external JavaScript and hook the necessary
+events. But I completely understand that not everyone gets to start green
+field and build an application that can fully utilize CSP.
+
+Consider looking at the DOM Based XSS cheatsheet's complex contexts:
+https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet#Complex_Contexts
+
+If you are actually putting dynamic data into an href using the javascript
+protocol you have to understand that the browser will first HTML Attribute
+decode the entire URL, determine that it is using the javascript protocol,
+then URL decode the data after the colon, and pass this data to the
+JavaScript interpreter. So depending on your encoding library you may want
+to follow the guidance from Romain Goucher @ Coverity and utilize
+nested/layered encoding (
+https://communities.coverity.com/blogs/security/2012/11/05/using-the-coverity-security-library-with-guidance-from-security-advisor).
+Or if you are using a robust encoder, which I believe the Java Encoder
+Project is, you could just use the JavaScript encoding (depending of course
+on the fact that the dynamic data is wrapped in quotes).
+
+Hopefully that helps, if not please provide a more specific example
+(including the location of the dynamic data you want to write out).
+
+--Jeremy
+
+
+On Mon, Oct 21, 2013 at 4:43 PM, Weaver, Aaron <aaron.weaver at pearson.com>wrote:
+
+> Quick question: What method do you recommend to encode for link injection?
+> For example:
+>
+> <a href="javascript:alert(1)">click here</a>
+>
+> Thanks
+>
+> _______________________________________________
+> Owasp-java-encoder-project mailing list
+> Owasp-java-encoder-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20131021/de8ed09c/attachment.html>
+

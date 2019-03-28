@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/2000/svg" exclude-result-prefixes="#default">
+
+<xsl:param name="cssfilename">SAMM-1.0-scorecard-0.2.css</xsl:param>
+<xsl:param name="maturitymodeldefinitionfilename">SAMM-1.0-XML-0.3-en_US.xml</xsl:param>
+
+<xsl:param name="cssoutputstrategy">reference</xsl:param>  <!-- options: reference (default) or inline (requires an XML 2.0 processor; commented out) -->
+<xsl:param name="wordWrapStrategy">stringLength</xsl:param> <!-- options: lastSpace (default) or stringLength -->
+<xsl:param name="maxTitleLength">13</xsl:param> <!-- maximum number of characters per line in the title -->
+
+<xsl:output 
+	method="xml"
+	doctype-public="-//W3C//DTD SVG 1.0//EN"
+	doctype-system="http://www.w3.org/TR/SVG/DTD/svg10.dtd"
+	indent="yes"
+	cdata-section-elements="style"/>
+
+<xsl:variable name="scorecarddata" select="/" />
+<xsl:variable name="maturitymodeldefinition" select="document($maturitymodeldefinitionfilename)"/>
+
+<xsl:template match="maturity">
+
+	<xsl:if test="$cssoutputstrategy='reference'">
+    	<xsl:processing-instruction name="xml-stylesheet">
+       		<xsl:text>type="text/css" </xsl:text>
+        	<xsl:text>href="</xsl:text>
+        	<xsl:value-of select="$cssfilename"/>
+        	<xsl:text>"</xsl:text>
+    	</xsl:processing-instruction>
+    </xsl:if>
+    	
+	<xsl:variable name="template" select="'SAMM-1.0-scorecard-0.2-en_US.xsl'"/>
+
+	<xsl:variable name="title" select="title"/>
+	<xsl:variable name="label" select="label"/>
+	<xsl:variable name="practicesno" select="12"/>
+	<xsl:variable name="mapyoffset" select="25"/>
+
+	<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="440" height="{50*$practicesno+95}">
+	<xsl:comment>
+
+		Software Assurance Maturity Model (SAMM) v1.0
+
+		http://www.opensamm.org/
+
+		http://www.owasp.org/index.php/Category:Software_Assurance_Maturity_Model
+
+
+            Single Value Scorecard Chart (using <xsl:value-of select="$template"/>)
+
+		"<xsl:value-of select="$title"/>"
+
+		XML/XSD/XSLT and SVG contributed to the OWASP SAMM project by Colin Watson (Watson Hall Ltd).
+		Based on roadmap chart created in conjunction with Brenda Larcom (Stach &amp; Liu).
+		Inspired and helped by ChartSVG at http://www.hardcoded.net/chartsvg/
+
+		This work is licensed under the Creative Commons Attribution-Share Alike 3.0 License. To view
+		a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter
+		to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
+
+	</xsl:comment>
+	
+	<!-- inlining CSS requires XSL 2.0; some XSLT processors cannot compile with this uncommented -->
+	<!-- <xsl:if test="$cssoutputstrategy='inline'">
+		<xsl:variable name="css" select="unparsed-text($cssfilename)" />
+		<style type="text/css">
+			<xsl:value-of select="$css" />
+		</style>
+	</xsl:if> -->
+		
+	<defs>
+		<line id="levelMarker" class="mmaxis" x1="0" y1="0" x2="0" y2="5" />
+	</defs>
+
+	<rect x="0" y="0" width="440" height="{50*$practicesno+95}" class="mmgraph"></rect>
+	<text text-anchor="middle" x="220" y="{50*$practicesno+80}" class="mmtitle"><xsl:value-of select="$title"/></text>
+	<rect class="mmstripe" x="100" y="0" width="430" height="25"/>
+	<text text-anchor="end" x="430" y="18" class="mmlabel"><xsl:value-of select="$scorecarddata/maturity/scorecard/label"/></text>
+		
+	<xsl:for-each select="$maturitymodeldefinition/*/security-practices/security-practice">
+		<xsl:variable name="practiceId" select="@id" />
+		<xsl:variable name="practiceNumber" select="@number" />
+
+		<!-- to allow subset scorecards, only process this practice if the scorecard data has levels for it -->
+		<xsl:if test="$scorecarddata/maturity/scorecard/levels/level[@security-practice=$practiceId]/@value">
+			
+		<!-- word wrap the security practice label text -->
+		<xsl:variable name="label1">
+			<xsl:call-template name="wordWrap">
+				<xsl:with-param name="original" select="title" />
+				<xsl:with-param name="strategy" select="$wordWrapStrategy" />
+				<xsl:with-param name="segmentNumber" select="1" />
+				<xsl:with-param name="maxLength" select="$maxTitleLength" />					
+			</xsl:call-template>
+		</xsl:variable>
+		<xsl:variable name="label2">
+			<xsl:call-template name="wordWrap">
+				<xsl:with-param name="original" select="title" />
+				<xsl:with-param name="strategy" select="$wordWrapStrategy" />
+				<xsl:with-param name="segmentNumber" select="2" />
+				<xsl:with-param name="maxLength" select="$maxTitleLength" />					
+			</xsl:call-template>
+		</xsl:variable>
+		
+		<!-- add vertical axis label text -->
+		<text text-anchor="start" x="10" y="{$mapyoffset+35+50*((@number)-1)}" class="mmpractice"><xsl:value-of select="$label1" /></text>
+		<text text-anchor="start" x="10" y="{$mapyoffset+50+50*((@number)-1)}" class="mmpractice"><xsl:value-of select="$label2" /></text>
+		
+		<!-- add axes and vertical tick marks -->
+		<polyline class="mmaxis" points="100,{$mapyoffset+25+50*((@number)-1)} 100,{$mapyoffset+50+50*((@number)-1)} 400,{$mapyoffset+50+50*((@number)-1)} "/>
+			<use xlink:href="#levelMarker" x="100" y="{$mapyoffset+50+50*((@number)-1)}" />
+			<use xlink:href="#levelMarker" x="200" y="{$mapyoffset+50+50*((@number)-1)}" />
+			<use xlink:href="#levelMarker" x="300" y="{$mapyoffset+50+50*((@number)-1)}" />
+			<use xlink:href="#levelMarker" x="400" y="{$mapyoffset+50+50*((@number)-1)}" />
+		
+		<!-- find the human-readable maturity level -->
+		<xsl:variable name="humanReadableLevel" select="$scorecarddata/maturity/scorecard/levels/level[@security-practice=$practiceId]/@value" />
+
+		<!-- look up the level value that goes with the human-readable level name -->
+		<xsl:variable name="point">
+			<xsl:value-of select="number($maturitymodeldefinition/SAMM/level-data/level-value[@id
+= $humanReadableLevel]/@value)"/>
+		</xsl:variable> 
+		<xsl:variable name="elements" select="concat(101, ',', 27+$mapyoffset+50*(($practiceNumber)-1), ' ', (76+$mapyoffset+100*($point)), ',', 27+$mapyoffset+50*(($practiceNumber)-1), ' ',  (76+$mapyoffset+100*($point)), ',', 48+$mapyoffset+50*(($practiceNumber)-1), ' ', 101, ',', 48+$mapyoffset+50*(($practiceNumber)-1)   )"/>
+			
+		<!-- add coloured polygon to the security practice -->
+		<polygon class="{concat('mm',@business-function)}" points="{$elements}" />
+			
+		<!-- Add key -->
+		<text text-anchor="middle" x="420" y="{15+50*(@number)}" class="mmlevel"><xsl:value-of select="$scorecarddata/maturity/scorecard/levels/level[@security-practice=$practiceId]/@value"/></text>
+		
+		</xsl:if>
+		
+	</xsl:for-each>
+
+	</svg>
+
+</xsl:template>
+
+<xsl:include href="SAMM-1.0-utilities-0.1.xsl" />
+
+</xsl:stylesheet>

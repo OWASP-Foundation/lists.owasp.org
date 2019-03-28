@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Question%20About%20Rule%0A%09Configuration%21&In-Reply-To=869a38360909122338i70875b08t2e74300ea0d54219%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000095.html">
+   <LINK REL="Next"  HREF="000097.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Question%20About%20Rule%0A%09Configuration%21&In-Reply-To=869a38360909122338i70875b08t2e74300ea0d54219%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!">rcbarnett at gmail.com
+       </A><BR>
+    <I>Sun Sep 13 08:35:52 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000095.html">[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!
+</A></li>
+        <LI>Next message: <A HREF="000097.html">[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#96">[ date ]</a>
+              <a href="thread.html#96">[ thread ]</a>
+              <a href="subject.html#96">[ subject ]</a>
+              <a href="author.html#96">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sunday 13 September 2009 02:38:39 am OSSEC junkie wrote:
+&gt;<i> I'm testing this with Firefox and Chrome using this payload,
+</I>&gt;<i> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27%29
+</I>&gt;<i>;function%20a%28%29{var%20a=%22
+</I>&gt;<i>
+</I>&gt;<i> But it never gets caught, even with the phpids filters applied, did
+</I>&gt;<i> not modify them, left as is.
+</I>&gt;<i>
+</I>
+Works fine for me.  I sent your payload and the error_log showed this 
+(indicating that the anomaly score was 60) -
+
+[Sun Sep 13 08:15:55 2009] [error] [client 127.0.0.1] ModSecurity: Warning. 
+Operator GE matched 5 at TX:anomaly_score. [file 
+&quot;/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line &quot;41&quot;] [msg 
+&quot;Transactional Anomaly Score (score 60): Detects JavaScript language 
+constructs&quot;] [hostname &quot;localhost&quot;] [uri &quot;/example.php&quot;] [unique_id 
+&quot;Sqzie38AAQEAABXNKDEAAAAA&quot;]
+
+Here is the data from the modsec_audit.log.  Notice under section H that there 
+are 3 phpids rules that trigger on this payload -
+
+--4533267f-A--
+[13/Sep/2009:08:15:55 --0400] Sqzie38AAQEAABXNKDEAAAAA 127.0.0.1 41838 
+127.0.0.1 80
+--4533267f-B--
+GET /example.php?test=1%20;
+%7Deval%20%20AL%20%2B%20ERT%20DOCU%20%2B%20MENT.C%20%2B%20OOKIE%20%20%20;function%20a%20%20%7Bvar%20a=%20 
+HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.3) Gecko/20090824 
+Firefox/3.5.3
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Pragma: no-cache
+Cache-Control: no-cache
+
+--4533267f-F--
+HTTP/1.1 403 Forbidden
+Content-Length: 213
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--4533267f-H--
+Message: Pattern match &quot;(?:,\s*(?:alert|showmodaldialog|eval)\s*,)|(?::
+\s*eval\s*[^\s])|([^:\s\w,.\/?+-]\s*)?(?&lt;![a-z\/_@])(\s*return\s*)?(?:
+(?:document\s*\.)?(?:.+\/)?(?:alert|eval|msgbox|showmodaldialog|prompt|
+write(?:ln)?|confirm|dialog|open))\s*(?(1)[^\w]|(?:\s*[^\s\w,.@\ ...&quot; at 
+REQUEST_URI_RAW. [file &quot;/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf&quot;] [line &quot;47&quot;] [id 
+&quot;phpids-21&quot;] [msg &quot;Detects very basic XSS probings&quot;] [data &quot;}eval &quot;] [severity 
+&quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK&quot;]
+
+Message: Pattern match &quot;([^*\s\w,.\/?+-]\s*)?(?&lt;![a-mo-z]\s)(?&lt;![a-
+z\/_@&gt;\-\|])(\s*return\s*)?(?:alert|inputbox|showmodaldialog|infinity|isnan|
+isnull|msgbox|expression|prompt|write(?:ln)?|confirm|dialog|urn|(?:un)?eval|
+exec|execscript|tostring|status|execute|window|unescape|n ...&quot; at 
+REQUEST_URI_RAW. [file &quot;/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf&quot;] [line &quot;55&quot;] [id 
+&quot;phpids-16&quot;] [msg &quot;Detects possible includes and typical script methods&quot;] 
+[data &quot;}eval &quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK&quot;]
+
+Message: Pattern match &quot;([^*:\s\w,.\/?+-]\s*)?(?&lt;![a-z]\s)(?&lt;![a-z_@&gt;\|])
+(\s*return\s*)?(?:globalstorage|sessionstorage|postmessage|callee|constructor|
+content|domain|prototype|try|catch|top|call|apply|url|function|object|array|
+string|math|if|elseif|case|switch|regex|boolean|l ...&quot; at REQUEST_URI_RAW. 
+[file &quot;/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf&quot;] [line &quot;67&quot;] [id 
+&quot;phpids-20&quot;] [msg &quot;Detects JavaScript language constructs&quot;] [data &quot;;function 
+&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK&quot;]
+
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file 
+&quot;/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line &quot;41&quot;] [msg 
+&quot;Transactional Anomaly Score (score 60): Detects JavaScript language 
+constructs&quot;]
+Action: Intercepted (phase 2)
+Stopwatch: 1252844155385934 200058 (4259 199045 -)
+Producer: ModSecurity for Apache/2.5.10-dev1 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); 
+core ruleset/2.0.2.
+Server: Apache/2.2.12 (Unix) mod_ssl/2.2.12 OpenSSL/0.9.8g DAV/2
+
+&gt;<i> The only time it gets caught is when my browser changes the payload
+</I>&gt;<i> to:
+</I>&gt;<i> 1&quot;;}eval('al'%2b'ert(docu'%2b'ment.c'%2b'ookie)');function%20a(){var%20a=&quot;
+</I>&gt;<i>
+</I>&gt;<i> Then ModSecurity picks it up, but every other time I try with the 1%22
+</I>&gt;<i> ... payload...it just gets right past ModSecurity..any ideas?
+</I>&gt;<i>
+</I>
+The rules are using t:urlDecodeUni which will perform url decoding.  Did you 
+review the debug log to see what is happening?
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090913/b420061e/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090913/b420061e/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000095.html">[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!
+</A></li>
+	<LI>Next message: <A HREF="000097.html">[Owasp-modsecurity-core-rule-set] Question About Rule	Configuration!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#96">[ date ]</a>
+              <a href="thread.html#96">[ thread ]</a>
+              <a href="subject.html#96">[ subject ]</a>
+              <a href="author.html#96">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

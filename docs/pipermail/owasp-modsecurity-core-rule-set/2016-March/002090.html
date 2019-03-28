@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 83, Issue 23
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2083%2C%20Issue%2023&In-Reply-To=%3CCAMmziWfa6Nky0ui6dRdsD9NvaXdvoNLDpotLTBhmNMSW5_vqBw%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002089.html">
+   <LINK REL="Next"  HREF="002091.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 83, Issue 23</H1>
+    <B>Ilyass Kaouam</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2083%2C%20Issue%2023&In-Reply-To=%3CCAMmziWfa6Nky0ui6dRdsD9NvaXdvoNLDpotLTBhmNMSW5_vqBw%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 83, Issue 23">ilyassikai at gmail.com
+       </A><BR>
+    <I>Fri Mar 18 12:21:27 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002089.html">[Owasp-modsecurity-core-rule-set] Mail notification for all rules
+</A></li>
+        <LI>Next message: <A HREF="002091.html">[Owasp-modsecurity-core-rule-set] Rule evaluation framework
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2090">[ date ]</a>
+              <a href="thread.html#2090">[ thread ]</a>
+              <a href="subject.html#2090">[ subject ]</a>
+              <a href="author.html#2090">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+*Sending alert emails*
+
+As an example, suppose that we wanted to execute a script to email us an
+alert message whenever an attempted SQL injection exploit was detected. To
+do this, we need two things:
+
+1. A script file that has the ability to email an alert to a specified
+email address.
+
+2. A rule that will invoke the email script when a rule match is detected.
+
+For the script, we will use a standard shell script that invokes /bin/sh,
+though we could have easily used Perl or any other scripting language. We
+will email the alert to <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">user at example.com.</A>
+
+Create a file named email.sh in the directory /usr/local/bin and type the
+following in it:
+
+#!/bin/sh
+
+echo &quot;An SQL injection attempt was blocked&quot; | mail &#8211;s &quot;ModSecurity Alert&quot;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">user at example.com</A>
+
+echo Done.
+
+The script invokes the mail binary to send an email with the subject
+*ModSecurity
+Alert *to <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">user at example.com.</A> The last line of the script writes the
+string *Done.
+*to stdout. This is so that ModSecurity will recognize that the script has
+executed successfully.
+
+We now have to make the script executable so that it can be invoked when a
+rule matches:
+
+$ chmod a+rx /usr/local/bin/email.sh
+
+Now all that is left is to create a rule that will trigger the alert script:
+
+SecRule ARGS &quot;drop table&quot; &quot;deny,exec:/usr/local/bin/email.sh&quot;
+
+You can now test out this rule by attempting to access
+<A HREF="http://yourserver/?test=drop%20table.">http://yourserver/?test=drop%20table.</A> If you've substituted your own email
+address in the example above you should get an email telling you that an
+SQL injection attempt has just been blocked.
+
+Receiving such an email can be useful to quickly be alerted of any ongoing
+attacks. However, what if we wanted the email to contain a little more
+information on the attempted exploit; would that be possible? Yes, it's not
+only possible, it's also a very good idea, since more information about an
+alert can allow us to decide whether it is something to investigate more
+in-depth (such as when we detect that it's not just an automated
+vulnerability scanner pounding away at our server but actually a hacker
+probing for weaknesses with manually crafted exploit URLs).
+
+*Sending more detailed alert emails*
+
+ModSecurity allows us to set environment variables via the setenv action.
+By populating environment variables with suitable data we can record more
+information about the request that was blocked.
+
+Suppose we would like to gather the following data when an attempted SQL
+injection is detected:
+
+The hostname of the server where the alert occurred
+
+The remote user's IP address and hostname
+
+The full request URI
+
+The values of all arguments, whether they were sent using the GET or POST
+method
+
+The unique ID for the request, so we can find this alert in the log files
+
+We will place this information in six separate environment variables, which
+we will call HOSTNAME, REMOTEIP, REMOTEHOST, REQUESTURI, ARGS, and UNIQUEID.
+Our modified rule now looks like this:
+
+SecRule ARGS &quot;drop table&quot; &quot;deny,t:lowercase, &#61635; setenv:HOSTNAME=%{SERVER_NAME},
+&#61635; setenv:REMOTEIP=%{REMOTE_ADDR}, &#61635; setenv:REQUESTURI=%{REQUEST_URI},
+&#61635; setenv:ARGS=%{ARGS},
+&#61635; setenv:UNIQUEID={%UNIQUE_ID}, &#61635; exec:/usr/local/bin/email.sh&quot;
+
+Now all we have to do is modify the email script so that it places the
+environment variables in the email body:
+
+#!/bin/sh
+
+echo &quot;
+
+An SQL injection attempt was blocked:
+
+Server: $HOSTNAME
+
+Attacking IP: $REMOTEIP
+
+Attacking host: $REMOTEHOST
+
+Request URI: $REQUESTURI
+
+Arguments: $ARGS
+
+Unique ID: $UNIQUEID
+
+Time: `date '+%D %H:%M'`
+
+&quot; | mail &#8211;s 'ModSecurity Alert' <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">user at example.com</A>
+
+Echo Done.
+
+As you can see, we use a multi-line echo statement to get all the
+information nicely formatted. Since this is a shell script, it will
+replace $HOSTNAME
+and the other environment variables with the value we set the variables to
+in our ModSecurity rule. The last line of the echo statement also adds a
+timestamp with today's date and the current time by invoking the date command
+and placing backticks (`) around it, which causes the shell to execute the
+command and substitute the command's output for it. Finally, the data is
+piped into the mail binary, which sends an email with the subject line
+*ModSecurity
+Alert *to the specified email address.
+
+Again, at the end of the script we make sure to echo a dummy text to stdout to
+make ModSecurity happy. If you test this script you should get a nicely
+formatted email with all of the attacker's details.
+
+
+From: ModSecurity 2.5 Securing your Apache installation and web applications
+
+2016-03-18 12:00 GMT+00:00 &lt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-request at lists.owasp.org</A>&gt;:
+
+&gt;<i> Send Owasp-modsecurity-core-rule-set mailing list submissions to
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> To subscribe or unsubscribe via the World Wide Web, visit
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i> or, via email, send a message with subject or body 'help' to
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-request at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> You can reach the person managing the list at
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-owner at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> When replying, please edit your Subject line so it is more specific
+</I>&gt;<i> than &quot;Re: Contents of Owasp-modsecurity-core-rule-set digest...&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Today's Topics:
+</I>&gt;<i>
+</I>&gt;<i>    1. Mail notification for all rules (Leonardo Oliveira Ortiz)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ----------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> Message: 1
+</I>&gt;<i> Date: Thu, 17 Mar 2016 14:48:13 +0000
+</I>&gt;<i> From: Leonardo Oliveira Ortiz &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">leonardo.ortiz at marisolsa.com</A>&gt;
+</I>&gt;<i> To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Mail notification for all
+</I>&gt;<i>         rules
+</I>&gt;<i> Message-ID: &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">59E8C16E83D82B439E20698AAC790B5F0143EE2939 at ma46</A>&gt;
+</I>&gt;<i> Content-Type: text/plain; charset=&quot;us-ascii&quot;
+</I>&gt;<i>
+</I>&gt;<i> Hello guys.
+</I>&gt;<i>
+</I>&gt;<i> How can I configure modsecurity to send na e-mail when match some rule?
+</I>&gt;<i> I want something &quot;global&quot;, for all rules.
+</I>&gt;<i>
+</I>&gt;<i> Thks.
+</I>&gt;<i> -------------- next part --------------
+</I>&gt;<i> An HTML attachment was scrubbed...
+</I>&gt;<i> URL: &lt;
+</I>&gt;<i> <A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160317/e0915ac2/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160317/e0915ac2/attachment-0001.html</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> End of Owasp-modsecurity-core-rule-set Digest, Vol 83, Issue 23
+</I>&gt;<i> ***************************************************************
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160318/bf5f50f7/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160318/bf5f50f7/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002089.html">[Owasp-modsecurity-core-rule-set] Mail notification for all rules
+</A></li>
+	<LI>Next message: <A HREF="002091.html">[Owasp-modsecurity-core-rule-set] Rule evaluation framework
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2090">[ date ]</a>
+              <a href="thread.html#2090">[ thread ]</a>
+              <a href="subject.html#2090">[ subject ]</a>
+              <a href="author.html#2090">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

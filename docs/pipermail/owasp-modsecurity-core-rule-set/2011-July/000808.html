@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Problem with	modsecurity_crs_16_session_hijacking.conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Problem%20with%0A%09modsecurity_crs_16_session_hijacking.conf&In-Reply-To=CAFW5hxCaiUi0Jw%2BnR%2Ba1OCORgJVjxagtmBXQA1OZdsfjxVTYug%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000797.html">
+   <LINK REL="Next"  HREF="000809.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Problem with	modsecurity_crs_16_session_hijacking.conf</H1>
+    <B>Michael Haas</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Problem%20with%0A%09modsecurity_crs_16_session_hijacking.conf&In-Reply-To=CAFW5hxCaiUi0Jw%2BnR%2Ba1OCORgJVjxagtmBXQA1OZdsfjxVTYug%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Problem with	modsecurity_crs_16_session_hijacking.conf">michael.haas10 at gmail.com
+       </A><BR>
+    <I>Thu Jul 21 04:18:42 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000797.html">[Owasp-modsecurity-core-rule-set] Problem with	modsecurity_crs_16_session_hijacking.conf
+</A></li>
+        <LI>Next message: <A HREF="000809.html">[Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#808">[ date ]</a>
+              <a href="thread.html#808">[ thread ]</a>
+              <a href="subject.html#808">[ subject ]</a>
+              <a href="author.html#808">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+in crs 2.2.1 there is a oversight in Rule 981063. It should save session.ip
+but it saves tx.ip_hash.
+And if the hash value should be saved then the &quot;capture&quot; is missing in the
+chained rule. Now only the 3 octets are saved so the naming of the variables
+is a little bit misunderstanding (tx.ip_hash).
+
+So the Rules should look like this.
+
+SecRule TX:IP &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot;
+&quot;chain,phase:1,id:'981057',capture,t:none,nolog,pass&quot;
+        SecRule TX:1 &quot;.*&quot;
+&quot;capture,t:sha1,t:hexEncode,setvar:tx.ip_hash=%{tx.0}&quot;
+
+SecRule TX:IP &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot;
+&quot;chain,phase:3,id:'981063',capture,t:none,nolog,pass&quot;
+        SecRule TX:1 &quot;.*&quot;
+&quot;capture,t:sha1,t:hexEncode,setvar:session.ip=%{tx.0}&quot;
+
+Michael
+
+
+2011/7/17 Michael Haas &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;
+
+&gt;<i> Hi,
+</I>&gt;<i> i have another problem with the rules in this file.
+</I>&gt;<i> The Rules are working as expected if i change the IP or the UA but if i
+</I>&gt;<i> change the sessionid to another value it's not working as expected.
+</I>&gt;<i> I Think the following Rule is not working if the session id is changed to
+</I>&gt;<i> an unknown value, because the ! operator does not work with non existent
+</I>&gt;<i> variables(don't know if its a bug or not).
+</I>&gt;<i> SecRule
+</I>&gt;<i> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+</I>&gt;<i> &quot;.*&quot; &quot;chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+</I>&gt;<i> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP&quot;
+</I>&gt;<i>         SecRule SESSION:VALID &quot;!@eq 1&quot;
+</I>&gt;<i> &quot;t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+</I>&gt;<i> rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;<i> SESSION:VALID does not match if the SESSION.VALID Variable doesn't exist.
+</I>&gt;<i>
+</I>&gt;<i> I have verfied this with the following test.
+</I>&gt;<i>
+</I>&gt;<i>  SecAction &quot;phase:1,id:'2000',t:none,nolog,pass,setvar:tx.test=1&quot;
+</I>&gt;<i> SecRule TX:TEST &quot;@eq 1&quot; &quot;phase:1,t:none,id:'2001'&quot;
+</I>&gt;<i> SecRule TX:TEST &quot;!@eq 0&quot; &quot;phase:1,t:none,id:'2002'&quot;
+</I>&gt;<i> SecRule TX:TEST &quot;!@eq 1&quot; &quot;phase:1,t:none,id:'2003'&quot;
+</I>&gt;<i> TEST1 doesn't exist.
+</I>&gt;<i> SecRule TX:TEST1 &quot;@eq 1&quot; &quot;phase:1,t:none,id:'2004'&quot;
+</I>&gt;<i> SecRule TX:TEST1 &quot;!@eq 1&quot; &quot;phase:1,t:none,id:'2005'&quot;     Thats the Problem,
+</I>&gt;<i> it should match because TEST1 is not equal to 1 but it does not match.
+</I>&gt;<i>
+</I>&gt;<i> Debug Log for the test.
+</I>&gt;<i>
+</I>&gt;<i> Rule 801648: SecAction
+</I>&gt;<i> &quot;phase:1,auditlog,id:2000,t:none,nolog,pass,setvar:tx.test=1&quot;
+</I>&gt;<i>  Setting variable: tx.test=1
+</I>&gt;<i>  Set variable &quot;tx.test&quot; to &quot;1&quot;.
+</I>&gt;<i>  Rule returned 1.
+</I>&gt;<i>  Match -&gt; mode NEXT_RULE.
+</I>&gt;<i>  Rule 809ed0: SecRule &quot;TX:TEST&quot; &quot;@eq 1&quot;
+</I>&gt;<i> &quot;phase:1,pass,nolog,auditlog,t:none,id:2001&quot;
+</I>&gt;<i>  Executing operator &quot;eq&quot; with param &quot;1&quot; against TX:test.
+</I>&gt;<i>  Target value: &quot;1&quot;
+</I>&gt;<i>  Rule returned 1.
+</I>&gt;<i>  Rule 80a588: SecRule &quot;TX:TEST&quot; &quot;!@eq 0&quot;
+</I>&gt;<i> &quot;phase:1,pass,nolog,auditlog,t:none,id:2002&quot;
+</I>&gt;<i>  Executing operator &quot;!eq&quot; with param &quot;0&quot; against TX:test.
+</I>&gt;<i>  Target value: &quot;1&quot;
+</I>&gt;<i>  Rule returned 1.
+</I>&gt;<i>  Rule 80ac50: SecRule &quot;TX:TEST&quot; &quot;!@eq 1&quot;
+</I>&gt;<i> &quot;phase:1,pass,nolog,auditlog,t:none,id:2003&quot;
+</I>&gt;<i>  Executing operator &quot;!eq&quot; with param &quot;1&quot; against TX:test.
+</I>&gt;<i>  Target value: &quot;1&quot;
+</I>&gt;<i>  Rule returned 0.
+</I>&gt;<i>  Rule 80b318: SecRule &quot;TX:TEST1&quot; &quot;@eq 1&quot;
+</I>&gt;<i> &quot;phase:1,pass,nolog,auditlog,t:none,id:2004&quot;
+</I>&gt;<i>  Rule returned 0.
+</I>&gt;<i>  Rule 80dbd0: SecRule &quot;TX:TEST1&quot; &quot;!@eq 1&quot;
+</I>&gt;<i> &quot;phase:1,pass,nolog,auditlog,t:none,id:2005&quot;
+</I>&gt;<i>  Rule returned 0.
+</I>&gt;<i>
+</I>&gt;<i> If i change the Rule to only check if the Variable exists
+</I>&gt;<i> &amp;SESSION:VALID &quot;!@eq 1&quot;  it's working.
+</I>&gt;<i>
+</I>&gt;<i> Michael
+</I>&gt;<i>
+</I>&gt;<i> 2011/7/16 Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;&gt;<i> Agreed - these need to be fixed. We can simplify the IP capturing ones by
+</I>&gt;&gt;<i> not using the hashed. We were using hashs initially for the User-Agent field
+</I>&gt;&gt;<i> as their length could get pretty long.  We would not need that for IP
+</I>&gt;&gt;<i> addresses.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I will fix these and push to the CRS SVN repo on Monday.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks.
+</I>&gt;&gt;<i> Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Jul 16, 2011, at 2:24 PM, &quot;Michael Haas&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> i think the Rule should be changed to something like that
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule TX:IP &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot;
+</I>&gt;&gt;<i>  &quot;chain,phase:3,id:'981063',t:none,nolog,pass&quot;
+</I>&gt;&gt;<i>        SecRule MATCHED_VARS &quot;(.*)&quot;
+</I>&gt;&gt;<i> &quot;capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> then it works too.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Michael
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2011/7/15 Michael Haas &lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;&gt;
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yes i'm using &lt;
+</I>&gt;&gt;<i> <A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf</A>
+</I>&gt;&gt;<i> .
+</I>&gt;&gt;<i> if i look at a debug log i see that the session.ip is not saved, i think
+</I>&gt;&gt;<i> it doesn't capture because it doesn't match.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Rule 822ce0: SecRule &quot;TX:IP&quot; &quot;@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)&quot;
+</I>&gt;&gt;<i> &quot;phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}&quot;
+</I>&gt;&gt;<i> T (0) sha1: &quot;\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4&quot;
+</I>&gt;&gt;<i> T (0) hexEncode: &quot;b54f60101b6aeddf814a8ffb11985e4bfc7b7434&quot;
+</I>&gt;&gt;<i> Transformation completed in 24 usec.
+</I>&gt;&gt;<i> Executing operator &quot;rx&quot; with param &quot;^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)&quot;
+</I>&gt;&gt;<i> against TX:ip.
+</I>&gt;&gt;<i> Target value: &quot;b54f60101b6aeddf814a8ffb11985e4bfc7b7434&quot;
+</I>&gt;&gt;<i> Operator completed in 2 usec.
+</I>&gt;&gt;<i> Rule returned 0.
+</I>&gt;&gt;<i> No match, not chained -&gt; mode NEXT_RULE.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> If i use this Rule it captures because it matches.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Rule 822cc8: SecRule &quot;TX:IP&quot; &quot;@rx (.*)&quot;
+</I>&gt;&gt;<i> &quot;phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}&quot;
+</I>&gt;&gt;<i> T (0) sha1: &quot;\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4&quot;
+</I>&gt;&gt;<i> T (0) hexEncode: &quot;b54f60101b6aeddf814a8ffb11985e4bfc7b7434&quot;
+</I>&gt;&gt;<i> Transformation completed in 24 usec.
+</I>&gt;&gt;<i> Executing operator &quot;rx&quot; with param &quot;(.*)&quot; against TX:ip.
+</I>&gt;&gt;<i> Target value: &quot;b54f60101b6aeddf814a8ffb11985e4bfc7b7434&quot;
+</I>&gt;&gt;<i> Added regex subexpression to TX.0:
+</I>&gt;&gt;<i> b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+</I>&gt;&gt;<i> Added regex subexpression to TX.1:
+</I>&gt;&gt;<i> b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+</I>&gt;&gt;<i> Operator completed in 25 usec.
+</I>&gt;&gt;<i> Setting variable: session.ip=%{tx.1}
+</I>&gt;&gt;<i> Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+</I>&gt;&gt;<i> Set variable &quot;session.ip&quot; to &quot;b54f60101b6aeddf814a8ffb11985e4bfc7b7434&quot;.
+</I>&gt;&gt;<i> Warning. Pattern match &quot;(.*)&quot; at TX:ip. [file
+</I>&gt;&gt;<i> &quot;/xxx/modsecurity_crs_16_session_hijacking.conf&quot;] [line &quot;46&quot;] [id &quot;981063&quot;]
+</I>&gt;&gt;<i> Rule returned 1.
+</I>&gt;&gt;<i> Match -&gt; mode NEXT_RULE.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The Problem is that the Target Value is already transformed with
+</I>&gt;&gt;<i> &quot;t:sha1,t:hexEncode&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Michael
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2011/7/15 Ryan Barnett &lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> From: Michael Haas &lt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">michael.haas10 at gmail.com</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> Date: Fri, 15 Jul 2011 08:54:49 -0500
+</I>&gt;&gt;<i> To: &quot;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&quot; &lt;&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Problem with
+</I>&gt;&gt;<i> modsecurity_crs_16_session_hijacking.conf
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> i'm trying to use the session hijacking protection but have some problems
+</I>&gt;&gt;<i> with it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Are you using this file?
+</I>&gt;&gt;<i> &lt;
+</I>&gt;&gt;<i> <A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> <A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The Rules 981057 and 981063 are never matching because they check a normal
+</I>&gt;&gt;<i> IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+</I>&gt;&gt;<i> collection.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> You are misunderstanding the logic of these rules.  Let's start at the end
+</I>&gt;&gt;<i> of the file.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> # This rule will identify the outbound Set-Cookie SessionID data and
+</I>&gt;&gt;<i> capture it in a setsid
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+</I>&gt;&gt;<i> &quot;(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)&quot;
+</I>&gt;&gt;<i> &quot;chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:&lt;
+</I>&gt;&gt;<i> <A HREF="http://tx.ua">http://tx.ua</A>&gt;tx.ua&lt;<A HREF="http://tx.ua">http://tx.ua</A>
+</I>&gt;&gt;<i> &gt;=%{request_headers.user-agent},setvar:session.valid=1&quot;
+</I>&gt;&gt;<i>        SecRule SESSION:SESSIONID &quot;(.*)&quot;
+</I>&gt;&gt;<i> &quot;t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule TX:IP &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot;
+</I>&gt;&gt;<i>  &quot;phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}&quot;
+</I>&gt;&gt;<i> SecRule TX:UA &quot;(.*)&quot;
+</I>&gt;&gt;<i> &quot;phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:&lt;
+</I>&gt;&gt;<i> <A HREF="http://session.ua">http://session.ua</A>&gt;session.ua&lt;<A HREF="http://session.ua">http://session.ua</A>&gt;=%{tx.0}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> These rules will identify if/when common SessionIDs are being sent out by
+</I>&gt;&gt;<i> the app in Set-Cookie response headers.  If these are found, then a few
+</I>&gt;&gt;<i> things happen -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  1.  Setsid is used to initialize the Session collection
+</I>&gt;&gt;<i>  2.  The SessionID is marked as &quot;valid&quot; so that we can detect then bogus
+</I>&gt;&gt;<i> SessionIDs are sent (perhaps by brute force tools)
+</I>&gt;&gt;<i>  3.  We then capture a hash of the network block of the client IP (first 3
+</I>&gt;&gt;<i> octets).  We don't use full IP address as there a too many false positives
+</I>&gt;&gt;<i> where an IP will change, however the network block should not.
+</I>&gt;&gt;<i>  4.  We then also capture a hash of the User-Agent string.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Now that we have saved this data when the app sent out the Set-Cookie, we
+</I>&gt;&gt;<i> can now perform validation on subsequent requests.  If a client sends a
+</I>&gt;&gt;<i> SessionID cookie value, we can check the data we have saved.  Now onto the
+</I>&gt;&gt;<i> rules at the top of the rules file -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> # This rule set will identify subsequent SessionIDs being submitted by
+</I>&gt;&gt;<i> clients in
+</I>&gt;&gt;<i> # Request Headers.  First we check that the SessionID submitted is a valid
+</I>&gt;&gt;<i> one
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> SecMarker BEGIN_SESSION_STARTUP
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule
+</I>&gt;&gt;<i> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+</I>&gt;&gt;<i> &quot;.*&quot; &quot;chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+</I>&gt;&gt;<i> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP&quot;
+</I>&gt;&gt;<i>        SecRule SESSION:VALID &quot;!@eq 1&quot;
+</I>&gt;&gt;<i> &quot;t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+</I>&gt;&gt;<i> rule.id&lt;<A HREF="http://rule.id">http://rule.id</A>
+</I>&gt;&gt;<i> &gt;}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule
+</I>&gt;&gt;<i> &amp;REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+</I>&gt;&gt;<i> &quot;@eq 0&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The first rule checks to see if the client is submitting a SessionID from
+</I>&gt;&gt;<i> the named list.  If so, then we check the saved SessionID collection in
+</I>&gt;&gt;<i> ModSecurity to see if the &quot;valid&quot; variable exists.  If not, then it means
+</I>&gt;&gt;<i> that we did not see the application hand out this SessionID and thus we can
+</I>&gt;&gt;<i> flag is as bogus.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The last SecRule checks to see if there are no SessionID cookies at all.
+</I>&gt;&gt;<i>  If the client didn't send one, then we can skip the other checks.  Sidenote
+</I>&gt;&gt;<i> &#8211; from an optimization perspective, I guess we could switch these two rules
+</I>&gt;&gt;<i> around.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Then we get to the set of rules you mentioned -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecAction
+</I>&gt;&gt;<i> &quot;phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:&lt;
+</I>&gt;&gt;<i> <A HREF="http://tx.ua">http://tx.ua</A>&gt;tx.ua&lt;<A HREF="http://tx.ua">http://tx.ua</A>&gt;=%{request_headers.user-agent}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule TX:IP &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}&quot;
+</I>&gt;&gt;<i> SecRule TX:UA &quot;(.*)&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> These rules are meant to capture the hash of the same data mentioned above
+</I>&gt;&gt;<i> but for the CURRENT transaction.  Once we have these hashes capture in TX
+</I>&gt;&gt;<i> variables, we can then compare them to the data we originally saved in the
+</I>&gt;&gt;<i> Session collection when the Set-Cookie was issued -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule TX:IP_HASH &quot;!@streq %{SESSION.IP}&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+</I>&gt;&gt;<i> - Sticky SessionID Data Changed - IP Address
+</I>&gt;&gt;<i> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+</I>&gt;&gt;<i> rule.id&lt;<A HREF="http://rule.id">http://rule.id</A>
+</I>&gt;&gt;<i> &gt;}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;&gt;<i> SecRule TX:UA_HASH &quot;!@streq %{SESSION.UA&lt;<A HREF="http://SESSION.UA">http://SESSION.UA</A>&gt;}&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+</I>&gt;&gt;<i> - Sticky SessionID Data Changed - User-Agent
+</I>&gt;&gt;<i> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+</I>&gt;&gt;<i> rule.id&lt;<A HREF="http://rule.id">http://rule.id</A>
+</I>&gt;&gt;<i> &gt;}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;&gt;<i> SecRule TX:STICKY_SESSION_ANOMALY &quot;@eq 2&quot;
+</I>&gt;&gt;<i> &quot;phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP
+</I>&gt;&gt;<i> Address and User-Agent
+</I>&gt;&gt;<i> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+</I>&gt;&gt;<i> rule.id&lt;<A HREF="http://rule.id">http://rule.id</A>
+</I>&gt;&gt;<i> &gt;}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> These rules are simply check the current hashes with the saved hashes and
+</I>&gt;&gt;<i> they then increase an anomaly score.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hopefully this description helps to explain the logic of the Session
+</I>&gt;&gt;<i> Hijacking rules.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I changed &quot;^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)&quot; to &quot;(.*)&quot; after that the Rules
+</I>&gt;&gt;<i> are working.
+</I>&gt;&gt;<i> Is this the right approach to fix this or should this be fixed in another
+</I>&gt;&gt;<i> way?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks in Advance
+</I>&gt;&gt;<i> Michael
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you are
+</I>&gt;&gt;<i> not the intended recipient, you are hereby notified that any disclosure,
+</I>&gt;&gt;<i> copying, distribution, or use of the information contained herein (including
+</I>&gt;&gt;<i> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+</I>&gt;&gt;<i> transmission in error, please immediately contact the sender and destroy the
+</I>&gt;&gt;<i> material in its entirety, whether in electronic or hard copy format.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you are
+</I>&gt;&gt;<i> not the intended recipient, you are hereby notified that any disclosure,
+</I>&gt;&gt;<i> copying, distribution, or use of the information contained herein (including
+</I>&gt;&gt;<i> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+</I>&gt;&gt;<i> transmission in error, please immediately contact the sender and destroy the
+</I>&gt;&gt;<i> material in its entirety, whether in electronic or hard copy format.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110721/bad5a5d6/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110721/bad5a5d6/attachment-0001.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000797.html">[Owasp-modsecurity-core-rule-set] Problem with	modsecurity_crs_16_session_hijacking.conf
+</A></li>
+	<LI>Next message: <A HREF="000809.html">[Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#808">[ date ]</a>
+              <a href="thread.html#808">[ thread ]</a>
+              <a href="subject.html#808">[ subject ]</a>
+              <a href="author.html#808">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,294 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20Transport%20Layer%20Protection%20Cheat%20Sheet%3A%0A%20Strong%20Protocols%20and%20Ciphers%20for%20TLS/SSL&In-Reply-To=%3C539A0880.5010304%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000023.html">
+   <LINK REL="Next"  HREF="000026.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL</H1>
+    <B>Torsten Gigler</B> 
+    <A HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20Transport%20Layer%20Protection%20Cheat%20Sheet%3A%0A%20Strong%20Protocols%20and%20Ciphers%20for%20TLS/SSL&In-Reply-To=%3C539A0880.5010304%40owasp.org%3E"
+       TITLE="[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL">torsten.gigler at owasp.org
+       </A><BR>
+    <I>Thu Jun 12 20:07:28 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000023.html">[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL
+</A></li>
+        <LI>Next message: <A HREF="000026.html">[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#24">[ date ]</a>
+              <a href="thread.html#24">[ thread ]</a>
+              <a href="subject.html#24">[ subject ]</a>
+              <a href="author.html#24">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi David,
+
+sorry for the delay of my answer, I had been offline the last 8 days.
+
+I'd like to say that I am not a cryptographic specialist. The last months I read what I could find
+about Ciphers that remain to be usable these days.
+
+So the issue with ECDHE is that there are no(!) really reliable Elliptic Curves, cf.
+<A HREF="http://safecurves.cr.yp.to">http://safecurves.cr.yp.to</A> &lt;<A HREF="http://safecurves.cr.yp.to">http://safecurves.cr.yp.to</A>&gt;;
+<A HREF="http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8,">http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8,</A>
+
+The most promising candidate is <A HREF="https://tools.ietf.org/html/draft-josefsson-tls-curve25519-05">https://tools.ietf.org/html/draft-josefsson-tls-curve25519-05</A>
+
+Could you verity the results of[Vincent Bernat, 2011]
+&lt;<A HREF="http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html#some-benchmarks">http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html#some-benchmarks</A>&gt; with your
+systems that the TLS handshake with DHE hinders the CPU abt 2.4 times than ECDHE?
+If there are any performance issues I'd recommend to invert the Rule &quot;Priorize the ciphers by the
+sizes of the Cipher and the MAC&quot;
+So I think you could start with DHE-RSA-AES128-GCM-SHA256, or DHE-RSA-AES128-SHA256.
+If you do so, please check also for a good cipher string that is usable by different versions of
+openssl (1.0.1 and 0.9.8-families).
+I did it with some versions manually and Aaron from <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">ach at lists.cert.at</A> (bettercrypto.org) tested it
+with all automatically compiled versions.
+ 
+Is it generally OK for you to promote DHE over ECDHE ciphers? Or do you see any practical issues?
+
+Kind regards
+Torsten
+
+Am 12.06.2014 19:49, schrieb Jim Manico:
+&gt;<i> Without ANY doubt, ephemeral cipher suites need to be prioritized ciphers.
+</I>&gt;<i>
+</I>&gt;<i> David, can you propose specific changes and I'll update the wiki for you? Or can I get you a wiki
+</I>&gt;<i> account?
+</I>&gt;<i>
+</I>&gt;<i> Aloha,
+</I>&gt;<i> Jim
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 6/10/14, 6:45 AM, David Holmes wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hm, no never did an answer.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> *From:*Jim Manico [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jim.manico at owasp.org</A>]
+</I>&gt;&gt;<i> *Sent:* Monday, June 09, 2014 10:09 PM
+</I>&gt;&gt;<i> *To:* David Holmes
+</I>&gt;&gt;<i> *Cc:* Torsten Gigler; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A>
+</I>&gt;&gt;<i> *Subject:* Re: [OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and
+</I>&gt;&gt;<i> Ciphers for TLS/SSL
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Did this get answered David?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Aloha,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Jim Manico
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> @Manicode
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> (808) 652-3805
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Jun 7, 2014, at 6:49 AM, David Holmes &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">d.holmes at f5.com</A> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">d.holmes at f5.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Torsten,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Overall, very nice work!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I was a little surprised about the promotion of DHE over ECDHE ciphers. Has the crypto
+</I>&gt;&gt;<i>     community as a whole already demoted EC ciphers? While some curves have been found to be
+</I>&gt;&gt;<i>     suboptimal, is that enough to eschew the CPU savings ECDHE is supposed to offer?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     *From:*<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>] *On Behalf Of *Jim Manico
+</I>&gt;&gt;<i>     *Sent:* Friday, June 06, 2014 9:46 PM
+</I>&gt;&gt;<i>     *To:* Torsten Gigler; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     *Subject:* Re: [OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols
+</I>&gt;&gt;<i>     and Ciphers for TLS/SSL
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Please go ahead and just edit that directly, I trust you &#8211; anything else you can do to update
+</I>&gt;&gt;<i>     the TLS Cheatsheet , please go for it!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I&#8217;ll review when you are done.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Cool?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Aloha,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Jim
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     *From:*<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets-bounces at lists.owasp.org</A>&gt;] *On Behalf Of *Torsten Gigler
+</I>&gt;&gt;<i>     *Sent:* Tuesday, June 03, 2014 4:50 AM
+</I>&gt;&gt;<i>     *To:* <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     *Subject:* [OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and
+</I>&gt;&gt;<i>     Ciphers for TLS/SSL
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     during the last months, I have done some researches about how to find a good Protocol and
+</I>&gt;&gt;<i>     Cipher Policy for TLS/SSL.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     The resuls are documented in Top 10 Developer Edition, in German
+</I>&gt;&gt;<i>     &lt;<A HREF="https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler-2013/A6-Verlust_der_Vertraulichkeit_sensibler_Daten#tab=JAVA2">https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler-2013/A6-Verlust_der_Vertraulichkeit_sensibler_Daten#tab=JAVA2</A>&gt;,
+</I>&gt;&gt;<i>     yet.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I'd like to discuss them here and add them in the Transport Layer Protection Cheat Sheet.
+</I>&gt;&gt;<i>     &lt;<A HREF="http://Transport%20Layer%20Protection%20Cheat%20Sheet">http://Transport%20Layer%20Protection%20Cheat%20Sheet</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Do you have any comments. Should I add my input in a new 'DRAFT:'-Copy of the document before
+</I>&gt;&gt;<i>     transfering it to the Cheat Sheet?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Perhaps you find more points that should be updated.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Kind Regards
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Torsten
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      *
+</I>&gt;&gt;<i>     Only Support Strong Cryptographic Ciphers:*
+</I>&gt;&gt;<i>     &#8230;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     * use the very latest recommendations, they may be volantile these days
+</I>&gt;&gt;<i>     * Secure length for cryptographic keys and parameters (like DH-parameter) &gt;=2048 bits or
+</I>&gt;&gt;<i>     equivalent Elliptic Curves
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Example for a Policy to get a Whitelist for recommenderd Ciphers:
+</I>&gt;&gt;<i>     * Activate to set the Cipher Order by the Server
+</I>&gt;&gt;<i>     * Highest Priority for Ciphers that support 'Forward Secrecy'
+</I>&gt;&gt;<i>     * Favor DHE over ECDHE, ECDHE lacks now of really reliable Elliptic Curves, cf.
+</I>&gt;&gt;<i>     <A HREF="http://safecurves.cr.yp.to">http://safecurves.cr.yp.to</A> &lt;<A HREF="http://safecurves.cr.yp.to">http://safecurves.cr.yp.to</A>&gt;;
+</I>&gt;&gt;<i>     * Use RSA-Keys (no DSA/DSS, cf. <A HREF="https://projectbullrun.org/dual-ec/tls.html">https://projectbullrun.org/dual-ec/tls.html</A>
+</I>&gt;&gt;<i>     &lt;<A HREF="https://projectbullrun.org/dual-ec/tls.html">https://projectbullrun.org/dual-ec/tls.html</A>&gt;)
+</I>&gt;&gt;<i>     * Favor GCM over CBC regardless of the cipher size
+</I>&gt;&gt;<i>     * Priorize the ciphers by the sizes of the Cipher and the MAC
+</I>&gt;&gt;<i>     * Disable weak ciphers without diabling latency browsers and bots that have to be supported
+</I>&gt;&gt;<i>     (find the best compromise), actually the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA (0xa) does this
+</I>&gt;&gt;<i>     job.
+</I>&gt;&gt;<i>     * Ciphers should be usable for DH-Pamameters &gt;= 2048 bits, without blocking latency browsers
+</I>&gt;&gt;<i>     (The cipher &#8216;DHE-RSA-AES128-SHA&#8217; is suppressed as some browsers like to use it but are not
+</I>&gt;&gt;<i>     capable to cope with DH-Params &gt; 1024 bits.)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     * Define a Cipher String that works with different Versions of your encryption tool, like
+</I>&gt;&gt;<i>     openssl,
+</I>&gt;&gt;<i>     * Verify your cipher string
+</I>&gt;&gt;<i>       &#176; with an autit-tool, like OWASP 'O-Saft' &lt;<A HREF="https://www.owasp.org/index.php/O-Saft">https://www.owasp.org/index.php/O-Saft</A>&gt;
+</I>&gt;&gt;<i>       &#176; listing it manually with your encryption software, e.g. openssl ciphers -v
+</I>&gt;&gt;<i>     &lt;cipher-string&gt; (the result may differ by version), e.g.: openssl ciphers -v
+</I>&gt;&gt;<i>     'EDH+aRSA+AESGCM:EDH+aRSA+AES:DHE-RSA-AES256-SHA:EECDH+aRSA+AESGCM:EECDH+aRSA+AES:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:RSA+AESGCM:RSA+AES+SHA:DES-CBC3-SHA:-DHE-RSA-AES128-SHA'
+</I>&gt;&gt;<i>     #add optionally ':!aNULL:!eNULL:!LOW:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:!ADH:!IDEA' to
+</I>&gt;&gt;<i>     protect older Versions of OpenSSL
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     * This results in this recommended Cpihers and their Order:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x9F - DHE-RSA-AES256-GCM-SHA384 TLSv1.2 Kx=DH       Au=RSA  Enc=AESGCM(256) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x9E - DHE-RSA-AES128-GCM-SHA256 TLSv1.2 Kx=DH       Au=RSA  Enc=AESGCM(128) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x6B - DHE-RSA-AES256-SHA256   TLSv1.2 Kx=DH       Au=RSA  Enc=AES(256)  Mac=SHA256
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x39 - DHE-RSA-AES256-SHA      SSLv3 Kx=DH       Au=RSA  Enc=AES(256)  Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x67 - DHE-RSA-AES128-SHA256   TLSv1.2 Kx=DH       Au=RSA  Enc=AES(128)  Mac=SHA256
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x30 - ECDHE-RSA-AES256-GCM-SHA384 TLSv1.2 Kx=ECDH     Au=RSA  Enc=AESGCM(256) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x2F - ECDHE-RSA-AES128-GCM-SHA256 TLSv1.2 Kx=ECDH     Au=RSA  Enc=AESGCM(128) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x28 - ECDHE-RSA-AES256-SHA384 TLSv1.2 Kx=ECDH     Au=RSA  Enc=AES(256)  Mac=SHA384
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x14 - ECDHE-RSA-AES256-SHA    SSLv3 Kx=ECDH     Au=RSA  Enc=AES(256)  Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x27 - ECDHE-RSA-AES128-SHA256 TLSv1.2 Kx=ECDH     Au=RSA  Enc=AES(128)  Mac=SHA256
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0xC0,0x13 - ECDHE-RSA-AES128-SHA    SSLv3 Kx=ECDH     Au=RSA  Enc=AES(128)  Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x9D - AES256-GCM-SHA384       TLSv1.2 Kx=RSA      Au=RSA  Enc=AESGCM(256) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x9C - AES128-GCM-SHA256       TLSv1.2 Kx=RSA      Au=RSA  Enc=AESGCM(128) Mac=AEAD
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x35 - AES256-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(256)  Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x2F - AES128-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(128)  Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     0x00,0x0A - DES-CBC3-SHA            SSLv3 Kx=RSA      Au=RSA  Enc=3DES(168) Mac=SHA1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Remarks:
+</I>&gt;&gt;<i>     - According to my researches the most common browsers should be supported with this setting, too.
+</I>&gt;&gt;<i>     - Monitor the performance of your server, e.g. the TLS handshake with DHE hinders the CPU abt 2.4 times than ECDHE (cf. [Vincent Bernat, 2011] &lt;<A HREF="http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html#some-benchmarks">http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html#some-benchmarks</A>&gt;)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     *On additional Point:*
+</I>&gt;&gt;<i>     I'd like to launch also a discussion if we should find references to good practices that are
+</I>&gt;&gt;<i>     not dependant on Documents from NIST.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20140612/22adad27/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20140612/22adad27/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000023.html">[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL
+</A></li>
+	<LI>Next message: <A HREF="000026.html">[OWASP-cheat-sheets] Transport Layer Protection Cheat Sheet: Strong Protocols and Ciphers for TLS/SSL
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#24">[ date ]</a>
+              <a href="thread.html#24">[ thread ]</a>
+              <a href="subject.html#24">[ subject ]</a>
+              <a href="author.html#24">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">More information about the OWASP-cheat-sheets
+mailing list</a><br>
+</body></html>

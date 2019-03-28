@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to	disable rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Location/LocationMatch%20failing%20to%0A%09disable%20rules&In-Reply-To=%3CCAONsccWC47rqTeVeFNr272P%3DVuL_tXAfo4PWpj3YkYQJXOX7kQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001489.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to	disable rules</H1>
+    <B>Phill Watkins</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Location/LocationMatch%20failing%20to%0A%09disable%20rules&In-Reply-To=%3CCAONsccWC47rqTeVeFNr272P%3DVuL_tXAfo4PWpj3YkYQJXOX7kQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to	disable rules">phill.watkins at gmail.com
+       </A><BR>
+    <I>Tue Nov 26 21:54:54 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001489.html">[Owasp-modsecurity-core-rule-set] Location/LocationMatch	failing to disable rules
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1490">[ date ]</a>
+              <a href="thread.html#1490">[ thread ]</a>
+              <a href="subject.html#1490">[ subject ]</a>
+              <a href="author.html#1490">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This has solved my problem.
+
+Thank you and everyone who has chimed in on this.
+
+One last question though. Is this generally a better approach than using
+Location, LocationMatch etc to disable rules?
+
+On Tuesday, November 26, 2013, Ryan Barnett wrote:
+
+&gt;<i>   Hey Phil,
+</I>&gt;<i> Based on the info you gave about your setup, I think I know what the issue
+</I>&gt;<i> might be.  First of all, take a look at this Apache request flow diagram on
+</I>&gt;<i> the ModSecurity Reference Manual Wiki page -
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases</A>
+</I>&gt;<i>
+</I>&gt;<i>  This diagram shows where ModSecurity's Phase hooks are.  With this as a
+</I>&gt;<i> visual backdrop, now understand that if you place any ModSecurity rules or
+</I>&gt;<i> directives inside Apache scope locations (&lt;Location&gt;, &lt;LocationMatch&gt;,
+</I>&gt;<i> &lt;Directory&gt;, etc&#8230;) then they will only be available to ModSecurity in
+</I>&gt;<i> Phase:2 (Fixup hook).  The issue, most likely, is that your AJP proxying is
+</I>&gt;<i> happening before the Fixup Phase:2 hook so your rules/exceptions are not
+</I>&gt;<i> working.
+</I>&gt;<i>
+</I>&gt;<i>  What I recommend for you situation would be to use SecRules +
+</I>&gt;<i> ctl:ruleRemoveById action in Phase:1 instead of nesting them within Apache
+</I>&gt;<i> scope locations.  Something like this (untested) added to a
+</I>&gt;<i> modsecurity_crs_15_custon.conf file so that it runs before the rest of the
+</I>&gt;<i> CRS rules -
+</I>&gt;<i>
+</I>&gt;<i>     SecRule REQUEST_FILENAME &quot;@beginsWith /subsonic/&quot;
+</I>&gt;<i> &quot;id:1234,phase:1,t:none,nolog,pass,ctl:ruleRemoveById=330792&quot;
+</I>&gt;<i>
+</I>&gt;<i>  One other note &#8211; you might need to recompile with
+</I>&gt;<i> &quot;--enable-request-early&quot; to get this to work in the &quot;post-read-request&quot;
+</I>&gt;<i> hook  (
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity</A>
+</I>&gt;<i> )
+</I>&gt;<i>
+</I>&gt;<i>  Hope this info helps.
+</I>&gt;<i>
+</I>&gt;<i>  --
+</I>&gt;<i> Ryan Barnett
+</I>&gt;<i> Trustwave SpiderLabs
+</I>&gt;<i> ModSecurity Project Leader
+</I>&gt;<i> OWASP ModSecurity CRS Project Leader
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>    From: Phill Watkins &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">phill.watkins at gmail.com</A>&gt;
+</I>&gt;<i> Date: Monday, November 25, 2013 6:45 AM
+</I>&gt;<i> To: OWASP CRS Mailing List &lt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing
+</I>&gt;<i> to disable rules
+</I>&gt;<i>
+</I>&gt;<i>   Hi,
+</I>&gt;<i>
+</I>&gt;<i>  For some reason I'm struggling to to disable rules using
+</I>&gt;<i> SecRuleRemoveById inside a Location or LocationMatch.
+</I>&gt;<i>
+</I>&gt;<i>  I can disable rules globally (which isn't ideal) so I know the directive
+</I>&gt;<i> works but I don't know why Apache doesn't act upon the
+</I>&gt;<i> Location/LocationMatch.
+</I>&gt;<i>
+</I>&gt;<i>  One of the applications on my web server that I'm trying to disable a
+</I>&gt;<i> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+</I>&gt;<i> via the AJP connector module.
+</I>&gt;<i>
+</I>&gt;<i>  I have successfully disabled one of the Atomicorp delayed rules in the
+</I>&gt;<i> past like this:
+</I>&gt;<i>
+</I>&gt;<i>  &lt;IfModule mod_jk.c&gt;
+</I>&gt;<i> JkMount /subsonic ajp13_worker
+</I>&gt;<i> JkMount /subsonic/* ajp13_worker
+</I>&gt;<i> &lt;Location /subsonic/upload.view&gt;
+</I>&gt;<i> SecRuleRemoveById 330792
+</I>&gt;<i> &lt;/Location&gt;
+</I>&gt;<i> &lt;/IfModule&gt;
+</I>&gt;<i>
+</I>&gt;<i>  I am now trying to disable rule 960010 from the CRS for the entire
+</I>&gt;<i> application because of too many false positives.
+</I>&gt;<i>
+</I>&gt;<i>  I have tried &lt;Location /subsonic/&gt;  as well as multiple regular
+</I>&gt;<i> expressions for days but nothing works.
+</I>&gt;<i>
+</I>&gt;<i>  Here is an example from the audit log:
+</I>&gt;<i>
+</I>&gt;<i>  --35e37e6c-A--
+</I>&gt;<i> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509 hidden
+</I>&gt;<i> 443
+</I>&gt;<i> --35e37e6c-B--
+</I>&gt;<i> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+</I>&gt;<i> HTTP/1.1
+</I>&gt;<i> Host: hidden
+</I>&gt;<i> Connection: keep-alive
+</I>&gt;<i> Content-Length: 214
+</I>&gt;<i> Origin: <A HREF="https://hidden">https://hidden</A>
+</I>&gt;<i> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,
+</I>&gt;<i> like Gecko) Chrome/30.0.1599.114 Safari/537.36
+</I>&gt;<i> Content-Type: text/plain
+</I>&gt;<i> Accept: */*
+</I>&gt;<i> Referer: <A HREF="https://hidden/subsonic/right.view?">https://hidden/subsonic/right.view?</A>
+</I>&gt;<i> Accept-Encoding: gzip,deflate,sdch
+</I>&gt;<i> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+</I>&gt;<i> Cookie: player-656c6c6965=6; player-73727661646d=6;
+</I>&gt;<i> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+</I>&gt;<i> player-7068696c6c=9; compact_display_state=false
+</I>&gt;<i>
+</I>&gt;<i>  --35e37e6c-F--
+</I>&gt;<i> HTTP/1.1 403 Forbidden
+</I>&gt;<i> Vary: Accept-Encoding
+</I>&gt;<i> Content-Encoding: gzip
+</I>&gt;<i> Content-Length: 221
+</I>&gt;<i> Keep-Alive: timeout=5, max=88
+</I>&gt;<i> Connection: Keep-Alive
+</I>&gt;<i> Content-Type: text/html; charset=iso-8859-1
+</I>&gt;<i>
+</I>&gt;<i>  --35e37e6c-H--
+</I>&gt;<i> Message: Access denied with code 403 (phase 1). Match of &quot;rx
+</I>&gt;<i> ^%{tx.allowed_request_content_type}$&quot; against &quot;TX:0&quot; required. [file
+</I>&gt;<i> &quot;/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf&quot;]
+</I>&gt;<i> [line &quot;64&quot;] [id &quot;960010&quot;] [rev &quot;2&quot;] [msg &quot;Request content type is not
+</I>&gt;<i> allowed by policy&quot;] [data &quot;text/plain&quot;] [severity &quot;CRITICAL&quot;] [ver
+</I>&gt;<i> &quot;OWASP_CRS/2.2.8&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-20&quot;] [tag
+</I>&gt;<i> &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/EE2&quot;] [tag &quot;PCI/12.1&quot;]
+</I>&gt;<i> Action: Intercepted (phase 1)
+</I>&gt;<i> Stopwatch: 1384258745437774 1085 (- - -)
+</I>&gt;<i> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0, p4=0,
+</I>&gt;<i> p5=63, sr=48, sw=0, l=0, gc=0
+</I>&gt;<i> Producer: ModSecurity for Apache/2.7.5 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;<i> OWASP_CRS/2.2.8.
+</I>&gt;<i> Server: Apache
+</I>&gt;<i> Engine-Mode: &quot;ENABLED&quot;
+</I>&gt;<i>
+</I>&gt;<i>  --35e37e6c-Z--
+</I>&gt;<i>
+</I>&gt;<i>  I'd be grateful of any advice.
+</I>&gt;<i>
+</I>&gt;<i>  Thanks for your time.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you
+</I>&gt;<i> are not the intended recipient, you are hereby notified that any
+</I>&gt;<i> disclosure, copying, distribution, or use of the information contained
+</I>&gt;<i> herein (including any reliance thereon) is strictly prohibited. If you
+</I>&gt;<i> received this transmission in error, please immediately contact the sender
+</I>&gt;<i> and destroy the material in its entirety, whether in electronic or hard
+</I>&gt;<i> copy format.
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/be710c59/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/be710c59/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001489.html">[Owasp-modsecurity-core-rule-set] Location/LocationMatch	failing to disable rules
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1490">[ date ]</a>
+              <a href="thread.html#1490">[ thread ]</a>
+              <a href="subject.html#1490">[ subject ]</a>
+              <a href="author.html#1490">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

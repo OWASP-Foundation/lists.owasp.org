@@ -1,0 +1,3339 @@
+From minhazav at gmail.com  Mon Jun  2 18:10:22 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Mon, 2 Jun 2014 23:40:22 +0530
+Subject: [Owasp-csrfprotector] Updates till date
+Message-ID: <CADCpCkjrxoGY2iFvzhOYQDHW_bNpmCRh3JCQYUXu7p=rgUMgZA@mail.gmail.com>
+
+Hi, my exams are over, and now I can work on CSRFProtector with full force:
+Here is the list of what all has been done, and what all need to be done:
+
+Done stuffs:
+1. php library is in pretty good form, currently it validates against CSRF
+attacks for each, POST request, and for those GET requests for which
+pattern is true in config file. (I'll add another thread on all
+*needs-decision* part).
+2. For all failed validation cases, appropriate actions are taken, and log
+is maintained!
+3. javascript: currently works well for POST XHR requests, (but I guess I
+need to check its compatibility with IE and other browsers) (do point those
+browsers, which create problems like IE), for GET, we need a mechanism, to
+transfer list of patterns to the js file, so that it attaches, the token to
+appropriate requests only. (I have one in mind, and I shall add it to
+needs-decision thread).
+
+ToDo:
+1. Finish js file, to work flawlessly with same-origin requests
+2. Start high level design document on apache module, mod_csrfprotector
+3. Start low level design document on mod_csrfprotector
+4. Start working on code for mod_csrfprotector
+5.  Start creating test cases for js and php part
+
+links:
+1. github repo <https://github.com/mebjas/CSRF-Protector-PHP>
+2. php library
+<https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php>
+3. js file
+<https://github.com/mebjas/CSRF-Protector-PHP/blob/master/js/csrfprotector.js>
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140602/0855273b/attachment.html>
+
+From minhazav at gmail.com  Mon Jun  2 18:55:42 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 3 Jun 2014 00:25:42 +0530
+Subject: [Owasp-csrfprotector] Needs Decision
+Message-ID: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+
+Hi,
+Here is the list of ideas, we need to decide, what to do:
+
+
+   1. In GET requests we are using an array of patterns to find weather we
+   need to validate for current request (for ex: **://*/** would mean
+   validate for each request). The function checking this, is called by static
+   method. So it can be overridden by the developer, in case he want to apply
+   his own logic for this (Suggested by Abbas +1), So I guess this would be a
+   nice feature to have. [implementation
+   <https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php#L353>
+   ]
+   2. For the above part to work, we need to have similar logic in our js
+   file. to check which all urls it need to be rewritten/modified: so we can
+   pass this patterns to the js file as parameters. [my idea]: we can keep our
+   javascript part as php file, and pass the patterns as JSON string in POST
+   query to this file. the php file would give js output, and it will be
+   parsed well by browser.
+   3. Jim suggested to use similar method, for POST requests. it has its
+   own pros and cons.
+      - PROS
+         - not all POST need CSRF protection
+         - no overhead of validating every request on server side, and
+         attaching the cookie on client side for each request.
+         - makes the library configurable to a great extend.
+      - CONS
+      - It complicates the logic a little and adds to developer's efforts.
+         - checking if a particular url should be considered or not has a
+         worst case complexity of O(n), where n is the no of patterns in config
+         file. so if there are lots of urls to check, say k,
+complexity would be
+         O(nk) for js. while it would be like O(1) if we check for every POST
+         request.
+      4. logging function is avalilable at:
+   https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php#L298
+needs
+   to know if anything else we shall log?
+   5. Do we need to provide some method to inform the admin in case of
+   detection, like using mail?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140603/1083f9fb/attachment.html>
+
+From minhazav at gmail.com  Mon Jun  2 20:56:40 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 3 Jun 2014 02:26:40 +0530
+Subject: [Owasp-csrfprotector] Needs Decision
+In-Reply-To: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+References: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+Message-ID: <CADCpCkjBPUe7FRv6pxO24pL0JGxzHVZhTzzJGE+yoK_AFJTKcA@mail.gmail.com>
+
+I did a sample implementation of: point-2 idea.
+urls:
+https://github.com/mebjas/CSRF-Protector-PHP/blob/js-GET-Support/libs/csrf/csrfprotector.php#L283
+https://github.com/mebjas/CSRF-Protector-PHP/blob/js-GET-Support/js/csrfprotector.php
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140603/5c461d6c/attachment.html>
+
+From abiusx at owasp.org  Mon Jun  2 22:47:22 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Mon, 2 Jun 2014 18:47:22 -0400
+Subject: [Owasp-csrfprotector] Needs Decision
+In-Reply-To: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+References: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+Message-ID: <9C3F09D7-0D4B-4036-93C6-11C8838266F4@owasp.org>
+
+Hello,
+Answers inline! Good work so far, keep it up. I am very proud of your progress.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 2, 2014, at 2:55 PM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> Hi,
+> Here is the list of ideas, we need to decide, what to do:
+> 
+> In GET requests we are using an array of patterns to find weather we need to validate for current request (for ex: *://*/* would mean validate for each request). The function checking this, is called by static method. So it can be overridden by the developer, in case he want to apply his own logic for this (Suggested by Abbas +1), So I guess this would be a nice feature to have. [implementation]
+		It is a nice workaround. We can bloat it later if needed.
+> 
+> For the above part to work, we need to have similar logic in our js file. to check which all urls it need to be rewritten/modified: so we can pass this patterns to the js file as parameters. [my idea]: we can keep our javascript part as php file, and pass the patterns as JSON string in POST query to this file. the php file would give js output, and it will be parsed well by browser.
+	If you are concerned that copying the same rules in JS would let an attacker know URLs that are protected for CSRF, thats actually not a very bad idea. They eventually can extract it one way or another, and it makes it much easier to find and fix flaws! Just convert rules to regex strings, and both Javascript and PHP run them the same.
+> 
+> Jim suggested to use similar method, for POST requests. it has its own pros and cons.
+> PROS
+> not all POST need CSRF protection
+> no overhead of validating every request on server side, and attaching the cookie on client side for each request.
+> makes the library configurable to a great extend.
+> CONS  
+> It complicates the logic a little and adds to developer's efforts. 
+> checking if a particular url should be considered or not has a worst case complexity of O(n), where n is the no of patterns in config file. so if there are lots of urls to check, say k, complexity would be O(nk) for js. while it would be like O(1) if we check for every POST request.
+	I believe we can make this complement GET request, i.e all GET requests are not checked by default, and a list of those needing a check are provided. All POST requests should be checked by default, and a list of those deemed safe can be provided.
+> logging function is avalilable at: https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php#L298 needs to know if anything else we shall log?
+	This can always be updated. Dont bother bloating at start. Just add whatever you know you will use immediately.
+> Do we need to provide some method to inform the admin in case of detection, like using mail?
+	Definitely, but for now just run a hook (a configurable command in the configurations, run in terminal).
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140602/12b7ef6c/attachment-0001.html>
+
+From kevin.w.wall at gmail.com  Wed Jun  4 02:13:34 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Tue, 3 Jun 2014 22:13:34 -0400
+Subject: [Owasp-csrfprotector] Needs Decision
+In-Reply-To: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+References: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+Message-ID: <CAOPE6Pi8fs6zBEdUDY2Y7qHJZSjdvQc9oH=A=hWmcKGo7aH8JQ@mail.gmail.com>
+
+On Mon, Jun 2, 2014 at 2:55 PM, Minhaz A V <minhazav at gmail.com> wrote:
+> Hi,
+> Here is the list of ideas, we need to decide, what to do:
+
+Normally these are the things that we would (and IMO, should) discuss at
+a G+ Hangout or whatever. I suggest that you propose another Dooble with
+some very diverse times that might work for you (at least say 4
+different days) and
+see if we can manage to get together to discuss this.  On the plus side, I
+think you are making a lot of great progress, so at this point, I'm not too
+concerned.
+
+> In GET requests we are using an array of patterns to find weather we need to
+> validate for current request (for ex: *://*/* would mean validate for each
+> request). The function checking this, is called by static method. So it can
+> be overridden by the developer, in case he want to apply his own logic for
+> this (Suggested by Abbas +1), So I guess this would be a nice feature to
+> have. [implementation]
+
+While this likely may make the implementation a little bit more complex, I think
+it will result in making your CSRF_Protector easier to use...and that is, in
+addition to providing a method that can be overridden to define what GET
+URLs should get a CSRF token added, I would also suggest that you allow
+some sort of simple pattern match to IGNORE all GET requests on certain
+types of files. For instance, most GETs originate from requesting images,
+JavaScript, and cascading style-sheets and you generally don't need CSRF
+tokens for those (I suppose you could if you are implementing a GET request
+via an HTML form in JavaScript, but that's rare and hopefully there's a better
+way to handle such edge cases). But I was thinking about something like a
+property that would take a list of file suffixes to disregard with
+respect to CSRF
+tokens when made via GETs. E.g.,
+
+    csrf_protector.get.ignore_suffix=.png,.gif,.jpg,.js,.css
+
+to ignore all PNG, GIF, JPEG, JavaScript, and cascading style sheets
+requested via GETs. Those really are the bulk of the GET requests
+anyway.
+
+> For the above part to work, we need to have similar logic in our js file. to
+> check which all urls it need to be rewritten/modified: so we can pass this
+> patterns to the js file as parameters. [my idea]: we can keep our javascript
+> part as php file, and pass the patterns as JSON string in POST query to this
+> file. the php file would give js output, and it will be parsed well by
+> browser.
+> Jim suggested to use similar method, for POST requests. it has its own pros
+> and cons.
+>
+> PROS
+>
+> not all POST need CSRF protection
+> no overhead of validating every request on server side, and attaching the
+> cookie on client side for each request.
+> makes the library configurable to a great extend.
+>
+> CONS
+>
+> It complicates the logic a little and adds to developer's efforts.
+> checking if a particular url should be considered or not has a worst case
+> complexity of O(n), where n is the no of patterns in config file. so if
+> there are lots of urls to check, say k, complexity would be O(nk) for js.
+> while it would be like O(1) if we check for every POST request.
+
+These are topics for in-person discussion, if only because I don't
+want to wear out my fingers typing a detailed response.
+
+> logging function is avalilable at:
+> https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php#L298
+> needs to know if anything else we shall log?
+
+Regarding logging, you would want to log the client IP address (and/or
+proxied address,
+X-Forwarded-For) if you can get them. Also, if you know the authenticated user
+name and have a uniform way to obtain it, that also is very useful.  I know you
+were talking about saving a hash of the session ID; I don't see it
+there, but perhaps
+that is what this is supposed to be:
+
+     $log['cookie'] = $_COOKIE;
+
+I just don't know enough about PHP to know what that means....but in general,
+I don't think you really want to log cookies, even if this is *only*
+the session ID.
+If may be low risk in most situations, but if you consider insider
+attacks, in some
+scenarios, logging session IDs would be forbidden where I work today.
+
+
+> Do we need to provide some method to inform the admin in case of detection,
+> like using mail?
+
+I'd say 'no'. That's definite feature creep. You definitely should document what
+each error case looks like, and maybe even provide a unique error code for
+all the different errors. From there, it is just using some sort of
+log monitoring,
+whether it's something simple like logwatch, or something complex like
+sending the logs off to your SIEM. (For the latter, you may want to consider
+supporting logging to syslog, but I'd go no further than that and even that I
+think is scope creep.)
+
+-kevin
+--
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From minhazav at gmail.com  Wed Jun  4 09:45:37 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Wed, 4 Jun 2014 15:15:37 +0530
+Subject: [Owasp-csrfprotector] Needs Decision
+In-Reply-To: <CAOPE6Pi8fs6zBEdUDY2Y7qHJZSjdvQc9oH=A=hWmcKGo7aH8JQ@mail.gmail.com>
+References: <CADCpCkg=99AUTsizW7YdKsO=gNjyEN8SXTw6-nGYY7r5ZD9_sQ@mail.gmail.com>
+	<CAOPE6Pi8fs6zBEdUDY2Y7qHJZSjdvQc9oH=A=hWmcKGo7aH8JQ@mail.gmail.com>
+Message-ID: <CADCpCkg3X=riym4bafvDxcRr3DAbV_S9osWNLr9EsWsVBN291Q@mail.gmail.com>
+
+Reply inline!
+
+On Wed, Jun 4, 2014 at 7:43 AM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote
+
+While this likely may make the implementation a little bit more complex, I
+> think
+> it will result in making your CSRF_Protector easier to use...and that is,
+> in
+> addition to providing a method that can be overridden to define what GET
+> URLs should get a CSRF token added, I would also suggest that you allow
+> some sort of simple pattern match to IGNORE all GET requests on certain
+> types of files. For instance, most GETs originate from requesting images,
+> JavaScript, and cascading style-sheets and you generally don't need CSRF
+> tokens for those (I suppose you could if you are implementing a GET
+> request
+> via an HTML form in JavaScript, but that's rare and hopefully there's a
+> better
+> way to handle such edge cases). But I was thinking about something like a
+> property that would take a list of file suffixes to disregard with
+> respect to CSRF
+> tokens when made via GETs. E.g.,
+>
+>     csrf_protector.get.ignore_suffix=.png,.gif,.jpg,.js,.css
+>
+> to ignore all PNG, GIF, JPEG, JavaScript, and cascading style sheets
+> requested via GETs. Those really are the bulk of the GET requests
+> anyway.
+>
+
++1 for your point Kevin, We'd have to take care of these while implementing
+the Apache module. In case of php library all requests are validated for
+php files only. So there will be no validation for js,css or images. Also,
+if the developer do not want validation on any GET request, all he have to
+do is keep the array of rules, empty in config file.
+
+
+Regarding logging, you would want to log the client IP address (and/or
+> proxied address,
+> X-Forwarded-For) if you can get them. Also, if you know the authenticated
+> user
+> name and have a uniform way to obtain it, that also is very useful.  I
+> know you
+> were talking about saving a hash of the session ID; I don't see it
+> there, but perhaps
+> that is what this is supposed to be:
+>
+>      $log['cookie'] = $_COOKIE;
+>
+> I just don't know enough about PHP to know what that means....but in
+> general,
+> I don't think you really want to log cookies, even if this is *only*
+> the session ID.
+> If may be low risk in most situations, but if you consider insider
+> attacks, in some
+> scenarios, logging session IDs would be forbidden where I work today.
+>
+
+Each web app has its own way of storing user ids or other credentials. I
+guess best method here would be to allow the developer to override the
+default logging function, in case they want to log more/less data.
+About storing session Id in hash, in this case we will need database
+support. And If we are using database to map, hash to session id, isn't it
+better to actually save logs to db itself? And if you are suggesting that
+we should not log sessionid at all, how can we detect the victim of attack?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140604/c8899d76/attachment.html>
+
+From kevin.w.wall at gmail.com  Wed Jun  4 23:27:18 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Wed, 4 Jun 2014 19:27:18 -0400
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+Message-ID: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+
+All,
+
+I thought that this evening everyone had marked as available
+on Minhaz's Doodle that he recently sent out, but I've heard
+nothing back? Is there plans to meet tonight? If so, I need
+to know ASAP otherwise I will be making other plans and
+I won't be available until Friday night.
+
+-kevin
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From abiusx at owasp.org  Wed Jun  4 23:45:35 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Wed, 4 Jun 2014 19:45:35 -0400
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+Message-ID: <E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+
+I suggest proposing a single time, preferably evening EST, and creating a hangout for everyone to join at the time.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 4, 2014, at 7:27 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+
+> All,
+> 
+> I thought that this evening everyone had marked as available
+> on Minhaz's Doodle that he recently sent out, but I've heard
+> nothing back? Is there plans to meet tonight? If so, I need
+> to know ASAP otherwise I will be making other plans and
+> I won't be available until Friday night.
+> 
+> -kevin
+> -- 
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140604/da876f1a/attachment.html>
+
+From kevin.w.wall at gmail.com  Thu Jun  5 02:38:15 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Wed, 4 Jun 2014 22:38:15 -0400
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+	<E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+Message-ID: <CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+
+All,
+I'm going to bed for the night. I only got about 4 hrs sleep last night &
+2.5 hrs the night before.
+
+Minhaz: please pick a time for Friday evening (6/6; I will not be available
+tomorrow)...for 30 min. From there, we will decide on other times we will
+meet.
+
+-kevin
+Sent from my Droid; please excuse typos.
+On Jun 4, 2014 7:45 PM, "Abbas Naderi" <abiusx at owasp.org> wrote:
+
+> I suggest proposing a single time, preferably evening EST, and creating a
+> hangout for everyone to join at the time.
+> -A
+> ______________________________________________________________
+> *Notice:* This message is *digitally signed*, its *source* and *integrity* are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird
+> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in
+> AbiusX.com
+>
+> On Jun 4, 2014, at 7:27 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>
+> All,
+>
+> I thought that this evening everyone had marked as available
+> on Minhaz's Doodle that he recently sent out, but I've heard
+> nothing back? Is there plans to meet tonight? If so, I need
+> to know ASAP otherwise I will be making other plans and
+> I won't be available until Friday night.
+>
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140604/9caabf37/attachment.html>
+
+From minhazav at gmail.com  Thu Jun  5 10:03:59 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Thu, 5 Jun 2014 15:33:59 +0530
+Subject: [Owasp-csrfprotector] Need help with cookie
+Message-ID: <CADCpCkjO+oMb1V_F2onyjp3ytwyKM6WuLecmorMTcS3431gosQ@mail.gmail.com>
+
+Hi,
+need a little help with weather the cookie should be refreshed for every
+request or should be kept constant for a session or so. More details at
+https://github.com/mebjas/CSRF-Protector-PHP/issues/4
+
+please point your suggestions at the mentioned link.
+
+Thanks
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140605/958367c2/attachment.html>
+
+From minhazav at gmail.com  Thu Jun  5 10:39:47 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Thu, 5 Jun 2014 16:09:47 +0530
+Subject: [Owasp-csrfprotector] js compatiblity
+Message-ID: <CADCpCkghsB5SsZGdFCqvHGGNwreYXCs_TkWLrcSZUK5-JpXXmA@mail.gmail.com>
+
+I have been checking the compatibility of the javascript code for different
+browsers. and here is the report:
+https://github.com/mebjas/CSRF-Protector-PHP/blob/master/js/README.md
+
+I have tested against specific browsers only like IE, chrome,moz and safari
+in windows (latest versions of these browsers actually). I'll be checking
+it for opera also soon.
+Might have to do some tweak for IE :/
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140605/2781eace/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jun  6 09:19:32 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 6 Jun 2014 14:49:32 +0530
+Subject: [Owasp-csrfprotector] DOM level - 2 wrapping
+Message-ID: <CADCpCkjEkWFP_Px-9EajjEx1WTOxQxsmJGfA3V=2gewmrzy9bQ@mail.gmail.com>
+
+In the paper by Riccardo and R. Sekar (i.e. jcsrf project), they have
+implemented dom level 2 wrapping for HTMLFormElements objects.
+
+In this, whenever an event listener is attached to a <form> object, the
+wrapper make sure the token inserted to the forms as hidden input, is
+removed, the function passed by the developer is then called, and once it
+has returned.. the hidden input is reattached.
+
+I do not understand the utility of this, as we have attached dom level 0
+listeners to every form, which attaches the token to the form onsubmit. And
+the level 2 event listeners are called before level 0, so whats the utility
+of level 2 wrapping?
+
+Please guide me where I went wrong on this?
+
+Thanks,
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/02bf52b5/attachment.html>
+
+From minhazav at gmail.com  Fri Jun  6 09:20:33 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 6 Jun 2014 14:50:33 +0530
+Subject: [Owasp-csrfprotector] [CSRF-Protector-PHP] Should cookie should
+ be refreshed for every request (#4)
+In-Reply-To: <mebjas/CSRF-Protector-PHP/issues/4/45292236@github.com>
+References: <mebjas/CSRF-Protector-PHP/issues/4@github.com>
+	<mebjas/CSRF-Protector-PHP/issues/4/45292236@github.com>
+Message-ID: <CADCpCkjX7EoOUbBZ4Y2ybtYE1RZCVHDLtPuvv-uaptbYEe7atA@mail.gmail.com>
+
+Also this is already an issue on github. here's the link
+https://github.com/mebjas/CSRF-Protector-PHP/issues/4
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Fri, Jun 6, 2014 at 6:14 AM, AbiusX <notifications at github.com> wrote:
+
+> First of all, $_GET and $_POST can be set for each request. Second, do not
+> unset them, instead set them to an empty array. Unsetting them will break
+> most apps.
+>
+> Third, you have a lot of repeated code. Change your logic to minimize
+> them.
+>
+> Fourth, to the actual point. The way you?re doing it is wrong, it does not
+> allow an application to have more than ONE simultaneus operation running.
+> If you open two tabs, you will always fail on tokens. Only consume a token
+> when its valid, or when it times out.
+>
+> You are also storing the valid token in the cookies! That is totally
+> wrong. You should store all valid CSRF tokens with their respective URLs in
+> session (server-side) instead of in client cookies.
+>
+>
+> Please create an issue for this on GitHub so that we can track.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body. Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 5, 2014, at 2:14 PM, minhaz <notifications at github.com> wrote:
+>
+> > Currently its like, token is refreshed for every request. code:
+> https://github.com/mebjas/CSRF-Protector-PHP/blob/master/libs/csrf/csrfprotector.php#L142
+> >
+> > By consumed you mean used?
+> >
+> > ?
+> > Reply to this email directly or view it on GitHub.
+> >
+>
+> ?
+> Reply to this email directly or view it on GitHub
+> <https://github.com/mebjas/CSRF-Protector-PHP/issues/4#issuecomment-45292236>
+> .
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/be766d24/attachment.html>
+
+From abiusx at owasp.org  Fri Jun  6 15:35:30 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 6 Jun 2014 11:35:30 -0400
+Subject: [Owasp-csrfprotector] DOM level - 2 wrapping
+In-Reply-To: <CADCpCkjEkWFP_Px-9EajjEx1WTOxQxsmJGfA3V=2gewmrzy9bQ@mail.gmail.com>
+References: <CADCpCkjEkWFP_Px-9EajjEx1WTOxQxsmJGfA3V=2gewmrzy9bQ@mail.gmail.com>
+Message-ID: <8E33B980-0F85-4441-ABDC-121F0F3A430E@owasp.org>
+
+I have read this somewhere, but don?t remember specifically. A link would be a good idea. It might be for ajax.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 6, 2014, at 5:19 AM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> In the paper by Riccardo and R. Sekar (i.e. jcsrf project), they have implemented dom level 2 wrapping for HTMLFormElements objects.
+> 
+> In this, whenever an event listener is attached to a <form> object, the wrapper make sure the token inserted to the forms as hidden input, is removed, the function passed by the developer is then called, and once it has returned.. the hidden input is reattached.
+> 
+> I do not understand the utility of this, as we have attached dom level 0 listeners to every form, which attaches the token to the form onsubmit. And the level 2 event listeners are called before level 0, so whats the utility of level 2 wrapping?
+> 
+> Please guide me where I went wrong on this?
+> 
+> Thanks,  
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/cfc79f48/attachment.html>
+
+From minhazav at gmail.com  Fri Jun  6 18:05:19 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 6 Jun 2014 23:35:19 +0530
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+	<E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+	<CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+Message-ID: <CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+
+So I guess we shall meet today at 10:00 PM - 11:00 PM ( for those in EDT)
+
+Jim, would you be able to make it?
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Thu, Jun 5, 2014 at 8:08 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> All,
+> I'm going to bed for the night. I only got about 4 hrs sleep last night &
+> 2.5 hrs the night before.
+>
+> Minhaz: please pick a time for Friday evening (6/6; I will not be
+> available tomorrow)...for 30 min. From there, we will decide on other times
+> we will meet.
+>
+> -kevin
+> Sent from my Droid; please excuse typos.
+> On Jun 4, 2014 7:45 PM, "Abbas Naderi" <abiusx at owasp.org> wrote:
+>
+>> I suggest proposing a single time, preferably evening EST, and creating a
+>> hangout for everyone to join at the time.
+>> -A
+>>      ______________________________________________________________
+>> *Notice:* This message is *digitally signed*, its *source* and
+>> *integrity* are verifiable.
+>> If you mail client does not support S/MIME verification, it will display
+>> a file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird
+>> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in
+>> AbiusX.com
+>>
+>> On Jun 4, 2014, at 7:27 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>>
+>> All,
+>>
+>> I thought that this evening everyone had marked as available
+>> on Minhaz's Doodle that he recently sent out, but I've heard
+>> nothing back? Is there plans to meet tonight? If so, I need
+>> to know ASAP otherwise I will be making other plans and
+>> I won't be available until Friday night.
+>>
+>> -kevin
+>> --
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+>>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/1dcbbc59/attachment.html>
+
+From jim.manico at owasp.org  Fri Jun  6 18:07:51 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 6 Jun 2014 08:07:51 -1000
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+	<E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+	<CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+	<CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+Message-ID: <6509833734333519277@unknownmsgid>
+
+That is 4am for me in Hawaii time, I cannot make it then. :(
+
+--
+Jim Manico
+@Manicode
+(808) 652-3805
+
+On Jun 6, 2014, at 8:05 AM, Minhaz A V <minhazav at gmail.com> wrote:
+
+So I guess we shall meet today at 10:00 PM - 11:00 PM ( for those in EDT)
+
+Jim, would you be able to make it?
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Thu, Jun 5, 2014 at 8:08 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> All,
+> I'm going to bed for the night. I only got about 4 hrs sleep last night &
+> 2.5 hrs the night before.
+>
+> Minhaz: please pick a time for Friday evening (6/6; I will not be
+> available tomorrow)...for 30 min. From there, we will decide on other times
+> we will meet.
+>
+> -kevin
+> Sent from my Droid; please excuse typos.
+> On Jun 4, 2014 7:45 PM, "Abbas Naderi" <abiusx at owasp.org> wrote:
+>
+>> I suggest proposing a single time, preferably evening EST, and creating a
+>> hangout for everyone to join at the time.
+>> -A
+>>      ______________________________________________________________
+>> *Notice:* This message is *digitally signed*, its *source* and
+>> *integrity* are verifiable.
+>> If you mail client does not support S/MIME verification, it will display
+>> a file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird
+>> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in
+>> AbiusX.com
+>>
+>> On Jun 4, 2014, at 7:27 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>>
+>> All,
+>>
+>> I thought that this evening everyone had marked as available
+>> on Minhaz's Doodle that he recently sent out, but I've heard
+>> nothing back? Is there plans to meet tonight? If so, I need
+>> to know ASAP otherwise I will be making other plans and
+>> I won't be available until Friday night.
+>>
+>> -kevin
+>> --
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+>>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/b4bcf772/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jun  6 18:10:27 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 6 Jun 2014 23:40:27 +0530
+Subject: [Owasp-csrfprotector] DOM level - 2 wrapping
+In-Reply-To: <8E33B980-0F85-4441-ABDC-121F0F3A430E@owasp.org>
+References: <CADCpCkjEkWFP_Px-9EajjEx1WTOxQxsmJGfA3V=2gewmrzy9bQ@mail.gmail.com>
+	<8E33B980-0F85-4441-ABDC-121F0F3A430E@owasp.org>
+Message-ID: <CADCpCkj4nXvMv5YyBh1rGfOoytniZh=ua_+8KwrTv8EFM7kOyA@mail.gmail.com>
+
+No its not for ajax, its for form objects. Its implemented in jcsrf js
+file, source code
+<https://github.com/mebjas/jcsrf-implementation/blob/master/jcsrf/jcsrf.js>
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Fri, Jun 6, 2014 at 9:05 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+> I have read this somewhere, but don?t remember specifically. A link would
+> be a good idea. It might be for ajax.
+> -A
+>      ______________________________________________________________
+> *Notice:* This message is *digitally signed*, its *source* and *integrity* are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird
+> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 5:19 AM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+> In the paper by Riccardo and R. Sekar (i.e. jcsrf project), they have
+> implemented dom level 2 wrapping for HTMLFormElements objects.
+>
+> In this, whenever an event listener is attached to a <form> object, the
+> wrapper make sure the token inserted to the forms as hidden input, is
+> removed, the function passed by the developer is then called, and once it
+> has returned.. the hidden input is reattached.
+>
+> I do not understand the utility of this, as we have attached dom level 0
+> listeners to every form, which attaches the token to the form onsubmit. And
+> the level 2 event listeners are called before level 0, so whats the utility
+> of level 2 wrapping?
+>
+> Please guide me where I went wrong on this?
+>
+> Thanks,
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>  _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/08d11aca/attachment.html>
+
+From kevin.w.wall at gmail.com  Fri Jun  6 19:16:14 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 6 Jun 2014 15:16:14 -0400
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+	<E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+	<CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+	<CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+Message-ID: <CAOPE6Ph31D+qovnOCsiO_9FTXpGo=Rs2LnwMBs7J2_B2VyZ_nA@mail.gmail.com>
+
+Okay...I'll be there. If you can send us a link to a G+ Hangout that you
+will use it might speed things up.
+
+Thanks,
+
+-kevin
+Sent from my Droid; please excuse typos.
+On Jun 6, 2014 2:05 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+
+> So I guess we shall meet today at 10:00 PM - 11:00 PM ( for those in EDT)
+>
+> Jim, would you be able to make it?
+>
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>
+>
+> On Thu, Jun 5, 2014 at 8:08 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+> wrote:
+>
+>> All,
+>> I'm going to bed for the night. I only got about 4 hrs sleep last night &
+>> 2.5 hrs the night before.
+>>
+>> Minhaz: please pick a time for Friday evening (6/6; I will not be
+>> available tomorrow)...for 30 min. From there, we will decide on other times
+>> we will meet.
+>>
+>> -kevin
+>> Sent from my Droid; please excuse typos.
+>> On Jun 4, 2014 7:45 PM, "Abbas Naderi" <abiusx at owasp.org> wrote:
+>>
+>>> I suggest proposing a single time, preferably evening EST, and creating
+>>> a hangout for everyone to join at the time.
+>>> -A
+>>>      ______________________________________________________________
+>>> *Notice:* This message is *digitally signed*, its *source* and
+>>> *integrity* are verifiable.
+>>> If you mail client does not support S/MIME verification, it will display
+>>> a file (smime.p7s), which includes the X.509 certificate and the signature
+>>> body.  Read more at Certified E-Mail with Comodo and Thunderbird
+>>> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in
+>>> AbiusX.com
+>>>
+>>> On Jun 4, 2014, at 7:27 PM, Kevin W. Wall <kevin.w.wall at gmail.com>
+>>> wrote:
+>>>
+>>> All,
+>>>
+>>> I thought that this evening everyone had marked as available
+>>> on Minhaz's Doodle that he recently sent out, but I've heard
+>>> nothing back? Is there plans to meet tonight? If so, I need
+>>> to know ASAP otherwise I will be making other plans and
+>>> I won't be available until Friday night.
+>>>
+>>> -kevin
+>>> --
+>>> Blog: http://off-the-wall-security.blogspot.com/
+>>> NSA: All your crypto bit are belong to us.
+>>> _______________________________________________
+>>> Owasp-csrfprotector mailing list
+>>> Owasp-csrfprotector at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>
+>>>
+>>>
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/452723aa/attachment.html>
+
+From minhazav at gmail.com  Fri Jun  6 19:22:00 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Sat, 7 Jun 2014 00:52:00 +0530
+Subject: [Owasp-csrfprotector] Schedule for 1st GSoC hangout?
+In-Reply-To: <CAOPE6Ph31D+qovnOCsiO_9FTXpGo=Rs2LnwMBs7J2_B2VyZ_nA@mail.gmail.com>
+References: <CAOPE6PhrEZoriObHiNE-6Xb76Pci+995ngkhr4Lmx+AQ5dEdyQ@mail.gmail.com>
+	<E9E5A055-078B-4F5C-8302-CD7321A2E631@owasp.org>
+	<CAOPE6PiLvSBKVnH1dRbH7zvssoNyyy8dQUEQMvz2RY5=hU+xkg@mail.gmail.com>
+	<CADCpCki4GzrC_Kd+xd-Ym-624av=LtCyGN6oqwxPs7Fs9NEy_w@mail.gmail.com>
+	<CAOPE6Ph31D+qovnOCsiO_9FTXpGo=Rs2LnwMBs7J2_B2VyZ_nA@mail.gmail.com>
+Message-ID: <CADCpCkg9Qe7sDhodSyETmywp-jHp83fcJZECieG2OeDAnGDuYQ@mail.gmail.com>
+
+we shall use this one:
+https://plus.google.com/hangouts/_/guxaztkjeelzdxq3g7l43avjfqa
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140607/a1594d70/attachment.html>
+
+From kevin.w.wall at gmail.com  Fri Jun  6 21:58:03 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 6 Jun 2014 17:58:03 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+Message-ID: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+
+I know that this topic briefly came up and I think that the consensus
+was that they didn't,
+but these two links give a different take on this so we may wish to
+rethink this. In fact,
+I just found out that if the login pages do NOT provide these, that
+they site the source
+code for incomplete CSRF protection at Wells Fargo.
+
+http://seclab.stanford.edu/websec/csrf/csrf.pdf
+http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+
+If you have chance to peruse these, maybe we can discuss if we want to
+re-think Minhaz' approach to this during tonight's discussion.
+
+Thanks,
+-kevin
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From jim.manico at owasp.org  Fri Jun  6 22:06:49 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 6 Jun 2014 12:06:49 -1000
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+Message-ID: <da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+
+Ok fair, this looks reasonable anti-automation to me.
+
+- Jim
+
+-----Original Message-----
+From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+Sent: Friday, June 06, 2014 11:58 AM
+To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+Subject: Do login pages need CSRF protection?
+
+I know that this topic briefly came up and I think that the consensus was
+that they didn't, but these two links give a different take on this so we
+may wish to rethink this. In fact, I just found out that if the login pages
+do NOT provide these, that they site the source code for incomplete CSRF
+protection at Wells Fargo.
+
+http://seclab.stanford.edu/websec/csrf/csrf.pdf
+http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+
+If you have chance to peruse these, maybe we can discuss if we want to
+re-think Minhaz' approach to this during tonight's discussion.
+
+Thanks,
+-kevin
+--
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From abiusx at owasp.org  Sat Jun  7 00:54:00 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 6 Jun 2014 20:54:00 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+Message-ID: <D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+
+There is a major flaw not mentioned in the stackoverflow page, which I just added as a comment:
+
+Login forms need to be CSRF protected, because otherwise an attacker can brute-force passwords or login using known passwords using XSS. For exmaple, a XSS snippet could easily login and change your router?s DNS, to hijack all your connections if the router login form is not CSRF protected.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+> Ok fair, this looks reasonable anti-automation to me.
+> 
+> - Jim
+> 
+> -----Original Message-----
+> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+> Sent: Friday, June 06, 2014 11:58 AM
+> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+> Subject: Do login pages need CSRF protection?
+> 
+> I know that this topic briefly came up and I think that the consensus was
+> that they didn't, but these two links give a different take on this so we
+> may wish to rethink this. In fact, I just found out that if the login pages
+> do NOT provide these, that they site the source code for incomplete CSRF
+> protection at Wells Fargo.
+> 
+> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+> 
+> If you have chance to peruse these, maybe we can discuss if we want to
+> re-think Minhaz' approach to this during tonight's discussion.
+> 
+> Thanks,
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/0fbf4bf9/attachment.html>
+
+From kevin.w.wall at gmail.com  Sat Jun  7 00:59:59 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 6 Jun 2014 20:59:59 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+Message-ID: <CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+
+If there is are XSS vulnerabilities, then all bets are pretty much off with
+CSRF tokens anyhow.
+
+-kevin
+
+On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+> There is a major flaw not mentioned in the stackoverflow page, which I just
+> added as a comment:
+>
+> Login forms need to be CSRF protected, because otherwise an attacker can
+> brute-force passwords or login using known passwords using XSS. For exmaple,
+> a XSS snippet could easily login and change your router?s DNS, to hijack all
+> your connections if the router login form is not CSRF protected.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> Ok fair, this looks reasonable anti-automation to me.
+>
+> - Jim
+>
+> -----Original Message-----
+> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+> Sent: Friday, June 06, 2014 11:58 AM
+> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+> Subject: Do login pages need CSRF protection?
+>
+> I know that this topic briefly came up and I think that the consensus was
+> that they didn't, but these two links give a different take on this so we
+> may wish to rethink this. In fact, I just found out that if the login pages
+> do NOT provide these, that they site the source code for incomplete CSRF
+> protection at Wells Fargo.
+>
+> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>
+> If you have chance to peruse these, maybe we can discuss if we want to
+> re-think Minhaz' approach to this during tonight's discussion.
+>
+> Thanks,
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+
+
+
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From abiusx at owasp.org  Sat Jun  7 01:01:17 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 6 Jun 2014 21:01:17 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+Message-ID: <F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+
+They don?t even need XSS for that. They can just do it by forms or images.
+And most effective CSRF attacks (like creating an admin user) rely on XSS, since XSS is very easy to find, but CSRF has a high impact.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+
+> If there is are XSS vulnerabilities, then all bets are pretty much off with
+> CSRF tokens anyhow.
+> 
+> -kevin
+> 
+> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>> There is a major flaw not mentioned in the stackoverflow page, which I just
+>> added as a comment:
+>> 
+>> Login forms need to be CSRF protected, because otherwise an attacker can
+>> brute-force passwords or login using known passwords using XSS. For exmaple,
+>> a XSS snippet could easily login and change your router?s DNS, to hijack all
+>> your connections if the router login form is not CSRF protected.
+>> -A
+>> ______________________________________________________________
+>> Notice: This message is digitally signed, its source and integrity are
+>> verifiable.
+>> If you mail client does not support S/MIME verification, it will display a
+>> file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>> AbiusX.com
+>> 
+>> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>> 
+>> Ok fair, this looks reasonable anti-automation to me.
+>> 
+>> - Jim
+>> 
+>> -----Original Message-----
+>> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+>> Sent: Friday, June 06, 2014 11:58 AM
+>> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+>> Subject: Do login pages need CSRF protection?
+>> 
+>> I know that this topic briefly came up and I think that the consensus was
+>> that they didn't, but these two links give a different take on this so we
+>> may wish to rethink this. In fact, I just found out that if the login pages
+>> do NOT provide these, that they site the source code for incomplete CSRF
+>> protection at Wells Fargo.
+>> 
+>> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+>> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>> 
+>> If you have chance to peruse these, maybe we can discuss if we want to
+>> re-think Minhaz' approach to this during tonight's discussion.
+>> 
+>> Thanks,
+>> -kevin
+>> --
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>> 
+>> 
+> 
+> 
+> 
+> -- 
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/2411617e/attachment-0001.html>
+
+From jim.manico at owasp.org  Sat Jun  7 01:02:51 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 06 Jun 2014 15:02:51 -1000
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+Message-ID: <539264BB.40002@owasp.org>
+
+Automated attacks against login pages need like one extra line of code 
+to circumvent a CSRF token defense. It would stop a "dumb automation 
+attack" but would not deter a targeted attack.
+
+- Jim
+
+
+On 6/6/14, 3:01 PM, Abbas Naderi wrote:
+> They don?t even need XSS for that. They can just do it by forms or 
+> images.
+> And most effective CSRF attacks (like creating an admin user) rely on 
+> XSS, since XSS is very easy to find, but CSRF has a high impact.
+> -A
+> ______________________________________________________________
+> *Notice:***This message is *digitally signed*, its *source* and 
+> *integrity* are verifiable.
+> If you mail client does not support S/MIME verification, it will 
+> display a file (smime.p7s), which includes the X.509 certificate and 
+> the signature body.  Read more at Certified E-Mail with Comodo and 
+> Thunderbird 
+> <http://abiusx.com/certified-e-mail-with-comodo-and-thunderbird/> in 
+> AbiusX.com <http://AbiusX.com>
+>
+> On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com 
+> <mailto:kevin.w.wall at gmail.com>> wrote:
+>
+>> If there is are XSS vulnerabilities, then all bets are pretty much 
+>> off with
+>> CSRF tokens anyhow.
+>>
+>> -kevin
+>>
+>> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org 
+>> <mailto:abiusx at owasp.org>> wrote:
+>>> There is a major flaw not mentioned in the stackoverflow page, which 
+>>> I just
+>>> added as a comment:
+>>>
+>>> Login forms need to be CSRF protected, because otherwise an attacker can
+>>> brute-force passwords or login using known passwords using XSS. For 
+>>> exmaple,
+>>> a XSS snippet could easily login and change your router?s DNS, to 
+>>> hijack all
+>>> your connections if the router login form is not CSRF protected.
+>>> -A
+>>> ______________________________________________________________
+>>> Notice: This message is digitally signed, its source and integrity are
+>>> verifiable.
+>>> If you mail client does not support S/MIME verification, it will 
+>>> display a
+>>> file (smime.p7s), which includes the X.509 certificate and the signature
+>>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>>> AbiusX.com <http://AbiusX.com>
+>>>
+>>> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>>>
+>>> Ok fair, this looks reasonable anti-automation to me.
+>>>
+>>> - Jim
+>>>
+>>> -----Original Message-----
+>>> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+>>> Sent: Friday, June 06, 2014 11:58 AM
+>>> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+>>> Subject: Do login pages need CSRF protection?
+>>>
+>>> I know that this topic briefly came up and I think that the 
+>>> consensus was
+>>> that they didn't, but these two links give a different take on this 
+>>> so we
+>>> may wish to rethink this. In fact, I just found out that if the 
+>>> login pages
+>>> do NOT provide these, that they site the source code for incomplete CSRF
+>>> protection at Wells Fargo.
+>>>
+>>> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+>>> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>>>
+>>> If you have chance to peruse these, maybe we can discuss if we want to
+>>> re-think Minhaz' approach to this during tonight's discussion.
+>>>
+>>> Thanks,
+>>> -kevin
+>>> --
+>>> Blog: http://off-the-wall-security.blogspot.com/
+>>> NSA: All your crypto bit are belong to us.
+>>> _______________________________________________
+>>> Owasp-csrfprotector mailing list
+>>> Owasp-csrfprotector at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>
+>>>
+>>
+>>
+>>
+>> -- 
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/aabc6a50/attachment.html>
+
+From abiusx at owasp.org  Sat Jun  7 01:08:15 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 6 Jun 2014 21:08:15 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <539264BB.40002@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+	<539264BB.40002@owasp.org>
+Message-ID: <8814E732-9EFD-4E6C-91B4-83B1821602FC@owasp.org>
+
+But I?m talking about router default user/pass. That is pretty easy to do even with an image.
+
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 6, 2014, at 9:02 PM, Jim Manico <jim.manico at owasp.org> wrote:
+
+> Automated attacks against login pages need like one extra line of code to circumvent a CSRF token defense. It would stop a "dumb automation attack" but would not deter a targeted attack.
+> 
+> - Jim
+> 
+> 
+> On 6/6/14, 3:01 PM, Abbas Naderi wrote:
+>> They don?t even need XSS for that. They can just do it by forms or images.
+>> And most effective CSRF attacks (like creating an admin user) rely on XSS, since XSS is very easy to find, but CSRF has a high impact.
+>> -A
+>> ______________________________________________________________
+>> Notice: This message is digitally signed, its source and integrity are verifiable.
+>> If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+>> 
+>> On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>> 
+>>> If there is are XSS vulnerabilities, then all bets are pretty much off with
+>>> CSRF tokens anyhow.
+>>> 
+>>> -kevin
+>>> 
+>>> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>>>> There is a major flaw not mentioned in the stackoverflow page, which I just
+>>>> added as a comment:
+>>>> 
+>>>> Login forms need to be CSRF protected, because otherwise an attacker can
+>>>> brute-force passwords or login using known passwords using XSS. For exmaple,
+>>>> a XSS snippet could easily login and change your router?s DNS, to hijack all
+>>>> your connections if the router login form is not CSRF protected.
+>>>> -A
+>>>> ______________________________________________________________
+>>>> Notice: This message is digitally signed, its source and integrity are
+>>>> verifiable.
+>>>> If you mail client does not support S/MIME verification, it will display a
+>>>> file (smime.p7s), which includes the X.509 certificate and the signature
+>>>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>>>> AbiusX.com
+>>>> 
+>>>> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>>>> 
+>>>> Ok fair, this looks reasonable anti-automation to me.
+>>>> 
+>>>> - Jim
+>>>> 
+>>>> -----Original Message-----
+>>>> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+>>>> Sent: Friday, June 06, 2014 11:58 AM
+>>>> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+>>>> Subject: Do login pages need CSRF protection?
+>>>> 
+>>>> I know that this topic briefly came up and I think that the consensus was
+>>>> that they didn't, but these two links give a different take on this so we
+>>>> may wish to rethink this. In fact, I just found out that if the login pages
+>>>> do NOT provide these, that they site the source code for incomplete CSRF
+>>>> protection at Wells Fargo.
+>>>> 
+>>>> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+>>>> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>>>> 
+>>>> If you have chance to peruse these, maybe we can discuss if we want to
+>>>> re-think Minhaz' approach to this during tonight's discussion.
+>>>> 
+>>>> Thanks,
+>>>> -kevin
+>>>> --
+>>>> Blog: http://off-the-wall-security.blogspot.com/
+>>>> NSA: All your crypto bit are belong to us.
+>>>> _______________________________________________
+>>>> Owasp-csrfprotector mailing list
+>>>> Owasp-csrfprotector at lists.owasp.org
+>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>> 
+>>>> 
+>>> 
+>>> 
+>>> 
+>>> -- 
+>>> Blog: http://off-the-wall-security.blogspot.com/
+>>> NSA: All your crypto bit are belong to us.
+>> 
+> 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/31f99d2f/attachment-0001.html>
+
+From kevin.w.wall at gmail.com  Sat Jun  7 01:10:37 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 6 Jun 2014 21:10:37 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <539264BB.40002@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+	<539264BB.40002@owasp.org>
+Message-ID: <CAOPE6PiNwOpbN4J33Y0HUaLAaAMBONSJ8w8nHnJfEsCxU21XSw@mail.gmail.com>
+
+Sort of true...it would stop existing scripts run by script kiddies who are
+too clueless to know how to modify the scripts. And besides, apparently,
+there are a WHOLE lot of flat out dumb scripts out there...how else in the
+world do you explain that after 20 years are so, people (and some mailing lists)
+still try to obfuscate a person's email address, because absolutely no screen
+scrapper would EVER be smart enough to parse something like
+
+    kevin dot w dot wall at gmail dot com
+
+I mean, it would be the end of civilization as we know it if spammers
+haver figure out how to do that! :)
+
+But given that this insane practice has continued for so long, it must
+have garnered some level of success and I imagine that the same is
+true for CSRF tokens on login pages.  Ultimately, it's going to be YMMV.
+The question is should we worry about it as an edge case? Would NOT
+providing it keep it from getting deployed within some companies (because
+there are many IT departments who let the perfect become the enemy
+of the good).
+
+I'm not deciding one way or another, but just saying that it merits
+some discussion.
+
+-kevin
+
+On Fri, Jun 6, 2014 at 9:02 PM, Jim Manico <jim.manico at owasp.org> wrote:
+> Automated attacks against login pages need like one extra line of code to
+> circumvent a CSRF token defense. It would stop a "dumb automation attack"
+> but would not deter a targeted attack.
+>
+> - Jim
+>
+>
+>
+> On 6/6/14, 3:01 PM, Abbas Naderi wrote:
+>
+> They don?t even need XSS for that. They can just do it by forms or images.
+> And most effective CSRF attacks (like creating an admin user) rely on XSS,
+> since XSS is very easy to find, but CSRF has a high impact.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>
+> If there is are XSS vulnerabilities, then all bets are pretty much off with
+> CSRF tokens anyhow.
+>
+> -kevin
+>
+> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>
+> There is a major flaw not mentioned in the stackoverflow page, which I just
+> added as a comment:
+>
+> Login forms need to be CSRF protected, because otherwise an attacker can
+> brute-force passwords or login using known passwords using XSS. For exmaple,
+> a XSS snippet could easily login and change your router?s DNS, to hijack all
+> your connections if the router login form is not CSRF protected.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> Ok fair, this looks reasonable anti-automation to me.
+>
+> - Jim
+>
+> -----Original Message-----
+> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+> Sent: Friday, June 06, 2014 11:58 AM
+> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+> Subject: Do login pages need CSRF protection?
+>
+> I know that this topic briefly came up and I think that the consensus was
+> that they didn't, but these two links give a different take on this so we
+> may wish to rethink this. In fact, I just found out that if the login pages
+> do NOT provide these, that they site the source code for incomplete CSRF
+> protection at Wells Fargo.
+>
+> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>
+> If you have chance to peruse these, maybe we can discuss if we want to
+> re-think Minhaz' approach to this during tonight's discussion.
+>
+> Thanks,
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+>
+>
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+>
+>
+>
+
+
+
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From kevin.w.wall at gmail.com  Sat Jun  7 01:11:49 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 6 Jun 2014 21:11:49 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <8814E732-9EFD-4E6C-91B4-83B1821602FC@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+	<539264BB.40002@owasp.org>
+	<8814E732-9EFD-4E6C-91B4-83B1821602FC@owasp.org>
+Message-ID: <CAOPE6PhLhZ0aVUahS7L0dFjnRT699B2wFuRJvXSjVwq3oVP_aA@mail.gmail.com>
+
+Well, true that, though my take on that is, if you're stupid enough to leave
+you router with it's default password then you probably deserve what you
+get.
+
+-kevin
+
+On Fri, Jun 6, 2014 at 9:08 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+> But I?m talking about router default user/pass. That is pretty easy to do
+> even with an image.
+>
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 9:02 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> Automated attacks against login pages need like one extra line of code to
+> circumvent a CSRF token defense. It would stop a "dumb automation attack"
+> but would not deter a targeted attack.
+>
+> - Jim
+>
+>
+> On 6/6/14, 3:01 PM, Abbas Naderi wrote:
+>
+> They don?t even need XSS for that. They can just do it by forms or images.
+> And most effective CSRF attacks (like creating an admin user) rely on XSS,
+> since XSS is very easy to find, but CSRF has a high impact.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>
+> If there is are XSS vulnerabilities, then all bets are pretty much off with
+> CSRF tokens anyhow.
+>
+> -kevin
+>
+> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>
+> There is a major flaw not mentioned in the stackoverflow page, which I just
+> added as a comment:
+>
+> Login forms need to be CSRF protected, because otherwise an attacker can
+> brute-force passwords or login using known passwords using XSS. For exmaple,
+> a XSS snippet could easily login and change your router?s DNS, to hijack all
+> your connections if the router login form is not CSRF protected.
+> -A
+> ______________________________________________________________
+> Notice: This message is digitally signed, its source and integrity are
+> verifiable.
+> If you mail client does not support S/MIME verification, it will display a
+> file (smime.p7s), which includes the X.509 certificate and the signature
+> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+> AbiusX.com
+>
+> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>
+> Ok fair, this looks reasonable anti-automation to me.
+>
+> - Jim
+>
+> -----Original Message-----
+> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+> Sent: Friday, June 06, 2014 11:58 AM
+> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+> Subject: Do login pages need CSRF protection?
+>
+> I know that this topic briefly came up and I think that the consensus was
+> that they didn't, but these two links give a different take on this so we
+> may wish to rethink this. In fact, I just found out that if the login pages
+> do NOT provide these, that they site the source code for incomplete CSRF
+> protection at Wells Fargo.
+>
+> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>
+> If you have chance to peruse these, maybe we can discuss if we want to
+> re-think Minhaz' approach to this during tonight's discussion.
+>
+> Thanks,
+> -kevin
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+>
+>
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+>
+>
+>
+>
+
+
+
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From abiusx at owasp.org  Sat Jun  7 01:40:52 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 6 Jun 2014 21:40:52 -0400
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <CAOPE6PhLhZ0aVUahS7L0dFjnRT699B2wFuRJvXSjVwq3oVP_aA@mail.gmail.com>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+	<539264BB.40002@owasp.org>
+	<8814E732-9EFD-4E6C-91B4-83B1821602FC@owasp.org>
+	<CAOPE6PhLhZ0aVUahS7L0dFjnRT699B2wFuRJvXSjVwq3oVP_aA@mail.gmail.com>
+Message-ID: <B83DA710-E04A-427A-A6DA-DB42B9433E5D@owasp.org>
+
+There are zillions of zombies out there, all acquired by this simple means. Everybody has a router, not everybody knows about security.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 6, 2014, at 9:11 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+
+> Well, true that, though my take on that is, if you're stupid enough to leave
+> you router with it's default password then you probably deserve what you
+> get.
+> 
+> -kevin
+> 
+> On Fri, Jun 6, 2014 at 9:08 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>> But I?m talking about router default user/pass. That is pretty easy to do
+>> even with an image.
+>> 
+>> ______________________________________________________________
+>> Notice: This message is digitally signed, its source and integrity are
+>> verifiable.
+>> If you mail client does not support S/MIME verification, it will display a
+>> file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>> AbiusX.com
+>> 
+>> On Jun 6, 2014, at 9:02 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>> 
+>> Automated attacks against login pages need like one extra line of code to
+>> circumvent a CSRF token defense. It would stop a "dumb automation attack"
+>> but would not deter a targeted attack.
+>> 
+>> - Jim
+>> 
+>> 
+>> On 6/6/14, 3:01 PM, Abbas Naderi wrote:
+>> 
+>> They don?t even need XSS for that. They can just do it by forms or images.
+>> And most effective CSRF attacks (like creating an admin user) rely on XSS,
+>> since XSS is very easy to find, but CSRF has a high impact.
+>> -A
+>> ______________________________________________________________
+>> Notice: This message is digitally signed, its source and integrity are
+>> verifiable.
+>> If you mail client does not support S/MIME verification, it will display a
+>> file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>> AbiusX.com
+>> 
+>> On Jun 6, 2014, at 8:59 PM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+>> 
+>> If there is are XSS vulnerabilities, then all bets are pretty much off with
+>> CSRF tokens anyhow.
+>> 
+>> -kevin
+>> 
+>> On Fri, Jun 6, 2014 at 8:54 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>> 
+>> There is a major flaw not mentioned in the stackoverflow page, which I just
+>> added as a comment:
+>> 
+>> Login forms need to be CSRF protected, because otherwise an attacker can
+>> brute-force passwords or login using known passwords using XSS. For exmaple,
+>> a XSS snippet could easily login and change your router?s DNS, to hijack all
+>> your connections if the router login form is not CSRF protected.
+>> -A
+>> ______________________________________________________________
+>> Notice: This message is digitally signed, its source and integrity are
+>> verifiable.
+>> If you mail client does not support S/MIME verification, it will display a
+>> file (smime.p7s), which includes the X.509 certificate and the signature
+>> body.  Read more at Certified E-Mail with Comodo and Thunderbird in
+>> AbiusX.com
+>> 
+>> On Jun 6, 2014, at 6:06 PM, Jim Manico <jim.manico at owasp.org> wrote:
+>> 
+>> Ok fair, this looks reasonable anti-automation to me.
+>> 
+>> - Jim
+>> 
+>> -----Original Message-----
+>> From: Kevin W. Wall [mailto:kevin.w.wall at gmail.com]
+>> Sent: Friday, June 06, 2014 11:58 AM
+>> To: Owasp-csrfprotector at lists.owasp.org; Jim Manico
+>> Subject: Do login pages need CSRF protection?
+>> 
+>> I know that this topic briefly came up and I think that the consensus was
+>> that they didn't, but these two links give a different take on this so we
+>> may wish to rethink this. In fact, I just found out that if the login pages
+>> do NOT provide these, that they site the source code for incomplete CSRF
+>> protection at Wells Fargo.
+>> 
+>> http://seclab.stanford.edu/websec/csrf/csrf.pdf
+>> http://stackoverflow.com/questions/6412813/do-login-forms-need-tokens-against-csrf-attacks
+>> 
+>> If you have chance to peruse these, maybe we can discuss if we want to
+>> re-think Minhaz' approach to this during tonight's discussion.
+>> 
+>> Thanks,
+>> -kevin
+>> --
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>> 
+>> 
+>> 
+>> 
+>> 
+>> --
+>> Blog: http://off-the-wall-security.blogspot.com/
+>> NSA: All your crypto bit are belong to us.
+>> 
+>> 
+>> 
+>> 
+> 
+> 
+> 
+> -- 
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140606/99146b6b/attachment-0001.html>
+
+From minhazav at gmail.com  Sun Jun  8 10:22:42 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Sun, 8 Jun 2014 15:52:42 +0530
+Subject: [Owasp-csrfprotector] Do login pages need CSRF protection?
+In-Reply-To: <B83DA710-E04A-427A-A6DA-DB42B9433E5D@owasp.org>
+References: <CAOPE6Pj6MO4Xtt7xgPxwOcc_OXVu774vRep21LFMWuE1QYuo+w@mail.gmail.com>
+	<da8c34abb7f2bd5ba21d7354e644a1cf@mail.gmail.com>
+	<D748675E-83AA-455F-8274-5D94FA34931F@owasp.org>
+	<CAOPE6PimNBYECGhJMmEWXmaBo4X_BuJyNdYdLcdMipp491NjGQ@mail.gmail.com>
+	<F82970FD-0C9A-4E3E-A35D-36553777AAA0@owasp.org>
+	<539264BB.40002@owasp.org>
+	<8814E732-9EFD-4E6C-91B4-83B1821602FC@owasp.org>
+	<CAOPE6PhLhZ0aVUahS7L0dFjnRT699B2wFuRJvXSjVwq3oVP_aA@mail.gmail.com>
+	<B83DA710-E04A-427A-A6DA-DB42B9433E5D@owasp.org>
+Message-ID: <CADCpCkg=urH6EEDOcbHjLfAWaVOg_uo=GhMa6HLCLPHVtmY7GQ@mail.gmail.com>
+
+Considering the "trusted domain phishing" attack mentioned in
+stack-overflow, its important to implement csrf protection in login pages
+as well! I guess what we need to do here would be to educate developers
+about this, as developer just need to integrate the library to his login
+page to protect it from CSRF, but normally wouldn't do so considering the
+type of attack CSRF is!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140608/3200956e/attachment.html>
+
+From minhazav at gmail.com  Mon Jun  9 20:01:44 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 10 Jun 2014 01:31:44 +0530
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+Message-ID: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+
+I have been fiddling with apache module codes lately, and I faced certain
+difficulties.
+
+Statistics says 88.43% of servers using Apache are using apache 2.2
+currently. So our best best would be to develop mod_csrfprotector as apache
+2.2 module.
+
+A very nice documentation is available on apache site for 2.4 module
+development, but the problem is most of the api's are new and not
+compatible with 2.2. I could not find any such documentation for 2.2 if
+anyone has one in knowledge please point it.
+
+bdw, current implementation is available at:
+https://github.com/mebjas/mod_csrfprotector
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140610/1d094716/attachment.html>
+
+From sven at rtbg.de  Mon Jun  9 20:39:09 2014
+From: sven at rtbg.de (Sven Rautenberg)
+Date: Mon, 09 Jun 2014 22:39:09 +0200
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+Message-ID: <50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+
+Who is supposed to install the module? Do you think it is likely that users of probably outdated 2.2 versions will be able to install it?
+
+Which versions of Apache do the current distributions of Linux ship with? If none of them have 2.4, then by all means go with the 2.2 API, but if not, the target group for the first releases probably is not the one that doesn't use the latest Apache.
+
+Or in other words: How many of the 2.2 servers are run in an environment that allows installing your module? Which probably needs a c compiler toolchain installed (you'd avoid that on.production servers).
+
+On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>I have been fiddling with apache module codes lately, and I faced
+>certain
+>difficulties.
+>
+>Statistics says 88.43% of servers using Apache are using apache 2.2
+>currently. So our best best would be to develop mod_csrfprotector as
+>apache
+>2.2 module.
+>
+>A very nice documentation is available on apache site for 2.4 module
+>development, but the problem is most of the api's are new and not
+>compatible with 2.2. I could not find any such documentation for 2.2 if
+>anyone has one in knowledge please point it.
+>
+>bdw, current implementation is available at:
+>https://github.com/mebjas/mod_csrfprotector
+>
+>Minhaz,
+>minhaz.cistoner.org || cistoner.org
+>
+>
+>------------------------------------------------------------------------
+>
+>_______________________________________________
+>Owasp-csrfprotector mailing list
+>Owasp-csrfprotector at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+Mit freundlichen Gr??en
+
+Sven Rautenberg
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140609/2c989fbb/attachment.html>
+
+From minhazav at gmail.com  Mon Jun  9 21:06:14 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 10 Jun 2014 02:36:14 +0530
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+Message-ID: <CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+
+Linux distributions comes with version 2.2, So I guess I shall go with 2.2
+API. But they do not happen to have much documentation for this!
+And about installing the module, apache loads them dynamically. Its as easy
+as place the file in folder and add a line to .conf file!
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+
+> Who is supposed to install the module? Do you think it is likely that
+> users of probably outdated 2.2 versions will be able to install it?
+>
+> Which versions of Apache do the current distributions of Linux ship with?
+> If none of them have 2.4, then by all means go with the 2.2 API, but if
+> not, the target group for the first releases probably is not the one that
+> doesn't use the latest Apache.
+>
+> Or in other words: How many of the 2.2 servers are run in an environment
+> that allows installing your module? Which probably needs a c compiler
+> toolchain installed (you'd avoid that on.production servers).
+>
+> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>
+>>  I have been fiddling with apache module codes lately, and I faced
+>> certain difficulties.
+>>
+>> Statistics says 88.43% of servers using Apache are using apache 2.2
+>> currently. So our best best would be to develop mod_csrfprotector as apache
+>> 2.2 module.
+>>
+>> A very nice documentation is available on apache site for 2.4 module
+>> development, but the problem is most of the api's are new and not
+>> compatible with 2.2. I could not find any such documentation for 2.2 if
+>> anyone has one in knowledge please point it.
+>>
+>> bdw, current implementation is available at:
+>> https://github.com/mebjas/mod_csrfprotector
+>>
+>> Minhaz,
+>> minhaz.cistoner.org || cistoner.org
+>>
+>> ------------------------------
+>>
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+> Mit freundlichen Gr??en
+>
+> Sven Rautenberg
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140610/6f0400bd/attachment.html>
+
+From kevin.w.wall at gmail.com  Mon Jun  9 21:10:30 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Mon, 9 Jun 2014 17:10:30 -0400
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+Message-ID: <CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+
+When is 2.2 targeted for End-of-Life? That's another factor to consider.
+
+-kevin
+Sent from my Droid; please excuse typos.
+On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+
+> Linux distributions comes with version 2.2, So I guess I shall go with 2.2
+> API. But they do not happen to have much documentation for this!
+> And about installing the module, apache loads them dynamically. Its as
+> easy as place the file in folder and add a line to .conf file!
+>
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>
+>
+> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+>
+>> Who is supposed to install the module? Do you think it is likely that
+>> users of probably outdated 2.2 versions will be able to install it?
+>>
+>> Which versions of Apache do the current distributions of Linux ship with?
+>> If none of them have 2.4, then by all means go with the 2.2 API, but if
+>> not, the target group for the first releases probably is not the one that
+>> doesn't use the latest Apache.
+>>
+>> Or in other words: How many of the 2.2 servers are run in an environment
+>> that allows installing your module? Which probably needs a c compiler
+>> toolchain installed (you'd avoid that on.production servers).
+>>
+>> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>>
+>>>  I have been fiddling with apache module codes lately, and I faced
+>>> certain difficulties.
+>>>
+>>> Statistics says 88.43% of servers using Apache are using apache 2.2
+>>> currently. So our best best would be to develop mod_csrfprotector as apache
+>>> 2.2 module.
+>>>
+>>> A very nice documentation is available on apache site for 2.4 module
+>>> development, but the problem is most of the api's are new and not
+>>> compatible with 2.2. I could not find any such documentation for 2.2 if
+>>> anyone has one in knowledge please point it.
+>>>
+>>> bdw, current implementation is available at:
+>>> https://github.com/mebjas/mod_csrfprotector
+>>>
+>>> Minhaz,
+>>> minhaz.cistoner.org || cistoner.org
+>>>
+>>> ------------------------------
+>>>
+>>> Owasp-csrfprotector mailing list
+>>> Owasp-csrfprotector at lists.owasp.org
+>>>
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>
+>>>
+>> Mit freundlichen Gr??en
+>>
+>> Sven Rautenberg
+>>
+>
+>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140609/e9bb9bb2/attachment-0001.html>
+
+From minhazav at gmail.com  Mon Jun  9 21:42:38 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 10 Jun 2014 03:12:38 +0530
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+	<CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+Message-ID: <CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+
+EOL for 2.2 has not yet been declared, but Apache is actively carrying out
+development for 2.2.x versions and 2.4.x versions together
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jun 10, 2014 at 2:40 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> When is 2.2 targeted for End-of-Life? That's another factor to consider.
+>
+> -kevin
+> Sent from my Droid; please excuse typos.
+> On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>
+>>  Linux distributions comes with version 2.2, So I guess I shall go with
+>> 2.2 API. But they do not happen to have much documentation for this!
+>> And about installing the module, apache loads them dynamically. Its as
+>> easy as place the file in folder and add a line to .conf file!
+>>
+>>
+>> Minhaz,
+>> minhaz.cistoner.org || cistoner.org
+>>
+>>
+>> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+>>
+>>> Who is supposed to install the module? Do you think it is likely that
+>>> users of probably outdated 2.2 versions will be able to install it?
+>>>
+>>> Which versions of Apache do the current distributions of Linux ship
+>>> with? If none of them have 2.4, then by all means go with the 2.2 API, but
+>>> if not, the target group for the first releases probably is not the one
+>>> that doesn't use the latest Apache.
+>>>
+>>> Or in other words: How many of the 2.2 servers are run in an environment
+>>> that allows installing your module? Which probably needs a c compiler
+>>> toolchain installed (you'd avoid that on.production servers).
+>>>
+>>> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>>>
+>>>>  I have been fiddling with apache module codes lately, and I faced
+>>>> certain difficulties.
+>>>>
+>>>> Statistics says 88.43% of servers using Apache are using apache 2.2
+>>>> currently. So our best best would be to develop mod_csrfprotector as apache
+>>>> 2.2 module.
+>>>>
+>>>> A very nice documentation is available on apache site for 2.4 module
+>>>> development, but the problem is most of the api's are new and not
+>>>> compatible with 2.2. I could not find any such documentation for 2.2 if
+>>>> anyone has one in knowledge please point it.
+>>>>
+>>>> bdw, current implementation is available at:
+>>>> https://github.com/mebjas/mod_csrfprotector
+>>>>
+>>>> Minhaz,
+>>>> minhaz.cistoner.org || cistoner.org
+>>>>
+>>>> ------------------------------
+>>>>
+>>>> Owasp-csrfprotector mailing list
+>>>> Owasp-csrfprotector at lists.owasp.org
+>>>>
+>>>>
+>>>>
+>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>
+>>>>
+>>> Mit freundlichen Gr??en
+>>>
+>>> Sven Rautenberg
+>>>
+>>
+>>
+>> _______________________________________________
+>>
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140610/68fa07cf/attachment.html>
+
+From kevin.w.wall at gmail.com  Mon Jun  9 21:48:22 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Mon, 9 Jun 2014 17:48:22 -0400
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+	<CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+	<CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+Message-ID: <CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+
+In that case, as much as it pains me to say it, the best choice is almost
+certainly 2.2. Unless you don't care if anyone ever uses it, in which case
+doing only a 2.4 port would be okay.
+
+-kevin
+Sent from my Droid; please excuse typos.
+On Jun 9, 2014 5:42 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+
+> EOL for 2.2 has not yet been declared, but Apache is actively carrying out
+> development for 2.2.x versions and 2.4.x versions together
+>
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>
+>
+> On Tue, Jun 10, 2014 at 2:40 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+> wrote:
+>
+>> When is 2.2 targeted for End-of-Life? That's another factor to consider.
+>>
+>> -kevin
+>> Sent from my Droid; please excuse typos.
+>> On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>>
+>>>  Linux distributions comes with version 2.2, So I guess I shall go with
+>>> 2.2 API. But they do not happen to have much documentation for this!
+>>> And about installing the module, apache loads them dynamically. Its as
+>>> easy as place the file in folder and add a line to .conf file!
+>>>
+>>>
+>>> Minhaz,
+>>> minhaz.cistoner.org || cistoner.org
+>>>
+>>>
+>>> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+>>>
+>>>> Who is supposed to install the module? Do you think it is likely that
+>>>> users of probably outdated 2.2 versions will be able to install it?
+>>>>
+>>>> Which versions of Apache do the current distributions of Linux ship
+>>>> with? If none of them have 2.4, then by all means go with the 2.2 API, but
+>>>> if not, the target group for the first releases probably is not the one
+>>>> that doesn't use the latest Apache.
+>>>>
+>>>> Or in other words: How many of the 2.2 servers are run in an
+>>>> environment that allows installing your module? Which probably needs a c
+>>>> compiler toolchain installed (you'd avoid that on.production servers).
+>>>>
+>>>> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>>>>
+>>>>>  I have been fiddling with apache module codes lately, and I faced
+>>>>> certain difficulties.
+>>>>>
+>>>>> Statistics says 88.43% of servers using Apache are using apache 2.2
+>>>>> currently. So our best best would be to develop mod_csrfprotector as apache
+>>>>> 2.2 module.
+>>>>>
+>>>>> A very nice documentation is available on apache site for 2.4 module
+>>>>> development, but the problem is most of the api's are new and not
+>>>>> compatible with 2.2. I could not find any such documentation for 2.2 if
+>>>>> anyone has one in knowledge please point it.
+>>>>>
+>>>>> bdw, current implementation is available at:
+>>>>> https://github.com/mebjas/mod_csrfprotector
+>>>>>
+>>>>> Minhaz,
+>>>>> minhaz.cistoner.org || cistoner.org
+>>>>>
+>>>>> ------------------------------
+>>>>>
+>>>>> Owasp-csrfprotector mailing list
+>>>>> Owasp-csrfprotector at lists.owasp.org
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>>
+>>>>>
+>>>> Mit freundlichen Gr??en
+>>>>
+>>>> Sven Rautenberg
+>>>>
+>>>
+>>>
+>>> _______________________________________________
+>>>
+>>> Owasp-csrfprotector mailing list
+>>> Owasp-csrfprotector at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>
+>>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140609/6ced6547/attachment.html>
+
+From minhazav at gmail.com  Mon Jun  9 21:51:28 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 10 Jun 2014 03:21:28 +0530
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+	<CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+	<CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+	<CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+Message-ID: <CADCpCkjrtCX9Q0+5orJmSyB6kdDniW86_2pxNvCMxye8WbxhpQ@mail.gmail.com>
+
+so we go for 2.2!
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jun 10, 2014 at 3:18 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> In that case, as much as it pains me to say it, the best choice is almost
+> certainly 2.2. Unless you don't care if anyone ever uses it, in which case
+> doing only a 2.4 port would be okay.
+>
+> -kevin
+> Sent from my Droid; please excuse typos.
+> On Jun 9, 2014 5:42 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>
+>> EOL for 2.2 has not yet been declared, but Apache is actively carrying
+>> out development for 2.2.x versions and 2.4.x versions together
+>>
+>>
+>> Minhaz,
+>> minhaz.cistoner.org || cistoner.org
+>>
+>>
+>> On Tue, Jun 10, 2014 at 2:40 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+>> wrote:
+>>
+>>> When is 2.2 targeted for End-of-Life? That's another factor to consider.
+>>>
+>>> -kevin
+>>> Sent from my Droid; please excuse typos.
+>>> On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>>>
+>>>>  Linux distributions comes with version 2.2, So I guess I shall go
+>>>> with 2.2 API. But they do not happen to have much documentation for this!
+>>>> And about installing the module, apache loads them dynamically. Its as
+>>>> easy as place the file in folder and add a line to .conf file!
+>>>>
+>>>>
+>>>> Minhaz,
+>>>> minhaz.cistoner.org || cistoner.org
+>>>>
+>>>>
+>>>> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+>>>>
+>>>>> Who is supposed to install the module? Do you think it is likely that
+>>>>> users of probably outdated 2.2 versions will be able to install it?
+>>>>>
+>>>>> Which versions of Apache do the current distributions of Linux ship
+>>>>> with? If none of them have 2.4, then by all means go with the 2.2 API, but
+>>>>> if not, the target group for the first releases probably is not the one
+>>>>> that doesn't use the latest Apache.
+>>>>>
+>>>>> Or in other words: How many of the 2.2 servers are run in an
+>>>>> environment that allows installing your module? Which probably needs a c
+>>>>> compiler toolchain installed (you'd avoid that on.production servers).
+>>>>>
+>>>>> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+>>>>>
+>>>>>>  I have been fiddling with apache module codes lately, and I faced
+>>>>>> certain difficulties.
+>>>>>>
+>>>>>> Statistics says 88.43% of servers using Apache are using apache 2.2
+>>>>>> currently. So our best best would be to develop mod_csrfprotector as apache
+>>>>>> 2.2 module.
+>>>>>>
+>>>>>> A very nice documentation is available on apache site for 2.4 module
+>>>>>> development, but the problem is most of the api's are new and not
+>>>>>> compatible with 2.2. I could not find any such documentation for 2.2 if
+>>>>>> anyone has one in knowledge please point it.
+>>>>>>
+>>>>>> bdw, current implementation is available at:
+>>>>>> https://github.com/mebjas/mod_csrfprotector
+>>>>>>
+>>>>>> Minhaz,
+>>>>>> minhaz.cistoner.org || cistoner.org
+>>>>>>
+>>>>>> ------------------------------
+>>>>>>
+>>>>>> Owasp-csrfprotector mailing list
+>>>>>> Owasp-csrfprotector at lists.owasp.org
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>>>
+>>>>>>
+>>>>> Mit freundlichen Gr??en
+>>>>>
+>>>>> Sven Rautenberg
+>>>>>
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>>
+>>>> Owasp-csrfprotector mailing list
+>>>> Owasp-csrfprotector at lists.owasp.org
+>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>
+>>>>
+>>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140610/a9baf43d/attachment-0001.html>
+
+From sven at rtbg.de  Mon Jun  9 21:54:02 2014
+From: sven at rtbg.de (Sven Rautenberg)
+Date: Mon, 09 Jun 2014 23:54:02 +0200
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+	<CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+	<CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+	<CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+Message-ID: <9fe56448-94d1-417c-a594-ddd5151a7dce@email.android.com>
+
+On the other hand, doing a proof of concept implementation first with the easier to handle environment, I.e. better documented 2.4, is also a valid approach. You can always backport it if there is high demand.
+
+On 9. Juni 2014 23:48:22 MESZ, "Kevin W. Wall" <kevin.w.wall at gmail.com> wrote:
+>In that case, as much as it pains me to say it, the best choice is
+>almost
+>certainly 2.2. Unless you don't care if anyone ever uses it, in which
+>case
+>doing only a 2.4 port would be okay.
+>
+>-kevin
+>Sent from my Droid; please excuse typos.
+>On Jun 9, 2014 5:42 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>
+>> EOL for 2.2 has not yet been declared, but Apache is actively
+>carrying out
+>> development for 2.2.x versions and 2.4.x versions together
+>>
+>>
+>> Minhaz,
+>> minhaz.cistoner.org || cistoner.org
+>>
+>>
+>> On Tue, Jun 10, 2014 at 2:40 AM, Kevin W. Wall
+><kevin.w.wall at gmail.com>
+>> wrote:
+>>
+>>> When is 2.2 targeted for End-of-Life? That's another factor to
+>consider.
+>>>
+>>> -kevin
+>>> Sent from my Droid; please excuse typos.
+>>> On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+>>>
+>>>>  Linux distributions comes with version 2.2, So I guess I shall go
+>with
+>>>> 2.2 API. But they do not happen to have much documentation for
+>this!
+>>>> And about installing the module, apache loads them dynamically. Its
+>as
+>>>> easy as place the file in folder and add a line to .conf file!
+>>>>
+>>>>
+>>>> Minhaz,
+>>>> minhaz.cistoner.org || cistoner.org
+>>>>
+>>>>
+>>>> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de>
+>wrote:
+>>>>
+>>>>> Who is supposed to install the module? Do you think it is likely
+>that
+>>>>> users of probably outdated 2.2 versions will be able to install
+>it?
+>>>>>
+>>>>> Which versions of Apache do the current distributions of Linux
+>ship
+>>>>> with? If none of them have 2.4, then by all means go with the 2.2
+>API, but
+>>>>> if not, the target group for the first releases probably is not
+>the one
+>>>>> that doesn't use the latest Apache.
+>>>>>
+>>>>> Or in other words: How many of the 2.2 servers are run in an
+>>>>> environment that allows installing your module? Which probably
+>needs a c
+>>>>> compiler toolchain installed (you'd avoid that on.production
+>servers).
+>>>>>
+>>>>> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com>
+>wrote:
+>>>>>
+>>>>>>  I have been fiddling with apache module codes lately, and I
+>faced
+>>>>>> certain difficulties.
+>>>>>>
+>>>>>> Statistics says 88.43% of servers using Apache are using apache
+>2.2
+>>>>>> currently. So our best best would be to develop mod_csrfprotector
+>as apache
+>>>>>> 2.2 module.
+>>>>>>
+>>>>>> A very nice documentation is available on apache site for 2.4
+>module
+>>>>>> development, but the problem is most of the api's are new and not
+>>>>>> compatible with 2.2. I could not find any such documentation for
+>2.2 if
+>>>>>> anyone has one in knowledge please point it.
+>>>>>>
+>>>>>> bdw, current implementation is available at:
+>>>>>> https://github.com/mebjas/mod_csrfprotector
+>>>>>>
+>>>>>> Minhaz,
+>>>>>> minhaz.cistoner.org || cistoner.org
+>>>>>>
+>>>>>> ------------------------------
+>>>>>>
+>>>>>> Owasp-csrfprotector mailing list
+>>>>>> Owasp-csrfprotector at lists.owasp.org
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>>>
+>>>>>>
+>>>>> Mit freundlichen Gr??en
+>>>>>
+>>>>> Sven Rautenberg
+>>>>>
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>>
+>>>> Owasp-csrfprotector mailing list
+>>>> Owasp-csrfprotector at lists.owasp.org
+>>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>>>
+>>>>
+>>
+
+Mit freundlichen Gr??en
+
+Sven Rautenberg
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140609/5e0c5605/attachment.html>
+
+From abiusx at owasp.org  Mon Jun  9 22:29:06 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Mon, 9 Jun 2014 18:29:06 -0400
+Subject: [Owasp-csrfprotector] mod_csrfprotector need help
+In-Reply-To: <9fe56448-94d1-417c-a594-ddd5151a7dce@email.android.com>
+References: <CADCpCkiwc45kimn8J5dNUXh_vfSMFAuYOf4tRim5cJmdcUxcrA@mail.gmail.com>
+	<50d98431-16e5-4a18-a6dd-dc93bdef6530@email.android.com>
+	<CADCpCkj=9jwAmihYLpHvyOnW2qG3f10+F7P-rA=2AhcMEXseBg@mail.gmail.com>
+	<CAOPE6PjRt6j3CixavtAg1AZhXxRZwPkkrSEJvr+_DqkeVVaB6g@mail.gmail.com>
+	<CADCpCkintCNWmMdfjVxoL+mRvD4m8oenDD6hgEhprbOW53ufRQ@mail.gmail.com>
+	<CAOPE6Pgthmmr8A_vaa0v=2Lb8dyn5Zh-8470QpKH2gvcXv5S+g@mail.gmail.com>
+	<9fe56448-94d1-417c-a594-ddd5151a7dce@email.android.com>
+Message-ID: <B30E0998-EAA3-4713-82E8-24A921D61B8A@owasp.org>
+
+I believe an easier approach is to download an open source available mod for 2.2, and modify the code. Mod_security is a good candidate as it has a nice codebase.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 9, 2014, at 5:54 PM, Sven Rautenberg <sven at rtbg.de> wrote:
+
+> On the other hand, doing a proof of concept implementation first with the easier to handle environment, I.e. better documented 2.4, is also a valid approach. You can always backport it if there is high demand.
+> 
+> On 9. Juni 2014 23:48:22 MESZ, "Kevin W. Wall" <kevin.w.wall at gmail.com> wrote:
+> In that case, as much as it pains me to say it, the best choice is almost certainly 2.2. Unless you don't care if anyone ever uses it, in which case doing only a 2.4 port would be okay.
+> 
+> -kevin
+> Sent from my Droid; please excuse typos.
+> 
+> On Jun 9, 2014 5:42 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+> EOL for 2.2 has not yet been declared, but Apache is actively carrying out development for 2.2.x versions and 2.4.x versions together 
+> 
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> 
+> 
+> On Tue, Jun 10, 2014 at 2:40 AM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+> When is 2.2 targeted for End-of-Life? That's another factor to consider.
+> 
+> -kevin
+> Sent from my Droid; please excuse typos.
+> 
+> On Jun 9, 2014 5:06 PM, "Minhaz A V" <minhazav at gmail.com> wrote:
+> Linux distributions comes with version 2.2, So I guess I shall go with 2.2 API. But they do not happen to have much documentation for this!
+> And about installing the module, apache loads them dynamically. Its as easy as place the file in folder and add a line to .conf file!
+> 
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> 
+> 
+> On Tue, Jun 10, 2014 at 2:09 AM, Sven Rautenberg <sven at rtbg.de> wrote:
+> Who is supposed to install the module? Do you think it is likely that users of probably outdated 2.2 versions will be able to install it?
+> 
+> Which versions of Apache do the current distributions of Linux ship with? If none of them have 2.4, then by all means go with the 2.2 API, but if not, the target group for the first releases probably is not the one that doesn't use the latest Apache.
+> 
+> Or in other words: How many of the 2.2 servers are run in an environment that allows installing your module? Which probably needs a c compiler toolchain installed (you'd avoid that on.production servers).
+> 
+> On 9. Juni 2014 22:01:44 MESZ, Minhaz A V <minhazav at gmail.com> wrote:
+> I have been fiddling with apache module codes lately, and I faced certain difficulties.
+> 
+> Statistics says 88.43% of servers using Apache are using apache 2.2 currently. So our best best would be to develop mod_csrfprotector as apache 2.2 module.
+> 
+> A very nice documentation is available on apache site for 2.4 module development, but the problem is most of the api's are new and not compatible with 2.2. I could not find any such documentation for 2.2 if anyone has one in knowledge please point it. 
+> 
+> bdw, current implementation is available at: https://github.com/mebjas/mod_csrfprotector
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> 
+> 
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> 
+> 
+> 
+> 
+> 
+> 
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+> 
+> Mit freundlichen Gr??en
+> 
+> Sven Rautenberg
+> 
+> 
+> _______________________________________________
+> 
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+> 
+> 
+> 
+> Mit freundlichen Gr??en
+> 
+> Sven Rautenberg
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140609/5a3322ba/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jun 13 18:52:48 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Sat, 14 Jun 2014 00:22:48 +0530
+Subject: [Owasp-csrfprotector] mod_csrfprotector project updates
+Message-ID: <CADCpCkj3a1jpieQ5CAc_sRpDipYeotBmZXyFEPMGhoFRrW0DaA@mail.gmail.com>
+
+Code Repo: https://github.com/mebjas/mod_csrfprotector
+The implementation of the project has been started for apache 2.2 and
+source code is available at:
+https://github.com/mebjas/mod_csrfprotector/blob/master/apache%202.2/src/mod_csrfprotector.c
+
+A very basic LLD document for the project is maintained at:
+https://docs.google.com/document/d/17Bt_1ehNHGmUjWfBbnRcfo5X6n7TgezwTldFk3sYpjU/
+
+Currently I have implemented it as content generator so that I can fiddle
+with it, I shall soon turn it into input - output filter, so that it can
+parse input header and filter o/p accordingly.
+
+The current random function I have used is very weak, [ link
+<https://github.com/mebjas/mod_csrfprotector/blob/master/apache%202.2/src/mod_csrfprotector.c#L98>
+], and I have temporarily implemented it. I'd like to know your views on
+implementation of random function in c.
+
+
+Thanks
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140614/7cab6f87/attachment.html>
+
+From minhazav at gmail.com  Thu Jun 19 22:52:01 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 20 Jun 2014 04:22:01 +0530
+Subject: [Owasp-csrfprotector] chunked encoding help
+Message-ID: <CADCpCkh9ci-7-AMDZ79bRCHsoq1HV+Eq9NV41-w=2fOfLe27pQ@mail.gmail.com>
+
+Hi,
+I was working on output filter of mod_csrfprotector, when I faced this
+issue. Since we modify (or inject scripts) to output generated by content
+generators like php, we need to modify the Content-Length header. Other
+option is to set the transfer-Encoding to chunked.
+
+I was thinking why do we need to send output in non-chunked manner (with
+fixed Content-Type header) when it can be dynamically received by the
+clients? Is there any drawback in *chunked transfer encoding*? or shall I
+send every o/p in chunked manner?
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140620/96fba582/attachment.html>
+
+From abiusx at owasp.org  Fri Jun 20 01:05:15 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Thu, 19 Jun 2014 21:05:15 -0400
+Subject: [Owasp-csrfprotector] chunked encoding help
+In-Reply-To: <CADCpCkh9ci-7-AMDZ79bRCHsoq1HV+Eq9NV41-w=2fOfLe27pQ@mail.gmail.com>
+References: <CADCpCkh9ci-7-AMDZ79bRCHsoq1HV+Eq9NV41-w=2fOfLe27pQ@mail.gmail.com>
+Message-ID: <335FCF03-EA17-4129-9BA6-F5E91217A71D@owasp.org>
+
+There are many many drawbacks to chunked encoding. It should be prevented unless really necessary.
+-A
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 19, 2014, at 6:52 PM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> Hi,
+> I was working on output filter of mod_csrfprotector, when I faced this issue. Since we modify (or inject scripts) to output generated by content generators like php, we need to modify the Content-Length header. Other option is to set the transfer-Encoding to chunked.
+> 
+> I was thinking why do we need to send output in non-chunked manner (with fixed Content-Type header) when it can be dynamically received by the clients? Is there any drawback in chunked transfer encoding? or shall I send every o/p in chunked manner?
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140619/ddc28c60/attachment.html>
+
+From kevin.w.wall at gmail.com  Fri Jun 20 05:12:36 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Fri, 20 Jun 2014 01:12:36 -0400
+Subject: [Owasp-csrfprotector] chunked encoding help
+In-Reply-To: <335FCF03-EA17-4129-9BA6-F5E91217A71D@owasp.org>
+References: <CADCpCkh9ci-7-AMDZ79bRCHsoq1HV+Eq9NV41-w=2fOfLe27pQ@mail.gmail.com>
+	<335FCF03-EA17-4129-9BA6-F5E91217A71D@owasp.org>
+Message-ID: <CAOPE6Pj6FnNxfBH7SZHDrtgRo9KkJ+Tk2iu4Vg=rHjVtxhcXqg@mail.gmail.com>
+
+[Pardon my rearrangement, but I hate top-posting even though I am
+occasionally guilty of it.]
+
+On Thu, Jun 19, 2014 at 9:05 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+> On Jun 19, 2014, at 6:52 PM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+>> Hi,
+>> I was working on output filter of mod_csrfprotector, when I faced this
+>> issue. Since we modify (or inject scripts) to output generated by content
+>> generators like php, we need to modify the Content-Length header. Other
+>> option is to set the transfer-Encoding to chunked.
+>>
+>> I was thinking why do we need to send output in non-chunked manner (with
+>> fixed Content-Type header) when it can be dynamically received by the
+>> clients? Is there any drawback in chunked transfer encoding? or shall I
+>> send every o/p in chunked manner?
+>
+> There are many many drawbacks to chunked encoding. It should be prevented
+> unless really necessary.
+> -A
+
+I agree with Abbas that you should not use 'chunked' Transfer-Encoding
+if you don't really have to. Just recompute and reset the Content-Length
+header as required.
+
+However, being that you are sitting as a proxy, between client and application
+server, if the application server passes back a response with where the
+Transfer-Encoding header is 'chunked' you are going to have to handle it.
+I don't think we can safely punt on that one. So perhaps that was not
+what you originally meant, but I don't see any other way around it other
+than staying that if you want to use mod_csrfprotector that chunked
+encoding responses have to be disabled in your application server. And
+while that is an option, it may also be a showstopper for many.
+
+-kevin
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From abiusx at owasp.org  Fri Jun 20 05:14:09 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Fri, 20 Jun 2014 01:14:09 -0400
+Subject: [Owasp-csrfprotector] chunked encoding help
+In-Reply-To: <CAOPE6Pj6FnNxfBH7SZHDrtgRo9KkJ+Tk2iu4Vg=rHjVtxhcXqg@mail.gmail.com>
+References: <CADCpCkh9ci-7-AMDZ79bRCHsoq1HV+Eq9NV41-w=2fOfLe27pQ@mail.gmail.com>
+	<335FCF03-EA17-4129-9BA6-F5E91217A71D@owasp.org>
+	<CAOPE6Pj6FnNxfBH7SZHDrtgRo9KkJ+Tk2iu4Vg=rHjVtxhcXqg@mail.gmail.com>
+Message-ID: <6F1D252D-8F27-4709-9F20-C65C678E99A6@owasp.org>
+
+I believe Apache will handle most of this hassle. Why use an apache mod otherwise!?
+
+______________________________________________________________
+Notice: This message is digitally signed, its source and integrity are verifiable.
+If you mail client does not support S/MIME verification, it will display a file (smime.p7s), which includes the X.509 certificate and the signature body.  Read more at Certified E-Mail with Comodo and Thunderbird in AbiusX.com
+
+On Jun 20, 2014, at 1:12 AM, Kevin W. Wall <kevin.w.wall at gmail.com> wrote:
+
+> [Pardon my rearrangement, but I hate top-posting even though I am
+> occasionally guilty of it.]
+> 
+> On Thu, Jun 19, 2014 at 9:05 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+>> On Jun 19, 2014, at 6:52 PM, Minhaz A V <minhazav at gmail.com> wrote:
+>> 
+>>> Hi,
+>>> I was working on output filter of mod_csrfprotector, when I faced this
+>>> issue. Since we modify (or inject scripts) to output generated by content
+>>> generators like php, we need to modify the Content-Length header. Other
+>>> option is to set the transfer-Encoding to chunked.
+>>> 
+>>> I was thinking why do we need to send output in non-chunked manner (with
+>>> fixed Content-Type header) when it can be dynamically received by the
+>>> clients? Is there any drawback in chunked transfer encoding? or shall I
+>>> send every o/p in chunked manner?
+>> 
+>> There are many many drawbacks to chunked encoding. It should be prevented
+>> unless really necessary.
+>> -A
+> 
+> I agree with Abbas that you should not use 'chunked' Transfer-Encoding
+> if you don't really have to. Just recompute and reset the Content-Length
+> header as required.
+> 
+> However, being that you are sitting as a proxy, between client and application
+> server, if the application server passes back a response with where the
+> Transfer-Encoding header is 'chunked' you are going to have to handle it.
+> I don't think we can safely punt on that one. So perhaps that was not
+> what you originally meant, but I don't see any other way around it other
+> than staying that if you want to use mod_csrfprotector that chunked
+> encoding responses have to be disabled in your application server. And
+> while that is an option, it may also be a showstopper for many.
+> 
+> -kevin
+> -- 
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140620/cab6f509/attachment-0001.html>
+
+From minhazav at gmail.com  Fri Jun 20 15:23:44 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Fri, 20 Jun 2014 20:53:44 +0530
+Subject: [Owasp-csrfprotector] Status information before Project meet at
+	10pm EDT
+Message-ID: <CADCpCkgNt5KLVfdf-BfptHzZePvFnWh9TZ+oMvbbocOrYzzmEw@mail.gmail.com>
+
+Hi,
+Here's list of things that has been accomplished since last meeting (last
+friday 10pm EDT)
+
+1. Input filter parses incoming header, checks for POST data, validates and
+take appropriate action as per configuration.
+2. output filter parses the output, if text/html appends <noscript> data
+and <script> data to output.
+
+Here's link to one working version of mod_csrfprotector which validates
+POST request and modify output (doesn't send a cookie token: thats left):
+https://github.com/mebjas/mod_csrfprotector/blob/master/apache%202.2/build/mod_csrfprotector.so
+(works
+for apache 2.2, tested in ubuntu 13.04)
+
+I'd like advice on what algorithm should be used for generating tokens? I
+have currently used one as basic as this
+<https://github.com/mebjas/mod_csrfprotector/blob/master/apache%202.2/src/mod_csrfprotector.c#L245>
+
+I have maintained a todo list here
+<https://github.com/mebjas/mod_csrfprotector/issues/1> (incase link not
+available: https://github.com/mebjas/mod_csrfprotector/issues/1)
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140620/ae8895b3/attachment.html>
+
+From minhazav at gmail.com  Tue Jun 24 11:45:46 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 24 Jun 2014 17:15:46 +0530
+Subject: [Owasp-csrfprotector] Project wiki created
+Message-ID: <CADCpCkiOScVbw6UXoBNet29+636zdP8p-k29JKkT-EDHeuiZKw@mail.gmail.com>
+
+Hi,
+I have created a project wiki @owasp.org
+url: https://www.owasp.org/index.php/CSRFProtector_Project
+
+I have added few things, and lots still left to add.
+
+I'd like to know which is better place to maintain documentation:
+1. owasp.org
+2. github wiki
+3. --other--
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140624/aad45e41/attachment.html>
+
+From kevin.w.wall at gmail.com  Wed Jun 25 00:44:43 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Tue, 24 Jun 2014 20:44:43 -0400
+Subject: [Owasp-csrfprotector] Project wiki created
+In-Reply-To: <CADCpCkiOScVbw6UXoBNet29+636zdP8p-k29JKkT-EDHeuiZKw@mail.gmail.com>
+References: <CADCpCkiOScVbw6UXoBNet29+636zdP8p-k29JKkT-EDHeuiZKw@mail.gmail.com>
+Message-ID: <CAOPE6PhzS5MdibyMLP6S7qdq=r5isYH=2MTU5u8dzxJp2wB3Ug@mail.gmail.com>
+
+Where is it easier for YOU to maintain it? That what you should choose.
+It is easy enough for the one to just have a reference to the other.
+
+-kevin
+
+On Tue, Jun 24, 2014 at 7:45 AM, Minhaz A V <minhazav at gmail.com> wrote:
+> Hi,
+> I have created a project wiki @owasp.org
+> url: https://www.owasp.org/index.php/CSRFProtector_Project
+>
+> I have added few things, and lots still left to add.
+>
+> I'd like to know which is better place to maintain documentation:
+> 1. owasp.org
+> 2. github wiki
+> 3. --other--
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+
+
+
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+
+From minhazav at gmail.com  Wed Jun 25 19:17:05 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Thu, 26 Jun 2014 00:47:05 +0530
+Subject: [Owasp-csrfprotector] Project wiki created
+In-Reply-To: <CAOPE6PhzS5MdibyMLP6S7qdq=r5isYH=2MTU5u8dzxJp2wB3Ug@mail.gmail.com>
+References: <CADCpCkiOScVbw6UXoBNet29+636zdP8p-k29JKkT-EDHeuiZKw@mail.gmail.com>
+	<CAOPE6PhzS5MdibyMLP6S7qdq=r5isYH=2MTU5u8dzxJp2wB3Ug@mail.gmail.com>
+Message-ID: <CADCpCkhR6zgicX0S7QdVZRSw3FKtBAZCNNou6eeCRVC7zCzfvA@mail.gmail.com>
+
+In that case I shall go with github wiki, Thanks!
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Wed, Jun 25, 2014 at 6:14 AM, Kevin W. Wall <kevin.w.wall at gmail.com>
+wrote:
+
+> Where is it easier for YOU to maintain it? That what you should choose.
+> It is easy enough for the one to just have a reference to the other.
+>
+> -kevin
+>
+> On Tue, Jun 24, 2014 at 7:45 AM, Minhaz A V <minhazav at gmail.com> wrote:
+> > Hi,
+> > I have created a project wiki @owasp.org
+> > url: https://www.owasp.org/index.php/CSRFProtector_Project
+> >
+> > I have added few things, and lots still left to add.
+> >
+> > I'd like to know which is better place to maintain documentation:
+> > 1. owasp.org
+> > 2. github wiki
+> > 3. --other--
+> >
+> > Minhaz,
+> > minhaz.cistoner.org || cistoner.org
+> >
+> > _______________________________________________
+> > Owasp-csrfprotector mailing list
+> > Owasp-csrfprotector at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+> >
+>
+>
+>
+> --
+> Blog: http://off-the-wall-security.blogspot.com/
+> NSA: All your crypto bit are belong to us.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140626/566eeb8e/attachment.html>
+
+From minhazav at gmail.com  Mon Jun 30 21:08:41 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 1 Jul 2014 02:38:41 +0530
+Subject: [Owasp-csrfprotector] problem with js caching
+Message-ID: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+
+Hi,
+The problem with js file caching is we need to know both the absolute and
+relative (relative to library file's location) for this. Since the logic is
+to create a new version only when config file is newer than the js file. To
+get file last modified information we need to know the relative path), also
+for creating the js file we need to know the relative path.
+
+On the other hand, the js file link needed to be appended to the html
+output has to be absolute, or relative to the executing script (and library
+doesn't know the location of executing script relative to itself I
+believe). So this requires the library have both the absolute location of
+js file and its location relative to itself as well!
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140701/89a18de4/attachment.html>
+
+From abiusx at owasp.org  Mon Jun 30 21:22:05 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Mon, 30 Jun 2014 17:22:05 -0400
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+Message-ID: <D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+
+If you need a separate js file, you can have those two addresses (not relative and absolute, but path and url) in the config file as well.
+Otherwise you can just serve it as a string inside the php file. This is generally a better idea, to have the developer set a url in the config file as well as a writable path. If its not writable, forget caching and just dump it inline every time.
+-A
+On Jun 30, 2014, at 5:08 PM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> Hi,
+> The problem with js file caching is we need to know both the absolute and relative (relative to library file's location) for this. Since the logic is to create a new version only when config file is newer than the js file. To get file last modified information we need to know the relative path), also for creating the js file we need to know the relative path.
+> 
+> On the other hand, the js file link needed to be appended to the html output has to be absolute, or relative to the executing script (and library doesn't know the location of executing script relative to itself I believe). So this requires the library have both the absolute location of js file and its location relative to itself as well!
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140630/977467ad/attachment.html>
+
+From minhazav at gmail.com  Mon Jun 30 21:25:10 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 1 Jul 2014 02:55:10 +0530
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+	<D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+Message-ID: <CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+
+No I think its much better to keep path and url in config and cache js
+rather than, inline scripts. Thanks :)
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jul 1, 2014 at 2:52 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+> If you need a separate js file, you can have those two addresses (not
+> relative and absolute, but path and url) in the config file as well.
+> Otherwise you can just serve it as a string inside the php file. This is
+> generally a better idea, to have the developer set a url in the config file
+> as well as a writable path. If its not writable, forget caching and just
+> dump it inline every time.
+> -A
+> On Jun 30, 2014, at 5:08 PM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+> Hi,
+> The problem with js file caching is we need to know both the absolute and
+> relative (relative to library file's location) for this. Since the logic is
+> to create a new version only when config file is newer than the js file. To
+> get file last modified information we need to know the relative path), also
+> for creating the js file we need to know the relative path.
+>
+> On the other hand, the js file link needed to be appended to the html
+> output has to be absolute, or relative to the executing script (and library
+> doesn't know the location of executing script relative to itself I
+> believe). So this requires the library have both the absolute location of
+> js file and its location relative to itself as well!
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>  _______________________________________________
+> Owasp-csrfprotector mailing list
+> Owasp-csrfprotector at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140701/ba79c108/attachment.html>
+
+From abiusx at owasp.org  Mon Jun 30 21:26:17 2014
+From: abiusx at owasp.org (Abbas Naderi)
+Date: Mon, 30 Jun 2014 17:26:17 -0400
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+	<D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+	<CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+Message-ID: <FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+
+But you need the path to be writable to be able to cache. You have to check if you can overwrite the js file anyway, and if you can?t, serve it inline.
+-A
+On Jun 30, 2014, at 5:25 PM, Minhaz A V <minhazav at gmail.com> wrote:
+
+> No I think its much better to keep path and url in config and cache js rather than, inline scripts. Thanks :)
+> 
+> 
+> Minhaz, 
+> minhaz.cistoner.org || cistoner.org
+> 
+> 
+> On Tue, Jul 1, 2014 at 2:52 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+> If you need a separate js file, you can have those two addresses (not relative and absolute, but path and url) in the config file as well.
+> Otherwise you can just serve it as a string inside the php file. This is generally a better idea, to have the developer set a url in the config file as well as a writable path. If its not writable, forget caching and just dump it inline every time.
+> -A
+> On Jun 30, 2014, at 5:08 PM, Minhaz A V <minhazav at gmail.com> wrote:
+> 
+>> Hi,
+>> The problem with js file caching is we need to know both the absolute and relative (relative to library file's location) for this. Since the logic is to create a new version only when config file is newer than the js file. To get file last modified information we need to know the relative path), also for creating the js file we need to know the relative path.
+>> 
+>> On the other hand, the js file link needed to be appended to the html output has to be absolute, or relative to the executing script (and library doesn't know the location of executing script relative to itself I believe). So this requires the library have both the absolute location of js file and its location relative to itself as well!
+>> 
+>> Minhaz, 
+>> minhaz.cistoner.org || cistoner.org
+>> _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+> 
+> 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140630/b9849bed/attachment.html>
+
+From minhazav at gmail.com  Mon Jun 30 21:27:37 2014
+From: minhazav at gmail.com (Minhaz A V)
+Date: Tue, 1 Jul 2014 02:57:37 +0530
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+	<D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+	<CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+	<FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+Message-ID: <CADCpCkhT7Ltsh4fh2h=CAy0P-or_i8KxNZHegnqmrL=s+=bHDg@mail.gmail.com>
+
+yeah I'll take care of that
+
+
+Minhaz,
+minhaz.cistoner.org || cistoner.org
+
+
+On Tue, Jul 1, 2014 at 2:56 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+
+> But you need the path to be writable to be able to cache. You have to
+> check if you can overwrite the js file anyway, and if you can?t, serve it
+> inline.
+> -A
+>
+> On Jun 30, 2014, at 5:25 PM, Minhaz A V <minhazav at gmail.com> wrote:
+>
+> No I think its much better to keep path and url in config and cache js
+> rather than, inline scripts. Thanks :)
+>
+>
+> Minhaz,
+> minhaz.cistoner.org || cistoner.org
+>
+>
+> On Tue, Jul 1, 2014 at 2:52 AM, Abbas Naderi <abiusx at owasp.org> wrote:
+>
+>> If you need a separate js file, you can have those two addresses (not
+>> relative and absolute, but path and url) in the config file as well.
+>> Otherwise you can just serve it as a string inside the php file. This is
+>> generally a better idea, to have the developer set a url in the config file
+>> as well as a writable path. If its not writable, forget caching and just
+>> dump it inline every time.
+>> -A
+>> On Jun 30, 2014, at 5:08 PM, Minhaz A V <minhazav at gmail.com> wrote:
+>>
+>> Hi,
+>> The problem with js file caching is we need to know both the absolute and
+>> relative (relative to library file's location) for this. Since the logic is
+>> to create a new version only when config file is newer than the js file. To
+>> get file last modified information we need to know the relative path), also
+>> for creating the js file we need to know the relative path.
+>>
+>> On the other hand, the js file link needed to be appended to the html
+>> output has to be absolute, or relative to the executing script (and library
+>> doesn't know the location of executing script relative to itself I
+>> believe). So this requires the library have both the absolute location of
+>> js file and its location relative to itself as well!
+>>
+>> Minhaz,
+>> minhaz.cistoner.org || cistoner.org
+>>  _______________________________________________
+>> Owasp-csrfprotector mailing list
+>> Owasp-csrfprotector at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfprotector
+>>
+>>
+>>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfprotector/attachments/20140701/88c39057/attachment-0001.html>
+
+From kevin.w.wall at gmail.com  Mon Jun 30 23:50:14 2014
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Mon, 30 Jun 2014 19:50:14 -0400
+Subject: [Owasp-csrfprotector] problem with js caching
+In-Reply-To: <FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+References: <CADCpCkictjVGOMC8mqk_O8O6U1wjbr1UwcYPyHT9o8=3a9N27Q@mail.gmail.com>
+	<D4123D40-D679-4FB0-B89D-50AAFA1B741E@owasp.org>
+	<CADCpCkgCp_wELOjKWPHTB0naVbD2WvZOMPfZumjhbYSpaD3uMA@mail.gmail.com>
+	<FE0CEC6D-0776-4B2B-8EE9-0193813DD77E@owasp.org>
+Message-ID: <CAOPE6PiG_9QXXdErnQ8Tgni39OVbzivfEfH-H5YXcV5uuE_jjA@mail.gmail.com>
+
+On Mon, Jun 30, 2014 at 5:26 PM, Abbas Naderi <abiusx at owasp.org> wrote:
+> But you need the path to be writable to be able to cache. You have to check
+> if you can overwrite the js file anyway, and if you can?t, serve it inline.
+> -A
+
+I'm confused. Why would he need to *overwrite* the .js file when the config
+file is changed?  Or you are just referring to him updating the file's
+modification
+timestamp (which the simplest way is to write 0 bytes to the file) so that a
+HEAD request by the browser re-fetches the file instead of pulling it from
+cache?  And if he is going to do that, surely he doesn't have to do it for
+ALL changes to the configuration. E.g., if something is updated to add
+a URL to include for GET requests or exclude for POSTs or whatever,
+that wouldn't require changing the .js file. So it's only cases where
+a new .js file is provided and the web-application is restarted where
+it would matter. Or am I missing something? And generally, if
+the web server is restarted, aren't client browser sessions typically
+going to be dropped anyway? (Maybe not in a clustered application
+environment where you use shared session state rather than sticky
+sessions and only restart only one application server at a time.)
+
+Seems to me that this (changing anything that is requires a new
+.js file to be downloaded by a client with an existing session state
+will be a seldom used edge use case. So in the interest of simplicity,
+can't we just ignore this case and say that if you want to support
+it you need to completely restart your web / application server (or
+cluster of servers)? That is, treat it as if you are doing a new deployment.
+
+I mean, do you REALLY anticipate the need for the .js file contents to
+change all all often. I thought this was going to be a set-it-once and
+forget it type of thing.
+
+-kevin
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+NSA: All your crypto bit are belong to us.
+

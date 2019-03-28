@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20A%20Recommended%20Base%0A%20Configuration%20-%20SecResponseBodyAccess&In-Reply-To=C9C87CF6.1E3BF%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000701.html">
+   <LINK REL="Next"  HREF="000690.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess</H1>
+    <B>christian.folini at post.ch</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20A%20Recommended%20Base%0A%20Configuration%20-%20SecResponseBodyAccess&In-Reply-To=C9C87CF6.1E3BF%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess">christian.folini at post.ch
+       </A><BR>
+    <I>Tue Apr 12 08:42:23 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000701.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess
+</A></li>
+        <LI>Next message: <A HREF="000690.html">[Owasp-modsecurity-core-rule-set] Fwd: A Recommended Base Configuration - SecRuleEngine
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#703">[ date ]</a>
+              <a href="thread.html#703">[ thread ]</a>
+              <a href="subject.html#703">[ subject ]</a>
+              <a href="author.html#703">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan, 
+
+You are right, that SecResponseBodyMimeType saves the day in a lot of the cases.
+But there are these huge html responses in business applications that bug me from
+time to time - actually the response looks a lot like a leakage.
+
+Still, I think you are right and there is a safe ground for a reasonable default.
+
+Regs,
+
+Christian
+
+-----Urspr&#252;ngliche Nachricht-----
+Von: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>] 
+Gesendet: Montag, 11. April 2011 15:58
+An: Folini Christian, IT222 extern; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Betreff: Re: [Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess
+
+
+On 4/11/11 2:48 AM, &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at post.ch</A>&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at post.ch</A>&gt;
+wrote:
+
+&gt;<i>Hi Ryan,
+</I>&gt;<i>
+</I>&gt;<i>You are right that SecResponseBodyAccess invites for a debate.
+</I>
+I figured ;)
+
+&gt;<i>
+</I>&gt;<i>In the discussion about the SecRuleEngine setting you took the hat of the
+</I>&gt;<i>business people who do not want the WAF to interfere with the legit
+</I>&gt;<i>traffic.
+</I>&gt;<i>However, this can happen here when you have large downloads on the
+</I>&gt;<i>website. A lot of corporate websites have a few presentations, pdf
+</I>&gt;<i>reports,
+</I>&gt;<i>way too large images or even a video or two. This is all slowed down very
+</I>&gt;<i>much and if you have a lot of these, then the whole
+</I>&gt;<i>webserver / reverse proxy can be affected. It gets a lot worse when you
+</I>&gt;<i>have a B2B application with legitimate queries, that return
+</I>&gt;<i>80MB responses... I have seen a surprisingly big number of these
+</I>&gt;<i>applications.
+</I>
+True, however don't forget about the SecResponseBodyMimeType directive -
+
+       SecResponseBodyMimeType text/plain text/html text/xml
+
+
+This should restrict ModSecurity's response body inspect to only these 3
+text-based content-types.  This means that, if your app is setting proper
+Content-Type response headers, ModSecurity will not inspect these large
+media-type files (PDFs, videos, etc...)
+
+&gt;<i>
+</I>&gt;<i>If you have some experience, then you know how to deal with this. But as
+</I>&gt;<i>this is the default setting, you need to think hard.
+</I>&gt;<i>
+</I>&gt;<i>I guess one can come to a reasonable compromise with SecResponseBodyLimit
+</I>&gt;<i>and SecResponseBodyLimitAction, but I worry
+</I>&gt;<i>if users will understand the level of protection they get: You would set
+</I>&gt;<i>the BodyAccess to on but then limit the effect afterwards.
+</I>
+We are trying to have the best middle-ground for the default config.  If
+you set Response Body monitoring to off, then you may miss some critical
+errors/leakages.  If you set it On, then there was a chance that you might
+deny legitimate large pages.  The latter is currently mitigated by the
+combination of two other Recommended Base Config settings -
+
+1) SecRuleEngine DetectionOnly - when this is set,
+SecResponseBodyLimitAction is automatically set to ProcessPartial
+2) SecResponseBodyLimitAction ProcessPartial
+
+With these two settings in the base config, large response bodies will not
+be blocked so we should do some inspection.
+
+-Ryan
+
+&gt;<i>
+</I>&gt;<i>Best,
+</I>&gt;<i>
+</I>&gt;<i>Christian
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000701.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration - SecResponseBodyAccess
+</A></li>
+	<LI>Next message: <A HREF="000690.html">[Owasp-modsecurity-core-rule-set] Fwd: A Recommended Base Configuration - SecRuleEngine
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#703">[ date ]</a>
+              <a href="thread.html#703">[ thread ]</a>
+              <a href="subject.html#703">[ subject ]</a>
+              <a href="author.html#703">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

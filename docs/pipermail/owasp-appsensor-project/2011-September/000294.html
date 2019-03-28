@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] AppSensorServiceController in a distributed environment
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20AppSensorServiceController%20in%20a%0A%20distributed%20environment&In-Reply-To=CAM8z%3Dy%2BUHtYSH1G59OSrce3EMno%3DUn_cwZT1NMcVacv3qcmVDw%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000290.html">
+   <LINK REL="Next"  HREF="000293.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] AppSensorServiceController in a distributed environment</H1>
+    <B>John Melton</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20AppSensorServiceController%20in%20a%0A%20distributed%20environment&In-Reply-To=CAM8z%3Dy%2BUHtYSH1G59OSrce3EMno%3DUn_cwZT1NMcVacv3qcmVDw%40mail.gmail.com"
+       TITLE="[Owasp-appsensor-project] AppSensorServiceController in a distributed environment">jtmelton at gmail.com
+       </A><BR>
+    <I>Wed Sep 14 11:08:09 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000290.html">[Owasp-appsensor-project] AppSensorServiceController in a distributed environment
+</A></li>
+        <LI>Next message: <A HREF="000293.html">[Owasp-appsensor-project] CrossTalk - Creating Attack-Aware Software Applications with Real-Time Defenses
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#294">[ date ]</a>
+              <a href="thread.html#294">[ thread ]</a>
+              <a href="subject.html#294">[ subject ]</a>
+              <a href="author.html#294">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>All,
+Just a quick note that version 0.1.3.5 finally got pushed to maven central
+(some server issues at sonatype apparently). I applied Luke's changes to add
+support for a configurable service store and close issue 9. (Thanks Luke! -
+pointing out bugs is awesome, patches are golden) Issue 8 still exists, but
+is probably gonna take a bit longer to fix.
+Thanks,
+John
+
+On Tue, Sep 6, 2011 at 9:59 PM, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+
+&gt;<i> Michael,
+</I>&gt;<i> No way you would've known this, but Luke and I have worked together
+</I>&gt;<i> offline, and he even was kind enough to send in some patches to apply this
+</I>&gt;<i> concept. You should see a note from me in a few days about applying his
+</I>&gt;<i> patches to add this new functionality.
+</I>&gt;<i> Thanks,
+</I>&gt;<i> John
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Sep 6, 2011 at 9:30 PM, Michael Coates &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">michael.coates at owasp.org</A>&gt;wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> John M,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Your thoughts? I defer to you on the specifics of the code base.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Luke,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Great to hear that its working so well for you. I'd really love to get
+</I>&gt;&gt;<i> some information on how AppSensor is being used in your application. I think
+</I>&gt;&gt;<i> our project could really benefit from a few &quot;real life&quot; testimonials.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Michael Coates
+</I>&gt;&gt;<i> OWASP
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sep 2, 2011, at 6:54 AM, Luke Biddell wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt; Chaps,
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I'm plumbing in AppSensor and currently switching out elements (such as
+</I>&gt;&gt;<i> the IntrusionStore) for more persistent implementations (eg a
+</I>&gt;&gt;<i> MembaseIntrusionStore etc).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; The only place I've come unstuck is the AppSensorServiceController
+</I>&gt;&gt;<i> implementation that's used behind AppSensorRequestBlockingFilter. The
+</I>&gt;&gt;<i> service and perUser service stores are static Hashtables, ideally I'd switch
+</I>&gt;&gt;<i> those out for MemBase or whatever so they don't just apply to the current
+</I>&gt;&gt;<i> node, they apply across all distributed nodes. But I can't see how without
+</I>&gt;&gt;<i> writing my own filter, service controller and response actions. The code
+</I>&gt;&gt;<i> would largely be a clone or your defaults, give or take, which seems a shame
+</I>&gt;&gt;<i> when it's so close. This would be made easier if some of the action methods
+</I>&gt;&gt;<i> in DefaultResponseAction were protected; then I could just override the
+</I>&gt;&gt;<i> disableComponent* methods and wire them into my service controller and
+</I>&gt;&gt;<i> filter.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Perhaps an AppSensorServiceStore in a similar pattern to the
+</I>&gt;&gt;<i> IntrustionStore could be employed? Then I could use it pretty much as is.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Luke
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; PS  - thanks for a great product, it integrates pretty well into Jersey
+</I>&gt;&gt;<i> JAX-RS using a custom ExceptionMapper.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Owasp-appsensor-project mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110914/da66354b/attachment.html">https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110914/da66354b/attachment.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000290.html">[Owasp-appsensor-project] AppSensorServiceController in a distributed environment
+</A></li>
+	<LI>Next message: <A HREF="000293.html">[Owasp-appsensor-project] CrossTalk - Creating Attack-Aware Software Applications with Real-Time Defenses
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#294">[ date ]</a>
+              <a href="thread.html#294">[ thread ]</a>
+              <a href="subject.html#294">[ subject ]</a>
+              <a href="author.html#294">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

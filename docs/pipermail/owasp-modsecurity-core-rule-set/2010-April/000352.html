@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ModSec%20%2B%20Squid%20/%20SquidGuard&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000353.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard</H1>
+    <B>Arthur Dent</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ModSec%20%2B%20Squid%20/%20SquidGuard&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard">misc.lists at blueyonder.co.uk
+       </A><BR>
+    <I>Wed Apr  7 08:15:36 EDT 2010</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000353.html">[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#352">[ date ]</a>
+              <a href="thread.html#352">[ thread ]</a>
+              <a href="subject.html#352">[ subject ]</a>
+              <a href="author.html#352">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello all,
+
+I use SquidGuard on my small family network to protect my kids while
+surfing. This relies on squid, a web-proxy running together with the
+apache web-server.
+
+When my kids visit a site on squidGuard's banned list it blocks the page
+and redirects them to a dynamically generated page informing them that
+the site is blocked and why. This is handled by a cgi script
+(squidguard.cgi).
+
+This all works fine. ModSec however causes a couple of problems
+(irritations rather than problems):
+
+1) ModSec blocks access to the squidguard.cgi script which means that
+(although the site is still blocked) they do not see a page explaining
+why.
+
+2) Although my kids do not spend all their time hunting dodgy sites,
+many legitimate sites include advertising which squidguard blocks (often
+many per page). This means that my logs fill up literally hundreds of
+entries which I don't need to see and often conceal the things I do need
+to see.
+
+What I would like to be able to do is to allow access to the cgi script
+and to &quot;nolog&quot; the squidguard related entries. How best to do this?
+
+Below are a couple of example denials:
+
+Thanks for any help and suggestions.
+
+Mark
+
+Denials
+=======
+
+1) Trying to visit Playboy...
+
+--a42f042f-A--
+[07/Apr/2010:13:05:05 +0100] S7x08VIrkOUAAGkrtRMAAAAB 192.168.2.2 43793 192.168.2.2 80
+--a42f042f-B--
+GET /cgi-bin/squidGuard.cgi?clientaddr=192.168.2.4&amp;clientname=myserver&amp;clientuser=&amp;clientgroup=KidsPC&amp;targetgroup=porn&amp;url=<A HREF="http://www.playboy.com/">http://www.playboy.com/</A> HTTP/1.0
+Host: 192.168.2.2
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.9) Gecko/20100330 Fedora/3.5.9-1.fc11 Firefox/3.5.9
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Cookie: RMID=4d607a83496cf0b0; __qca=1181495165-14056346-18136893; CP=null*
+Via: 1.1 mydomain (squid/3.0.STABLE24)
+X-Forwarded-For: 192.168.2.4
+Cache-Control: max-age=0
+Connection: keep-alive
+
+--a42f042f-F--
+HTTP/1.1 403 Forbidden
+Expires: Wed, 7 Apr 2010 12:05:05 GMT
+Last-Modified: Wed, 07 Apr 2010 12:05:05 GMT
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+--a42f042f-E--
+
+--a42f042f-H--
+Message: String match within &quot;Proxy-Connection Lock-Token Content-Range Translate via if&quot; at REQUEST_HEADERS_NAMES:Connection. [file &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_30_http_policy.conf&quot;] [line &quot;99&quot;] [id &quot;960038&quot;] [msg &quot;HTTP header is restricted by policy&quot;] [data &quot;Connection&quot;] [severity &quot;WARNING&quot;] [tag &quot;POLICY/HEADER_RESTRICTED&quot;] [tag &quot;POLICY/FILES_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-21&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;]
+Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line &quot;31&quot;] [msg &quot;Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): HTTP header is restricted by policy&quot;]
+Apache-Handler: cgi-script
+Stopwatch: 1270641905360356 285171 (4638 53095 -)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core ruleset/2.0.6.
+Server: Apache/2.2.14 (Fedora)
+
+--a42f042f-Z--
+
+2) an ad on a legitimate site
+
+--4f20d068-A--
+[07/Apr/2010:12:41:35 +0100] S7xvblIrkOUAAGksujgAAAAC 192.168.2.2 49243 192.168.2.2 80
+--4f20d068-B--
+GET /cgi-bin/squidGuard.cgi?clientaddr=192.168.2.7&amp;clientname=&amp;clientuser=&amp;clientgroup=KidsPC&amp;targetgroup=Adv&amp;url=<A HREF="http://rad.msn.com/ADSAdClient31.dll?GetAd=&amp;PG=IMUKX1&amp;LANG=EN">http://rad.msn.com/ADSAdClient31.dll?GetAd=&amp;PG=IMUKX1&amp;LANG=EN</A> HTTP/1.0
+Accept: */*
+User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; WOW64; Trident/4.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.5.21022; .NET CLR 3.5.30729; MDDC; OfficeLiveConnector.1.3; OfficeLivePatch.0.0; .NET CLR 3.0.30729; Windows Live Messenger 14.0.8089.0726)
+Host: 192.168.2.2
+Cookie: ANON=A=C113128D972455C5E9F2844EFFFFFFFF&amp;E=98f&amp;W=1; NAP=V=1.9&amp;E=942&amp;C=uN07upu266kTx4iytP_csFqRIQIU0Zznb5xR4CEgz4ylxyFG1S-wAQ&amp;W=1; MH=MSFT; MSNRPSShare=1; MC1=V=3&amp;GUID=9cf78a49df3d43a98adbd8ba135dd65a; MUID=9B0A19188A9C4DDA9DEF9B05148293F5&amp;TUID=1; MyMsn=1
+Via: 1.1 mydomain (squid/3.0.STABLE24)
+X-Forwarded-For: 192.168.2.7
+Cache-Control: max-age=0
+Connection: keep-alive
+
+--4f20d068-F--
+HTTP/1.1 403 Forbidden
+Expires: Wed, 7 Apr 2010 11:41:35 GMT
+Last-Modified: Wed, 07 Apr 2010 11:41:35 GMT
+Connection: close
+Content-Type: text/html; charset=UTF-8
+
+--4f20d068-E--
+
+--4f20d068-H--
+Message: String match within &quot;Proxy-Connection Lock-Token Content-Range Translate via if&quot; at REQUEST_HEADERS_NAMES:Connection. [file &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_30_http_policy.conf&quot;] [line &quot;99&quot;] [id &quot;960038&quot;] [msg &quot;HTTP header is restricted by policy&quot;] [data &quot;Connection&quot;] [severity &quot;WARNING&quot;] [tag &quot;POLICY/HEADER_RESTRICTED&quot;] [tag &quot;POLICY/FILES_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-21&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;] [tag &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;]
+Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;] [line &quot;31&quot;] [msg &quot;Inbound Anomaly Score (Total Inbound Score: 10, SQLi=, XSS=): HTTP header is restricted by policy&quot;]
+Apache-Handler: cgi-script
+Stopwatch: 1270640494877677 375388 (5050 51834 -)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core ruleset/2.0.6.
+Server: Apache/2.2.14 (Fedora)
+
+--4f20d068-Z--
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100407/50517557/attachment.bin">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100407/50517557/attachment.bin</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000353.html">[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#352">[ date ]</a>
+              <a href="thread.html#352">[ thread ]</a>
+              <a href="subject.html#352">[ subject ]</a>
+              <a href="author.html#352">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

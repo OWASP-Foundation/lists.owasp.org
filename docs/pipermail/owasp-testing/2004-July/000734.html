@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-TESTING] pentest cheat sheet
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20pentest%20cheat%20sheet&In-Reply-To=032701c46907%24ee8ef3d0%242301a8c0%40intranet.aspectsecurity.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000733.html">
+   <LINK REL="Next"  HREF="000736.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-TESTING] pentest cheat sheet</H1>
+    <B>Lluis Mora</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20pentest%20cheat%20sheet&In-Reply-To=032701c46907%24ee8ef3d0%242301a8c0%40intranet.aspectsecurity.com"
+       TITLE="[OWASP-TESTING] pentest cheat sheet">llmora at sentryware.com
+       </A><BR>
+    <I>Tue Jul 13 18:46:06 EDT 2004</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000733.html">[OWASP-TESTING] pentest cheat sheet
+</A></li>
+        <LI>Next message: <A HREF="000736.html">[OWASP-TESTING] pentest cheat sheet
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#734">[ date ]</a>
+              <a href="thread.html#734">[ thread ]</a>
+              <a href="subject.html#734">[ subject ]</a>
+              <a href="author.html#734">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+I was not particularly thinking on code review (more on the external audit
+side of things), but I can see how we can split section 4 (and probably 5)
+for both ways of approaching the &quot;testing&quot;.
+
+I see section 6 (&quot;Things to test/try&quot;) as an &quot;external audit&quot; kind of thing,
+although we could add a &quot;Things to look for in the code&quot; when coming to code
+review.
+
+A sample of what a section covering &quot;Cross-site scripting&quot; might look like
+(Ok, I did chose an easy one, blame me :) this is not meant to be complete
+or technically correct, just to see if we agree on what the content of each
+subsection (4,5,6 and 7?) could be and whether to split them or not):
+
+4. How to test for it
+=====================
+
+4a. During code review
+----------------------
+Find input data from the client that gets directly output back to the
+client, with no previous filtering or encoding.
+Find dynamic data output to the client that is based on information provided
+by the client itself (take into account that this can be information
+provided in the very same request or information retrieved from permanent
+storage - e.g. a database). Keep track of input variables, where (and how)
+they are stored in every part of the application that deals with them.
+[...]
+
+4b. During an &quot;external audit&quot;
+------------------------------
+Look for data provided by the remote client that gets output back by the
+application (this could be any part of the request, but particularly look
+for input variables -GET,POST- and cookies). A good way to test for them is
+to browse the remote website using a &quot;keyword&quot; on all date fed to the
+application. After that review find if that &quot;keyword&quot; shows up in any
+response from the server, which will lead you to a good starting point to a
+possible XSS vulnerability.
+[...]
+
+5. Drawbacks of the testing
+===========================
+It is easy to spot &quot;direct&quot; XSS vulnerabilities, where the input to an
+application gets output by the application on the same transaction where it
+is received. Applications that store the provided data into a permanent
+storage (e.g. database) and later on use it in output to the client are
+harder to test (note: for the time being I will use the &quot;indirect XSS
+vulnerability&quot; term to describe them, for lack of a better name).
+[...]
+
+5a. During code review
+----------------------
+One of the ways to test for &quot;indirect XSS&quot; is to follow the application
+logic to determine what is actually done with the client input and make sure
+that either on the way in it gets filtered or on the way out it gets
+encoded. This might involve a large amount of work and there is not probably
+an automated way to do it, so it is easy for one of these vulnerabilities to
+slip through. A good approach is to make the data provided by the user
+&quot;tainted&quot; and make sure it is either properly validated during input or
+encoded on output.
+[...]
+
+5b. During an &quot;external audit&quot;
+------------------------------
+Finding &quot;indirect XSS&quot; vulnerabilities while performing an external audit is
+directly related to the amount of time we spend interacting with the
+application and the number of functionalities we access. It is usually
+prohibitive/impossible to interact with the application in every single
+possible way, which is the only way to spot them all, so code review is a
+better option to test for these kind of vulnerabilities (note: I am afraid
+this is probably going to show up all over the document :).
+[...]
+
+6. &quot;Things to test in an external audit&quot;
+----------------------------------------
+  <A HREF="http://www.example.org/application?data=&lt;script">http://www.example.org/application?data=&lt;script</A>&gt;alert('hi')&lt;/script&gt;
+[...]
+
+7. &quot;Things to look for in the code&quot;
+-----------------------------------
+  - Output of variables provided by the client (e.g.: print $_GET[&quot;data&quot;])
+[...]
+
+What do you think of the structure and kind of content for each subsection?
+I feel as if we were missing something important here, can anybody think of
+more subsections?
+
+Cheers,
+
+Lluis
+.
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing-admin at lists.sourceforge.net</A> 
+</I>&gt;<i> [mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing-admin at lists.sourceforge.net</A>] On Behalf 
+</I>&gt;<i> Of Jeff Williams
+</I>&gt;<i> Sent: martes, 13 de julio de 2004 20:34
+</I>&gt;<i> To: Mads Rasmussen; Lluis Mora; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Daniel at deeper.co.za</A>; 'owasp '
+</I>&gt;<i> Subject: Re: [OWASP-TESTING] pentest cheat sheet
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Are we all using the word 'testing' to include code review?  
+</I>&gt;<i> And would section 4 be split somehow to cover both?
+</I>&gt;<i> 
+</I>&gt;<i> I think references to &quot;how to solve it&quot; -- like pointers to 
+</I>&gt;<i> the Guide would be pretty helpful.
+</I>&gt;<i> 
+</I>&gt;<i> --Jeff
+</I>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000733.html">[OWASP-TESTING] pentest cheat sheet
+</A></li>
+	<LI>Next message: <A HREF="000736.html">[OWASP-TESTING] pentest cheat sheet
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#734">[ date ]</a>
+              <a href="thread.html#734">[ thread ]</a>
+              <a href="subject.html#734">[ subject ]</a>
+              <a href="author.html#734">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

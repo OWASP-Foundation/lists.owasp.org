@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off recommendations
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ctl%3AauditEngine%3DOff%0A%20recommendations&In-Reply-To=CAPrE0SZ0aq080vQrO3XJMrBmuzHs%3D%2BgXRnw%3DzxAORKXkOGi8WA%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000843.html">
+   <LINK REL="Next"  HREF="000847.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off recommendations</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ctl%3AauditEngine%3DOff%0A%20recommendations&In-Reply-To=CAPrE0SZ0aq080vQrO3XJMrBmuzHs%3D%2BgXRnw%3DzxAORKXkOGi8WA%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off recommendations">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Aug 18 09:26:54 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000843.html">[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off	recommendations
+</A></li>
+        <LI>Next message: <A HREF="000847.html">[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off	recommendations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#845">[ date ]</a>
+              <a href="thread.html#845">[ thread ]</a>
+              <a href="subject.html#845">[ subject ]</a>
+              <a href="author.html#845">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+On 8/18/11 3:21 AM, &quot;Paul McGarry&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">paul at paulmcgarry.com</A>&gt; wrote:
+
+&gt;<i>Hi all,
+</I>&gt;<i>
+</I>&gt;<i>I have a site which is routinely scanned both internally and by
+</I>&gt;<i>external service.
+</I>&gt;<i>I want to have mod_security running and intervening but don't want any
+</I>&gt;<i>of the associated log noise, the scans originate from known IPs and
+</I>&gt;<i>have known User agents etc so I can easily identify them.
+</I>&gt;<i>
+</I>&gt;<i>So far I have been turning the auditEngine off with things like:
+</I>&gt;<i>
+</I>&gt;<i>SecRule REMOTE_ADDR &quot;^123\.123\.123\.123$&quot; &quot;nolog,ctl:auditEngine=Off&quot;
+</I>
+Try this rule and see if it works any better -
+
+SecRule REMOTE_ADDR &quot;@ipMatch 123.123.123.123&quot;
+&quot;phase:1,t:none,nolog,pass,ctl:auditEngine=Off&quot;
+
+This rule specifies phase:1 vs. defaulting to phase:2 if you don't
+explicitly set one and it also uses the @ipMatch operator which is better
+suited to handle IP addresses.
+
+
+&gt;<i>
+</I>&gt;<i>but I have noticed this doesn't catch everything, specifically CRS
+</I>&gt;<i>rule 981227 (Apache Error: Invalid URI in Request).
+</I>&gt;<i>
+</I>&gt;<i>If I understand things correctly this is because Apache is blocking
+</I>&gt;<i>the request early and Modsec phases 1-4 don't run, it just goes
+</I>&gt;<i>straight to 5?
+</I>&gt;<i>
+</I>&gt;<i>Should I be putting my rule above in phase 5 (additionally or instead)?
+</I>
+Good observation. Yes, there are some requests that may be handled by
+Apache before it reaches the ModSecurity hooks.  You may need to replicate
+this rule to also run in phase:5.
+
+&gt;<i>
+</I>&gt;<i>Ryan's blog at:
+</I>&gt;<i>
+</I>&gt;<i><A HREF="http://blog.spiderlabs.com/2010/12/advanced-topic-of-the-week-handling-aut">http://blog.spiderlabs.com/2010/12/advanced-topic-of-the-week-handling-aut</A>
+</I>&gt;<i>horized-scanning-traffic.html
+</I>&gt;<i>
+</I>&gt;<i>and modsecurity_crs_11_avs_traffic.conf CRS file seem to suggest that
+</I>&gt;<i>phase 1 is the preferred place but that doesn't seem to be entirely
+</I>&gt;<i>effective for me. Am I missing something?
+</I>
+One other monkey wrench here... Reference this JIRA ticket -
+<A HREF="https://www.modsecurity.org/tracker/browse/MODSEC-98.">https://www.modsecurity.org/tracker/browse/MODSEC-98.</A>  Ivan Ristic had
+previously made a change to the code so that phase:1 and phase:2 actually
+run in the same Apache hook (fixup phase -
+<A HREF="https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referen">https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Referen</A>
+ce_Manual#Processing_Phases).  This was done for a valid reason - running
+rules in the post-read-request hook prevented users from nesting
+ModSecurity SecRules within Apache scope locations (such as &lt;Location&gt;,
+&lt;Directory&gt;, etc...).  His change fixes that, however there are some
+examples where you actually want a rule to run in the old phase:1 hook
+(post-read-request).  We are currently reviewing this change and
+considering options.
+
+-Ryan
+
+&gt;<i>
+</I>&gt;<i>Paul
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000843.html">[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off	recommendations
+</A></li>
+	<LI>Next message: <A HREF="000847.html">[Owasp-modsecurity-core-rule-set] ctl:auditEngine=Off	recommendations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#845">[ date ]</a>
+              <a href="thread.html#845">[ thread ]</a>
+              <a href="subject.html#845">[ subject ]</a>
+              <a href="author.html#845">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

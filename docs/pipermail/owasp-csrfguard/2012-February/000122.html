@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] JavascriptServlet &amp; owasp.csrfguard.js file. Browser specific issues
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20JavascriptServlet%20%26%20owasp.csrfguard.js%20file.%0A%20Browser%20specific%20issues&In-Reply-To=%3CCAOaxbhKicQbC5_%2B8inH9EKR0vzBv3E_hN_sKFanh1wdNZOaWXA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000121.html">
+   <LINK REL="Next"  HREF="000123.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] JavascriptServlet &amp; owasp.csrfguard.js file. Browser specific issues</H1>
+    <B>eric sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20JavascriptServlet%20%26%20owasp.csrfguard.js%20file.%0A%20Browser%20specific%20issues&In-Reply-To=%3CCAOaxbhKicQbC5_%2B8inH9EKR0vzBv3E_hN_sKFanh1wdNZOaWXA%40mail.gmail.com%3E"
+       TITLE="[Owasp-csrfguard] JavascriptServlet &amp; owasp.csrfguard.js file. Browser specific issues">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Fri Feb 10 15:11:28 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000121.html">[Owasp-csrfguard] error:required token is missing from the	request
+</A></li>
+        <LI>Next message: <A HREF="000123.html">[Owasp-csrfguard] Bug/new feature request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#122">[ date ]</a>
+              <a href="thread.html#122">[ thread ]</a>
+              <a href="subject.html#122">[ subject ]</a>
+              <a href="author.html#122">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Daniel,
+
+Thank you very much for your feedback. Looks like you may have come
+across some IE specific issues.
+
+List,
+
+I do not use IE on a regular basis. All of my dev work is on OSX/Linux
+and thus my reviewing/pushing/testing updates for IE is usually not on
+par with what a windows based developer would achieve. Is there anyone
+on this list who can help review Dan's issues?
+
+Thanks!
+
+-Eric
+
+On Tue, Jan 17, 2012 at 12:05 PM, Daniel Fiore &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">d_fiore at hotmail.com</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> Hello, I was having problems with the the dynamic DOM manipulation solution
+</I>&gt;<i> within certain browsers and I modified the javascript file to fix certain
+</I>&gt;<i> issues.
+</I>&gt;<i>
+</I>&gt;<i> I propose that these changes are investigated if they are indeed useless:
+</I>&gt;<i>
+</I>&gt;<i> In Firefox:
+</I>&gt;<i>
+</I>&gt;<i> Issue: DOM flickering problem where all the text in the page is displayed
+</I>&gt;<i> for a very brief moment without any formatting.
+</I>&gt;<i>
+</I>&gt;<i> Solution: I hide the body of the document before the token is injected into
+</I>&gt;<i> each tag and then redisplay it once all the tags are modified with the
+</I>&gt;<i> setTImeOut javascript function:
+</I>&gt;<i>
+</I>&gt;<i> Code:
+</I>&gt;<i> function injectTokens(tokenName, tokenValue) {
+</I>&gt;<i>
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; document.body.style.display ='none';
+</I>&gt;<i> ...
+</I>&gt;<i>
+</I>&gt;<i> addEvent(window,'load', function() {
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; injectTokens(&quot;%TOKEN_NAME%&quot;, &quot;%TOKEN_VALUE%&quot;);
+</I>&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; });
+</I>&gt;<i> addEvent(window,'load', function() {
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; setTimeout(&quot;document.body.style.display ='block'&quot;, 200);
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; });
+</I>&gt;<i> ...
+</I>&gt;<i>
+</I>&gt;<i> In IE:
+</I>&gt;<i>
+</I>&gt;<i> Issue: When accessing a page that contained the JavascriptServlet &lt;script&gt;
+</I>&gt;<i> tag, the form within the page was being resubmitted to the server after the
+</I>&gt;<i> page was already displayed. I am not certain but I believe that if you
+</I>&gt;<i> dynamically modify the action attribute of a &lt;form&gt; tag (or the src
+</I>&gt;<i> attribute of an &lt;img&gt; tag) the page is resubmitted only in IE. This was
+</I>&gt;<i> causing the token to be updated to a new value (if
+</I>&gt;<i> org.owasp.csrfguard.Rotate=true) different from the token contained in the
+</I>&gt;<i> links of the page that is already displayed. If you selected a link to a
+</I>&gt;<i> protected page from the displayed page that contained the JavascriptServlet
+</I>&gt;<i> &lt;script&gt; tag, this would lead to an CSRF attack detection.
+</I>&gt;<i>
+</I>&gt;<i> Solution: I ignored certain tags in the token injection function and also
+</I>&gt;<i> removed injecting a token attribute in the action attribute of a &lt;form&gt; tag.
+</I>&gt;<i> This will only work if images, scripts and css links are unprotected:
+</I>&gt;<i>
+</I>&gt;<i> Code:
+</I>&gt;<i> function injectTokens(tokenName, tokenValue) {
+</I>&gt;<i> ...
+</I>&gt;<i>
+</I>&gt;<i> if(&#160;&#160;&#160;&#160;&#160; element.tagName.toLowerCase() != &quot;script&quot;
+</I>&gt;<i> &#160;&#160; &amp;&amp; element.tagName.toLowerCase() != &quot;img&quot;
+</I>&gt;<i> &#160;&#160; &amp;&amp; element.tagName.toLowerCase() != &quot;image&quot;
+</I>&gt;<i> &#160;&#160; &amp;&amp; element.tagName.toLowerCase() != &quot;link&quot;)
+</I>&gt;<i> {
+</I>&gt;<i> &#160;&#160;&#160; &#160; /** inject into form **/
+</I>&gt;<i> &#160;&#160;&#160; &#160; if(element.tagName.toLowerCase() == &quot;form&quot;) {
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160; if(%INJECT_FORMS% == true) {
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; injectTokenForm(element, tokenName, tokenValue,
+</I>&gt;<i> pageTokens); // this should be enough for a form
+</I>&gt;<i> &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; // injectTokenAttribute(element, &quot;action&quot;,
+</I>&gt;<i> tokenName, tokenValue, pageTokens);
+</I>&gt;<i> &#160;...
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> I hope this can help certain users that have come across the same issues.
+</I>&gt;<i>
+</I>&gt;<i> Daniel Fiore.
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i>
+</I></PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000121.html">[Owasp-csrfguard] error:required token is missing from the	request
+</A></li>
+	<LI>Next message: <A HREF="000123.html">[Owasp-csrfguard] Bug/new feature request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#122">[ date ]</a>
+              <a href="thread.html#122">[ thread ]</a>
+              <a href="subject.html#122">[ subject ]</a>
+              <a href="author.html#122">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

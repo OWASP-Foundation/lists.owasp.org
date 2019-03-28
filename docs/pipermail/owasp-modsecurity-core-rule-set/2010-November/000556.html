@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [mod-security-users] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5Bmod-security-users%5D%20Advanced%0A%20Topic%20of%20the%20Week%3A%20Mitigating%20Slow%20HTTP%20DoS%20Attacks&In-Reply-To=AANLkTin6aJXp-3Jot2rZyEYwCWO-XGwK2Km-Z2v%2BExi4%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000555.html">
+   <LINK REL="Next"  HREF="000557.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [mod-security-users] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks</H1>
+    <B>christian.folini at post.ch</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5Bmod-security-users%5D%20Advanced%0A%20Topic%20of%20the%20Week%3A%20Mitigating%20Slow%20HTTP%20DoS%20Attacks&In-Reply-To=AANLkTin6aJXp-3Jot2rZyEYwCWO-XGwK2Km-Z2v%2BExi4%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] [mod-security-users] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks">christian.folini at post.ch
+       </A><BR>
+    <I>Wed Nov 24 07:31:13 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000555.html">[Owasp-modsecurity-core-rule-set] Advanced Topic of the	Week:	Mitigating Slow HTTP DoS Attacks
+</A></li>
+        <LI>Next message: <A HREF="000557.html">[Owasp-modsecurity-core-rule-set] import of mod_security/CRS code	on launchpad
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#556">[ date ]</a>
+              <a href="thread.html#556">[ thread ]</a>
+              <a href="subject.html#556">[ subject ]</a>
+              <a href="author.html#556">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Breno,
+
+Could explain the term &quot;bad connection&quot; a bit? Ryan's blog post implies a client IP is considered bad
+when it has too many connections in read state. Your entry in the CHANGES document reads,
+&quot;Add SecReadStateLimit to limit the number of BUSY connections&quot;.
+
+I can't see why a proxy can't have a lot of legitimate connections
+in read state. AFAIK Request Body reading is also considered &quot;read&quot;.
+So uploads can remain in READ for a certain time - depending on service.
+
+I do not want to pester you too much, but I just want to make sure I
+get this correctly - and people are aware that telling good from bad
+connections is very tricky. Especially when it comes to request delaying and
+you want to make sure you are not locking legitimate users.
+
+Best Regs,
+
+Christian
+
+
+
+
+Von: Breno Silva [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">breno.silva at gmail.com</A>]
+Gesendet: Mittwoch, 24. November 2010 13:20
+An: Folini Christian, IT222 extern
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Betreff: Re: [mod-security-users] [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+
+Hi Christian,
+
+The SecReadStateLimit is not only a threshold for ip address. It is looking for an &quot;anomaly&quot; in connection process. So if you are behind a proxy or a NAT only the bad connections will be dropped. The good ones will pass normally. So legit connections behind the proxy will works fine.
+
+Thanks
+
+Breno
+On Wed, Nov 24, 2010 at 1:17 AM, &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at post.ch</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at post.ch</A>&gt;&gt; wrote:
+Hi Ryan,
+
+Nice post. Thanks. Especially the combination of mod_reqtimeout and ModS
+is very elegant in my eyes.
+
+I am not so happy with SecReadStateLimit looking only at the IP address.
+How do protect proxies from your countermeasures? A proxy might share multiple
+hundred legitimate connections with your server for multiple hundred legitimate
+clients, all appearing to come from the same IP address.
+
+Regs,
+
+Christian
+
+
+-----Urspr&#252;ngliche Nachricht-----
+Von: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>&gt; [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>&gt;] Im Auftrag von Ryan Barnett
+Gesendet: Mittwoch, 24. November 2010 02:45
+An: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&gt;; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Betreff: [Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: Mitigating Slow HTTP DoS Attacks
+
+This week's blog post -
+
+<A HREF="http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-mitigating-slow-http-dos-attacks.html">http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-mitigating-slow-http-dos-attacks.html</A>
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+
+------------------------------------------------------------------------------
+Increase Visibility of Your 3D Game App &amp; Earn a Chance To Win $500!
+Tap into the largest installed PC base &amp; get more eyes on your game by
+optimizing for Intel(R) Graphics Technology. Get started today with the
+Intel(R) Software Partner Program. Five $500 cash prizes are up for grabs.
+<A HREF="http://p.sf.net/sfu/intelisp-dev2dev">http://p.sf.net/sfu/intelisp-dev2dev</A>
+_______________________________________________
+mod-security-users mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>&gt;
+<A HREF="https://lists.sourceforge.net/lists/listinfo/mod-security-users">https://lists.sourceforge.net/lists/listinfo/mod-security-users</A>
+Commercial ModSecurity Appliances, Rule Sets and Support:
+<A HREF="http://www.modsecurity.org/breach/index.html">http://www.modsecurity.org/breach/index.html</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101124/10a0b21e/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20101124/10a0b21e/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000555.html">[Owasp-modsecurity-core-rule-set] Advanced Topic of the	Week:	Mitigating Slow HTTP DoS Attacks
+</A></li>
+	<LI>Next message: <A HREF="000557.html">[Owasp-modsecurity-core-rule-set] import of mod_security/CRS code	on launchpad
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#556">[ date ]</a>
+              <a href="thread.html#556">[ thread ]</a>
+              <a href="subject.html#556">[ subject ]</a>
+              <a href="author.html#556">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

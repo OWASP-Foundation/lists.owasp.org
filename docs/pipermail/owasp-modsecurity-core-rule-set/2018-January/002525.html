@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20RegEx%20in%20CRS%203.0.2%20942200%20too%0A%09broad%3F&In-Reply-To=%3CCALrdzmLkUKiUXkXd5WzZkrU%3DbFPX3Ne_vL6d2c0s%2B-31s2bDxg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002524.html">
+   <LINK REL="Next"  HREF="002526.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?</H1>
+    <B>Franziska Buehler</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20RegEx%20in%20CRS%203.0.2%20942200%20too%0A%09broad%3F&In-Reply-To=%3CCALrdzmLkUKiUXkXd5WzZkrU%3DbFPX3Ne_vL6d2c0s%2B-31s2bDxg%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?">franziska.buehler.schmocker at gmail.com
+       </A><BR>
+    <I>Thu Jan 11 21:10:56 UTC 2018</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002524.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too broad?
+</A></li>
+        <LI>Next message: <A HREF="002526.html">[Owasp-modsecurity-core-rule-set] Core Rule Set Project January 2018
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2525">[ date ]</a>
+              <a href="thread.html#2525">[ thread ]</a>
+              <a href="subject.html#2525">[ subject ]</a>
+              <a href="author.html#2525">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ken,
+
+The regex is: ,.*?[)\da-f\&quot;'`][\&quot;'`][^\&quot;'`]+
+from: <A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.1/dev/util/regexp-assemble/regexp-942200.data#L3">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.1/dev/util/regexp-assemble/regexp-942200.data#L3</A>
+
+What exactly matches from your quote is: , &quot;to be, or not to be&quot;.
+, from regex matches ,
+.*? from regex matches  &quot;to be, or not to b
+[)\da-f\&quot;'`] from regex matches e
+[\&quot;'`] from regex matches &quot;
+[^\&quot;'`]+ from regex matches .
+
+The following sentence would not match, because of the x instead of the e:
+To quote William Shakespeare, &quot;to be, or not to bx&quot;.
+
+These are short examples which also match:
+,&quot;&quot;.
+,2&quot;.
+,a&quot;.
+
+I have to admit that I don't have the expertise to fully understand
+the sql injection covered with it.
+
+The message of the rule is: msg:'Detects MySQL
+comment-/space-obfuscated injections and backtick termination'.
+The whole source of the rule is:
+
+,.*?[)\da-f\&quot;'`][\&quot;'`][\&quot;'`].*?[\&quot;'`]
+,.*?[)\da-f\&quot;'`][\&quot;'`]\Z
+,.*?[)\da-f\&quot;'`][\&quot;'`][^\&quot;'`]+
+\Wselect.+\W*?from
+select\s*?\(\s*?space\s*?\(
+create\s*?\(\s*?space\s*?\(
+rename\s*?\(\s*?space\s*?\(
+truncate\s*?\(\s*?space\s*?\(
+load\s*?\(\s*?space\s*?\(
+alter\s*?\(\s*?space\s*?\(
+delete\s*?\(\s*?space\s*?\(
+update\s*?\(\s*?space\s*?\(
+insert\s*?\(\s*?space\s*?\(
+desc\s*?\(\s*?space\s*?\(
+
+I don't see any checks for comment obfuscated injections here. We have
+other rules which check for comments, for example: 942440.
+I am also not sure if these checks for literally &quot;spaces&quot; are
+originally intended?
+I think this example shows us that we need to revise the sqli rules as a whole.
+
+The rule is already on PL2 because of reported false positives.
+In the meantime, I think might be considering moving the third or
+maybe the first three lines of the source file to a stricter sibling
+on PL3, or we are waiting for the revision of the sqli rules.
+
+Franziska
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002524.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too broad?
+</A></li>
+	<LI>Next message: <A HREF="002526.html">[Owasp-modsecurity-core-rule-set] Core Rule Set Project January 2018
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2525">[ date ]</a>
+              <a href="thread.html#2525">[ thread ]</a>
+              <a href="subject.html#2525">[ subject ]</a>
+              <a href="author.html#2525">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing	in	modsecurity
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20gwt-rpc%20form%20data%20parsing%0A%09in%09modsecurity&In-Reply-To=60CC541F94ABE1488431E6CF96AC986BC97D61%40izexchange.infozen.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000379.html">
+   <LINK REL="Next"  HREF="000381.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing	in	modsecurity</H1>
+    <B>Brian Rectanus</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20gwt-rpc%20form%20data%20parsing%0A%09in%09modsecurity&In-Reply-To=60CC541F94ABE1488431E6CF96AC986BC97D61%40izexchange.infozen.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing	in	modsecurity">Brian.Rectanus at breach.com
+       </A><BR>
+    <I>Mon May  3 17:29:10 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000379.html">[Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing in	modsecurity
+</A></li>
+        <LI>Next message: <A HREF="000381.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-31)	Request Clarification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#380">[ date ]</a>
+              <a href="thread.html#380">[ thread ]</a>
+              <a href="subject.html#380">[ subject ]</a>
+              <a href="author.html#380">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Moving this over to users list.  See below...
+
+On 05/03/2010 02:05 PM, Kevin Coward wrote:
+&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I have questions regarding the response to a previous response regarding
+</I>&gt;<i> content types supported by ModSecurity.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> &#65533;ModSecurity only supports HTTP form based and XML based RPC nativly[sic].
+</I>&gt;<i> 
+</I>&gt;<i> However, if you have developers, you can add an extension to ModSecurity
+</I>&gt;<i> to parse about anything.&#65533;
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> First, is the suggested mode of mod_security extension
+</I>&gt;<i> &#65533;configuration-based&#65533; or &#65533;code-/module-based&#65533;?
+</I>
+Code
+
+&gt;<i> Is it possible to &#65533;extend&#65533; the available types parsed by ModSecurity via
+</I>&gt;<i> configuration? (Candidate configuration rule follows):
+</I>
+Not currently.  But plans are to extend Lua support to be able to do
+this without compiled code.
+
+&gt;<i> *# Parse requests with Content-Type &quot;text/plain&quot; as URLENCODED*
+</I>&gt;<i> 
+</I>&gt;<i> *SecRule REQUEST_CONTENT_TYPE ^text/plain
+</I>&gt;<i> nolog,pass,ctl:requestBodyProcessor=URLENCODED*
+</I>
+How does that &quot;extend&quot; available type?  You just want to parse that
+particular type as URLENCODED?  Then that should work provided you do it
+in phase:1.
+
+&gt;<i> Finally, could the solution require something as involved as writing a
+</I>&gt;<i> custom Apache module defining a custom type of REQUESTBODY_PROCESSOR as
+</I>&gt;<i> an &#65533;operator&#65533; extension?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I am ultimately trying to use mod_security to parse GWT-RPC form data to
+</I>&gt;<i> leverage existing core and custom rules.
+</I>
+The problem is that CRS will not specify the custom target, operator or
+transformation no matter what you do.
+
+&gt;<i> Any explicit guidance on this would be considered helpful.
+</I>
+Probably easiest to extend this as a target that produces a custom
+collection (similar to how ARGS are produced now).  Then your rules
+could just be:
+
+SecRule GWTRPC:fieldname ...
+
+But this does not solve the CRS issue as CRS will not be looking at GWTRPC.
+
+Best, would be to patch ModSecurity to add a new request body processor.
+ This would parse into ARGS and work with CRS existing rules, etc.
+Currently this is not available as an extension, but it should be.
+Perhaps a 2.6 feature to add (probably not that hard to add it) so that
+you can write new body parsers.
+
+If you are serious about adding GWT-RPC support, then I can work with
+you on it and get the proper hooks into the 2.6 branch.  It would be an
+interesting addition to ModSecurity (even if only a custom extension for
+now).
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000379.html">[Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing in	modsecurity
+</A></li>
+	<LI>Next message: <A HREF="000381.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-31)	Request Clarification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#380">[ date ]</a>
+              <a href="thread.html#380">[ thread ]</a>
+              <a href="subject.html#380">[ subject ]</a>
+              <a href="author.html#380">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

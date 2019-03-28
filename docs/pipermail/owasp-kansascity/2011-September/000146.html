@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-kansascity] Apache denial of service mitigation
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-kansascity%40lists.owasp.org?Subject=%5BOwasp-kansascity%5D%20Apache%20denial%20of%20service%20mitigation&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000145.html">
+   <LINK REL="Next"  HREF="000147.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-kansascity] Apache denial of service mitigation</H1>
+    <B>Mat Caughron</B> 
+    <A HREF="mailto:owasp-kansascity%40lists.owasp.org?Subject=%5BOwasp-kansascity%5D%20Apache%20denial%20of%20service%20mitigation&In-Reply-To="
+       TITLE="[Owasp-kansascity] Apache denial of service mitigation">caughron at gmail.com
+       </A><BR>
+    <I>Wed Sep  7 19:33:00 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000145.html">[Owasp-kansascity] policy re: job postings in the greater Kansas	City area
+</A></li>
+        <LI>Next message: <A HREF="000147.html">[Owasp-kansascity] Kansas City OWASP chapter meeting announcement -	September 22 6PM
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#146">[ date ]</a>
+              <a href="thread.html#146">[ thread ]</a>
+              <a href="subject.html#146">[ subject ]</a>
+              <a href="author.html#146">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As the apache-kill script has been an ongoing topic of conversation for the
+past few weeks, here for your convenience is a piece on mitigation:
+
+
+
+<A HREF="https://www.infosecisland.com/blogview/16131-Mitigating-the-Apache-Range-Header-DoS-Vulnerability.html">https://www.infosecisland.com/blogview/16131-Mitigating-the-Apache-Range-Header-DoS-Vulnerability.html</A>
+
+
+Fortunately, there are some Apache configuration settings that can be
+adjusted to mitigate this vulnerability:
+
+   - Use mod_headers to completely disallow the use of Range headers.  For
+   example, in your httpd.conf file add the lines:
+
+*RequestHeader unset Range *
+
+*RequestHeader unset Request-Range*
+
+Note that this may impact certain clients, particularly if a web server is
+used for serving content to e-Readers or providing streaming video. However,
+this should be safe for most websites that are not serving this type of
+content.
+
+   - Limit the size of the request field to a only few hundred bytes.  For
+   example, in your httpd.conf file add the line:
+
+*LimitRequestFieldSize 200*
+
+While this will keep the offending Range header short, it may break other
+headers such as a large cookie or security fields header settings.  Also, as
+the attack evolves you may have to further limit this or impose other
+LimitRequestFields settings.
+
+   - Configure Apache to detect a large number of ranges in the request
+   header and then either ignore the header or reject the request. For example,
+   add the following lines to your httpd.conf file:
+
+*SetEnvIf Range (,.*?){5,} bad-range=1 RequestHeader unset Range
+env=bad-range*
+
+The value 5 is arbitrary and may need to be made larger depending on the
+type of content your site serves. For example, the value may need to be
+increased to 10 for sites that serve PDFs to eReaders for example, or that
+serve other types of large files such as video.
+
+   - Finally, if you are using mod_security you can use the below rule to
+   detect and block the attack. Thanks to SpiderLabs
+&lt;<A HREF="http://blog.spiderlabs.com/2011/08/mitigation-of-apache-range-header-dos-attack.html">http://blog.spiderlabs.com/2011/08/mitigation-of-apache-range-header-dos-attack.html</A>&gt;for
+   this bit of code.
+
+*SecRule REQUEST_HEADERS:Range
+&#8220;^bytes=(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,&#8221;
+\ &#8220;phase:2,capture,rev:&#8217;2.2.1&#8242;,t:none,block,msg:&#8217;Range: Too many
+fields&#8217;,logdata:&#8217;%{matched_var}&#8217;severity:&#8217;5&#8242;,id:&#8217;958231&#8242;,tag:&#8217;RULE_MATURITY/5&#8242;,tag:&#8217;RULE_ACCURACY/7&#8242;,tag:&#8217;
+<A HREF="https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}">https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}</A>
+&#8217;,tag:&#8217;PROTOCOL_VIOLATION/INVALID_HREQ&#8217;,tag:&#8217;
+<A HREF="http://www.bad-behavior.ioerror.us/documentation/how-it-works/">http://www.bad-behavior.ioerror.us/documentation/how-it-works/</A>
+&#8217;,setvar:&#8217;tx.msg=%{rule.msg}&#8217;,setvar:tx.id=%{rule.id
+},setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}&#8221;
+*
+
+I believe that most sites could easily implement the first option (denying
+Range headers altogether) without any negative impact to site viewers.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-kansascity/attachments/20110907/4c454210/attachment.html">https://lists.owasp.org/pipermail/owasp-kansascity/attachments/20110907/4c454210/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000145.html">[Owasp-kansascity] policy re: job postings in the greater Kansas	City area
+</A></li>
+	<LI>Next message: <A HREF="000147.html">[Owasp-kansascity] Kansas City OWASP chapter meeting announcement -	September 22 6PM
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#146">[ date ]</a>
+              <a href="thread.html#146">[ thread ]</a>
+              <a href="subject.html#146">[ subject ]</a>
+              <a href="author.html#146">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-kansascity">More information about the OWASP-KansasCity
+mailing list</a><br>
+</body></html>

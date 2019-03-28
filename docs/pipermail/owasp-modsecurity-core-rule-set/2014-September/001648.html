@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] (no subject)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%28no%20subject%29&In-Reply-To=%3C05D3FD9FC9254D85BA048B614D458FEC%40UserPC%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001647.html">
+   <LINK REL="Next"  HREF="001649.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] (no subject)</H1>
+    <B>Mesra.net CEO</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%28no%20subject%29&In-Reply-To=%3C05D3FD9FC9254D85BA048B614D458FEC%40UserPC%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] (no subject)">admin at mesra.my
+       </A><BR>
+    <I>Tue Sep  2 08:38:56 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001647.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+        <LI>Next message: <A HREF="001649.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1648">[ date ]</a>
+              <a href="thread.html#1648">[ thread ]</a>
+              <a href="subject.html#1648">[ subject ]</a>
+              <a href="author.html#1648">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear Josh,
+
+Thanks you so much for your help, but I think that only for the file name UploadFiles.aspx, how about globally upload, frankly speaking I try to protect what ever upload by the hackers from the buggy script of Joomla or Wordpress, lately I&#8217;m facing a lot of trouble were hackers upload their files and run the script for sending thousands of spam mail.
+
+Please help and Thank you so much
+
+
+From: Josh Amishav-Zlatin 
+Sent: Tuesday, September 02, 2014 4:32 PM
+To: Mesra.net CEO 
+Cc: OWASP Mod Security 
+Subject: Re: [Owasp-modsecurity-core-rule-set] (no subject)
+
+On Tue, Sep 2, 2014 at 3:34 AM, Mesra.net CEO &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">admin at mesra.my</A>&gt; wrote:
+
+  Dear All,
+
+  I&#8217;m looking the rule for allow upload for only specific country, for example I will allow only Japan to upload any type of files to upload and the rest countries will Access denied.
+
+Hi,
+
+First you need to define where the GeoDB is. This can be done in the CRS 10 file. 
+
+SecGeoLookupDb /opt/modsecurity/bin/GeoLiteCity.dat
+
+
+Next you need to pass the client's IP address (REMOTE_ADDR) to the @geoLookup operator via a rule like:
+
+SecRule REMOTE_ADDR &quot;@geoLookup&quot; &quot;id:1,phase:1,t:none,pass,nolog&quot;
+
+
+Finally you limit access to the upload script (e.g. /UploadFiles.aspx) to client IP addresses originating in Japan
+
+SecRule GEO:COUNTRY_CODE3 &quot;!@streq JPN&quot; &quot;id:2,phase:1,t:none,log,deny,msg:'Client IP not from Japan',chain&quot;     
+    SecRule REQUEST_URI &quot;@rx /UploadFiles.aspx&quot;
+
+Note, this was not tested YMMV.
+
+- Josh
+
+
+
+  Please help
+
+  _______________________________________________
+  Owasp-modsecurity-core-rule-set mailing list
+  <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+  <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140902/513315ac/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140902/513315ac/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001647.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+	<LI>Next message: <A HREF="001649.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1648">[ date ]</a>
+              <a href="thread.html#1648">[ thread ]</a>
+              <a href="subject.html#1648">[ subject ]</a>
+              <a href="author.html#1648">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

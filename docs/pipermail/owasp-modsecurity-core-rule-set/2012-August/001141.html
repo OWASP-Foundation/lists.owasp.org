@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5	Available
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20OWASP%20ModSecurity%20CRS%20v2.2.5%0A%09Available&In-Reply-To=%3CCAPrE0Sa15%3DzPa0VEeN%2BB%3DJhogB2rFLjGS79%3D3FS%2BsN39ucLr8A%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="001143.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5	Available</H1>
+    <B>Paul McGarry</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20OWASP%20ModSecurity%20CRS%20v2.2.5%0A%09Available&In-Reply-To=%3CCAPrE0Sa15%3DzPa0VEeN%2BB%3DJhogB2rFLjGS79%3D3FS%2BsN39ucLr8A%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5	Available">paul at paulmcgarry.com
+       </A><BR>
+    <I>Thu Aug  9 01:16:28 UTC 2012</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="001143.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5 Available
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1141">[ date ]</a>
+              <a href="thread.html#1141">[ thread ]</a>
+              <a href="subject.html#1141">[ subject ]</a>
+              <a href="author.html#1141">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sat, Jun 16, 2012 at 12:21 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+&gt;<i> OWASP ModSecurity CRS v2.2.5 Available
+</I>&gt;<i>
+</I>&gt;<i> CHANGES:
+</I>&gt;<i>
+</I>&gt;<i> Improvements:
+</I>&gt;<i>
+</I>&gt;<i> Updated Content-Type check to fix possible evasion with @within (Identified
+</I>&gt;<i> by Qualys Vulnerability &amp; Malware Research Labs (VMRL))
+</I>
+Firstly, does this change require a particular version of Modsecurity
+to work correctly?
+(I note the README says &quot;The rules are compatible with ModSecurity 2.5&quot;).
+
+After deploying this ruleset I am seeing messages like:
+
+Message: Warning. Match of &quot;rx ^%{tx.allowed_request_content_type}$&quot;
+against &quot;TX:0&quot; required. [file
+&quot;/etc/httpd/conf.d/modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_http_policy.conf&quot;]
+[line &quot;64&quot;] [id &quot;960010&quot;] [msg &quot;Request content type is not allowed by
+policy&quot;] [data &quot;application/x-www-form-urlencoded&quot;] [severity
+&quot;WARNING&quot;] [tag &quot;POLICY/ENCODING_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-20&quot;]
+[tag &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/EE2&quot;] [tag &quot;PCI/12.1&quot;]
+
+I am loading the config like:
+        Include conf.d/modsecurity-crs_2.2.5/*.conf
+        Include conf.d/modsecurity-crs_2.2.5/base_rules/*.conf
+
+modsecurity-crs_2.2.5/modsecurity_crs_10_config.conf
+contains
+======
+SecAction \
+  &quot;id:'900012', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf',
+\
+  setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+  setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/
+.idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/
+.pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/
+.vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+  setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+/Content-Range/ /Translate/ /via/ /if/', \
+  nolog, \
+  pass&quot;
+=======
+
+and 960010 in
+modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_http_policy.conf
+looks like
+=======
+SecRule REQUEST_METHOD &quot;!^(?:GET|HEAD|PROPFIND|OPTIONS)$&quot;
+&quot;phase:1,chain,t:none,block,msg:'Request content type is not allowed
+by policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'4',logdata:'%{matched_var}'&quot;
+        SecRule REQUEST_HEADERS:Content-Type &quot;^([^;\s]+)&quot; &quot;chain,capture&quot;
+                SecRule TX:0 &quot;!^%{tx.allowed_request_content_type}$&quot;
+&quot;t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+
+=======
+
+
+Secondly, is there something odd with the svn repo (or Sourceforge)?
+This change doesn't seems to occur on the checkin with the changelog
+message:
+<A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&amp;revision=1937">http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&amp;revision=1937</A>
+but on another revision:
+<A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&amp;revision=1922">http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&amp;revision=1922</A>
+with the message &quot;- Added Arachni Scanner Integration Lua script/rules files&quot;
+
+
+Paul
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="001143.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5 Available
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1141">[ date ]</a>
+              <a href="thread.html#1141">[ thread ]</a>
+              <a href="subject.html#1141">[ subject ]</a>
+              <a href="author.html#1141">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

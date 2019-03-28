@@ -1,0 +1,444 @@
+From dangelsaurus at gmail.com  Sun Jun  5 01:25:21 2016
+From: dangelsaurus at gmail.com (David Angel)
+Date: Sat, 4 Jun 2016 20:25:21 -0500
+Subject: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is a
+ numeric ip address" - redirect loop using default 3.0.0 conf
+Message-ID: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+
+It looks to me that rule 920350, "Host header is a numeric IP address"
+(REQUEST-20-PROTOCOL-ENFORCEMENT.conf) will cause a redirect loop when
+combined with the default "modsecurity_crs_10_setup.conf" action..
+
+SecDefaultAction
+"phase:1,log,redirect:'http://%{request_headers.host}/',tag:'Host:
+%{request_headers.host}'"
+SecDefaultAction
+"phase:2,log,redirect:'http://%{request_headers.host}/',tag:'Host:
+%{request_headers.host}'"
+
+request_headers.host will always be the IP address, and the rule therefore
+will keep firing.
+
+1. Is this the intended action even for this rule?
+2. Is there a way to override the action for this (or any specific) rule?
+
+It seems like this could really hammer a site unintentionally, especially
+if you have a browser that isn't catching the redirect or some other
+script??
+
+-David Angel
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160604/7a357ba7/attachment.html>
+
+From modsec at spam.lifeforms.nl  Sun Jun  5 11:02:55 2016
+From: modsec at spam.lifeforms.nl (Walter Hop)
+Date: Sun, 5 Jun 2016 13:02:55 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is
+	a numeric ip address" - redirect loop using default 3.0.0 conf
+In-Reply-To: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+References: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+Message-ID: <C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+
+> It looks to me that rule 920350, "Host header is a numeric IP address" (REQUEST-20-PROTOCOL-ENFORCEMENT.conf) will cause a redirect loop when combined with the default "modsecurity_crs_10_setup.conf" action.. 
+> 
+> SecDefaultAction "phase:1,log,redirect:'http://%{request_headers.host}/',tag:'Host: %{request_headers.host}'"
+> SecDefaultAction "phase:2,log,redirect:'http://%{request_headers.host}/',tag:'Host: %{request_headers.host}'"
+> 
+> request_headers.host will always be the IP address, and the rule therefore will keep firing.
+> 
+> 1. Is this the intended action even for this rule?
+> 2. Is there a way to override the action for this (or any specific) rule?
+> 
+> It seems like this could really hammer a site unintentionally, especially if you have a browser that isn't catching the redirect or some other script??
+
+You make a very good point. It?s a bigger problem and not restricted to this rule though. I think the redirect loop will also happen if the client has been blocked due to a cookie. After all, the client will usually re-send the same cookie on the redirect to the homepage. And I think it will then redirect again and again. I?d have to check to make sure though.
+
+Personally I am not a fan of doing this redirect in case of a block.
+
+I can see how the redirect would be an interesting choice for some sites. An error page might scare the visitor too much. If they get thrown back to the homepage, that is still extremely frustrating, but they might re-try their request in some other way. At the other hand, it seems much better to configure a friendly error page and send the customer to a ?report the problem, what did you do?? form which will help ironing out false positives much better.
+
+I would prefer that the default would be to just serve an error 403, but leaving the redirect as a commented-out example.
+
+What do others think?
+
+-- 
+Walter Hop | PGP key: https://lifeforms.nl/pgp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160605/aab660f4/attachment.html>
+
+From christian.folini at netnea.com  Sun Jun  5 20:14:05 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Sun, 5 Jun 2016 22:14:05 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is
+ a numeric ip address" - redirect loop using default 3.0.0 conf
+In-Reply-To: <C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+References: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+	<C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+Message-ID: <20160605201405.GB31305@elias>
+
+Hi there,
+
+Ryan replaced the "deny" with the redirect in commit
+commit 85d96d18f35f4aac1799965df7e87c8998ab17ba
+on Jan 29, 2014 with the commit message:
+"Updating Risk Groups, LFI/SQLi Rules and Anomaly Scoring"
+
+$> git diff  d743fd2 85d96d1
+...
++# -- [[ Disruptive Action Control ]] --
++# The default action is to issue a 302 redirect sending the client back to the main
++# index page.
+ #
+-SecDefaultAction "phase:1,deny,log"
+-
++# -- [[ Host Meta-Data ]] --
++# The tag action will include the Host header data in the alert, which helps to identify
++# which Vhost triggered the rule.
++#
++SecDefaultAction "phase:1,log,redirect:'http://%{request_headers.host}/',tag:'Host: %{request_headers.host}'"
++SecDefaultAction "phase:2,log,redirect:'http://%{request_headers.host}/',tag:'Host: %{request_headers.host}'"
+...
+
+Does anybody remember anything about Ryan's reasoning for this new 
+default? Outside of it being a default and people better define a
+correct value for themselves?
+
+Personally, I am all for a default deny policy.
+I am also not sure, I want the proposed that with every alert.
+
+Ahoj,
+
+Christian
+
+
+-- 
+People demand freedom of speech as a compensation for the freedom 
+of thought which they seldom use.
+-- Soren Kierkegaard
+
+From christian.folini at netnea.com  Mon Jun  6 03:09:37 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 6 Jun 2016 05:09:37 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is
+ a numeric ip address" - redirect loop using default 3.0.0 conf
+In-Reply-To: <20160605201405.GB31305@elias>
+References: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+	<C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+	<20160605201405.GB31305@elias>
+Message-ID: <20160606030937.GA32258@elias>
+
+On Sun, Jun 05, 2016 at 10:14:05PM +0200, Christian Folini wrote:
+> I am also not sure, I want the proposed that with every alert.
+
+Sorry. Meant to write "tag with every alert".
+
+Christian
+
+
+-- 
+Communications without intelligence is noise;  
+Intelligence without communications is irrelevant.
+--- Gen Alfred. M. Gray, USMC
+
+From CSanders at trustwave.com  Mon Jun  6 13:56:11 2016
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Mon, 6 Jun 2016 13:56:11 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is
+ a numeric ip address" - redirect loop using default 3.0.0 conf
+In-Reply-To: <C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+References: <CAEHOfYmz_cNqW5zbty9x9S8w5rL3WmZ_7X5cEgmWLO8LtNPK5w@mail.gmail.com>
+	<C597EED7-5ADC-412B-B0F0-CACE16A49A12@spam.lifeforms.nl>
+Message-ID: <D37AF893.1D1CF%csanders@trustwave.com>
+
+We can certainly change the default, but certainly the idea is that users will actually go through the configuration file and change it to their liking.  One of the things particularly of interest here is that 920350 will always fire if you are using IP access anyway - this is most certainly confusing to first time users - I'd be nice to think of a good solution, since this rule, when a domain is in use, is a really effective rule.
+--
+Chaim Sanders
+Security Researcher
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+
+From: <owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>> on behalf of Walter Hop <modsec at spam.lifeforms.nl<mailto:modsec at spam.lifeforms.nl>>
+Date: Sunday, June 5, 2016 at 7:02 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] rule 920350 - "host header is a numeric ip address" - redirect loop using default 3.0.0 conf
+
+It looks to me that rule 920350, "Host header is a numeric IP address" (REQUEST-20-PROTOCOL-ENFORCEMENT.conf) will cause a redirect loop when combined with the default "modsecurity_crs_10_setup.conf" action..
+
+SecDefaultAction "phase:1,log,redirect:'http://%{request_headers.host}/',tag:'Host:<http://scanmail.trustwave.com/?c=4062&d=3IzU13mVgqBUXoqE6Tbxbpqy708ilxnGznm-IuvyRg&s=5&u=http%3a%2f%2f%25%7brequest%5fheaders%2ehost%7d%2f%27%2ctag%3a%27Host%3a> %{request_headers.host}'"
+SecDefaultAction "phase:2,log,redirect:'http://%{request_headers.host}/',tag:'Host:<http://scanmail.trustwave.com/?c=4062&d=3IzU13mVgqBUXoqE6Tbxbpqy708ilxnGznm-IuvyRg&s=5&u=http%3a%2f%2f%25%7brequest%5fheaders%2ehost%7d%2f%27%2ctag%3a%27Host%3a> %{request_headers.host}'"
+
+request_headers.host will always be the IP address, and the rule therefore will keep firing.
+
+1. Is this the intended action even for this rule?
+2. Is there a way to override the action for this (or any specific) rule?
+
+It seems like this could really hammer a site unintentionally, especially if you have a browser that isn't catching the redirect or some other script??
+
+You make a very good point. It's a bigger problem and not restricted to this rule though. I think the redirect loop will also happen if the client has been blocked due to a cookie. After all, the client will usually re-send the same cookie on the redirect to the homepage. And I think it will then redirect again and again. I'd have to check to make sure though.
+
+Personally I am not a fan of doing this redirect in case of a block.
+
+I can see how the redirect would be an interesting choice for some sites. An error page might scare the visitor too much. If they get thrown back to the homepage, that is still extremely frustrating, but they might re-try their request in some other way. At the other hand, it seems much better to configure a friendly error page and send the customer to a "report the problem, what did you do?" form which will help ironing out false positives much better.
+
+I would prefer that the default would be to just serve an error 403, but leaving the redirect as a commented-out example.
+
+What do others think?
+
+--
+Walter Hop | PGP key: https://lifeforms.nl/pgp<http://scanmail.trustwave.com/?c=4062&d=3IzU13mVgqBUXoqE6Tbxbpqy708ilxnGziy9IOynEQ&s=5&u=https%3a%2f%2flifeforms%2enl%2fpgp>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160606/60527153/attachment.html>
+
+From christian.folini at netnea.com  Tue Jun 14 18:42:20 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 14 Jun 2016 20:42:20 +0200
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Job in Cologne Germany
+Message-ID: <20160614184220.GC21041@elias>
+
+Hi there,
+
+A headhunter just called and offered me a ModSecurity / Core Rules job
+in Cologne Germany.
+
+It's a classical WAF engineering position including virtual patching,
+weeding out false positives and working with developers. Sounds really
+interesting - but I have no intention to relocate.
+
+If you are interested, get in touch with http://www.varius-it.com
+
+
+Cheers,
+
+Christian Folini
+
+-- 
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+
+From christian.folini at netnea.com  Tue Jun 21 12:21:09 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 21 Jun 2016 14:21:09 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Slides of Core Rules Presentation
+ in Zurich (and Announcement of London ModSec Course!)
+Message-ID: <20160621122109.GB9604@elias>
+
+Hi there,
+
+The recent Area41 conference in Zurich saw my presentation of the
+Core Rules 3.0 with the upcoming Paranoia Mode. My slides are at
+http://www.slideshare.net/ChristianFolini/owasp-modsecurity-core-rules-paranoia-mode
+
+My presentation explained the Core Rules and the new Paranoia Mode.
+I showed stats about various tests of the ruleset in vanilla and
+attack situations. The core is the slide 21, where you see numbers
+of a big commercial b2c site with the new 3.0.0 CRS installed
+in parallel with 2.2.9. The numbers are impressive: Security is still
+very high and 99% of false positives are gone in the untuned
+default installation.
+
+While 3.0.0 is still in development it is now possible to run the
+ruleset in productive environments.
+
+The final slide announces a ModSecurity course in London on 
+September 22/23:
+https://www.feistyduck.com/training/modsecurity-training-course
+
+I have also written a blog post about the course at
+https://www.netnea.com/cms/2016/06/20/more-about-the-modsecurity-course-in-london/
+
+Teaching such a course is obviously a great opportunity for me. But 
+beyond myself, it is also an interesting test case for ModSecurity: Does 
+ModSecurity have the traction to allow for such a regular offering?
+
+So I am very excited at this moment in my career. And I want to give 
+the ModSecurity community a place in the first row:
+So we created a coupon code MODSECML to give you privileged access. 
+It will allow 5 people to attend with a 200? discount. This combined 
+with the early bird discount will bring you the course for 1095? 
+(about 1400 Euros).
+
+The course is also a place to meet and talk about ModSecurity and the
+Core Rules. The program I developed has enough air to respond to 
+questions and discuss them in the group. And this is likely the most
+interesting thing about the course for me: To meet, to look at
+ModSecurity in detail and to talk about it.
+
+Please help me to spread the word and make this course a success.
+
+If you are interested in the course, but you think is a bit far, then
+Feist Duck is also interested to organise the course near you
+Please write to training at feistyduck.com for a quote.
+In fact, there is some traction for a public course in Switzerland in
+August or perhaps October. Please get in touch if your are interested
+in this.
+
+Best regards,
+
+Christian 
+
+-- 
+ModSecurity Training in London: Sep 22/23, 2016
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From Jens.Schleusener at t-online.de  Wed Jun 29 10:00:56 2016
+From: Jens.Schleusener at t-online.de (Jens Schleusener)
+Date: Wed, 29 Jun 2016 12:00:56 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] Rule 958291 (byte-range request
+	begins with 0-) really correct?
+Message-ID: <alpine.LSU.2.20.1606291140260.7862@schiller.dip.t-dialin.net>
+
+Hi,
+
+after downloading 
+SpiderLabs-owasp-modsecurity-crs-2.2.9-30-g520a94b.tar.gz I just compared 
+the changed rules with that used on "my" server. One rule that I have 
+outcommented but that still exists unchanged is rule 958291 in 
+base_rules/modsecurity_crs_20_protocol_violations.conf.
+
+That rule is commented with
+
+  # 1. Range Header exists and begins with 0 - normal browsers don't do this.
+  # Automated programs and bots often do not obey the HTTP RFC
+  #
+  # -=[ Rule Logic ]=-
+  # This rule inspects the Range request header to see if it starts with 0.
+  #
+  # -=[ References ]=-
+  # http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+
+But that I am not really understanding since at least
+  https://tools.ietf.org/html/rfc7233
+seems to allow it:
+
+  2.1.  Byte Ranges
+        [...]
+        Examples of byte-ranges-specifier values:
+         o  The first 500 bytes (byte offsets 0-499, inclusive):
+             bytes=0-499
+
+Maybe a pure "bytes=0-" is meant but the rule seems to match also 
+"bytes=0-last-byte-pos".
+
+Additionally the referenced URL
+  http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+is not (or no longer) existent.
+
+Regards
+
+Jens
+
+From christian.folini at netnea.com  Wed Jun 29 10:46:01 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 29 Jun 2016 12:46:01 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Rule 958291 (byte-range
+ request begins with 0-) really correct?
+In-Reply-To: <alpine.LSU.2.20.1606291140260.7862@schiller.dip.t-dialin.net>
+References: <alpine.LSU.2.20.1606291140260.7862@schiller.dip.t-dialin.net>
+Message-ID: <20160629104601.GA22596@elias>
+
+Hello Jens,
+
+Thank you for reporting this. I agree with you, that the operator
+parameter in the said rule  (bytes=0-) is bogus:
+
+SecRule REQUEST_HEADERS:Range "@beginsWith bytes=0-" \
+"phase:2,rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'6',accuracy:'8',\
+t:none,block,msg:'Range: field exists and begins with\
+0.',logdata:'%{matched_var}',severity:'4',id:'958291',...
+
+However, the msg action seems to support the way it is written
+and the comment above the rule starting with paragraph 1 confirms this:
+
+# 1. Range Header exists and begins with 0 - normal browsers don't do this.
+# Automated programs and bots often do not obey the HTTP RFC
+
+However, normal browsers do this all the time. Hence the
+false positives everybody is seeing on requests downloading big
+files.
+
+I usually tune the rule away completely. I guess you are aware that
+outcommenting is a bad way of handling a false positive. The preferred
+way in this case is probably:
+
+SecRuleRemoveById 958291
+
+Now looking forward, this rule has been removed for the 3.0 release,
+so the false positive problem will be gone in the future. It is
+unclear if a new release in the 2.2.X range will be released.
+Unlikely actually.
+
+Summing it up: Yes, the way the rule is written right now, brings
+false positives like mad. It blocks a behaviour the browsers
+use. It is a bad rule. It's gone for good.
+
+Cheers,
+
+Christian
+
+P.S. Nice catch on the apache configure script problem on httpd-dev!
+
+
+
+On Wed, Jun 29, 2016 at 12:00:56PM +0200, Jens Schleusener wrote:
+> after downloading
+> SpiderLabs-owasp-modsecurity-crs-2.2.9-30-g520a94b.tar.gz I just
+> compared the changed rules with that used on "my" server. One rule
+> that I have outcommented but that still exists unchanged is rule
+> 958291 in base_rules/modsecurity_crs_20_protocol_violations.conf.
+> 
+> That rule is commented with
+> 
+>  # 1. Range Header exists and begins with 0 - normal browsers don't do this.
+>  # Automated programs and bots often do not obey the HTTP RFC
+>  #
+>  # -=[ Rule Logic ]=-
+>  # This rule inspects the Range request header to see if it starts with 0.
+>  #
+>  # -=[ References ]=-
+>  # http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+> 
+> But that I am not really understanding since at least
+>  https://tools.ietf.org/html/rfc7233
+> seems to allow it:
+> 
+>  2.1.  Byte Ranges
+>        [...]
+>        Examples of byte-ranges-specifier values:
+>         o  The first 500 bytes (byte offsets 0-499, inclusive):
+>             bytes=0-499
+> 
+> Maybe a pure "bytes=0-" is meant but the rule seems to match also
+> "bytes=0-last-byte-pos".
+> 
+> Additionally the referenced URL
+>  http://www.bad-behavior.ioerror.us/documentation/how-it-works/
+> is not (or no longer) existent.
+> 
+> Regards
+> 
+> Jens
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-- 
+ModSecurity Training in London: Sep 22/23, 2016
+https://www.feistyduck.com/training/modsecurity-training-course
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+

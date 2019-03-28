@@ -1,0 +1,1624 @@
+From othellico at gmail.com  Thu Aug  1 14:32:00 2013
+From: othellico at gmail.com (Claudio Signorini)
+Date: Thu, 1 Aug 2013 16:32:00 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file di
+	configurazione
+Message-ID: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+
+Ciao a tutti,
+cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+trovato una risposta valida che sia una.
+Parto dall'inizio.
+
+Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi
+web application Java che esponiamo in internet a cui i clienti accedono, si
+autenticano, lavorano, etc etc etc.
+I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni
+interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia
+necessario utilizzare una password o una chiave privata (nel senso pi?
+generico del termine).
+Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere tali
+password/chiavi?
+
+Alcune risposte sono state:
+
+- in un file di configurazione, ovvero in chiaro sulle macchine su cui gira
+l'applicazione -> non ? accettabile, perch? se un attaccante prende il
+controllo della macchina o riesce ad accedere al file pu? leggere il file
+di configurazione e leggere pertanto la password;
+
+- annegate nel codice dell'applicazione -> non ? accettabile
+perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+come scrivere le stesse password in chiaro su un file di configurazione;
+
+- in un file di configurazione ma cifrate -> non ? accettabile: per cifrare
+serve una chiave e dove scrivo la chiave? il problema ? solo stato spostato;
+
+- in un archivio (database relazionale, directory service, ...) accessibile
+solo da pochi: ma per accedere all'archivio avrei bisogno di una password,
+e siamo di nuovo al punto di prima.
+
+Immagino che questo problema non sia solo della nostra azienda. E, come
+dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato
+risposte valide.
+Voi cosa ne dite? Come avete risolto voi questo problema?
+
+GRAZIE!
+
+Claudio Signorini
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130801/e235b077/attachment.html>
+
+From giorgio.fedon at gmail.com  Wed Aug 14 21:59:54 2013
+From: giorgio.fedon at gmail.com (Giorgio Fedon)
+Date: Wed, 14 Aug 2013 23:59:54 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+Message-ID: <F251396A-F723-4C56-A9E6-54AC7B62CE73@gmail.com>
+
+Buonasera,
+
+il tema della segretezza dei segreti nei file di configurazione ? un tema molto dibattuto. Il mio personale punto di vista ? che la soluzione migliore al problema dipende dal contesto tecnologico infrastrutturale utilizzato. 
+
+Bisogna quindi come regola generale seguire le best practice del proprio application server in termini di sicurezza delle configurazioni. 
+
+E' bene premettere che i file di configurazione devono essere accessibili solo localmente: a meno di non sfruttare vulnerabilit? che lo permettano, tali file non sono raggiungibili da un attaccante remoto. 
+
+Ragionando in tale senso ammettendo che si voglia proteggere il file di configurazione da vulnerabilit? remote che permettano un parziale accesso alle risorse di sistema (es la vulnerabilit? permette la lettura dei file e.g. path traversal ma non la lettura diretta della memora ram e.g. esecuzione nativa di codice ) si pu? utilizzare ad esempio il sandboxing offerto dagli application server pi? evoluti. Il file di configurazione viene letto dall'utente principale e viene messo a disposizione (   sotto forma di interfacce e connettori )  all'application pool  che girando con un altro utente viene configurato per non essere in grado di leggere i file originari di configurazione. 
+
+Alcune infrastrutture applicative permettono anche di aggiungere un layer di cifratura implementato in modo corretto seguendo i principi di defense in depth e segregation. Il punto di riferimento in questo ambito ? da lungo tempo Microsoft con i suoi Data Security Provider. Mi auguro in futuro di vedere tali implementazioni anche in ambito Java.
+
+Esistono inoltre anche soluzioni hardware chiamate con acronimo HSM per proteggere tali informazioni, ma essendo soluzioni particolari necessitano di ulteriori approfondimenti.
+
+In igni caso ? bene precisare che Il sandboxing garantito dall'application server ? generalmente inefficace contro vulnerabilit? critiche quali esecuzione di codice. Tramite tali vilnerabilit? ? possibile difatti accedere direttamente ai connector dei provider di accesso-dati. 
+
+Del resto, l'applicazione deve poter usare il proprio database per funzionare correttamente.
+
+Si sconsiglia inoltre di creare soluzioni veloci in casa senza aver approfondito prima cosa mette a disposizione l'application server del proprio vendor di riferimento.
+
+Un comune errore nelle soluzioni "fai da te" ? quello di applicare un layer di cifratura inadeguato. Tale soluzione pu? non costituire segregation nel caso in cui ad esempio la chiave sia disponibile allo stesso livello di trust raggiungibile da una potenziale vulnerabilit? da cui ci si vuole proteggere.
+
+Un attaccante pu? ad esempio prima leggere la chiave e poi decifrare il file se la soluzione non ? studiata correttamente.
+
+
+Inviato da iPhone
+
+Il giorno 01/ago/2013, alle ore 16:32, Claudio Signorini <othellico at gmail.com> ha scritto:
+
+> Ciao a tutti,
+> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho trovato una risposta valida che sia una.
+> Parto dall'inizio.
+> 
+> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi web application Java che esponiamo in internet a cui i clienti accedono, si autenticano, lavorano, etc etc etc.
+> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia necessario utilizzare una password o una chiave privata (nel senso pi? generico del termine).
+> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere tali password/chiavi?
+> 
+> Alcune risposte sono state:
+> 
+> - in un file di configurazione, ovvero in chiaro sulle macchine su cui gira l'applicazione -> non ? accettabile, perch? se un attaccante prende il controllo della macchina o riesce ad accedere al file pu? leggere il file di configurazione e leggere pertanto la password;
+> 
+> - annegate nel codice dell'applicazione -> non ? accettabile perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli sviluppatori potrebbero leggere tali password; inoltre essendo le nostre applicazioni scritte in Java (e non potendo offuscare tutti i binari) ? come scrivere le stesse password in chiaro su un file di configurazione;
+> 
+> - in un file di configurazione ma cifrate -> non ? accettabile: per cifrare serve una chiave e dove scrivo la chiave? il problema ? solo stato spostato;
+> 
+> - in un archivio (database relazionale, directory service, ...) accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di una password, e siamo di nuovo al punto di prima.
+> 
+> Immagino che questo problema non sia solo della nostra azienda. E, come dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato risposte valide.
+> Voi cosa ne dite? Come avete risolto voi questo problema?
+> 
+> GRAZIE!
+> 
+> Claudio Signorini
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+
+From paolo.ottolino at gmail.com  Thu Aug 15 21:51:45 2013
+From: paolo.ottolino at gmail.com (Paolo Ottolino)
+Date: Thu, 15 Aug 2013 21:51:45 +0000
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di	configurazione
+In-Reply-To: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+Message-ID: <555353508-1376603506-cardhu_decombobulator_blackberry.rim.net-1717848117-@b13.c11.bise7.blackberry>
+
+Buongiorno Claudio,
+
+Sinceramente, si tratta di un problema classico e gia' risolto da anni.
+In pratica, occorre implementare un sistema IAM (Identity & Access Management) cui far interagire le applicazioni, almeno nei seguenti modi:
+- directory server: identita', ruoli, profili e gruppi; self-service (web service per il reset password, aggiornamento informazioni ed altro)
+- access server: istanziazione operativa dell'accesso e delle autorizzazioni alle funzioni applicative ad ogni richiesta dell'utente. Questo componente deve anche fornire le funzionalita' di Federation (integrazioni con applicazioni di terze parti, sfruttandone l'autenticazione) e SSO (comodo all'utente per non riautenticarsi)
+- audit server: registrazione di chi ha fatto cosa, quando e dove
+Ultimamente si e' aggiunto un quarto elemento che consente di effettuare la Identity Governance.
+
+Con una semplice ricerca su Google, troverai una valanga di informazioni su IAM, Federarion, SSO, SAML, LDAP, entitlement, XACML, OASIS, etc
+Risposte valide ce ne sono. Occorre pero' impratichirsi con queste tecnologie (e metodologie), selezionare le informazioni valide, superando diffidenze iniziali e possibili inerzie, imparando a sviluppare codice integrato col mondo IAM.
+
+Ciao
+
+Paolo
+
+
+PMP CISSP-ISSAP CISA CISM OPST ITIL
+Proj Manager, IT Sec Professional, IT Auditor
++39 335 7942 593
+http://www.8linux.org
+
+-----Original Message-----
+From: Claudio Signorini <othellico at gmail.com>
+Sender: owasp-italy-bounces at lists.owasp.org
+Date: Thu, 1 Aug 2013 16:32:00 
+To: <Owasp-italy at lists.owasp.org>
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file di
+	configurazione
+
+_______________________________________________
+Owasp-italy mailing list
+Owasp-italy at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-italy
+
+
+From luca.carettoni at ikkisoft.com  Wed Aug 14 17:09:14 2013
+From: luca.carettoni at ikkisoft.com (Luca Carettoni)
+Date: Wed, 14 Aug 2013 10:09:14 -0700
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+Message-ID: <CAFThDPFqd33DK4HsiaG8NjJEeLcQ30dcsQd86DXy-2toVqyhdg@mail.gmail.com>
+
+Ciao Claudio,
+non hai trovato risposte perche' sfortunatamente non c'e' una vera risposta.
+
+In base al fattore di rischio e confidenzialita' delle informazioni
+sulla macchina, puoi fare due cose:
+
+Server standard) Credenziali in file di configurazioni, all'interno di
+directory esterne alla web-root o simili. File permissions e software
+come JSVC (http://commons.apache.org/proper/commons-daemon/jsvc.html)
+possono essere usati per mitigare il rischio. Per esempio, potresti
+avere il file owned by root e usare uno script/JSVC per leggere la
+configurazione prima di ridurre i privilegi.
+
+Server critici)  FIle di configurazione cifrati e password richiesta
+durante il boot dell'applicazione. Se hai un'applicazione stabile con
+un uptime decente e' una cosa fattibile.
+
+Concordo che non sono soluzioni perfette, ma e' il meglio che ho visto
+fare in tutti questi anni.
+
+Luca
+
+2013/8/1 Claudio Signorini <othellico at gmail.com>:
+> Ciao a tutti,
+> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+> trovato una risposta valida che sia una.
+> Parto dall'inizio.
+>
+> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi
+> web application Java che esponiamo in internet a cui i clienti accedono, si
+> autenticano, lavorano, etc etc etc.
+> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni
+> interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia
+> necessario utilizzare una password o una chiave privata (nel senso pi?
+> generico del termine).
+> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere tali
+> password/chiavi?
+>
+> Alcune risposte sono state:
+>
+> - in un file di configurazione, ovvero in chiaro sulle macchine su cui gira
+> l'applicazione -> non ? accettabile, perch? se un attaccante prende il
+> controllo della macchina o riesce ad accedere al file pu? leggere il file di
+> configurazione e leggere pertanto la password;
+>
+> - annegate nel codice dell'applicazione -> non ? accettabile perch?
+> verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ? come
+> scrivere le stesse password in chiaro su un file di configurazione;
+>
+> - in un file di configurazione ma cifrate -> non ? accettabile: per cifrare
+> serve una chiave e dove scrivo la chiave? il problema ? solo stato spostato;
+>
+> - in un archivio (database relazionale, directory service, ...) accessibile
+> solo da pochi: ma per accedere all'archivio avrei bisogno di una password, e
+> siamo di nuovo al punto di prima.
+>
+> Immagino che questo problema non sia solo della nostra azienda. E, come
+> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato
+> risposte valide.
+> Voi cosa ne dite? Come avete risolto voi questo problema?
+>
+> GRAZIE!
+>
+> Claudio Signorini
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+
+
+
+-- 
+Luca Carettoni <luca.carettoni at ikkisoft.com>
+
+From aparata at gmail.com  Fri Aug 16 06:39:59 2013
+From: aparata at gmail.com (antonio parata)
+Date: Fri, 16 Aug 2013 08:39:59 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+Message-ID: <CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+
+Ciao Claudio,
+
+premetto che sono un windows guy quindi il mio consiglio potrebbe non
+trovare un equivalente in altri OS. Ti consiglio di dare un occhio alle api
+DPAPI (http://msdn.microsoft.com/en-us/library/ms995355.aspx) utilizzate
+proprio per proteggere dati utente, cos? come scritto nella documentazione:
+
+"This Data Protection API (DPAPI) is a pair of function calls that provide
+operating system-level data protection services to user and system
+processes."
+
+Ne esiste un'implementazione in java: http://jdpapi.sourceforge.net/
+
+Spero di esserti stato utile,
+Antonio
+
+
+2013/8/1 Claudio Signorini <othellico at gmail.com>
+
+> Ciao a tutti,
+> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+> trovato una risposta valida che sia una.
+> Parto dall'inizio.
+>
+> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi
+> web application Java che esponiamo in internet a cui i clienti accedono, si
+> autenticano, lavorano, etc etc etc.
+> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni
+> interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia
+> necessario utilizzare una password o una chiave privata (nel senso pi?
+> generico del termine).
+> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere
+> tali password/chiavi?
+>
+> Alcune risposte sono state:
+>
+> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende il
+> controllo della macchina o riesce ad accedere al file pu? leggere il file
+> di configurazione e leggere pertanto la password;
+>
+> - annegate nel codice dell'applicazione -> non ? accettabile
+> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+> come scrivere le stesse password in chiaro su un file di configurazione;
+>
+> - in un file di configurazione ma cifrate -> non ? accettabile: per
+> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo stato
+> spostato;
+>
+> - in un archivio (database relazionale, directory service, ...)
+> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+> una password, e siamo di nuovo al punto di prima.
+>
+> Immagino che questo problema non sia solo della nostra azienda. E, come
+> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato
+> risposte valide.
+> Voi cosa ne dite? Come avete risolto voi questo problema?
+>
+> GRAZIE!
+>
+> Claudio Signorini
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130816/0660c8e8/attachment.html>
+
+From thesp0nge at gmail.com  Fri Aug 16 12:58:15 2013
+From: thesp0nge at gmail.com (Paolo Perego)
+Date: Fri, 16 Aug 2013 14:58:15 +0200
+Subject: [Owasp-italy]
+	=?iso-8859-1?q?Classifica_delle_cause_delle_vulnera?=
+	=?iso-8859-1?q?bilit=E0_informatiche?=
+In-Reply-To: <51F0FC8C.50809@canaro.net>
+References: <51F0FC8C.50809@canaro.net>
+Message-ID: <CAFRi_CzDCqTbn5aDdOrkzMXye6vZH8xMzzBzebvB5q8F6GBx+g@mail.gmail.com>
+
+Bhe che dire... non userei la tua top 10 per un report formale ma quoto
+parola per parola.
+
+Purtroppo le vulnerabilit? pi? gravi non sono tecnologiche. ..
+Il giorno 14/ago/2013 17:09, "R.Canaro" <security at canaro.net> ha scritto:
+>
+>
+> Buongiorno.
+> Ho elaborato una mia classifica, simile a quella OWASP, ma dedicata alle
+*cause* delle vulnerabilit? applicative.
+> La classifica ? la seguente:
+>
+>  1. Committenti Corrotti
+>  2. Programmatori Scadenti
+>  3. Capi-progetto Inadeguati
+>  4. Commerciali Avidi
+>  5. Mode Passeggere
+>  6. Finti Esperti di Sicurezza
+>  7. Veri Esperti di Sicurezza
+>  8. Manager Impreparati
+>  9. Utenti Tonti
+> 10. Riproduzione Sessuata
+>
+> Se avete tempo (e voglia) di leggerla, sarei molto interessato al vostro
+parere sulle cose che affermo.
+> Grazie,
+>
+>   C:
+>
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130816/acc1f223/attachment.html>
+
+From daniele.bellucci at gmail.com  Fri Aug 16 14:08:05 2013
+From: daniele.bellucci at gmail.com (Daniele Bellucci)
+Date: Fri, 16 Aug 2013 15:08:05 +0100
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+Message-ID: <CABk6+9RBA-nZE8zPfmnhNH-gd7KMviz7ZbfaSFvLAYwLoY_qDA@mail.gmail.com>
+
+Claudio,
+credo molto dipenda da(i|l) threat(s)? che vuoi mitigare nonche' dalla
+risk classification dei dati
+il cui accesso stai controllando attraverso le credenziali che vuoi proteggere.
+
+In linea di massima cercherei di individuare un "keystore" protetto da
+password con controllo di accesso alla stessa, tale da minimizzare
+l'esposizione sia in termini di 'tempo' (durante il quale la password
+viene resa disponibile) sia in termini di 'audience' (chi ha accesso
+alla password precedentemente resa disponibile in chiaro).
+
+Uno dei principali requisiti del keystore, come gia' sostenuto da chi
+ha risposto in precendenza, e' quello di garantire che le credenziali
+non vengano memorizzate 'in plaintext' sullo storage di supporto
+nonche' minimazzare l'esposizione del 'segreto' che ne consente
+l'accesso al contenuto.
+
+Sul come non memorizzare credenziali 'in plaintext' su uno storage si
+puo' aprire un ulteriore thread credo, pero'
+non dimentichiamoci che le credenziali vanno periodicamente cambiate
+(o ruotate).
+
+Quando dico protetto da password, intendo tale da utilizzare un "key
+streching" bello robusto per i prossimi anni in cui i dati che stai
+proteggendo risulteranno ancora validi.
+
+E si, forse "il meglio" lo trovi solo da un HSM.
+
+
+
+2013/8/16 antonio parata <aparata at gmail.com>:
+> Ciao Claudio,
+>
+> premetto che sono un windows guy quindi il mio consiglio potrebbe non
+> trovare un equivalente in altri OS. Ti consiglio di dare un occhio alle api
+> DPAPI (http://msdn.microsoft.com/en-us/library/ms995355.aspx) utilizzate
+> proprio per proteggere dati utente, cos? come scritto nella documentazione:
+>
+> "This Data Protection API (DPAPI) is a pair of function calls that provide
+> operating system-level data protection services to user and system
+> processes."
+>
+> Ne esiste un'implementazione in java: http://jdpapi.sourceforge.net/
+>
+> Spero di esserti stato utile,
+> Antonio
+>
+>
+> 2013/8/1 Claudio Signorini <othellico at gmail.com>
+>>
+>> Ciao a tutti,
+>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>> trovato una risposta valida che sia una.
+>> Parto dall'inizio.
+>>
+>> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi
+>> web application Java che esponiamo in internet a cui i clienti accedono, si
+>> autenticano, lavorano, etc etc etc.
+>> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni
+>> interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia
+>> necessario utilizzare una password o una chiave privata (nel senso pi?
+>> generico del termine).
+>> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere
+>> tali password/chiavi?
+>>
+>> Alcune risposte sono state:
+>>
+>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende il
+>> controllo della macchina o riesce ad accedere al file pu? leggere il file di
+>> configurazione e leggere pertanto la password;
+>>
+>> - annegate nel codice dell'applicazione -> non ? accettabile perch?
+>> verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ? come
+>> scrivere le stesse password in chiaro su un file di configurazione;
+>>
+>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo stato
+>> spostato;
+>>
+>> - in un archivio (database relazionale, directory service, ...)
+>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di una
+>> password, e siamo di nuovo al punto di prima.
+>>
+>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato
+>> risposte valide.
+>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>
+>> GRAZIE!
+>>
+>> Claudio Signorini
+>>
+>> _______________________________________________
+>> Owasp-italy mailing list
+>> Owasp-italy at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>>
+>
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+
+From security at canaro.net  Fri Aug 16 07:16:29 2013
+From: security at canaro.net (R.Canaro)
+Date: Fri, 16 Aug 2013 09:16:29 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+ di configurazione
+In-Reply-To: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+Message-ID: <520DD1CD.5030508@canaro.net>
+
+
+Ciao, Claudio.
+Avevamo un problema simile per gestire le password di accesso al DB 
+utilizzate da un'applicazione Web scritta in PHP.
+Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le 
+password su un file e le restituisce, in chiaro, su richiesta.
+La password di cifratura e' annegata nel codice C del programma.
+Il programma C risponde solo a richieste che arrivino da un determinato 
+utente.
+Non e' una soluzione perfetta, ma funziona.
+Se vuoi, posso mandarti il codice sorgente C.
+Ciao,
+
+    C:
+
+On 01/08/13 16:32, Claudio Signorini wrote:
+> Ciao a tutti,
+> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+> trovato una risposta valida che sia una.
+...
+> Alcune risposte sono state:
+>
+> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+> il controllo della macchina o riesce ad accedere al file pu? leggere il
+> file di configurazione e leggere pertanto la password;
+>
+> - annegate nel codice dell'applicazione -> non ? accettabile
+> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+> come scrivere le stesse password in chiaro su un file di configurazione;
+>
+> - in un file di configurazione ma cifrate -> non ? accettabile: per
+> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+> stato spostato;
+>
+> - in un archivio (database relazionale, directory service, ...)
+> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+> una password, e siamo di nuovo al punto di prima.
+>
+> Immagino che questo problema non sia solo della nostra azienda. E, come
+> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+> trovato risposte valide.
+> Voi cosa ne dite? Come avete risolto voi questo problema?
+>
+> GRAZIE!
+>
+> Claudio Signorini
+>
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+
+
+From othellico at gmail.com  Fri Aug 16 08:03:50 2013
+From: othellico at gmail.com (Claudio Signorini)
+Date: Fri, 16 Aug 2013 10:03:50 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <520DD1CD.5030508@canaro.net>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<520DD1CD.5030508@canaro.net>
+Message-ID: <CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+
+Buongiorno a tutti,
+innanzitutto vi ringrazio per le molte risposte, anche in questo caldo
+agosto.
+Cerco di riassumere in una sola mail una risposta ai diversi suggerimenti e
+anche un quadro di come stanno evolvendo i nostri ragionamenti in azienda.
+Magari pu? emergere qualcosa di utile per tutti.
+
+Prima di tutto una nota per Lorenzo e Paolo. Le password che dobbiamo
+proteggere non sono quelle degli utenti, ma quelle "applicative", usate
+dalle applicazioni per autenticarsi su altre applicazioni. Per esempio se
+ho un gestore documentale che deve usare un servizio di marcatura
+temporale, il gestore deve utilizzare una user-id e una password per farsi
+riconoscere dal servizio di marcatura.
+
+Per Giorgio e Nicola: abbiamo pensato anche noi ad una soluzione basata su
+HSM, anche perch? usiamo gi? dispositivi simili in azienda e anche
+pesantemente. Ma per interfacciarsi ad un HSM c'? bisogno di un PIN, quindi
+il problema ? solo spostato: proteggo una chiave con un'altra chiave che
+non so come proteggere.
+
+Per Luca: fornire la password al boot dell'applicazione? Purtroppo per noi
+non ? applicabile. Abbiamo esigenze molto alte di disponibilit? dei servizi
+che ha portato al proliferare di istanze (anche 30 per una singola
+applicazione) che si riavviano al primo cenno di problema (a qualunque ora
+del giorno e della notte). Non possiamo dedicare una persona
+all'inserimento delle password ad ogni riavvio.
+
+Per Canaro: anche noi abbiamo scelto di cifrare i file di configurazione: ?
+la soluzione attualmente in essere. E anche noi abbiamo scelto di annegare
+la chiave di (de)cifratura nel codice. Peccato che il codice vada sul
+repository dei sorgenti, in cui ? leggibile da tutto il gruppo di
+sviluppatori e amministratori. E' troppo esposta e dobbiamo trovare
+un'altra soluzione.
+
+Per Antonio: interessante JDPAPI. Ma noi abbiamo solo sistemi Linux. Ma una
+cosa che ho chiesto ai nostri sistemisti ? vedere se esiste qualcosa di
+simile anche in Linux. O pi? generalmente: quali sono i servizi di
+sicurezza che un Linux pu? mettere a disposizione delle nostre applicazioni?
+
+Per Luca: anche JSVC ? interessante. Ne terremo sicuramente conto anche se,
+come leggerai sotto, stiamo puntando ad un'altra strada.
+
+Per Giorgio: anche il sandboxing dell'application server ? un tema
+interessante, su cui per? siamo completamente a digiuno. Sai darmi qualche
+dritta per gli application server Java ed in particolare JBoss? Grazie!!!
+
+Ora. Una veloce presentazione di cosa stiamo pensando adesso. Ogni vostra
+opinione ? gradita.
+
+1) Abbandonare la configurazione su file e portarla, per esempio, su un
+Directory Server (la struttura ad albero si sposa bene con le
+configurazioni e avendo un server centrale possiamo pensare ad un
+configurazione servizio-centrica e non applicazione-centrica).
+2) Configurare il Directory Server in modo che sia possibile entrarci solo
+tramite LDAP/S con mutua autenticazione di certificato.
+3) Fare in modo che non sia l'applicazione ad autenticarsi al Directory
+Server, bens? il sistema operativo. In questo modo la chiave privata
+sarebbe protetta dall'OS e non si necessitano altri archivi o file di
+configurazione in cui metterla. Sempre che l'OS abbia simili strumenti...
+4) Per modificare le configurazioni predisponiamo un'applicazione che
+richiede un'autenticazione (forse forte... stiamo valutando). Quando poi si
+inserisce la password per un servizio, questa non viene memorizzata cos?
+com'?. L'applicazione fa un cambio password impostando una password molto
+robusta (lunga e con un'ampia gamma di caratteri) che verr? salvata sul
+Directory Server e non mostrata all'operatore. In questo modo la password
+sarebbe conosciuta solo dal servizio, dal Directory Server e
+dall'applicazione e, a meno di vulnerabilit? di quest'ultima, non dovrebbe
+mai uscire da questa triade. E la password iniziale che l'operatore aveva
+non ? pi? valida.
+
+Che ne dite? Pu? funzionare? Ci sono tutti i pezzi per fare qualcosa del
+genere?
+GRAZIE!!!
+
+Claudio
+
+
+Il giorno 16 agosto 2013 09:16, R.Canaro <security at canaro.net> ha scritto:
+
+>
+> Ciao, Claudio.
+> Avevamo un problema simile per gestire le password di accesso al DB
+> utilizzate da un'applicazione Web scritta in PHP.
+> Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le
+> password su un file e le restituisce, in chiaro, su richiesta.
+> La password di cifratura e' annegata nel codice C del programma.
+> Il programma C risponde solo a richieste che arrivino da un determinato
+> utente.
+> Non e' una soluzione perfetta, ma funziona.
+> Se vuoi, posso mandarti il codice sorgente C.
+> Ciao,
+>
+>    C:
+>
+>
+> On 01/08/13 16:32, Claudio Signorini wrote:
+>
+>> Ciao a tutti,
+>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>> trovato una risposta valida che sia una.
+>>
+> ...
+>
+>> Alcune risposte sono state:
+>>
+>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+>> il controllo della macchina o riesce ad accedere al file pu? leggere il
+>> file di configurazione e leggere pertanto la password;
+>>
+>> - annegate nel codice dell'applicazione -> non ? accettabile
+>> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+>> come scrivere le stesse password in chiaro su un file di configurazione;
+>>
+>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+>> stato spostato;
+>>
+>> - in un archivio (database relazionale, directory service, ...)
+>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+>> una password, e siamo di nuovo al punto di prima.
+>>
+>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+>> trovato risposte valide.
+>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>
+>> GRAZIE!
+>>
+>> Claudio Signorini
+>>
+>>
+>> ______________________________**_________________
+>> Owasp-italy mailing list
+>> Owasp-italy at lists.owasp.org
+>> https://lists.owasp.org/**mailman/listinfo/owasp-italy<https://lists.owasp.org/mailman/listinfo/owasp-italy>
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130816/731f2965/attachment-0001.html>
+
+From lorenzo.desantis at gmail.com  Sat Aug 17 08:30:48 2013
+From: lorenzo.desantis at gmail.com (Lorenzo De Santis)
+Date: Sat, 17 Aug 2013 10:30:48 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+Message-ID: <E170D9A5-F5EF-4605-A009-D64E76CDA5F9@gmail.com>
+
+La tematica ? interessante e si presta a delle riflessioni estive sotto l'ombrellone.
+
+Concordo praticamente con tutto quello che ? stato detto.
+
+Come diceva un mio collega, "non si pu? proteggere il software con il software" e per quanto possa essere sofisticato il sistema di protezione adottato (molti dei quali citati nelle mail precedenti), l'ultimo anello della catena deve essere necessariamente hardware. Per un server, questo significa un hsm. Anche se l'adozione di hsm comporta una complessit? notevole: al momento del boot le chiavi devono essere sbloccate da uno o pi? amministratori inserendo delle smartcard e digitando un pin (cosa che in un contesto enterprise dove la continuit? ? fondamentale pu? costituire un problema); per non parlare che l'applicativo si deve integrare con l'hsm per la gestione delle chiavi e delle operazioni di cifratura. Per non parlare degli aspetti legislativi legati alla validit? della firma digitale...
+
+? chiaro quindi che una simile complessit? ? giustificata se l'applicativo tratta informazioni critiche per il business, altrimenti ? come sparare con un cannone ad una formica. Un conto ? realizzare una CA, un'altro un serverino con informazioni pubbliche per il quale ? sufficiente un hardening standard. L'analisi dei rischi ? sempre la prima cosa da fare, per evitare di mettere in campo controlli di sicurezza troppo complessi che poi vengono utilizzati male, creando in pi? negli utenti un falso senso di sicurezza. Personalmente ho visto hsm con smartcard sempre inserite e senza pin: il che vuol dire che l'applicativo tratta materiale cifrato con password blank... Un classico esempio dove l'analisi dei rischi avrebbe aiutato!
+
+Alla fine penso che il modo migliore per trattare le password (che statisticamente sono sempre deboli o prevedibili...) ? ove possibile di evitarle, delegandone la gestione ad un sistema esterno (vedi iam o l'autenticazione integrata di Windows).
+
+Bye
+
+L.
+
+Inviato da iPhone
+
+Il giorno 16/ago/2013, alle ore 08:39, antonio parata <aparata at gmail.com> ha scritto:
+
+> Ciao Claudio,
+> 
+> premetto che sono un windows guy quindi il mio consiglio potrebbe non trovare un equivalente in altri OS. Ti consiglio di dare un occhio alle api DPAPI (http://msdn.microsoft.com/en-us/library/ms995355.aspx) utilizzate proprio per proteggere dati utente, cos? come scritto nella documentazione:
+> 
+> "This Data Protection API (DPAPI) is a pair of function calls that provide operating system-level data protection services to user and system processes."
+> 
+> Ne esiste un'implementazione in java: http://jdpapi.sourceforge.net/
+> 
+> Spero di esserti stato utile,
+> Antonio
+> 
+> 
+> 2013/8/1 Claudio Signorini <othellico at gmail.com>
+>> Ciao a tutti,
+>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho trovato una risposta valida che sia una.
+>> Parto dall'inizio.
+>> 
+>> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi web application Java che esponiamo in internet a cui i clienti accedono, si autenticano, lavorano, etc etc etc.
+>> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia necessario utilizzare una password o una chiave privata (nel senso pi? generico del termine).
+>> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere tali password/chiavi?
+>> 
+>> Alcune risposte sono state:
+>> 
+>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui gira l'applicazione -> non ? accettabile, perch? se un attaccante prende il controllo della macchina o riesce ad accedere al file pu? leggere il file di configurazione e leggere pertanto la password;
+>> 
+>> - annegate nel codice dell'applicazione -> non ? accettabile perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli sviluppatori potrebbero leggere tali password; inoltre essendo le nostre applicazioni scritte in Java (e non potendo offuscare tutti i binari) ? come scrivere le stesse password in chiaro su un file di configurazione;
+>> 
+>> - in un file di configurazione ma cifrate -> non ? accettabile: per cifrare serve una chiave e dove scrivo la chiave? il problema ? solo stato spostato;
+>> 
+>> - in un archivio (database relazionale, directory service, ...) accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di una password, e siamo di nuovo al punto di prima.
+>> 
+>> Immagino che questo problema non sia solo della nostra azienda. E, come dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato risposte valide.
+>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>> 
+>> GRAZIE!
+>> 
+>> Claudio Signorini
+>> 
+>> _______________________________________________
+>> Owasp-italy mailing list
+>> Owasp-italy at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+> 
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130817/82bbc70c/attachment.html>
+
+From r.battistoni at gmail.com  Sat Aug 17 09:43:40 2013
+From: r.battistoni at gmail.com (Roberto Battistoni)
+Date: Sat, 17 Aug 2013 11:43:40 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<520DD1CD.5030508@canaro.net>
+	<CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+Message-ID: <33422DD2-59AE-493E-AAC1-7B9550AE4B49@gmail.com>
+
+Ciao Claudio, 
+
+Oltre ai preziosi suggerimenti che sono stati indicati dagli amici in ML, provo a dire anche la mia.
+
+se usi un linguaggio di alto livello come Java, e alla fine ? qualche metodo Java che deve utilizzare la password, un utente malizioso pu? semplicemente modificare il pacchetto, dopo attenta review, aggiungendo qualche riga di log che riveli la password. Magari lo stesso developer...
+
+Quindi tutta la complessit? architetturale si va a far benedire...
+
+Se invece utilizzi un altro servizio esterno per autenticare l'applicazione, l'utente malizioso non riuscir? a recuperare la password (a meno di non attaccare il servizio), ma modificando l'applicazione riuscir? a mimare un accesso corretto fatto da una app maliziosa.
+
+Come detto gi? da altri, dipende da CHI vuoi difenderti.
+
+Se ti vuoi difendere da insider developer, allora metti la password in un file di conf e fallo ignorare dal tuo SVN. Per le nightly build, metti un file di conf senza la password.
+
+Se ti vuoi difendere (anche) da chi fa il deploy, e quindi ha accesso al pacchetto war o SAR o quello che ?, e che quindi conterr? per forza di cose la password, allora aggiungi un bel po' di offuscamento del codice nei metodi che decifrano con una password annegata nel codice la password cifrata nel file di conf.
+
+Certo anche qui con un po' di reverse ne vieni a capo, ma se tracci tutti gli insider che accedono riesci ad avere un buon controllo.
+
+Personalmente preferisco introdurre livelli successivi di complessit? nel codice con offuscamenti vari piuttosto che spostare la complessit? sul piano architetturale, dove non si conosce mai a pieno il servizio e si rischia davvero di mettere in piedi un cannone per sparare ad un uccellino.
+
+Ovviamente la password va cambiata spesso...
+
+Imho Dagli insider ci si protegge per il 20% con misure tecnologiche (che hanno per? degli effort di gestione elevati) e con delle misure di controllo/dissuasive per l'80% (una bella letterina ai vari soggetti con opportuno auditing degli accessi)
+
+spero di esserti stato utile
+
+Roberto
+
+Il giorno 16/ago/2013, alle ore 10:03, Claudio Signorini <othellico at gmail.com> ha scritto:
+
+> Buongiorno a tutti,
+> innanzitutto vi ringrazio per le molte risposte, anche in questo caldo agosto.
+> Cerco di riassumere in una sola mail una risposta ai diversi suggerimenti e anche un quadro di come stanno evolvendo i nostri ragionamenti in azienda. Magari pu? emergere qualcosa di utile per tutti.
+> 
+> Prima di tutto una nota per Lorenzo e Paolo. Le password che dobbiamo proteggere non sono quelle degli utenti, ma quelle "applicative", usate dalle applicazioni per autenticarsi su altre applicazioni. Per esempio se ho un gestore documentale che deve usare un servizio di marcatura temporale, il gestore deve utilizzare una user-id e una password per farsi riconoscere dal servizio di marcatura.
+> 
+> Per Giorgio e Nicola: abbiamo pensato anche noi ad una soluzione basata su HSM, anche perch? usiamo gi? dispositivi simili in azienda e anche pesantemente. Ma per interfacciarsi ad un HSM c'? bisogno di un PIN, quindi il problema ? solo spostato: proteggo una chiave con un'altra chiave che non so come proteggere.
+> 
+> Per Luca: fornire la password al boot dell'applicazione? Purtroppo per noi non ? applicabile. Abbiamo esigenze molto alte di disponibilit? dei servizi che ha portato al proliferare di istanze (anche 30 per una singola applicazione) che si riavviano al primo cenno di problema (a qualunque ora del giorno e della notte). Non possiamo dedicare una persona all'inserimento delle password ad ogni riavvio.
+> 
+> Per Canaro: anche noi abbiamo scelto di cifrare i file di configurazione: ? la soluzione attualmente in essere. E anche noi abbiamo scelto di annegare la chiave di (de)cifratura nel codice. Peccato che il codice vada sul repository dei sorgenti, in cui ? leggibile da tutto il gruppo di sviluppatori e amministratori. E' troppo esposta e dobbiamo trovare un'altra soluzione.
+> 
+> Per Antonio: interessante JDPAPI. Ma noi abbiamo solo sistemi Linux. Ma una cosa che ho chiesto ai nostri sistemisti ? vedere se esiste qualcosa di simile anche in Linux. O pi? generalmente: quali sono i servizi di sicurezza che un Linux pu? mettere a disposizione delle nostre applicazioni?
+> 
+> Per Luca: anche JSVC ? interessante. Ne terremo sicuramente conto anche se, come leggerai sotto, stiamo puntando ad un'altra strada.
+> 
+> Per Giorgio: anche il sandboxing dell'application server ? un tema interessante, su cui per? siamo completamente a digiuno. Sai darmi qualche dritta per gli application server Java ed in particolare JBoss? Grazie!!!
+> 
+> Ora. Una veloce presentazione di cosa stiamo pensando adesso. Ogni vostra opinione ? gradita.
+> 
+> 1) Abbandonare la configurazione su file e portarla, per esempio, su un Directory Server (la struttura ad albero si sposa bene con le configurazioni e avendo un server centrale possiamo pensare ad un configurazione servizio-centrica e non applicazione-centrica).
+> 2) Configurare il Directory Server in modo che sia possibile entrarci solo tramite LDAP/S con mutua autenticazione di certificato.
+> 3) Fare in modo che non sia l'applicazione ad autenticarsi al Directory Server, bens? il sistema operativo. In questo modo la chiave privata sarebbe protetta dall'OS e non si necessitano altri archivi o file di configurazione in cui metterla. Sempre che l'OS abbia simili strumenti...
+> 4) Per modificare le configurazioni predisponiamo un'applicazione che richiede un'autenticazione (forse forte... stiamo valutando). Quando poi si inserisce la password per un servizio, questa non viene memorizzata cos? com'?. L'applicazione fa un cambio password impostando una password molto robusta (lunga e con un'ampia gamma di caratteri) che verr? salvata sul Directory Server e non mostrata all'operatore. In questo modo la password sarebbe conosciuta solo dal servizio, dal Directory Server e dall'applicazione e, a meno di vulnerabilit? di quest'ultima, non dovrebbe mai uscire da questa triade. E la password iniziale che l'operatore aveva non ? pi? valida.
+> 
+> Che ne dite? Pu? funzionare? Ci sono tutti i pezzi per fare qualcosa del genere?
+> GRAZIE!!!
+> 
+> Claudio
+> 
+> 
+> Il giorno 16 agosto 2013 09:16, R.Canaro <security at canaro.net> ha scritto:
+>> 
+>> Ciao, Claudio.
+>> Avevamo un problema simile per gestire le password di accesso al DB utilizzate da un'applicazione Web scritta in PHP.
+>> Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le password su un file e le restituisce, in chiaro, su richiesta.
+>> La password di cifratura e' annegata nel codice C del programma.
+>> Il programma C risponde solo a richieste che arrivino da un determinato utente.
+>> Non e' una soluzione perfetta, ma funziona.
+>> Se vuoi, posso mandarti il codice sorgente C.
+>> Ciao,
+>> 
+>>    C:
+>> 
+>> 
+>> On 01/08/13 16:32, Claudio Signorini wrote:
+>>> Ciao a tutti,
+>>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>>> trovato una risposta valida che sia una.
+>> ...
+>>> Alcune risposte sono state:
+>>> 
+>>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+>>> il controllo della macchina o riesce ad accedere al file pu? leggere il
+>>> file di configurazione e leggere pertanto la password;
+>>> 
+>>> - annegate nel codice dell'applicazione -> non ? accettabile
+>>> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+>>> come scrivere le stesse password in chiaro su un file di configurazione;
+>>> 
+>>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+>>> stato spostato;
+>>> 
+>>> - in un archivio (database relazionale, directory service, ...)
+>>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+>>> una password, e siamo di nuovo al punto di prima.
+>>> 
+>>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+>>> trovato risposte valide.
+>>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>> 
+>>> GRAZIE!
+>>> 
+>>> Claudio Signorini
+>>> 
+>>> 
+>>> _______________________________________________
+>>> Owasp-italy mailing list
+>>> Owasp-italy at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+> 
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130817/f2968fbf/attachment-0001.html>
+
+From giorgio.fedon at gmail.com  Sat Aug 17 12:26:12 2013
+From: giorgio.fedon at gmail.com (Giorgio Fedon)
+Date: Sat, 17 Aug 2013 14:26:12 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<520DD1CD.5030508@canaro.net>
+	<CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+Message-ID: <12FE755E-3F43-4BC4-99B3-A9A249EA4236@gmail.com>
+
+Il punto sul quale porrei l'attenzione che ? stato ripreso anche da Luca ? che il processo dove gira l'applicazione non deve essere in grado di leggere le informazioni di configurazione.
+
+Da un punto di vista implementativo spostare tali informazioni su un directory server non migliora la situazione senza la precedente premessa.
+
+
+Inviato da iPhone
+
+Il giorno 16/ago/2013, alle ore 10:03, Claudio Signorini <othellico at gmail.com> ha scritto:
+
+> Buongiorno a tutti,
+> innanzitutto vi ringrazio per le molte risposte, anche in questo caldo agosto.
+> Cerco di riassumere in una sola mail una risposta ai diversi suggerimenti e anche un quadro di come stanno evolvendo i nostri ragionamenti in azienda. Magari pu? emergere qualcosa di utile per tutti.
+> 
+> Prima di tutto una nota per Lorenzo e Paolo. Le password che dobbiamo proteggere non sono quelle degli utenti, ma quelle "applicative", usate dalle applicazioni per autenticarsi su altre applicazioni. Per esempio se ho un gestore documentale che deve usare un servizio di marcatura temporale, il gestore deve utilizzare una user-id e una password per farsi riconoscere dal servizio di marcatura.
+> 
+> Per Giorgio e Nicola: abbiamo pensato anche noi ad una soluzione basata su HSM, anche perch? usiamo gi? dispositivi simili in azienda e anche pesantemente. Ma per interfacciarsi ad un HSM c'? bisogno di un PIN, quindi il problema ? solo spostato: proteggo una chiave con un'altra chiave che non so come proteggere.
+> 
+> Per Luca: fornire la password al boot dell'applicazione? Purtroppo per noi non ? applicabile. Abbiamo esigenze molto alte di disponibilit? dei servizi che ha portato al proliferare di istanze (anche 30 per una singola applicazione) che si riavviano al primo cenno di problema (a qualunque ora del giorno e della notte). Non possiamo dedicare una persona all'inserimento delle password ad ogni riavvio.
+> 
+> Per Canaro: anche noi abbiamo scelto di cifrare i file di configurazione: ? la soluzione attualmente in essere. E anche noi abbiamo scelto di annegare la chiave di (de)cifratura nel codice. Peccato che il codice vada sul repository dei sorgenti, in cui ? leggibile da tutto il gruppo di sviluppatori e amministratori. E' troppo esposta e dobbiamo trovare un'altra soluzione.
+> 
+> Per Antonio: interessante JDPAPI. Ma noi abbiamo solo sistemi Linux. Ma una cosa che ho chiesto ai nostri sistemisti ? vedere se esiste qualcosa di simile anche in Linux. O pi? generalmente: quali sono i servizi di sicurezza che un Linux pu? mettere a disposizione delle nostre applicazioni?
+> 
+> Per Luca: anche JSVC ? interessante. Ne terremo sicuramente conto anche se, come leggerai sotto, stiamo puntando ad un'altra strada.
+> 
+> Per Giorgio: anche il sandboxing dell'application server ? un tema interessante, su cui per? siamo completamente a digiuno. Sai darmi qualche dritta per gli application server Java ed in particolare JBoss? Grazie!!!
+> 
+> Ora. Una veloce presentazione di cosa stiamo pensando adesso. Ogni vostra opinione ? gradita.
+> 
+> 1) Abbandonare la configurazione su file e portarla, per esempio, su un Directory Server (la struttura ad albero si sposa bene con le configurazioni e avendo un server centrale possiamo pensare ad un configurazione servizio-centrica e non applicazione-centrica).
+> 2) Configurare il Directory Server in modo che sia possibile entrarci solo tramite LDAP/S con mutua autenticazione di certificato.
+> 3) Fare in modo che non sia l'applicazione ad autenticarsi al Directory Server, bens? il sistema operativo. In questo modo la chiave privata sarebbe protetta dall'OS e non si necessitano altri archivi o file di configurazione in cui metterla. Sempre che l'OS abbia simili strumenti...
+> 4) Per modificare le configurazioni predisponiamo un'applicazione che richiede un'autenticazione (forse forte... stiamo valutando). Quando poi si inserisce la password per un servizio, questa non viene memorizzata cos? com'?. L'applicazione fa un cambio password impostando una password molto robusta (lunga e con un'ampia gamma di caratteri) che verr? salvata sul Directory Server e non mostrata all'operatore. In questo modo la password sarebbe conosciuta solo dal servizio, dal Directory Server e dall'applicazione e, a meno di vulnerabilit? di quest'ultima, non dovrebbe mai uscire da questa triade. E la password iniziale che l'operatore aveva non ? pi? valida.
+> 
+> Che ne dite? Pu? funzionare? Ci sono tutti i pezzi per fare qualcosa del genere?
+> GRAZIE!!!
+> 
+> Claudio
+> 
+> 
+> Il giorno 16 agosto 2013 09:16, R.Canaro <security at canaro.net> ha scritto:
+>> 
+>> Ciao, Claudio.
+>> Avevamo un problema simile per gestire le password di accesso al DB utilizzate da un'applicazione Web scritta in PHP.
+>> Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le password su un file e le restituisce, in chiaro, su richiesta.
+>> La password di cifratura e' annegata nel codice C del programma.
+>> Il programma C risponde solo a richieste che arrivino da un determinato utente.
+>> Non e' una soluzione perfetta, ma funziona.
+>> Se vuoi, posso mandarti il codice sorgente C.
+>> Ciao,
+>> 
+>>    C:
+>> 
+>> 
+>> On 01/08/13 16:32, Claudio Signorini wrote:
+>>> Ciao a tutti,
+>>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>>> trovato una risposta valida che sia una.
+>> ...
+>>> Alcune risposte sono state:
+>>> 
+>>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+>>> il controllo della macchina o riesce ad accedere al file pu? leggere il
+>>> file di configurazione e leggere pertanto la password;
+>>> 
+>>> - annegate nel codice dell'applicazione -> non ? accettabile
+>>> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+>>> come scrivere le stesse password in chiaro su un file di configurazione;
+>>> 
+>>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+>>> stato spostato;
+>>> 
+>>> - in un archivio (database relazionale, directory service, ...)
+>>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+>>> una password, e siamo di nuovo al punto di prima.
+>>> 
+>>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+>>> trovato risposte valide.
+>>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>> 
+>>> GRAZIE!
+>>> 
+>>> Claudio Signorini
+>>> 
+>>> 
+>>> _______________________________________________
+>>> Owasp-italy mailing list
+>>> Owasp-italy at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+> 
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130817/d0b5f8c0/attachment.html>
+
+From giorgio.fedon at gmail.com  Sat Aug 17 13:16:26 2013
+From: giorgio.fedon at gmail.com (Giorgio Fedon)
+Date: Sat, 17 Aug 2013 15:16:26 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CABk6+9RBA-nZE8zPfmnhNH-gd7KMviz7ZbfaSFvLAYwLoY_qDA@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<CAO4DapEhuvCQHhGDcQoCOoH8mgNBiHpmxpaE-1BGDX_i_AUxUQ@mail.gmail.com>
+	<CABk6+9RBA-nZE8zPfmnhNH-gd7KMviz7ZbfaSFvLAYwLoY_qDA@mail.gmail.com>
+Message-ID: <C10546F0-2D46-462F-94FC-1C2CDAD66C1E@gmail.com>
+
+Sicuramente dipende anche dai rischi che si vogliono mitigare.
+
+- Accesso fisico
+- Hacking da remoto
+- Rischi di hacking interno e misuse es accesso condiviso all'Svn 
+
+etc.
+
+Anche in questo caso si pu? propendere x soluzioni differenti
+
+Inviato da iPhone
+
+Il giorno 16/ago/2013, alle ore 16:08, Daniele Bellucci <daniele.bellucci at gmail.com> ha scritto:
+
+> Claudio,
+> credo molto dipenda da(i|l) threat(s)? che vuoi mitigare nonche' dalla
+> risk classification dei dati
+> il cui accesso stai controllando attraverso le credenziali che vuoi proteggere.
+> 
+> In linea di massima cercherei di individuare un "keystore" protetto da
+> password con controllo di accesso alla stessa, tale da minimizzare
+> l'esposizione sia in termini di 'tempo' (durante il quale la password
+> viene resa disponibile) sia in termini di 'audience' (chi ha accesso
+> alla password precedentemente resa disponibile in chiaro).
+> 
+> Uno dei principali requisiti del keystore, come gia' sostenuto da chi
+> ha risposto in precendenza, e' quello di garantire che le credenziali
+> non vengano memorizzate 'in plaintext' sullo storage di supporto
+> nonche' minimazzare l'esposizione del 'segreto' che ne consente
+> l'accesso al contenuto.
+> 
+> Sul come non memorizzare credenziali 'in plaintext' su uno storage si
+> puo' aprire un ulteriore thread credo, pero'
+> non dimentichiamoci che le credenziali vanno periodicamente cambiate
+> (o ruotate).
+> 
+> Quando dico protetto da password, intendo tale da utilizzare un "key
+> streching" bello robusto per i prossimi anni in cui i dati che stai
+> proteggendo risulteranno ancora validi.
+> 
+> E si, forse "il meglio" lo trovi solo da un HSM.
+> 
+> 
+> 
+> 2013/8/16 antonio parata <aparata at gmail.com>:
+>> Ciao Claudio,
+>> 
+>> premetto che sono un windows guy quindi il mio consiglio potrebbe non
+>> trovare un equivalente in altri OS. Ti consiglio di dare un occhio alle api
+>> DPAPI (http://msdn.microsoft.com/en-us/library/ms995355.aspx) utilizzate
+>> proprio per proteggere dati utente, cos? come scritto nella documentazione:
+>> 
+>> "This Data Protection API (DPAPI) is a pair of function calls that provide
+>> operating system-level data protection services to user and system
+>> processes."
+>> 
+>> Ne esiste un'implementazione in java: http://jdpapi.sourceforge.net/
+>> 
+>> Spero di esserti stato utile,
+>> Antonio
+>> 
+>> 
+>> 2013/8/1 Claudio Signorini <othellico at gmail.com>
+>>> 
+>>> Ciao a tutti,
+>>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>>> trovato una risposta valida che sia una.
+>>> Parto dall'inizio.
+>>> 
+>>> Per lo pi? la mia azienda si occupa dello sviluppo di servizi web. Quindi
+>>> web application Java che esponiamo in internet a cui i clienti accedono, si
+>>> autenticano, lavorano, etc etc etc.
+>>> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni
+>>> interni altri esterni. Ma ? normale, per accedere ad un servizio, che sia
+>>> necessario utilizzare una password o una chiave privata (nel senso pi?
+>>> generico del termine).
+>>> Il problema che stiamo cercando di risolvere ?: dove ? sicuro scrivere
+>>> tali password/chiavi?
+>>> 
+>>> Alcune risposte sono state:
+>>> 
+>>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende il
+>>> controllo della macchina o riesce ad accedere al file pu? leggere il file di
+>>> configurazione e leggere pertanto la password;
+>>> 
+>>> - annegate nel codice dell'applicazione -> non ? accettabile perch?
+>>> verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ? come
+>>> scrivere le stesse password in chiaro su un file di configurazione;
+>>> 
+>>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo stato
+>>> spostato;
+>>> 
+>>> - in un archivio (database relazionale, directory service, ...)
+>>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di una
+>>> password, e siamo di nuovo al punto di prima.
+>>> 
+>>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato
+>>> risposte valide.
+>>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>> 
+>>> GRAZIE!
+>>> 
+>>> Claudio Signorini
+>>> 
+>>> _______________________________________________
+>>> Owasp-italy mailing list
+>>> Owasp-italy at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>> 
+>> 
+>> _______________________________________________
+>> Owasp-italy mailing list
+>> Owasp-italy at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+
+From thesp0nge at gmail.com  Sat Aug 17 14:51:02 2013
+From: thesp0nge at gmail.com (Paolo Perego)
+Date: Sat, 17 Aug 2013 16:51:02 +0200
+Subject: [Owasp-italy]
+	=?iso-8859-1?q?Classifica_delle_cause_delle_vulnera?=
+	=?iso-8859-1?q?bilit=E0_informatiche?=
+In-Reply-To: <CAFRi_CzDCqTbn5aDdOrkzMXye6vZH8xMzzBzebvB5q8F6GBx+g@mail.gmail.com>
+References: <51F0FC8C.50809@canaro.net>
+	<CAFRi_CzDCqTbn5aDdOrkzMXye6vZH8xMzzBzebvB5q8F6GBx+g@mail.gmail.com>
+Message-ID: <CAFRi_CxyM4xH2-ZhmYbAt7R1n1uYwZeMhfs9o6AFyAAsH=4A0A@mail.gmail.com>
+
+Ci ripensavo sopra... visto che il tema ? molto importante. Sulle
+vulnerabilit? tecnologiche tutti noi sappiamo porvi rimedio e quindi
+esiste nella top 10 stessa un modo per mitigare ad una vulnerabilit?.
+
+Sarebbe interessante rendere la tua top10 pi? "istituzionale" per
+indirizzare quei temi che non sono legati alla tecnologia quanto a
+cattive abitudini/ignoranza(nel senso etimologico del termine) in modo
+da creare awareness sul tema della pianificazione delle attivit? di
+security, di un sano project management, di una pianificazione accorta
+e del fatto che... iddio mi perdoni se lo dico pubblicamente, per fare
+security servono soldi e quindi vanno stimati nei costi di progetto.
+
+Poi chiaramente ci saranno sempre delle persone che cadranno nelle 10
+cattive abitudini che tu hai elencato... si chiamano peracottai ed il
+risultato poi si traduce in siti web fragili come il groviera.
+
+Paolo
+
+2013/8/16 Paolo Perego <thesp0nge at gmail.com>:
+> Bhe che dire... non userei la tua top 10 per un report formale ma quoto
+> parola per parola.
+>
+> Purtroppo le vulnerabilit? pi? gravi non sono tecnologiche. ..
+> Il giorno 14/ago/2013 17:09, "R.Canaro" <security at canaro.net> ha scritto:
+>
+>
+>>
+>>
+>> Buongiorno.
+>> Ho elaborato una mia classifica, simile a quella OWASP, ma dedicata alle
+>> *cause* delle vulnerabilit? applicative.
+>> La classifica ? la seguente:
+>>
+>>  1. Committenti Corrotti
+>>  2. Programmatori Scadenti
+>>  3. Capi-progetto Inadeguati
+>>  4. Commerciali Avidi
+>>  5. Mode Passeggere
+>>  6. Finti Esperti di Sicurezza
+>>  7. Veri Esperti di Sicurezza
+>>  8. Manager Impreparati
+>>  9. Utenti Tonti
+>> 10. Riproduzione Sessuata
+>>
+>> Se avete tempo (e voglia) di leggerla, sarei molto interessato al vostro
+>> parere sulle cose che affermo.
+>> Grazie,
+>>
+>>   C:
+>>
+>>
+>> _______________________________________________
+>> Owasp-italy mailing list
+>> Owasp-italy at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>>
+
+
+
+-- 
+$ cd /pub
+$ more beer
+
+The Application Security blog you really want to read: http://armoredcode.com
+
+From ugo.landini at gmail.com  Sat Aug 17 17:38:00 2013
+From: ugo.landini at gmail.com (Ugo Landini)
+Date: Sat, 17 Aug 2013 19:38:00 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<520DD1CD.5030508@canaro.net>
+	<CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+Message-ID: <8C50DE18-CDAB-471C-A546-2038F2C067F7@gmail.com>
+
+Ciao Claudio,
+Jboss ha un servizio di vault che fa esattamente al tuo caso. 
+
+Il link dovrebbe essere questo (sono al mare, ma la url mi pare buona :) )
+https://community.jboss.org/wiki/JBossAS7SecuringPasswords
+
+Leggi anche questo link per dettagli sul perch? si usa e anche sul perch? NON si usa
+https://community.jboss.org/wiki/JBossPasswords-NotSecureButRecommended
+
+Ciao
+
+-- uL
+
+Pragmatist
+Http://ugolandini.com
+
+On 16/ago/2013, at 10:03, Claudio Signorini <othellico at gmail.com> wrote:
+
+> Buongiorno a tutti,
+> innanzitutto vi ringrazio per le molte risposte, anche in questo caldo agosto.
+> Cerco di riassumere in una sola mail una risposta ai diversi suggerimenti e anche un quadro di come stanno evolvendo i nostri ragionamenti in azienda. Magari pu? emergere qualcosa di utile per tutti.
+> 
+> Prima di tutto una nota per Lorenzo e Paolo. Le password che dobbiamo proteggere non sono quelle degli utenti, ma quelle "applicative", usate dalle applicazioni per autenticarsi su altre applicazioni. Per esempio se ho un gestore documentale che deve usare un servizio di marcatura temporale, il gestore deve utilizzare una user-id e una password per farsi riconoscere dal servizio di marcatura.
+> 
+> Per Giorgio e Nicola: abbiamo pensato anche noi ad una soluzione basata su HSM, anche perch? usiamo gi? dispositivi simili in azienda e anche pesantemente. Ma per interfacciarsi ad un HSM c'? bisogno di un PIN, quindi il problema ? solo spostato: proteggo una chiave con un'altra chiave che non so come proteggere.
+> 
+> Per Luca: fornire la password al boot dell'applicazione? Purtroppo per noi non ? applicabile. Abbiamo esigenze molto alte di disponibilit? dei servizi che ha portato al proliferare di istanze (anche 30 per una singola applicazione) che si riavviano al primo cenno di problema (a qualunque ora del giorno e della notte). Non possiamo dedicare una persona all'inserimento delle password ad ogni riavvio.
+> 
+> Per Canaro: anche noi abbiamo scelto di cifrare i file di configurazione: ? la soluzione attualmente in essere. E anche noi abbiamo scelto di annegare la chiave di (de)cifratura nel codice. Peccato che il codice vada sul repository dei sorgenti, in cui ? leggibile da tutto il gruppo di sviluppatori e amministratori. E' troppo esposta e dobbiamo trovare un'altra soluzione.
+> 
+> Per Antonio: interessante JDPAPI. Ma noi abbiamo solo sistemi Linux. Ma una cosa che ho chiesto ai nostri sistemisti ? vedere se esiste qualcosa di simile anche in Linux. O pi? generalmente: quali sono i servizi di sicurezza che un Linux pu? mettere a disposizione delle nostre applicazioni?
+> 
+> Per Luca: anche JSVC ? interessante. Ne terremo sicuramente conto anche se, come leggerai sotto, stiamo puntando ad un'altra strada.
+> 
+> Per Giorgio: anche il sandboxing dell'application server ? un tema interessante, su cui per? siamo completamente a digiuno. Sai darmi qualche dritta per gli application server Java ed in particolare JBoss? Grazie!!!
+> 
+> Ora. Una veloce presentazione di cosa stiamo pensando adesso. Ogni vostra opinione ? gradita.
+> 
+> 1) Abbandonare la configurazione su file e portarla, per esempio, su un Directory Server (la struttura ad albero si sposa bene con le configurazioni e avendo un server centrale possiamo pensare ad un configurazione servizio-centrica e non applicazione-centrica).
+> 2) Configurare il Directory Server in modo che sia possibile entrarci solo tramite LDAP/S con mutua autenticazione di certificato.
+> 3) Fare in modo che non sia l'applicazione ad autenticarsi al Directory Server, bens? il sistema operativo. In questo modo la chiave privata sarebbe protetta dall'OS e non si necessitano altri archivi o file di configurazione in cui metterla. Sempre che l'OS abbia simili strumenti...
+> 4) Per modificare le configurazioni predisponiamo un'applicazione che richiede un'autenticazione (forse forte... stiamo valutando). Quando poi si inserisce la password per un servizio, questa non viene memorizzata cos? com'?. L'applicazione fa un cambio password impostando una password molto robusta (lunga e con un'ampia gamma di caratteri) che verr? salvata sul Directory Server e non mostrata all'operatore. In questo modo la password sarebbe conosciuta solo dal servizio, dal Directory Server e dall'applicazione e, a meno di vulnerabilit? di quest'ultima, non dovrebbe mai uscire da questa triade. E la password iniziale che l'operatore aveva non ? pi? valida.
+> 
+> Che ne dite? Pu? funzionare? Ci sono tutti i pezzi per fare qualcosa del genere?
+> GRAZIE!!!
+> 
+> Claudio
+> 
+> 
+> Il giorno 16 agosto 2013 09:16, R.Canaro <security at canaro.net> ha scritto:
+>> 
+>> Ciao, Claudio.
+>> Avevamo un problema simile per gestire le password di accesso al DB utilizzate da un'applicazione Web scritta in PHP.
+>> Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le password su un file e le restituisce, in chiaro, su richiesta.
+>> La password di cifratura e' annegata nel codice C del programma.
+>> Il programma C risponde solo a richieste che arrivino da un determinato utente.
+>> Non e' una soluzione perfetta, ma funziona.
+>> Se vuoi, posso mandarti il codice sorgente C.
+>> Ciao,
+>> 
+>>    C:
+>> 
+>> 
+>> On 01/08/13 16:32, Claudio Signorini wrote:
+>>> Ciao a tutti,
+>>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>>> trovato una risposta valida che sia una.
+>> ...
+>>> Alcune risposte sono state:
+>>> 
+>>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+>>> il controllo della macchina o riesce ad accedere al file pu? leggere il
+>>> file di configurazione e leggere pertanto la password;
+>>> 
+>>> - annegate nel codice dell'applicazione -> non ? accettabile
+>>> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+>>> come scrivere le stesse password in chiaro su un file di configurazione;
+>>> 
+>>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+>>> stato spostato;
+>>> 
+>>> - in un archivio (database relazionale, directory service, ...)
+>>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+>>> una password, e siamo di nuovo al punto di prima.
+>>> 
+>>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+>>> trovato risposte valide.
+>>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>> 
+>>> GRAZIE!
+>>> 
+>>> Claudio Signorini
+>>> 
+>>> 
+>>> _______________________________________________
+>>> Owasp-italy mailing list
+>>> Owasp-italy at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-italy
+> 
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130817/a00be0cd/attachment.html>
+
+From paolo.ottolino at gmail.com  Mon Aug 19 10:28:00 2013
+From: paolo.ottolino at gmail.com (Paolo Ottolino)
+Date: Mon, 19 Aug 2013 12:28:00 +0200
+Subject: [Owasp-italy] Come proteggere le password e le chiavi nei file
+	di configurazione
+In-Reply-To: <CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+References: <CAD65=nuGuhzo4k_s7CnjVPgCXrLcSH-imLu7titd3NvN4Ac8Uw@mail.gmail.com>
+	<520DD1CD.5030508@canaro.net>
+	<CAD65=nuJHbiyOgMjdYSpDgs=6eVUEfypMXf0_EryuQV=EZ2DhQ@mail.gmail.com>
+Message-ID: <CAJmcn2yiRBfkqjHxUwY45qKQe0Jmnp7gwmNSaqWZ_no9zKWv4g@mail.gmail.com>
+
+Ciao Claudio,
+
+il meccanismo login/password ("qualcosa che sai") e' stato inventato per le
+situazioni di interazione uomo-macchina, nelle quali e' (era) sempre
+prevista la presenza di una tastiera (stdin), il cui utilizzo a questi
+scopi, oltre che naturale, e' economico. Per tal motivo pensavo ti
+riferissi ad utenti.
+
+Laddove la interazione e' macchina-macchina, non vi e' uno stdin (almeno
+non nella forma di tastiera); quindi, il "login/pwd", ancorche' conservato
+come retaggio del passato per motivi "di business", e' deprecabile. A rigor
+di logica, e' ideale utilizzare approcci altri dal login/pwd, ovvero:
+
+- "qualcosa che sei" (qualcosa che il server e'): un codice legato a
+qualche firmware in giro per il server (es. CPU Serial Number, Mother-Board
+Serial Number, HDD Serial Number, SID, hostid, etc). Generalmente, gli ID
+di questo tipo sono dell'ordine di grandezza dei 128 bit. Difficile da
+gestire in ambito business, infatti la bozza di soluzione che proponi non
+se ne avvale, anche se potrebbe essere usato come secondo livello di
+autenticazione (es. password per leggere chiave) per renderla "forte"
+
+- "qualcosa che hai" (qualcosa che il server ha): una chiave, magari
+crittografica pubblico/privato, meglio se nella forma di certificato,
+utilizzando TLS/SSL (es HTTPS, LDAPS cui fa i riferimento anche tu). Se
+vuoi fare lo "sborone" usi l'HSM, altrimenti scendi a piu' miti consigli.
+Facile per gestire i login "unattended" (se la chiave non e' protetta da
+password). La tua bozza di soluzione infatti ne fa menzione
+
+Osserazioni:
+
+1. Directory Server: perfetto, vai in ottica IAM
+2. LDAPS: come darti torto?
+3. PAM LDAP? Pluggable Authentication Module modulo LDAP (cfr.
+http://www.padl.com/OSS/pam_ldap.html)
+4. valutare anche l'utilizzo di sistemi PUM (Privileged User Management) e
+dei meccanismi che offrono. Costituiscono quella (piccola ma importante)
+sezione dello IAM relativa alla gestione degli utenti amministratori
+(ovvero le utenze con autorizzazioni altre dalla normale operativita'
+dell'utente) e ti aiuta ad indirizzare anche la direttiva SysAdmin del
+Garante Privacy (nov 2008):
+- http://www.centrify.com/solutions/superuser-privilege-management.asp
+-
+http://www.forrester.com/Privileged+User+Management+Market+Overview/fulltext/-/E-RES43822?objectid=RES43822
+- http://www.passwordbank.com/passwordbank-pim/
+-
+http://www.xceedium.com/blog/gartner-iam-a-perfect-storm-for-privileged-user-management
+
+Trovi anche come PIM (Privilege Identity Management):
+- http://en.wikipedia.org/wiki/Privileged_Identity_Management,
+- http://www.ca.com/us/privileged-identity-management.aspx
+- http://www-03.ibm.com/software/products/us/en/pim/
+- http://www.cyber-ark.com/digital-vault-products/pim-suite/index.asp
+
+o PAM (Privilege Account Management):
+- http://www.netwrix.com/privileged_account_manager.html
+
+Ciao
+
+Paolo
+
+
+
+2013/8/16 Claudio Signorini <othellico at gmail.com>
+
+> Buongiorno a tutti,
+> innanzitutto vi ringrazio per le molte risposte, anche in questo caldo
+> agosto.
+> Cerco di riassumere in una sola mail una risposta ai diversi suggerimenti
+> e anche un quadro di come stanno evolvendo i nostri ragionamenti in
+> azienda. Magari pu? emergere qualcosa di utile per tutti.
+>
+> Prima di tutto una nota per Lorenzo e Paolo. Le password che dobbiamo
+> proteggere non sono quelle degli utenti, ma quelle "applicative", usate
+> dalle applicazioni per autenticarsi su altre applicazioni. Per esempio se
+> ho un gestore documentale che deve usare un servizio di marcatura
+> temporale, il gestore deve utilizzare una user-id e una password per farsi
+> riconoscere dal servizio di marcatura.
+>
+> Per Giorgio e Nicola: abbiamo pensato anche noi ad una soluzione basata su
+> HSM, anche perch? usiamo gi? dispositivi simili in azienda e anche
+> pesantemente. Ma per interfacciarsi ad un HSM c'? bisogno di un PIN, quindi
+> il problema ? solo spostato: proteggo una chiave con un'altra chiave che
+> non so come proteggere.
+>
+> Per Luca: fornire la password al boot dell'applicazione? Purtroppo per noi
+> non ? applicabile. Abbiamo esigenze molto alte di disponibilit? dei servizi
+> che ha portato al proliferare di istanze (anche 30 per una singola
+> applicazione) che si riavviano al primo cenno di problema (a qualunque ora
+> del giorno e della notte). Non possiamo dedicare una persona
+> all'inserimento delle password ad ogni riavvio.
+>
+> Per Canaro: anche noi abbiamo scelto di cifrare i file di configurazione:
+> ? la soluzione attualmente in essere. E anche noi abbiamo scelto di
+> annegare la chiave di (de)cifratura nel codice. Peccato che il codice vada
+> sul repository dei sorgenti, in cui ? leggibile da tutto il gruppo di
+> sviluppatori e amministratori. E' troppo esposta e dobbiamo trovare
+> un'altra soluzione.
+>
+> Per Antonio: interessante JDPAPI. Ma noi abbiamo solo sistemi Linux. Ma
+> una cosa che ho chiesto ai nostri sistemisti ? vedere se esiste qualcosa di
+> simile anche in Linux. O pi? generalmente: quali sono i servizi di
+> sicurezza che un Linux pu? mettere a disposizione delle nostre applicazioni?
+>
+> Per Luca: anche JSVC ? interessante. Ne terremo sicuramente conto anche
+> se, come leggerai sotto, stiamo puntando ad un'altra strada.
+>
+> Per Giorgio: anche il sandboxing dell'application server ? un tema
+> interessante, su cui per? siamo completamente a digiuno. Sai darmi qualche
+> dritta per gli application server Java ed in particolare JBoss? Grazie!!!
+>
+> Ora. Una veloce presentazione di cosa stiamo pensando adesso. Ogni vostra
+> opinione ? gradita.
+>
+> 1) Abbandonare la configurazione su file e portarla, per esempio, su un
+> Directory Server (la struttura ad albero si sposa bene con le
+> configurazioni e avendo un server centrale possiamo pensare ad un
+> configurazione servizio-centrica e non applicazione-centrica).
+> 2) Configurare il Directory Server in modo che sia possibile entrarci solo
+> tramite LDAP/S con mutua autenticazione di certificato.
+> 3) Fare in modo che non sia l'applicazione ad autenticarsi al Directory
+> Server, bens? il sistema operativo. In questo modo la chiave privata
+> sarebbe protetta dall'OS e non si necessitano altri archivi o file di
+> configurazione in cui metterla. Sempre che l'OS abbia simili strumenti...
+> 4) Per modificare le configurazioni predisponiamo un'applicazione che
+> richiede un'autenticazione (forse forte... stiamo valutando). Quando poi si
+> inserisce la password per un servizio, questa non viene memorizzata cos?
+> com'?. L'applicazione fa un cambio password impostando una password molto
+> robusta (lunga e con un'ampia gamma di caratteri) che verr? salvata sul
+> Directory Server e non mostrata all'operatore. In questo modo la password
+> sarebbe conosciuta solo dal servizio, dal Directory Server e
+> dall'applicazione e, a meno di vulnerabilit? di quest'ultima, non dovrebbe
+> mai uscire da questa triade. E la password iniziale che l'operatore aveva
+> non ? pi? valida.
+>
+> Che ne dite? Pu? funzionare? Ci sono tutti i pezzi per fare qualcosa del
+> genere?
+> GRAZIE!!!
+>
+> Claudio
+>
+>
+> Il giorno 16 agosto 2013 09:16, R.Canaro <security at canaro.net> ha scritto:
+>
+>
+>> Ciao, Claudio.
+>> Avevamo un problema simile per gestire le password di accesso al DB
+>> utilizzate da un'applicazione Web scritta in PHP.
+>> Lo abbiamo risolto scrivendo un piccolo programma in C che cifra le
+>> password su un file e le restituisce, in chiaro, su richiesta.
+>> La password di cifratura e' annegata nel codice C del programma.
+>> Il programma C risponde solo a richieste che arrivino da un determinato
+>> utente.
+>> Non e' una soluzione perfetta, ma funziona.
+>> Se vuoi, posso mandarti il codice sorgente C.
+>> Ciao,
+>>
+>>    C:
+>>
+>>
+>> On 01/08/13 16:32, Claudio Signorini wrote:
+>>
+>>> Ciao a tutti,
+>>> cercando in giro ho capito che il tema ? sentito, ma sinceramente non ho
+>>> trovato una risposta valida che sia una.
+>>>
+>> ...
+>>
+>>> Alcune risposte sono state:
+>>>
+>>> - in un file di configurazione, ovvero in chiaro sulle macchine su cui
+>>> gira l'applicazione -> non ? accettabile, perch? se un attaccante prende
+>>> il controllo della macchina o riesce ad accedere al file pu? leggere il
+>>> file di configurazione e leggere pertanto la password;
+>>>
+>>> - annegate nel codice dell'applicazione -> non ? accettabile
+>>> perch? verrebbero scritte nei repository dei sorgenti e quindi tutti gli
+>>> sviluppatori potrebbero leggere tali password; inoltre essendo le nostre
+>>> applicazioni scritte in Java (e non potendo offuscare tutti i binari) ?
+>>> come scrivere le stesse password in chiaro su un file di configurazione;
+>>>
+>>> - in un file di configurazione ma cifrate -> non ? accettabile: per
+>>> cifrare serve una chiave e dove scrivo la chiave? il problema ? solo
+>>> stato spostato;
+>>>
+>>> - in un archivio (database relazionale, directory service, ...)
+>>> accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di
+>>> una password, e siamo di nuovo al punto di prima.
+>>>
+>>> Immagino che questo problema non sia solo della nostra azienda. E, come
+>>> dicevo, ho trovato altri che hanno posto domande simili. Ma non ho
+>>> trovato risposte valide.
+>>> Voi cosa ne dite? Come avete risolto voi questo problema?
+>>>
+>>> GRAZIE!
+>>>
+>>> Claudio Signorini
+>>>
+>>>
+>>> ______________________________**_________________
+>>> Owasp-italy mailing list
+>>> Owasp-italy at lists.owasp.org
+>>> https://lists.owasp.org/**mailman/listinfo/owasp-italy<https://lists.owasp.org/mailman/listinfo/owasp-italy>
+>>>
+>>>
+>>
+>
+> _______________________________________________
+> Owasp-italy mailing list
+> Owasp-italy at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-italy
+>
+>
+
+
+-- 
+Paolo Ottolino
+PMP CISSP-ISSAP CISA CISM OPST ITIL
+--------------------------------------------------------------
+PM, IT Auditor & Security Professional
++39 335 7942 593
+paolo.ottolino at gmail.com
+http://www.8linux.org
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-italy/attachments/20130819/78fab7e0/attachment.html>
+

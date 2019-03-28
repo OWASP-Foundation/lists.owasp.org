@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Redirect%20with%20token%20not%20working%20when%20query%0A%20parameters%20present%20and%20TokenPerPage%3Dtrue&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000061.html">
+   <LINK REL="Next"  HREF="000063.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true</H1>
+    <B>Patrick Radtke</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Redirect%20with%20token%20not%20working%20when%20query%0A%20parameters%20present%20and%20TokenPerPage%3Dtrue&In-Reply-To="
+       TITLE="[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true">pradtke at stanford.edu
+       </A><BR>
+    <I>Tue Jul  5 20:07:17 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000061.html">[Owasp-csrfguard] difference between session tokens and csrf	tokens
+</A></li>
+        <LI>Next message: <A HREF="000063.html">[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#62">[ date ]</a>
+              <a href="thread.html#62">[ thread ]</a>
+              <a href="subject.html#62">[ subject ]</a>
+              <a href="author.html#62">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I needed support for appending the CSRF token as part of a redirect.
+I saw this feature was available in git, but there is a bug that prevents it
+from working when query parameters are present.
+Basically 'isValidRequest' ignores query params, while 'getTokenValue' 
+doesn't.
+
+Example:
+I access
+/AccountApp/editmf
+which redirects to
+/AccountApp/editmf?execution=e1s1
+
+After adding CSRF Guard
+I access
+{/AccountApp/editmf?OWASP_CSRFTOKEN=RSDP-3A22-LV7E-Y53P-ZSBE-QCJG-DLQS-FL6K}
+the per page token is stored under the key '/AccountApp/editmf'
+The redirect is to '/AccountApp/editmf?execution=e1s1' which
+doesn't match the key, so the session token is used to construct the 
+redirect url
+/AccountApp/editmf?execution=e1s1&amp;OWASP_CSRFTOKEN=OWZF-U0O1-4LKU-W4UR-40KB-0LRI-6TMF-5GCM
+This happens in 'getTokenValue()'
+
+However, when isValidRequest after the redirect, only 
+'/AccountApp/editmf' is used to check the pageTokens map,
+so the token no longer matches.
+
+The 'location' needs the query params stripped off. I'm not familiar enough
+with servlets to know if there is standard call to do that.
+
+(approx line 75 of CsrfGuardFilter)
+String location = redirectResponse.getLocation()
+
+This all works fine if TokenPerPage=false.
+
+thanks,
+
+Patrick
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000061.html">[Owasp-csrfguard] difference between session tokens and csrf	tokens
+</A></li>
+	<LI>Next message: <A HREF="000063.html">[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#62">[ date ]</a>
+              <a href="thread.html#62">[ thread ]</a>
+              <a href="subject.html#62">[ subject ]</a>
+              <a href="author.html#62">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

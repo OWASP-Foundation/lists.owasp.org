@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-london] On sandboxes, and why you should care
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-london%40lists.owasp.org?Subject=%5BOwasp-london%5D%20On%20sandboxes%2C%20and%20why%20you%20should%20care&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000116.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-london] On sandboxes, and why you should care</H1>
+    <B>Dinis Cruz</B> 
+    <A HREF="mailto:owasp-london%40lists.owasp.org?Subject=%5BOwasp-london%5D%20On%20sandboxes%2C%20and%20why%20you%20should%20care&In-Reply-To="
+       TITLE="[Owasp-london] On sandboxes, and why you should care">dinis at ddplus.net
+       </A><BR>
+    <I>Thu Mar 30 04:16:08 EST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000116.html">[Owasp-london] Owasp SiteGenerator v0.70 (public beta release)
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#117">[ date ]</a>
+              <a href="thread.html#117">[ thread ]</a>
+              <a href="subject.html#117">[ subject ]</a>
+              <a href="author.html#117">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 29/03/06, Andrew van der Stock &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-london">vanderaj at greebo.net</A>&gt; wrote:
+&gt;<i> Hi there,
+</I>
+Hello Andrew,
+
+As a response to your post, I will try to clarify why I believe that
+Sandboxes are a fundamental piece in the security of Web Applications,
+the hosting server(s) and the datacenter.
+
+First of all, there are two issues with Verification. The first is
+that you need verifiable code in both .Net and Java in order to run
+that code in a Sandbox (Partial trust in .Net). The 2nd one is that if
+you remove verification from the security benefits of .Net and Java,
+and you admit that that is OK (which seems to be the current position
+today), then you just eliminated some of the biggest security and
+reliability features of these 'managed environments' (you also have
+the problem that when (not if) you move your code to a secure sandbox
+you will have many more problems to deal with (from performance to
+unverifiable code issues))
+
+&gt;<i>
+</I>&gt;<i> I must have missed a memo or something. I don't know about you, but
+</I>&gt;<i> I've reviewed many J2EE apps which had far greater things wrong than
+</I>&gt;<i> not running in a verified / trusted environment. I've never seen an
+</I>&gt;<i> attack which is realistic or usable for such attacks.
+</I>
+Really???  I am not so sure.
+
+Lets look at some of your assets: The J2EE application, the supporting
+database, the server(s) hosting your environment, the data center,
+that companies internal network, the users (end-clients) and all users
+(end-clients) that use all websites hosted in that data center (add to
+this mix, items like: company public profile/confidence, customer's
+private data, data privacy and SoX laws,  and end up with a complex
+multilayer mesh of assets)
+
+Now, there are different levels of compromise here (I will just list some)
+
+- J2EE application compromise
+- Database compromise
+- Web Server compromise
+- Database server compromise
+- Data center compromise
+
+One of the main benefits of what I am defending (Sandboxing the
+execution of code) is that you are able to dramatically limit the
+damage created by (for example) malicious code executed on the
+application's process space.
+
+So for example, the damage of a file upload vulnerability (which
+allows you to put a *.jsp file on the server and execute it) is
+limited to the permissions allocated to the Sandbox.
+
+The reality is that if you don't run that code with ANY sandbox, then
+your entire Application, Server and Datacenter security is dependent
+of the non existence of any malicious code in all applications running
+on all web servers.
+
+Also remember that more and more we will have to deal with malicious
+developers, or with malicious attackers that are able to inject
+malicious code into a website via:
+    - a library used by a developer
+    - a compromised developer account details (which tend to be sent by
+email)
+    - a compromised developer computer (infected via Spyware) which
+allows the malicious attacker to control remotely that computer and
+(for example) path Eclipse or Visual Studio in memory so that every
+time a piece of code its submitted (checked-in) , the malicious
+payloads are inserted.
+
+If you add up the number of people that have the capability to put one
+line of malicious code on a web server, you will see that this is a
+very large number indeed.
+
+A couple more examples of ways malicious code can be uploaded to the
+server: SQL Injection, XSS (payload deployed to the admin section),
+authorization vulnerabilities which allow the editing of files on the
+server (via for example the CMS (content management system)),
+manipulating params which control which method is executed (when
+Reflection is used to perform late binding on method calls based on
+the commands received) ,Social engineering, etc...
+
+Sometimes you will even find CMS (Content Management Systems) that
+provide power users (or 'area x' admins) with powerful customization
+features which when exploited (or not, depending if this is a
+'feature') allow the injection of code.
+
+Do you really think that it is a good idea to have your entire data
+center security and CIA (Confidentiality, Integrity and Availability)
+depended on such extraordinary set of circumstances?
+
+So the first main security benefit that we have with using Sandboxes
+is: Containment, Damage Limitation, and Risk Reduction (you went from
+full data center compromise to a local and limited problem)
+
+Note: the reason that I say data center compromise, is because most
+(if not all) data centers (and even corporate networks) are not
+designed to sustain an attack executed from inside (especially when
+the malicious attacker as admin control over one server)
+
+&gt;<i>
+</I>&gt;<i> If I find (say) 100 things wrong, the business can afford the time
+</I>&gt;<i> and resources to fix 65 of these and the inclination to fix none. Any
+</I>&gt;<i> fix is a good fix from my point of view, but I need to be careful in
+</I>&gt;<i> what I strongly recommend to be fixed, and what I'll let go through
+</I>&gt;<i> to the keeper.
+</I>
+Sure, but out of those 100, how many allow remote command execution or
+upload of scripts to the server?
+
+So ironically, you could find your self in a position where the first
+thing you should do (from a security point of view) would be to
+isolate that server/application so that a compromise of that
+application is limited to that application's assets.
+&gt;<i>
+</I>&gt;<i> I'm sorry, but I can't recommend turning on the verifier and asking
+</I>&gt;<i> the devs to go through the painful effort of figuring out exactly
+</I>&gt;<i> what perms their code will require when there are actual exploitable
+</I>&gt;<i> issues (those 65 - 80 or so) which may cause actual financial loss.
+</I>
+Well that depends on what those issues are, but I agree with you that
+converting existing applications designed to run outside a sandbox,
+into 'Sandboxable' applications, is a massive project.
+
+Also note that just turning on the verifier is not good enough.  You
+will need other protection layers.
+
+What other Protection layers I am talking about? For example: &quot;Offline
+or realtime code profiling and analysis&quot;
+
+One of the reasons why I strongly believe that Full Trust code (and
+the Java --noverify) should be verifiable, is because if it was, I
+could analyse (offline and in real time) that code for security
+problems and block its execution when malicious code is detected.
+
+If the code is verifiable, I am able to make a series of security
+decisions (with a high degree to certainty) based on the the 'risk
+profile' of that code. For example: Does it make calls to unmanaged
+code, does make calls to private members using reflection, does start
+processes, etc...
+
+If the code is not verifiable then It is as good as trying to analyse
+a C++ binary (you basically will have no ability to make hard
+decisions because you just can't predict what is inside that binary
+(or unverifiable code)). Which is the reason why signature based
+Anti-Virus and Anti-Spyware applications are very bad at detecting new
+virus, exploits or attacks.
+
+So the 2nd security advantage that Verifiable code gives you is: Allow
+Security decisions to be made based on pre-execution or real-time code
+analysis / checks.
+
+&gt;<i> Ditto asking for &quot;final&quot; and other modifiers to be used. Turning on
+</I>&gt;<i> the verifier / forcing the assertion of required privs requires a
+</I>&gt;<i> complete re-test. For many larger apps, testing can cost millions of
+</I>&gt;<i> dollars.
+</I>
+In the current environment yes (because these applications where
+designed to run with maximum privileges), but when (not if) the
+applications are designed (or modified) to run in sandboxes, then the
+cost of changing them to run on 'secure run-time environments' will be
+more acceptable. Which is one of the reasons why the sooner
+Sandboxable code starts to be created the better.
+
+&gt;<i> How much has been lost with this attack? Ever?
+</I>
+Well, that depends on how you measure this cost?
+
+Remember for example, that the reason why most Buffer Overflows are so
+dangerous is because the payload is executed outside a sandbox :)
+
+So I can argue that a vulnerability that allows remote .Net or Java
+code to be executed on the victim, is as dangerous as a Buffer
+Overflow.
+
+And I think there have some some financial losses out there due to
+Buffer Overflows exploits, don't you agree?  :)
+
+Take for example the latest Microsoft Office Buffer Overflow
+vulnerabilities. Which one is more dangerous, a Word file with such
+exploit (and payload) or a Word file with that payload injected inside
+a Macro? (note that in Office 2003, Macros are .Net assemblies which
+require Full Trust to execute). The risk profile is about the same for
+both, since both have a 90% chance of being executed.
+&gt;<i>
+</I>&gt;<i> Remember, the mitigant to many risks may not be a technical control;
+</I>&gt;<i> it may be reactive (audit), legal (T&amp;C's / contracts), or it may be
+</I>&gt;<i> process driven, such as settlement periods.
+</I>&gt;<i>
+</I>&gt;<i> I'm interested - has *anyone* seen an attack (.NET or J2EE) which
+</I>&gt;<i> aims at the trust model of the underlying VM?
+</I>
+I have (but can't talk about it). Humm, where do you see a 'trust
+model on the underlying VM'? If you are running with Full Trust or
+--noverify, the only 'trust model' that exists is the same one that
+exists for unmanaged (C++) applications (for example OS based ACL
+restrictions)
+
+But if you want a very good public example, look at the PHP XML-RPC
+worms which do exactly that. They use a vulnerability in a
+application's feature, to upload code to the server and execute it
+from the inside (in most cases making those computer boot-net zombies
+used to launch other attacks)
+
+If these PHP applications were running inside a sandbox, then this
+worm would have never been possible if that Sandbox (for example) did
+not allow direct outbound connections.
+
+&gt;<i> Has it lost anyone any
+</I>&gt;<i> money / reputation / shareholder confidence?
+</I>Money yes, reputation and shareholder confidence, not really.
+
+There is a small number of public disclosure of this type of attacks,
+and the media doesn't tend to report that the problem is 'lack of
+Sandboxing' (see the coverage on the PHP XML-RPC worm)
+
+&gt;<i> I'm happy to hear if
+</I>&gt;<i> there has been,
+</I>
+Sometimes all it takes is to look at reality with another perspective.
+
+After my explanations, do you still think that this is a non-issue
+
+&gt;<i> but otherwise, I'd like to think we have more
+</I>&gt;<i> important things to educate devland on than worrying about a risk
+</I>&gt;<i> which doesn't really rate.
+</I>
+Well I strongly disagree that this 'risk doesn't really rate', but
+since we are talking about 'devland'. let me give you my final reason
+why I believe the development of verifiable and sandboxable code is so
+important.
+
+And the reason is: To allow privilege separation and to make source
+code audits practical and accountable.
+
+Lets take typical source-code security audit project. You get given an
+application (App A) that has 500,000 lines of code (executed with Full
+Trust or with --noverify), and you are given 1 week to: understand the
+app, audit the code, find vulnerabilities, write proof of concepts and
+write your report.
+
+Now, if you need to look at every single one of those 500,000 lines of
+code, can you really do it in that time frame?
+
+No way.
+
+Can you provide a strong level of assurance to your client that that
+application has no major vulnerabilities?
+
+No way, because you known that all you need is 1 vulnerable method
+inside that 500,000 block of code, to compromise the entire solution.
+
+So let's look at another application (App B) which has the same
+functionality but, is executed in three Sandboxes:
+
+ - Sandbox A) 450,000 lines of code executed in very restricted
+Sandbox (let's say Asp.Net Low Trust)
+
+  - Sandbox B) 48,000 lines of code executed in secure Sandbox (let's
+say customized version of Asp.Net Medium Trust)
+
+  - Sandbox C) 2,000 lines of code executed in a Sandbox which allows
+calls to unmanaged code.
+
+Given the same 1 week, you (as the security consultant auditing this
+application) will spend most of your time in Sandbox C) code, less on
+Sandbox B) code and even less on Sandbox A) code. Why? because only a
+vulnerability in Sandbox C) would allow the compromise of the entire
+App / Server / Datacenter.
+
+More importantly, a vulnerability which in Sandbox A) you would mark
+with a Critical Risk rating, in App A (due to the different DREAD
+score) you would marked it with a Low Risk rating. Same code,
+different Sandboxes, different Risk Profiles :)
+
+And this brings me back to my frustration with the current status quo
+(which is to write everything for Full Trust / --noverify
+environments), because we already have working solutions that allow
+the creation of applications like App B. What we don't have is
+awareness, focus, commitment and client pressure to do it.
+
+If today there is a good understanding / acknowledgment that
+applications that need to be executed with Admin or System privileges
+is not good security practices, then let's extend this and realise
+that that Full Trust / --noverify code is also as bad.
+
+I strongly believe that only when the majority (and eventually all)
+applications we use look like App B (or even App C with 100% code
+execution in a secure sandbox) we will have  trustworthy computing
+environments.
+
+&gt;<i>
+</I>&gt;<i> thanks,
+</I>&gt;<i> Andrew
+</I>
+No problem
+
+Hope my explanations make sense
+
+Dinis Cruz
+Owasp .Net Project
+www.owasp.net
+
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000116.html">[Owasp-london] Owasp SiteGenerator v0.70 (public beta release)
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#117">[ date ]</a>
+              <a href="thread.html#117">[ thread ]</a>
+              <a href="subject.html#117">[ subject ]</a>
+              <a href="author.html#117">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-london">More information about the Owasp-london
+mailing list</a><br>
+</body></html>

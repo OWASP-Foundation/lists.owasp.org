@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Session Highjacking Rules, Existence of Variable Collection
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Session%20Highjacking%20Rules%2C%0A%20Existence%20of%20Variable%20Collection&In-Reply-To=%3C53177E00.6010002%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001507.html">
+   <LINK REL="Next"  HREF="001509.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Session Highjacking Rules, Existence of Variable Collection</H1>
+    <B>Ramy Darwish</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Session%20Highjacking%20Rules%2C%0A%20Existence%20of%20Variable%20Collection&In-Reply-To=%3C53177E00.6010002%40gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Session Highjacking Rules, Existence of Variable Collection">jackbro.pluckah at gmail.com
+       </A><BR>
+    <I>Wed Mar  5 19:41:52 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001507.html">[Owasp-modsecurity-core-rule-set] Session Highjacking Rules, Existence of Variable Collection
+</A></li>
+        <LI>Next message: <A HREF="001509.html">[Owasp-modsecurity-core-rule-set] Rule id:981318 SQL Injection	problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1508">[ date ]</a>
+              <a href="thread.html#1508">[ thread ]</a>
+              <a href="subject.html#1508">[ subject ]</a>
+              <a href="author.html#1508">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yay, my first PULL request ever!
+Would be delighted to do that. In fact doing so right now.
+
+Thank you!
+
+Ramy
+
+On 05/03/2014 15:17, Ryan Barnett wrote:
+&gt;<i> On 3/4/14 12:33 PM, &quot;Ramy Darwish&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jackbro.pluckah at gmail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi Ryan, thank you very much for your answer.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Indeed, that line checks for an existing session cookie for all rules
+</I>&gt;&gt;<i> until the END_SESSION_STARTUP marker, and it performs as expected.
+</I>&gt;&gt;<i> I was referring to the last two rules (981063 and 981064, lines 47 and
+</I>&gt;&gt;<i> 49),
+</I>&gt;&gt;<i> which will try to setvar even when the SESSION collection hasn't yet been
+</I>&gt;&gt;<i> initialized (e.g. for session-less users, like bots or anonymous users).
+</I>&gt;&gt;<i> This results in two &quot;collection does not exist&quot; errors per transaction.
+</I>&gt;&gt;<i> Not very serious, but quite a bit of log noise :p
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Another small issue:
+</I>&gt;&gt;<i> I also noticed that because I run Modsecurity in embedded mode,
+</I>&gt;&gt;<i> a lot of response headers aren't yet &quot;released&quot; by Apache on phase 3.
+</I>&gt;&gt;<i> That includes the Set-Cookie header, which is vital for rule 981062.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But I managed to solve these issues by making the following
+</I>&gt;&gt;<i> 3 important modifications for my use case:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - Modify the regex to fit my Session Cookie name
+</I>&gt;&gt;<i>    (that's to be expected, of course)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - Move execution of rules 981062 (Session creation),
+</I>&gt;&gt;<i>    981063 and 981064 (IP and UA Hash creation) to phase 5:
+</I>&gt;&gt;<i>    Since they are all non-disruptive, and because the Set-Cookie
+</I>&gt;&gt;<i>    response headers are only available at the logging phase
+</I>&gt;&gt;<i>    for embedded installs, this enables successful session
+</I>&gt;&gt;<i>    initialization for all install modes!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - Execute rules 981063 and 981064 with a session existence test:
+</I>&gt;&gt;<i>    . That way, IP and UA hashes are only created for an existing session,
+</I>&gt;&gt;<i>      or one that was just created by the previous 981062 rule.
+</I>&gt;&gt;<i>      No more errors for session-less navigation.
+</I>&gt;&gt;<i>    . I came up with the following session existence test:
+</I>&gt;&gt;<i>      SecRule &amp;SESSION:SESSIONID &quot;@eq 1&quot; &quot;chain...&quot;
+</I>&gt;&gt;<i>    . Apparently, it's important that this test be the first in chain,
+</I>&gt;&gt;<i>      so as to prevent the errors showing up (maybe the rule is parsed
+</I>&gt;&gt;<i>      without being executed when further down the chain? I'm not sure...)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Anyways, this is how I re-wrote the 981062, 981063 and 981064 rules:
+</I>&gt;&gt;<i> <A HREF="http://pastebin.com/raw.php?i=4X5eh2nJ">http://pastebin.com/raw.php?i=4X5eh2nJ</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Is it a smart and sound resolution of my problem?
+</I>&gt;&gt;<i> Am I in the wrong regarding best practices?
+</I>&gt;&gt;<i> So far (well, since yesterday), it has been working very well for me!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thank you again for taking the time, much appreciated =)
+</I>&gt;<i>
+</I>&gt;<i> Your approach looks good!  Can you issue a PULL request in GitHub so we
+</I>&gt;<i> can incorporate your updates?
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs">https://github.com/SpiderLabs/owasp-modsecurity-crs</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Thanks,
+</I>&gt;<i> Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i>
+</I>&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;<i>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001507.html">[Owasp-modsecurity-core-rule-set] Session Highjacking Rules, Existence of Variable Collection
+</A></li>
+	<LI>Next message: <A HREF="001509.html">[Owasp-modsecurity-core-rule-set] Rule id:981318 SQL Injection	problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1508">[ date ]</a>
+              <a href="thread.html#1508">[ thread ]</a>
+              <a href="subject.html#1508">[ subject ]</a>
+              <a href="author.html#1508">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,2101 @@
+From corovin at starnet.md  Mon Nov  4 22:00:10 2013
+From: corovin at starnet.md (Andrei)
+Date: Tue, 5 Nov 2013 00:00:10 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Mass posting to Joomla
+Message-ID: <005701ced9a9$3b82a080$b287e180$@starnet.md>
+
+Hi Everyone,
+
+ 
+
+How can I stop (block) mass posting to Joomla (Joomla Comment)?
+
+ 
+
+On log file I see like this:
+
+ 
+
+2013-11-04 21:21:45 W3SVC386 web-server 192.168.100.120 POST /index.php - 80
+- 37.187.73.26 HTTP/1.1
+Mozilla/4.0+(compatible;+MSIE+6.0;+Windows+NT+5.1;+SV1;+Mozilla/4.0+(compati
+ble;+MSIE+6.0;+Windows+NT+5.1;+SV1)+;+.NET+CLR+1.0.3705)
+d9651aff03b7f5ca7fbbcc7c30e5f539=ge3ujulkg7rnkh1jggsb0qlqr2
+http://<domain.ru>/index.php/live/item/16-test/16-test?limitstart=0
+<domain.ru> 200 0 0 1359 5490 218
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131105/d408acb8/attachment.html>
+
+From filipesam at gmail.com  Tue Nov  5 15:42:31 2013
+From: filipesam at gmail.com (Filipe Bernardo)
+Date: Tue, 5 Nov 2013 15:42:31 +0000
+Subject: [Owasp-modsecurity-core-rule-set]
+	modsecurity_crs_41_sql_injection_attacks - not using REQUEST_URI
+Message-ID: <CAKE35kbGCieaZxzmFKR1h-fxqw-ou6rufXWdjXSfvgtx-r20mQ@mail.gmail.com>
+
+Hi all,
+
+I've been doing some tests and i've noticed that the rules on the file
+"modsecurity_crs_41_sql_injection_attacks" are not using REQUEST_URI.
+
+I've noticed that with this configuration when the hosts are using
+"friendly urls" the injections, on the URL, are not detected. (at least
+from the tests i've done)
+
+I assume that this is problably because of false positives, but i think
+it's relevant to analyse the URLs, even when they are with "friendly urls".
+
+Does someone have some good tips to workaround this?
+For the moment i've altered the rule and i'm using on the same file
+(modsecurity_crs_41_sql_injection_attacks) "SecRule....REQUEST_URI".
+
+I would like some opinions on this. What would be the best aproach?
+
+Keep on the greate job,
+Thanks
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131105/2fcb6591/attachment.html>
+
+From dietrich.streifert at googlemail.com  Tue Nov 12 16:55:46 2013
+From: dietrich.streifert at googlemail.com (Dietrich Streifert)
+Date: Tue, 12 Nov 2013 17:55:46 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Unable to remove rule 960012 with
+	SecRuleRemoveById
+Message-ID: <52825D92.6030209@googlemail.com>
+
+I'm trying create a setup for a subversion dav over http server. I've 
+successfully managed to enable the needed content-type 
+'application/vnd.svn*' and the request methods like PROPFIND etc.
+
+While trying to commit to the repositories which are served vi the above 
+setup, I'm getting a rule violation against rule id "960012" in 
+modsecurity_crs_20_protocol_violations.conf, line 312, which is caused 
+by the javahl svn client of eclipse.
+
+I've tried to disable the rule via
+
+<LocationMatch /* >
+    <IfModule mod_security2.c>
+        SecRuleRemoveById 960012
+   </IfModule>
+</LocationMatch>
+with no success.
+
+I've seen in line 312 of modsecurity_crs_20_protocol_violations.conf 
+that rule id 960012 has a chained rule which has no rule id.
+
+Would I need to also disable the chained rule, which of course, I can't 
+do because of the missing rule id?
+
+Is this a bug or a newbies common mistake?
+
+Regards
+Dietrich
+
+From twells at nexcess.net  Wed Nov 13 03:37:54 2013
+From: twells at nexcess.net (Ted Wells)
+Date: Tue, 12 Nov 2013 22:37:54 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Unable to remove rule 960012
+	with SecRuleRemoveById
+In-Reply-To: <52825D92.6030209@googlemail.com>
+References: <52825D92.6030209@googlemail.com>
+Message-ID: <40F42076-B323-4E7E-B5B2-BCEF3003C834@nexcess.net>
+
+Hey Dietrich,
+
+If you want to get rid of the rule altogether (not just whitelist certain URLs against it), you won?t actually need that LocationMatch section. I believe this should work:
+
+  <IfModule mod_security2.c>
+      SecRuleRemoveById 960012
+ </IfModule>
+
+What it looks like was actually causing it not to work was that, because LocationMatch uses regular expressions, you would want to use ?/.*? instead of ?/*? to match every URL (again, the LocationMatch is redundant if you?re looking to disable the rule for every URL anyways =] ):
+
+<LocationMatch /.* >
+  <IfModule mod_security2.c>
+      SecRuleRemoveById 960012
+ </IfModule>
+</LocationMatch>
+
+On Nov 12, 2013, at 11:55 AM, Dietrich Streifert <dietrich.streifert at googlemail.com> wrote:
+
+> I'm trying create a setup for a subversion dav over http server. I've successfully managed to enable the needed content-type 'application/vnd.svn*' and the request methods like PROPFIND etc.
+> 
+> While trying to commit to the repositories which are served vi the above setup, I'm getting a rule violation against rule id "960012" in modsecurity_crs_20_protocol_violations.conf, line 312, which is caused by the javahl svn client of eclipse.
+> 
+> I've tried to disable the rule via
+> 
+> <LocationMatch /* >
+>   <IfModule mod_security2.c>
+>       SecRuleRemoveById 960012
+>  </IfModule>
+> </LocationMatch>
+> with no success.
+> 
+> I've seen in line 312 of modsecurity_crs_20_protocol_violations.conf that rule id 960012 has a chained rule which has no rule id.
+> 
+> Would I need to also disable the chained rule, which of course, I can't do because of the missing rule id?
+> 
+> Is this a bug or a newbies common mistake?
+> 
+> Regards
+> Dietrich
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From jamuse at owasp.org  Wed Nov 13 08:33:10 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Wed, 13 Nov 2013 10:33:10 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Unable to remove rule 960012
+ with SecRuleRemoveById
+In-Reply-To: <52825D92.6030209@googlemail.com>
+References: <52825D92.6030209@googlemail.com>
+Message-ID: <CAC+O4mEjno=P_sZeH5jAUqf=TZrunUE93HhAPm9b9omfC_AktQ@mail.gmail.com>
+
+On Tue, Nov 12, 2013 at 6:55 PM, Dietrich Streifert <
+dietrich.streifert at googlemail.com> wrote:
+
+>
+> I've tried to disable the rule via
+>
+> <LocationMatch /* >
+>    <IfModule mod_security2.c>
+>        SecRuleRemoveById 960012
+>   </IfModule>
+> </LocationMatch>
+> with no success.
+>
+> I've seen in line 312 of modsecurity_crs_20_protocol_violations.conf that
+> rule id 960012 has a chained rule which has no rule id.
+>
+> Would I need to also disable the chained rule, which of course, I can't do
+> because of the missing rule id?
+>
+>
+Hi Dietrich,
+
+A chained rule is essentially one rule thus no ID is assigned to the
+subsequent chained rules. Regarding your exception, which version of
+ModSecurity are you using? Rule 960012 runs in phase 1, while Location and
+LocationMatch run in phase 2. If you are running a recent version of
+ModSecurity, where rules in phase 1 and phase 2 are run at the same time,
+then make sure your exception is placed before rule 960012 is created, e.g.
+in a 15 file. If you are running an older version of ModSecurity, try
+creating an exception using a SecRule and ctl.
+
+--
+ - Josh
+
+Is this a bug or a newbies common mistake?
+>
+> Regards
+> Dietrich
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131113/5339a4b3/attachment.html>
+
+From dietrich.streifert at googlemail.com  Wed Nov 13 10:05:11 2013
+From: dietrich.streifert at googlemail.com (Dietrich Streifert)
+Date: Wed, 13 Nov 2013 11:05:11 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Unable to remove rule 960012
+ with SecRuleRemoveById
+In-Reply-To: <40F42076-B323-4E7E-B5B2-BCEF3003C834@nexcess.net>
+References: <52825D92.6030209@googlemail.com>
+	<40F42076-B323-4E7E-B5B2-BCEF3003C834@nexcess.net>
+Message-ID: <52834ED7.8040301@googlemail.com>
+
+Hi Ted,
+
+Thank you for your help.
+
+I've removed the LocationMatch section and it works!
+
+Regards
+Dietrich
+
+Am 13.11.2013 04:37, schrieb Ted Wells:
+> Hey Dietrich,
+>
+> If you want to get rid of the rule altogether (not just whitelist certain URLs against it), you won?t actually need that LocationMatch section. I believe this should work:
+>
+>    <IfModule mod_security2.c>
+>        SecRuleRemoveById 960012
+>   </IfModule>
+>
+> What it looks like was actually causing it not to work was that, because LocationMatch uses regular expressions, you would want to use ?/.*? instead of ?/*? to match every URL (again, the LocationMatch is redundant if you?re looking to disable the rule for every URL anyways =] ):
+>
+> <LocationMatch /.* >
+>    <IfModule mod_security2.c>
+>        SecRuleRemoveById 960012
+>   </IfModule>
+> </LocationMatch>
+>
+> On Nov 12, 2013, at 11:55 AM, Dietrich Streifert <dietrich.streifert at googlemail.com> wrote:
+>
+>> I'm trying create a setup for a subversion dav over http server. I've successfully managed to enable the needed content-type 'application/vnd.svn*' and the request methods like PROPFIND etc.
+>>
+>> While trying to commit to the repositories which are served vi the above setup, I'm getting a rule violation against rule id "960012" in modsecurity_crs_20_protocol_violations.conf, line 312, which is caused by the javahl svn client of eclipse.
+>>
+>> I've tried to disable the rule via
+>>
+>> <LocationMatch /* >
+>>    <IfModule mod_security2.c>
+>>        SecRuleRemoveById 960012
+>>   </IfModule>
+>> </LocationMatch>
+>> with no success.
+>>
+>> I've seen in line 312 of modsecurity_crs_20_protocol_violations.conf that rule id 960012 has a chained rule which has no rule id.
+>>
+>> Would I need to also disable the chained rule, which of course, I can't do because of the missing rule id?
+>>
+>> Is this a bug or a newbies common mistake?
+>>
+>> Regards
+>> Dietrich
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From jg at softjury.de  Mon Nov 18 15:18:23 2013
+From: jg at softjury.de (Jan Phillip Greimann)
+Date: Mon, 18 Nov 2013 16:18:23 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Problems with the "MASCULINE
+	ORDINAL INDICATOR"
+Message-ID: <528A2FBF.5050606@softjury.de>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi there,
+
+I've got a problem with modsecurity, modsecurity-crs and a little
+nasty unicode-symbol, the "MASCULINE ORDINAL INDICATOR" or in short: ?
+
+  http://codepoints.net/U+00BA?lang=en
+
+This nasty symbol causes multiple sql-injection rules:
+
+Message: Pattern match
+"(?i:(?:,.*?[)\\da-f\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98][\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98](?:[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98].*?[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]|\\Z|[^\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]+))|(?:\\Wselect.+\\W*?from)|((?
+..." at ARGS:address[street]. [file
+"/etc/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "209"] [id "981257"] [msg "Detects MySQL
+comment-/space-obfuscated injections and backtick termination"] [data
+"Matched Data: , n\xc2\xba 1, 1\xc2\xba - 1 found within
+ARGS:address[street]: C/ Mare de D\xc3\xa9u del Corredor, n\xc2\xba 1,
+1\xc2\xba - 1\xc2\xaa"] [severity "CRITICAL"] [tag
+"OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]
+
+Message: Pattern match
+"(?i:(?:union\\s*?(?:all|distinct|[(!@]*?)?\\s*?[([]*?\\s*?select\\s+)|(?:\\w+\\s+like\\s+[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98])|(?:like\\s*?[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]\\%)|(?:[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]\\s*?like\\W*?[\"'`\xc2\xb4
+..." at ARGS:address[street]. [file
+"/etc/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "223"] [id "981245"] [msg "Detects basic SQL authentication
+bypass attempts 2/3"] [data "Matched Data: \xc2\xba 1, 1 found within
+ARGS:address[street]: C/ Mare de D\xc3\xa9u del Corredor, n\xc2\xba 1,
+1\xc2\xba - 1\xc2\xaa"] [severity "CRITICAL"] [tag
+"OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]
+
+Message: Pattern match
+"(?i:(?:[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]\\s*?\\*.+(?:x?or|div|like|between|and|id)\\W*?[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98]\\d)|(?:\\^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98])|(?:^[\\w\\s\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98-]+(?<=and\\s)(?<=or|xor
+..." at ARGS:address[street]. [file
+"/etc/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "245"] [id "981243"] [msg "Detects classic SQL injection
+probings 2/2"] [data "Matched Data: \xc2\xba 1 found within
+ARGS:address[street]: C/ Mare de D\xc3\xa9u del Corredor, n\xc2\xba 1,
+1\xc2\xba - 1\xc2\xaa"] [severity "CRITICAL"] [tag
+"OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]
+
+
+I've configured
+
+  SecUnicodeCodePage 20127
+  SecUnicodeMapFile /etc/modsecurity/unicode.mapping
+
+and the rules are using t:urlDecodeUni but there are still these
+audit-events. I have no clue why, could someone help me with this?
+
+
+
+Best regards
+Jan
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJSii+7AAoJENEKhqzzuxPlfnUH/ikgzlTWu4e1CeLq7iuMK/cQ
+GJ9iZn4SgiX8fuiPVNaZVRxDMpYcf9fayyD/79F9K6TZpHIZnjRWqESon293svF/
+Fp4yi43+TUZmfTSNROBSKAbjcJQJmUZlYeYkyibku3XTicylHXltsLEUccx/QHE/
++PlE0mfTmHKoLomh8bL3bhiF8ZjKdCy2Q9ogx6gUvcCnRnsWPgVJfQEywgLpZOw4
+1rxuetEKa4E3zr9ZprXPOxCP+XlVhPw6G3NxGH74hL4iJg3wdRUoXbu9Uc7IyZiE
+wsAj01fYsr3Ud/V17C9W8xldy8dhjwTLFYqJSc4EnYzICF/0W/TwvAeTV11hNZM=
+=ZtYd
+-----END PGP SIGNATURE-----
+
+
+From phill.watkins at gmail.com  Mon Nov 25 11:45:18 2013
+From: phill.watkins at gmail.com (Phill Watkins)
+Date: Mon, 25 Nov 2013 11:45:18 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to
+	disable rules
+Message-ID: <CAONsccV_8dv-o43R=O4mCUwi7Eeq94HeN2-GNawFZQXXsyZaXQ@mail.gmail.com>
+
+Hi,
+
+For some reason I'm struggling to to disable rules using SecRuleRemoveById
+inside a Location or LocationMatch.
+
+I can disable rules globally (which isn't ideal) so I know the directive
+works but I don't know why Apache doesn't act upon the
+Location/LocationMatch.
+
+One of the applications on my web server that I'm trying to disable a rule
+for is Subsonic. Subsonic requires Tomcat and is a connected to Apache via
+the AJP connector module.
+
+I have successfully disabled one of the Atomicorp delayed rules in the past
+like this:
+
+<IfModule mod_jk.c>
+JkMount /subsonic ajp13_worker
+JkMount /subsonic/* ajp13_worker
+<Location /subsonic/upload.view>
+SecRuleRemoveById 330792
+</Location>
+</IfModule>
+
+I am now trying to disable rule 960010 from the CRS for the entire
+application because of too many false positives.
+
+I have tried <Location /subsonic/>  as well as multiple regular expressions
+for days but nothing works.
+
+Here is an example from the audit log:
+
+--35e37e6c-A--
+[12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509 hidden
+443
+--35e37e6c-B--
+POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+HTTP/1.1
+Host: hidden
+Connection: keep-alive
+Content-Length: 214
+Origin: https://hidden
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+Gecko) Chrome/30.0.1599.114 Safari/537.36
+Content-Type: text/plain
+Accept: */*
+Referer: https://hidden/subsonic/right.view?
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+Cookie: player-656c6c6965=6; player-73727661646d=6;
+JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+player-7068696c6c=9; compact_display_state=false
+
+--35e37e6c-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 221
+Keep-Alive: timeout=5, max=88
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--35e37e6c-H--
+Message: Access denied with code 403 (phase 1). Match of "rx
+^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+"/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+[line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+"OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+"OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+"OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+Action: Intercepted (phase 1)
+Stopwatch: 1384258745437774 1085 (- - -)
+Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0, p4=0,
+p5=63, sr=48, sw=0, l=0, gc=0
+Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+OWASP_CRS/2.2.8.
+Server: Apache
+Engine-Mode: "ENABLED"
+
+--35e37e6c-Z--
+
+I'd be grateful of any advice.
+
+Thanks for your time.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131125/7a79cb3e/attachment.html>
+
+From phill.watkins at gmail.com  Mon Nov 25 20:21:23 2013
+From: phill.watkins at gmail.com (Phill Watkins)
+Date: Mon, 25 Nov 2013 20:21:23 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+ failing to disable rules
+In-Reply-To: <CABkhgLq1CWW5Zsg2OAYGemg78uRxOs5cAnmzuywgBCB9o4ky5A@mail.gmail.com>
+References: <CAONsccV_8dv-o43R=O4mCUwi7Eeq94HeN2-GNawFZQXXsyZaXQ@mail.gmail.com>
+	<CABkhgLo6K6yAgcrGwGu7zEo4L48o9NR+eM1gerMxw=sEs6rw9w@mail.gmail.com>
+	<CABkhgLo7pihQqZS6j2Fm2rHoqQj4__1Nxe8cuFA_ZPe44o3bww@mail.gmail.com>
+	<CABkhgLrbPiSpn=OsWUVJCCxhYeENYBkNs6033-vQgAxcoDrnvw@mail.gmail.com>
+	<CABkhgLq1CWW5Zsg2OAYGemg78uRxOs5cAnmzuywgBCB9o4ky5A@mail.gmail.com>
+Message-ID: <CAONsccWSomWbVd8AnxiAZ2x9HiKHo11V6t_6MM4SF7NVacxfvw@mail.gmail.com>
+
+Thanks replying.
+
+I'm using CRS version 2.2.8 with ModSecurity 2.7.5. As far as I can tell
+the rule has already been updated as per your example.
+
+I tried using Directory instead of Location but it didn't work and I kind
+of understand this since Subsonic is essentially being accessed by proxy
+(AJP connector).
+
+Your nesting idea will work but will have the effect of disabling the rule
+globally if mod_jk is enabled, which I'm trying to avoid.
+
+Rule ID 330792 is from the Atomicorp (now defunct) delayed rules. I was
+using this as an example to show that I've successfully used Location to a
+disable a rule for Subsonic before. Sorry for the confusion.
+
+Regards
+
+
+On 25 November 2013 17:46, Jose Pablo Valc?rcel L?zaro <
+pablo.valcarcel1980 at gmail.com> wrote:
+
+> Sorry, I was wrong. You should be able to use location match as you have
+> written.
+>
+> You should be able to comment original rule 330792 but instead disabling
+> at all, copy it into a customized.conf rules and try to rewrite rule to
+> bypass what is triggering that rule, in your case:
+>
+> Message: Access denied with code 403 (phase 1). Match of "rx
+> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+> "/etc/apache2/owasp-modsecurity-crs/activated_
+> rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"]
+> [rev "2"] [msg "Request content type is not allowed by policy"] [data
+> "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"]
+> [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+> "PCI/12.1"]
+>
+> I?m watching that is not 330792 rule id, instead it seems 960010 rule id
+> on /etc/apache2/owasp-modsecurity-crs/activated_
+> rules/modsecurity_crs_30_http_policy.conf and it?s blocked because of Request
+> content type is not allowed by policy.
+>
+>
+> It could be a older bug depending on mod_security rule version you are
+> using:
+>
+> http://web.archiveorange.com/archive/v/eCIWmXcpDxoRYUESRQEg
+>
+>
+>
+> There is a bug in that rule as it is missing a "chain" action on the 2nd
+> SecRule.  The
+> rule should be this -
+>
+> SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+> "phase:2,chain,t:none,pass,nolog,auditlog,msg:'Request content type is not
+> allowed
+> by
+>
+> policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',
+> severity:'4',logdata:'%{matched_var}'"
+>         SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>                 SecRule TX:0 "!@within %{tx.allowed_request_content_type}"
+> "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.
+>
+> warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.
+> %{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var
+> _name}=%{matched_var}"
+>
+> This issue has already been reported in JIRA
+> (https://www.modsecurity.org/tracker/browse/CO...) and fixed in CRS
+> v2.0.6.  You can
+> manually add the "chain" action to your rule to fix the issue now.
+>
+> -Ryan
+>
+> Which mod_security rule version are you using?
+>
+> Kind regards,
+>
+>
+> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>
+>> Or simply try to nest as follows:
+>>
+>> <IfModule mod_jk.c>
+>>  JkMount /subsonic ajp13_worker
+>> JkMount /subsonic/* ajp13_worker
+>> <IfModule mod_security2.c>
+>>  SecRuleRemoveById 330039
+>> </IfModule>
+>> </IfModule>
+>>
+>> Kind regards,
+>>
+>>
+>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>
+>>> In mod_security migration matrix table you will see features against
+>>> different mod_security versions:
+>>>
+>>> https://github.com/SpiderLabs/ModSecurity/wiki/ModSecurity-Migration-Matrix
+>>>
+>>> Ability to manage rules in Apache Scope locations
+>>> SecFilterRemove is now SecRuleRemoveById or SecRuleRemoveByMsg.
+>>> SecFilterImport is no longer supported.
+>>>
+>>> So following that feature, I guess location directive you just can only
+>>> use to disable rules.
+>>>
+>>> If you want to enable a specific rule, you should develop within
+>>> specific rules and disable in all domains you don?t need to check it.
+>>>
+>>> Kind regards,
+>>>
+>>>
+>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>
+>>>> Hi.
+>>>>
+>>>> I have seen rules to disabling by id as follows:
+>>>>
+>>>> <IfModule security2_module>
+>>>>  <Directory /local/home/username/example.net>
+>>>>         SecRuleRemoveById 330039
+>>>>  </Directory>
+>>>> </IfModule>
+>>>>
+>>>> Have you try with  apache Directory directive?
+>>>>
+>>>> Kind regards,
+>>>>
+>>>>
+>>>> 2013/11/25 Phill Watkins <phill.watkins at gmail.com>
+>>>>
+>>>>>  Hi,
+>>>>>
+>>>>> For some reason I'm struggling to to disable rules using
+>>>>> SecRuleRemoveById inside a Location or LocationMatch.
+>>>>>
+>>>>> I can disable rules globally (which isn't ideal) so I know the
+>>>>> directive works but I don't know why Apache doesn't act upon the
+>>>>> Location/LocationMatch.
+>>>>>
+>>>>> One of the applications on my web server that I'm trying to disable a
+>>>>> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+>>>>> via the AJP connector module.
+>>>>>
+>>>>>  I have successfully disabled one of the Atomicorp delayed rules in
+>>>>> the past like this:
+>>>>>
+>>>>> <IfModule mod_jk.c>
+>>>>> JkMount /subsonic ajp13_worker
+>>>>>  JkMount /subsonic/* ajp13_worker
+>>>>> <Location /subsonic/upload.view>
+>>>>> SecRuleRemoveById 330792
+>>>>>  </Location>
+>>>>> </IfModule>
+>>>>>
+>>>>> I am now trying to disable rule 960010 from the CRS for the entire
+>>>>> application because of too many false positives.
+>>>>>
+>>>>> I have tried <Location /subsonic/>  as well as multiple regular
+>>>>> expressions for days but nothing works.
+>>>>>
+>>>>> Here is an example from the audit log:
+>>>>>
+>>>>> --35e37e6c-A--
+>>>>> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509
+>>>>> hidden 443
+>>>>> --35e37e6c-B--
+>>>>> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+>>>>> HTTP/1.1
+>>>>> Host: hidden
+>>>>> Connection: keep-alive
+>>>>> Content-Length: 214
+>>>>> Origin: https://hidden
+>>>>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,
+>>>>> like Gecko) Chrome/30.0.1599.114 Safari/537.36
+>>>>> Content-Type: text/plain
+>>>>> Accept: */*
+>>>>> Referer: https://hidden/subsonic/right.view?
+>>>>> Accept-Encoding: gzip,deflate,sdch
+>>>>> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+>>>>> Cookie: player-656c6c6965=6; player-73727661646d=6;
+>>>>> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+>>>>> player-7068696c6c=9; compact_display_state=false
+>>>>>
+>>>>> --35e37e6c-F--
+>>>>> HTTP/1.1 403 Forbidden
+>>>>> Vary: Accept-Encoding
+>>>>> Content-Encoding: gzip
+>>>>> Content-Length: 221
+>>>>> Keep-Alive: timeout=5, max=88
+>>>>> Connection: Keep-Alive
+>>>>> Content-Type: text/html; charset=iso-8859-1
+>>>>>
+>>>>> --35e37e6c-H--
+>>>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>>>> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+>>>>> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+>>>>> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+>>>>> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+>>>>> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+>>>>> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>>>>> Action: Intercepted (phase 1)
+>>>>> Stopwatch: 1384258745437774 1085 (- - -)
+>>>>> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0,
+>>>>> p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+>>>>> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+>>>>> OWASP_CRS/2.2.8.
+>>>>> Server: Apache
+>>>>> Engine-Mode: "ENABLED"
+>>>>>
+>>>>> --35e37e6c-Z--
+>>>>>
+>>>>> I'd be grateful of any advice.
+>>>>>
+>>>>> Thanks for your time.
+>>>>>
+>>>>>
+>>>>> _______________________________________________
+>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>
+>>>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>
+>>>>>
+>>>>
+>>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131125/ed883247/attachment.html>
+
+From pablo.valcarcel1980 at gmail.com  Mon Nov 25 23:28:05 2013
+From: pablo.valcarcel1980 at gmail.com (=?ISO-8859-1?Q?Jose_Pablo_Valc=E1rcel_L=E1zaro?=)
+Date: Tue, 26 Nov 2013 00:28:05 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+ failing to disable rules
+In-Reply-To: <CAONsccWSomWbVd8AnxiAZ2x9HiKHo11V6t_6MM4SF7NVacxfvw@mail.gmail.com>
+References: <CAONsccV_8dv-o43R=O4mCUwi7Eeq94HeN2-GNawFZQXXsyZaXQ@mail.gmail.com>
+	<CABkhgLo6K6yAgcrGwGu7zEo4L48o9NR+eM1gerMxw=sEs6rw9w@mail.gmail.com>
+	<CABkhgLo7pihQqZS6j2Fm2rHoqQj4__1Nxe8cuFA_ZPe44o3bww@mail.gmail.com>
+	<CABkhgLrbPiSpn=OsWUVJCCxhYeENYBkNs6033-vQgAxcoDrnvw@mail.gmail.com>
+	<CABkhgLq1CWW5Zsg2OAYGemg78uRxOs5cAnmzuywgBCB9o4ky5A@mail.gmail.com>
+	<CAONsccWSomWbVd8AnxiAZ2x9HiKHo11V6t_6MM4SF7NVacxfvw@mail.gmail.com>
+Message-ID: <CABkhgLoFbTeB9CHV28RMVh0oy8F97CxMg18xaPJNN1F0aEO+1Q@mail.gmail.com>
+
+Could you post denied trace?
+Maybe you could copyright that rule in customized, comment original rule
+and try to edit on customized to avoid triger with client specific
+request.
+
+Kind regards
+El 25/11/2013 21:28, "Phill Watkins" <phill.watkins at gmail.com> escribi?:
+
+> Thanks replying.
+>
+> I'm using CRS version 2.2.8 with ModSecurity 2.7.5. As far as I can tell
+> the rule has already been updated as per your example.
+>
+> I tried using Directory instead of Location but it didn't work and I kind
+> of understand this since Subsonic is essentially being accessed by proxy
+> (AJP connector).
+>
+> Your nesting idea will work but will have the effect of disabling the rule
+> globally if mod_jk is enabled, which I'm trying to avoid.
+>
+> Rule ID 330792 is from the Atomicorp (now defunct) delayed rules. I was
+> using this as an example to show that I've successfully used Location to a
+> disable a rule for Subsonic before. Sorry for the confusion.
+>
+> Regards
+>
+>
+> On 25 November 2013 17:46, Jose Pablo Valc?rcel L?zaro <
+> pablo.valcarcel1980 at gmail.com> wrote:
+>
+>> Sorry, I was wrong. You should be able to use location match as you have
+>> written.
+>>
+>> You should be able to comment original rule 330792 but instead disabling
+>> at all, copy it into a customized.conf rules and try to rewrite rule to
+>> bypass what is triggering that rule, in your case:
+>>
+>> Message: Access denied with code 403 (phase 1). Match of "rx
+>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>> "/etc/apache2/owasp-modsecurity-crs/activated_
+>> rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"]
+>> [rev "2"] [msg "Request content type is not allowed by policy"] [data
+>> "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"]
+>> [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+>> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+>> "PCI/12.1"]
+>>
+>> I?m watching that is not 330792 rule id, instead it seems 960010 rule id
+>> on /etc/apache2/owasp-modsecurity-crs/activated_
+>> rules/modsecurity_crs_30_http_policy.conf and it?s blocked because of Request
+>> content type is not allowed by policy.
+>>
+>>
+>> It could be a older bug depending on mod_security rule version you are
+>> using:
+>>
+>> http://web.archiveorange.com/archive/v/eCIWmXcpDxoRYUESRQEg
+>>
+>>
+>>
+>>
+>> There is a bug in that rule as it is missing a "chain" action on the 2nd
+>> SecRule.  The
+>> rule should be this -
+>>
+>> SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+>> "phase:2,chain,t:none,pass,nolog,auditlog,msg:'Request content type is
+>> not allowed
+>> by
+>>
+>> policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',
+>> severity:'4',logdata:'%{matched_var}'"
+>>         SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>>                 SecRule TX:0 "!@within
+>> %{tx.allowed_request_content_type}"
+>> "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.
+>>
+>> warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.
+>> %{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var
+>> _name}=%{matched_var}"
+>>
+>> This issue has already been reported in JIRA
+>> (https://www.modsecurity.org/tracker/browse/CO...) and fixed in CRS
+>> v2.0.6.  You can
+>> manually add the "chain" action to your rule to fix the issue now.
+>>
+>> -Ryan
+>>
+>> Which mod_security rule version are you using?
+>>
+>> Kind regards,
+>>
+>>
+>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>
+>>> Or simply try to nest as follows:
+>>>
+>>> <IfModule mod_jk.c>
+>>>  JkMount /subsonic ajp13_worker
+>>> JkMount /subsonic/* ajp13_worker
+>>> <IfModule mod_security2.c>
+>>>  SecRuleRemoveById 330039
+>>> </IfModule>
+>>> </IfModule>
+>>>
+>>> Kind regards,
+>>>
+>>>
+>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>
+>>>> In mod_security migration matrix table you will see features against
+>>>> different mod_security versions:
+>>>>
+>>>> https://github.com/SpiderLabs/ModSecurity/wiki/ModSecurity-Migration-Matrix
+>>>>
+>>>> Ability to manage rules in Apache Scope locations
+>>>> SecFilterRemove is now SecRuleRemoveById or SecRuleRemoveByMsg.
+>>>> SecFilterImport is no longer supported.
+>>>>
+>>>> So following that feature, I guess location directive you just can only
+>>>> use to disable rules.
+>>>>
+>>>> If you want to enable a specific rule, you should develop within
+>>>> specific rules and disable in all domains you don?t need to check it.
+>>>>
+>>>> Kind regards,
+>>>>
+>>>>
+>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>
+>>>>> Hi.
+>>>>>
+>>>>> I have seen rules to disabling by id as follows:
+>>>>>
+>>>>> <IfModule security2_module>
+>>>>>  <Directory /local/home/username/example.net>
+>>>>>         SecRuleRemoveById 330039
+>>>>>  </Directory>
+>>>>> </IfModule>
+>>>>>
+>>>>> Have you try with  apache Directory directive?
+>>>>>
+>>>>> Kind regards,
+>>>>>
+>>>>>
+>>>>> 2013/11/25 Phill Watkins <phill.watkins at gmail.com>
+>>>>>
+>>>>>>  Hi,
+>>>>>>
+>>>>>> For some reason I'm struggling to to disable rules using
+>>>>>> SecRuleRemoveById inside a Location or LocationMatch.
+>>>>>>
+>>>>>> I can disable rules globally (which isn't ideal) so I know the
+>>>>>> directive works but I don't know why Apache doesn't act upon the
+>>>>>> Location/LocationMatch.
+>>>>>>
+>>>>>> One of the applications on my web server that I'm trying to disable a
+>>>>>> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+>>>>>> via the AJP connector module.
+>>>>>>
+>>>>>>  I have successfully disabled one of the Atomicorp delayed rules in
+>>>>>> the past like this:
+>>>>>>
+>>>>>> <IfModule mod_jk.c>
+>>>>>> JkMount /subsonic ajp13_worker
+>>>>>>  JkMount /subsonic/* ajp13_worker
+>>>>>> <Location /subsonic/upload.view>
+>>>>>> SecRuleRemoveById 330792
+>>>>>>  </Location>
+>>>>>> </IfModule>
+>>>>>>
+>>>>>> I am now trying to disable rule 960010 from the CRS for the entire
+>>>>>> application because of too many false positives.
+>>>>>>
+>>>>>> I have tried <Location /subsonic/>  as well as multiple regular
+>>>>>> expressions for days but nothing works.
+>>>>>>
+>>>>>> Here is an example from the audit log:
+>>>>>>
+>>>>>> --35e37e6c-A--
+>>>>>> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509
+>>>>>> hidden 443
+>>>>>> --35e37e6c-B--
+>>>>>> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+>>>>>> HTTP/1.1
+>>>>>> Host: hidden
+>>>>>> Connection: keep-alive
+>>>>>> Content-Length: 214
+>>>>>> Origin: https://hidden
+>>>>>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
+>>>>>> (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36
+>>>>>> Content-Type: text/plain
+>>>>>> Accept: */*
+>>>>>> Referer: https://hidden/subsonic/right.view?
+>>>>>> Accept-Encoding: gzip,deflate,sdch
+>>>>>> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+>>>>>> Cookie: player-656c6c6965=6; player-73727661646d=6;
+>>>>>> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+>>>>>> player-7068696c6c=9; compact_display_state=false
+>>>>>>
+>>>>>> --35e37e6c-F--
+>>>>>> HTTP/1.1 403 Forbidden
+>>>>>> Vary: Accept-Encoding
+>>>>>> Content-Encoding: gzip
+>>>>>> Content-Length: 221
+>>>>>> Keep-Alive: timeout=5, max=88
+>>>>>> Connection: Keep-Alive
+>>>>>> Content-Type: text/html; charset=iso-8859-1
+>>>>>>
+>>>>>> --35e37e6c-H--
+>>>>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>>>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>>>>> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+>>>>>> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+>>>>>> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+>>>>>> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+>>>>>> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+>>>>>> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>>>>>> Action: Intercepted (phase 1)
+>>>>>> Stopwatch: 1384258745437774 1085 (- - -)
+>>>>>> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0,
+>>>>>> p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+>>>>>> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+>>>>>> OWASP_CRS/2.2.8.
+>>>>>> Server: Apache
+>>>>>> Engine-Mode: "ENABLED"
+>>>>>>
+>>>>>> --35e37e6c-Z--
+>>>>>>
+>>>>>> I'd be grateful of any advice.
+>>>>>>
+>>>>>> Thanks for your time.
+>>>>>>
+>>>>>>
+>>>>>> _______________________________________________
+>>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>>
+>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/1d4c3f2a/attachment-0001.html>
+
+From tmunyai at easypay.co.za  Tue Nov 26 06:55:49 2013
+From: tmunyai at easypay.co.za (Tendani Munyai)
+Date: Tue, 26 Nov 2013 08:55:49 +0200
+Subject: [Owasp-modsecurity-core-rule-set] if i have mod-security installed
+ and owasp-modsecurity-core-rule-set,
+ to i need to worry about vulnerability like CSRF?
+In-Reply-To: <mailman.908.1385422114.956.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.908.1385422114.956.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <529445F5.2090301@easypay.co.za>
+
+
+On 26/11/2013 01:28, 
+owasp-modsecurity-core-rule-set-request at lists.owasp.org wrote:
+> Send Owasp-modsecurity-core-rule-set mailing list submissions to
+> 	owasp-modsecurity-core-rule-set at lists.owasp.org
+>
+> To subscribe or unsubscribe via the World Wide Web, visit
+> 	https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> or, via email, send a message with subject or body 'help' to
+> 	owasp-modsecurity-core-rule-set-request at lists.owasp.org
+>
+> You can reach the person managing the list at
+> 	owasp-modsecurity-core-rule-set-owner at lists.owasp.org
+>
+> When replying, please edit your Subject line so it is more specific
+> than "Re: Contents of Owasp-modsecurity-core-rule-set digest..."
+>
+>
+> Today's Topics:
+>
+>     1. Re: Location/LocationMatch failing to disable rules
+>        (Phill Watkins)
+>     2. Re: Location/LocationMatch failing to disable rules
+>        (Jose Pablo Valc?rcel L?zaro)
+>
+>
+> ----------------------------------------------------------------------
+>
+> Message: 1
+> Date: Mon, 25 Nov 2013 20:21:23 +0000
+> From: Phill Watkins <phill.watkins at gmail.com>
+> To: OWASP CRS Mailing List
+> 	<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+> 	failing to disable rules
+> Message-ID:
+> 	<CAONsccWSomWbVd8AnxiAZ2x9HiKHo11V6t_6MM4SF7NVacxfvw at mail.gmail.com>
+> Content-Type: text/plain; charset="iso-8859-1"
+>
+> Thanks replying.
+>
+> I'm using CRS version 2.2.8 with ModSecurity 2.7.5. As far as I can tell
+> the rule has already been updated as per your example.
+>
+> I tried using Directory instead of Location but it didn't work and I kind
+> of understand this since Subsonic is essentially being accessed by proxy
+> (AJP connector).
+>
+> Your nesting idea will work but will have the effect of disabling the rule
+> globally if mod_jk is enabled, which I'm trying to avoid.
+>
+> Rule ID 330792 is from the Atomicorp (now defunct) delayed rules. I was
+> using this as an example to show that I've successfully used Location to a
+> disable a rule for Subsonic before. Sorry for the confusion.
+>
+> Regards
+>
+>
+> On 25 November 2013 17:46, Jose Pablo Valc?rcel L?zaro <
+> pablo.valcarcel1980 at gmail.com> wrote:
+>
+>> Sorry, I was wrong. You should be able to use location match as you have
+>> written.
+>>
+>> You should be able to comment original rule 330792 but instead disabling
+>> at all, copy it into a customized.conf rules and try to rewrite rule to
+>> bypass what is triggering that rule, in your case:
+>>
+>> Message: Access denied with code 403 (phase 1). Match of "rx
+>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>> "/etc/apache2/owasp-modsecurity-crs/activated_
+>> rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"]
+>> [rev "2"] [msg "Request content type is not allowed by policy"] [data
+>> "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"]
+>> [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+>> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+>> "PCI/12.1"]
+>>
+>> I?m watching that is not 330792 rule id, instead it seems 960010 rule id
+>> on /etc/apache2/owasp-modsecurity-crs/activated_
+>> rules/modsecurity_crs_30_http_policy.conf and it?s blocked because of Request
+>> content type is not allowed by policy.
+>>
+>>
+>> It could be a older bug depending on mod_security rule version you are
+>> using:
+>>
+>> http://web.archiveorange.com/archive/v/eCIWmXcpDxoRYUESRQEg
+>>
+>>
+>>
+>> There is a bug in that rule as it is missing a "chain" action on the 2nd
+>> SecRule.  The
+>> rule should be this -
+>>
+>> SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+>> "phase:2,chain,t:none,pass,nolog,auditlog,msg:'Request content type is not
+>> allowed
+>> by
+>>
+>> policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',
+>> severity:'4',logdata:'%{matched_var}'"
+>>          SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>>                  SecRule TX:0 "!@within %{tx.allowed_request_content_type}"
+>> "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.
+>>
+>> warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.
+>> %{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var
+>> _name}=%{matched_var}"
+>>
+>> This issue has already been reported in JIRA
+>> (https://www.modsecurity.org/tracker/browse/CO...) and fixed in CRS
+>> v2.0.6.  You can
+>> manually add the "chain" action to your rule to fix the issue now.
+>>
+>> -Ryan
+>>
+>> Which mod_security rule version are you using?
+>>
+>> Kind regards,
+>>
+>>
+>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>
+>>> Or simply try to nest as follows:
+>>>
+>>> <IfModule mod_jk.c>
+>>>   JkMount /subsonic ajp13_worker
+>>> JkMount /subsonic/* ajp13_worker
+>>> <IfModule mod_security2.c>
+>>>   SecRuleRemoveById 330039
+>>> </IfModule>
+>>> </IfModule>
+>>>
+>>> Kind regards,
+>>>
+>>>
+>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>
+>>>> In mod_security migration matrix table you will see features against
+>>>> different mod_security versions:
+>>>>
+>>>> https://github.com/SpiderLabs/ModSecurity/wiki/ModSecurity-Migration-Matrix
+>>>>
+>>>> Ability to manage rules in Apache Scope locations
+>>>> SecFilterRemove is now SecRuleRemoveById or SecRuleRemoveByMsg.
+>>>> SecFilterImport is no longer supported.
+>>>>
+>>>> So following that feature, I guess location directive you just can only
+>>>> use to disable rules.
+>>>>
+>>>> If you want to enable a specific rule, you should develop within
+>>>> specific rules and disable in all domains you don?t need to check it.
+>>>>
+>>>> Kind regards,
+>>>>
+>>>>
+>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>
+>>>>> Hi.
+>>>>>
+>>>>> I have seen rules to disabling by id as follows:
+>>>>>
+>>>>> <IfModule security2_module>
+>>>>>   <Directory /local/home/username/example.net>
+>>>>>          SecRuleRemoveById 330039
+>>>>>   </Directory>
+>>>>> </IfModule>
+>>>>>
+>>>>> Have you try with  apache Directory directive?
+>>>>>
+>>>>> Kind regards,
+>>>>>
+>>>>>
+>>>>> 2013/11/25 Phill Watkins <phill.watkins at gmail.com>
+>>>>>
+>>>>>>   Hi,
+>>>>>>
+>>>>>> For some reason I'm struggling to to disable rules using
+>>>>>> SecRuleRemoveById inside a Location or LocationMatch.
+>>>>>>
+>>>>>> I can disable rules globally (which isn't ideal) so I know the
+>>>>>> directive works but I don't know why Apache doesn't act upon the
+>>>>>> Location/LocationMatch.
+>>>>>>
+>>>>>> One of the applications on my web server that I'm trying to disable a
+>>>>>> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+>>>>>> via the AJP connector module.
+>>>>>>
+>>>>>>   I have successfully disabled one of the Atomicorp delayed rules in
+>>>>>> the past like this:
+>>>>>>
+>>>>>> <IfModule mod_jk.c>
+>>>>>> JkMount /subsonic ajp13_worker
+>>>>>>   JkMount /subsonic/* ajp13_worker
+>>>>>> <Location /subsonic/upload.view>
+>>>>>> SecRuleRemoveById 330792
+>>>>>>   </Location>
+>>>>>> </IfModule>
+>>>>>>
+>>>>>> I am now trying to disable rule 960010 from the CRS for the entire
+>>>>>> application because of too many false positives.
+>>>>>>
+>>>>>> I have tried <Location /subsonic/>  as well as multiple regular
+>>>>>> expressions for days but nothing works.
+>>>>>>
+>>>>>> Here is an example from the audit log:
+>>>>>>
+>>>>>> --35e37e6c-A--
+>>>>>> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509
+>>>>>> hidden 443
+>>>>>> --35e37e6c-B--
+>>>>>> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+>>>>>> HTTP/1.1
+>>>>>> Host: hidden
+>>>>>> Connection: keep-alive
+>>>>>> Content-Length: 214
+>>>>>> Origin: https://hidden
+>>>>>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,
+>>>>>> like Gecko) Chrome/30.0.1599.114 Safari/537.36
+>>>>>> Content-Type: text/plain
+>>>>>> Accept: */*
+>>>>>> Referer: https://hidden/subsonic/right.view?
+>>>>>> Accept-Encoding: gzip,deflate,sdch
+>>>>>> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+>>>>>> Cookie: player-656c6c6965=6; player-73727661646d=6;
+>>>>>> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+>>>>>> player-7068696c6c=9; compact_display_state=false
+>>>>>>
+>>>>>> --35e37e6c-F--
+>>>>>> HTTP/1.1 403 Forbidden
+>>>>>> Vary: Accept-Encoding
+>>>>>> Content-Encoding: gzip
+>>>>>> Content-Length: 221
+>>>>>> Keep-Alive: timeout=5, max=88
+>>>>>> Connection: Keep-Alive
+>>>>>> Content-Type: text/html; charset=iso-8859-1
+>>>>>>
+>>>>>> --35e37e6c-H--
+>>>>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>>>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>>>>> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+>>>>>> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+>>>>>> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+>>>>>> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+>>>>>> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+>>>>>> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>>>>>> Action: Intercepted (phase 1)
+>>>>>> Stopwatch: 1384258745437774 1085 (- - -)
+>>>>>> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0,
+>>>>>> p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+>>>>>> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+>>>>>> OWASP_CRS/2.2.8.
+>>>>>> Server: Apache
+>>>>>> Engine-Mode: "ENABLED"
+>>>>>>
+>>>>>> --35e37e6c-Z--
+>>>>>>
+>>>>>> I'd be grateful of any advice.
+>>>>>>
+>>>>>> Thanks for your time.
+>>>>>>
+>>>>>>
+>>>>>> _______________________________________________
+>>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>>
+>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>>
+>>>>>>
+> -------------- next part --------------
+> An HTML attachment was scrubbed...
+> URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131125/ed883247/attachment-0001.html>
+>
+> ------------------------------
+>
+> Message: 2
+> Date: Tue, 26 Nov 2013 00:28:05 +0100
+> From: Jose Pablo Valc?rcel L?zaro 	<pablo.valcarcel1980 at gmail.com>
+> To: Phill Watkins <phill.watkins at gmail.com>
+> Cc: OWASP CRS Mailing List
+> 	<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+> 	failing to disable rules
+> Message-ID:
+> 	<CABkhgLoFbTeB9CHV28RMVh0oy8F97CxMg18xaPJNN1F0aEO+1Q at mail.gmail.com>
+> Content-Type: text/plain; charset="iso-8859-1"
+>
+> Could you post denied trace?
+> Maybe you could copyright that rule in customized, comment original rule
+> and try to edit on customized to avoid triger with client specific
+> request.
+>
+> Kind regards
+> El 25/11/2013 21:28, "Phill Watkins" <phill.watkins at gmail.com> escribi?:
+>
+>> Thanks replying.
+>>
+>> I'm using CRS version 2.2.8 with ModSecurity 2.7.5. As far as I can tell
+>> the rule has already been updated as per your example.
+>>
+>> I tried using Directory instead of Location but it didn't work and I kind
+>> of understand this since Subsonic is essentially being accessed by proxy
+>> (AJP connector).
+>>
+>> Your nesting idea will work but will have the effect of disabling the rule
+>> globally if mod_jk is enabled, which I'm trying to avoid.
+>>
+>> Rule ID 330792 is from the Atomicorp (now defunct) delayed rules. I was
+>> using this as an example to show that I've successfully used Location to a
+>> disable a rule for Subsonic before. Sorry for the confusion.
+>>
+>> Regards
+>>
+>>
+>> On 25 November 2013 17:46, Jose Pablo Valc?rcel L?zaro <
+>> pablo.valcarcel1980 at gmail.com> wrote:
+>>
+>>> Sorry, I was wrong. You should be able to use location match as you have
+>>> written.
+>>>
+>>> You should be able to comment original rule 330792 but instead disabling
+>>> at all, copy it into a customized.conf rules and try to rewrite rule to
+>>> bypass what is triggering that rule, in your case:
+>>>
+>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>> "/etc/apache2/owasp-modsecurity-crs/activated_
+>>> rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"]
+>>> [rev "2"] [msg "Request content type is not allowed by policy"] [data
+>>> "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"]
+>>> [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+>>> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+>>> "PCI/12.1"]
+>>>
+>>> I?m watching that is not 330792 rule id, instead it seems 960010 rule id
+>>> on /etc/apache2/owasp-modsecurity-crs/activated_
+>>> rules/modsecurity_crs_30_http_policy.conf and it?s blocked because of Request
+>>> content type is not allowed by policy.
+>>>
+>>>
+>>> It could be a older bug depending on mod_security rule version you are
+>>> using:
+>>>
+>>> http://web.archiveorange.com/archive/v/eCIWmXcpDxoRYUESRQEg
+>>>
+>>>
+>>>
+>>>
+>>> There is a bug in that rule as it is missing a "chain" action on the 2nd
+>>> SecRule.  The
+>>> rule should be this -
+>>>
+>>> SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+>>> "phase:2,chain,t:none,pass,nolog,auditlog,msg:'Request content type is
+>>> not allowed
+>>> by
+>>>
+>>> policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',
+>>> severity:'4',logdata:'%{matched_var}'"
+>>>          SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>>>                  SecRule TX:0 "!@within
+>>> %{tx.allowed_request_content_type}"
+>>> "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.
+>>>
+>>> warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.
+>>> %{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var
+>>> _name}=%{matched_var}"
+>>>
+>>> This issue has already been reported in JIRA
+>>> (https://www.modsecurity.org/tracker/browse/CO...) and fixed in CRS
+>>> v2.0.6.  You can
+>>> manually add the "chain" action to your rule to fix the issue now.
+>>>
+>>> -Ryan
+>>>
+>>> Which mod_security rule version are you using?
+>>>
+>>> Kind regards,
+>>>
+>>>
+>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>
+>>>> Or simply try to nest as follows:
+>>>>
+>>>> <IfModule mod_jk.c>
+>>>>   JkMount /subsonic ajp13_worker
+>>>> JkMount /subsonic/* ajp13_worker
+>>>> <IfModule mod_security2.c>
+>>>>   SecRuleRemoveById 330039
+>>>> </IfModule>
+>>>> </IfModule>
+>>>>
+>>>> Kind regards,
+>>>>
+>>>>
+>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>
+>>>>> In mod_security migration matrix table you will see features against
+>>>>> different mod_security versions:
+>>>>>
+>>>>> https://github.com/SpiderLabs/ModSecurity/wiki/ModSecurity-Migration-Matrix
+>>>>>
+>>>>> Ability to manage rules in Apache Scope locations
+>>>>> SecFilterRemove is now SecRuleRemoveById or SecRuleRemoveByMsg.
+>>>>> SecFilterImport is no longer supported.
+>>>>>
+>>>>> So following that feature, I guess location directive you just can only
+>>>>> use to disable rules.
+>>>>>
+>>>>> If you want to enable a specific rule, you should develop within
+>>>>> specific rules and disable in all domains you don?t need to check it.
+>>>>>
+>>>>> Kind regards,
+>>>>>
+>>>>>
+>>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>>
+>>>>>> Hi.
+>>>>>>
+>>>>>> I have seen rules to disabling by id as follows:
+>>>>>>
+>>>>>> <IfModule security2_module>
+>>>>>>   <Directory /local/home/username/example.net>
+>>>>>>          SecRuleRemoveById 330039
+>>>>>>   </Directory>
+>>>>>> </IfModule>
+>>>>>>
+>>>>>> Have you try with  apache Directory directive?
+>>>>>>
+>>>>>> Kind regards,
+>>>>>>
+>>>>>>
+>>>>>> 2013/11/25 Phill Watkins <phill.watkins at gmail.com>
+>>>>>>
+>>>>>>>   Hi,
+>>>>>>>
+>>>>>>> For some reason I'm struggling to to disable rules using
+>>>>>>> SecRuleRemoveById inside a Location or LocationMatch.
+>>>>>>>
+>>>>>>> I can disable rules globally (which isn't ideal) so I know the
+>>>>>>> directive works but I don't know why Apache doesn't act upon the
+>>>>>>> Location/LocationMatch.
+>>>>>>>
+>>>>>>> One of the applications on my web server that I'm trying to disable a
+>>>>>>> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+>>>>>>> via the AJP connector module.
+>>>>>>>
+>>>>>>>   I have successfully disabled one of the Atomicorp delayed rules in
+>>>>>>> the past like this:
+>>>>>>>
+>>>>>>> <IfModule mod_jk.c>
+>>>>>>> JkMount /subsonic ajp13_worker
+>>>>>>>   JkMount /subsonic/* ajp13_worker
+>>>>>>> <Location /subsonic/upload.view>
+>>>>>>> SecRuleRemoveById 330792
+>>>>>>>   </Location>
+>>>>>>> </IfModule>
+>>>>>>>
+>>>>>>> I am now trying to disable rule 960010 from the CRS for the entire
+>>>>>>> application because of too many false positives.
+>>>>>>>
+>>>>>>> I have tried <Location /subsonic/>  as well as multiple regular
+>>>>>>> expressions for days but nothing works.
+>>>>>>>
+>>>>>>> Here is an example from the audit log:
+>>>>>>>
+>>>>>>> --35e37e6c-A--
+>>>>>>> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509
+>>>>>>> hidden 443
+>>>>>>> --35e37e6c-B--
+>>>>>>> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+>>>>>>> HTTP/1.1
+>>>>>>> Host: hidden
+>>>>>>> Connection: keep-alive
+>>>>>>> Content-Length: 214
+>>>>>>> Origin: https://hidden
+>>>>>>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
+>>>>>>> (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36
+>>>>>>> Content-Type: text/plain
+>>>>>>> Accept: */*
+>>>>>>> Referer: https://hidden/subsonic/right.view?
+>>>>>>> Accept-Encoding: gzip,deflate,sdch
+>>>>>>> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+>>>>>>> Cookie: player-656c6c6965=6; player-73727661646d=6;
+>>>>>>> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+>>>>>>> player-7068696c6c=9; compact_display_state=false
+>>>>>>>
+>>>>>>> --35e37e6c-F--
+>>>>>>> HTTP/1.1 403 Forbidden
+>>>>>>> Vary: Accept-Encoding
+>>>>>>> Content-Encoding: gzip
+>>>>>>> Content-Length: 221
+>>>>>>> Keep-Alive: timeout=5, max=88
+>>>>>>> Connection: Keep-Alive
+>>>>>>> Content-Type: text/html; charset=iso-8859-1
+>>>>>>>
+>>>>>>> --35e37e6c-H--
+>>>>>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>>>>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>>>>>> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+>>>>>>> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+>>>>>>> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+>>>>>>> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+>>>>>>> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+>>>>>>> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>>>>>>> Action: Intercepted (phase 1)
+>>>>>>> Stopwatch: 1384258745437774 1085 (- - -)
+>>>>>>> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0,
+>>>>>>> p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+>>>>>>> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+>>>>>>> OWASP_CRS/2.2.8.
+>>>>>>> Server: Apache
+>>>>>>> Engine-Mode: "ENABLED"
+>>>>>>>
+>>>>>>> --35e37e6c-Z--
+>>>>>>>
+>>>>>>> I'd be grateful of any advice.
+>>>>>>>
+>>>>>>> Thanks for your time.
+>>>>>>>
+>>>>>>>
+>>>>>>> _______________________________________________
+>>>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>>>
+>>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>>>
+>>>>>>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+> -------------- next part --------------
+> An HTML attachment was scrubbed...
+> URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/1d4c3f2a/attachment.html>
+>
+> ------------------------------
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+> End of Owasp-modsecurity-core-rule-set Digest, Vol 56, Issue 6
+> **************************************************************
+
+
+From phill.watkins at gmail.com  Tue Nov 26 10:05:14 2013
+From: phill.watkins at gmail.com (Phill Watkins)
+Date: Tue, 26 Nov 2013 10:05:14 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+ failing to disable rules
+In-Reply-To: <CABkhgLoFbTeB9CHV28RMVh0oy8F97CxMg18xaPJNN1F0aEO+1Q@mail.gmail.com>
+References: <CAONsccV_8dv-o43R=O4mCUwi7Eeq94HeN2-GNawFZQXXsyZaXQ@mail.gmail.com>
+	<CABkhgLo6K6yAgcrGwGu7zEo4L48o9NR+eM1gerMxw=sEs6rw9w@mail.gmail.com>
+	<CABkhgLo7pihQqZS6j2Fm2rHoqQj4__1Nxe8cuFA_ZPe44o3bww@mail.gmail.com>
+	<CABkhgLrbPiSpn=OsWUVJCCxhYeENYBkNs6033-vQgAxcoDrnvw@mail.gmail.com>
+	<CABkhgLq1CWW5Zsg2OAYGemg78uRxOs5cAnmzuywgBCB9o4ky5A@mail.gmail.com>
+	<CAONsccWSomWbVd8AnxiAZ2x9HiKHo11V6t_6MM4SF7NVacxfvw@mail.gmail.com>
+	<CABkhgLoFbTeB9CHV28RMVh0oy8F97CxMg18xaPJNN1F0aEO+1Q@mail.gmail.com>
+Message-ID: <CAONsccVWbiqL9Ur9MHumkebNhoA2Zaa+c-JqpXnuw537AOUS2g@mail.gmail.com>
+
+You might have help me with that.
+
+Set debug to 5 and ended up with a 20000 line file after the first 403
+error.
+
+If that's what you need then I'll upload somewhere for you.
+
+Thanks.
+On 25 Nov 2013 23:28, "Jose Pablo Valc?rcel L?zaro" <
+pablo.valcarcel1980 at gmail.com> wrote:
+
+> Could you post denied trace?
+> Maybe you could copyright that rule in customized, comment original rule
+> and try to edit on customized to avoid triger with client specific
+> request.
+>
+> Kind regards
+> El 25/11/2013 21:28, "Phill Watkins" <phill.watkins at gmail.com> escribi?:
+>
+>> Thanks replying.
+>>
+>> I'm using CRS version 2.2.8 with ModSecurity 2.7.5. As far as I can tell
+>> the rule has already been updated as per your example.
+>>
+>> I tried using Directory instead of Location but it didn't work and I kind
+>> of understand this since Subsonic is essentially being accessed by proxy
+>> (AJP connector).
+>>
+>> Your nesting idea will work but will have the effect of disabling the
+>> rule globally if mod_jk is enabled, which I'm trying to avoid.
+>>
+>> Rule ID 330792 is from the Atomicorp (now defunct) delayed rules. I was
+>> using this as an example to show that I've successfully used Location to a
+>> disable a rule for Subsonic before. Sorry for the confusion.
+>>
+>> Regards
+>>
+>>
+>> On 25 November 2013 17:46, Jose Pablo Valc?rcel L?zaro <
+>> pablo.valcarcel1980 at gmail.com> wrote:
+>>
+>>> Sorry, I was wrong. You should be able to use location match as you have
+>>> written.
+>>>
+>>> You should be able to comment original rule 330792 but instead
+>>> disabling at all, copy it into a customized.conf rules and try to rewrite
+>>> rule to bypass what is triggering that rule, in your case:
+>>>
+>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>> "/etc/apache2/owasp-modsecurity-crs/activated_
+>>> rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"]
+>>> [rev "2"] [msg "Request content type is not allowed by policy"] [data
+>>> "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"]
+>>> [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+>>> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+>>> "PCI/12.1"]
+>>>
+>>> I?m watching that is not 330792 rule id, instead it seems 960010 rule
+>>> id on /etc/apache2/owasp-modsecurity-crs/activated_
+>>> rules/modsecurity_crs_30_http_policy.conf and it?s blocked because of Request
+>>> content type is not allowed by policy.
+>>>
+>>>
+>>> It could be a older bug depending on mod_security rule version you are
+>>> using:
+>>>
+>>> http://web.archiveorange.com/archive/v/eCIWmXcpDxoRYUESRQEg
+>>>
+>>>
+>>>
+>>>
+>>>
+>>> There is a bug in that rule as it is missing a "chain" action on the 2nd
+>>> SecRule.  The
+>>> rule should be this -
+>>>
+>>> SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+>>> "phase:2,chain,t:none,pass,nolog,auditlog,msg:'Request content type is
+>>> not allowed
+>>> by
+>>>
+>>> policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',
+>>> severity:'4',logdata:'%{matched_var}'"
+>>>         SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>>>                 SecRule TX:0 "!@within
+>>> %{tx.allowed_request_content_type}"
+>>> "t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.
+>>>
+>>> warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.
+>>> %{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var
+>>> _name}=%{matched_var}"
+>>>
+>>> This issue has already been reported in JIRA
+>>> (https://www.modsecurity.org/tracker/browse/CO...) and fixed in CRS
+>>> v2.0.6.  You can
+>>> manually add the "chain" action to your rule to fix the issue now.
+>>>
+>>> -Ryan
+>>>
+>>> Which mod_security rule version are you using?
+>>>
+>>> Kind regards,
+>>>
+>>>
+>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>
+>>>> Or simply try to nest as follows:
+>>>>
+>>>> <IfModule mod_jk.c>
+>>>>  JkMount /subsonic ajp13_worker
+>>>> JkMount /subsonic/* ajp13_worker
+>>>> <IfModule mod_security2.c>
+>>>>  SecRuleRemoveById 330039
+>>>> </IfModule>
+>>>> </IfModule>
+>>>>
+>>>> Kind regards,
+>>>>
+>>>>
+>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>
+>>>>> In mod_security migration matrix table you will see features against
+>>>>> different mod_security versions:
+>>>>>
+>>>>> https://github.com/SpiderLabs/ModSecurity/wiki/ModSecurity-Migration-Matrix
+>>>>>
+>>>>> Ability to manage rules in Apache Scope locations
+>>>>> SecFilterRemove is now SecRuleRemoveById or SecRuleRemoveByMsg.
+>>>>> SecFilterImport is no longer supported.
+>>>>>
+>>>>> So following that feature, I guess location directive you just can
+>>>>> only use to disable rules.
+>>>>>
+>>>>> If you want to enable a specific rule, you should develop within
+>>>>> specific rules and disable in all domains you don?t need to check it.
+>>>>>
+>>>>> Kind regards,
+>>>>>
+>>>>>
+>>>>> 2013/11/25 Jose Pablo Valc?rcel L?zaro <pablo.valcarcel1980 at gmail.com>
+>>>>>
+>>>>>> Hi.
+>>>>>>
+>>>>>> I have seen rules to disabling by id as follows:
+>>>>>>
+>>>>>> <IfModule security2_module>
+>>>>>>  <Directory /local/home/username/example.net>
+>>>>>>         SecRuleRemoveById 330039
+>>>>>>  </Directory>
+>>>>>> </IfModule>
+>>>>>>
+>>>>>> Have you try with  apache Directory directive?
+>>>>>>
+>>>>>> Kind regards,
+>>>>>>
+>>>>>>
+>>>>>> 2013/11/25 Phill Watkins <phill.watkins at gmail.com>
+>>>>>>
+>>>>>>>  Hi,
+>>>>>>>
+>>>>>>> For some reason I'm struggling to to disable rules using
+>>>>>>> SecRuleRemoveById inside a Location or LocationMatch.
+>>>>>>>
+>>>>>>> I can disable rules globally (which isn't ideal) so I know the
+>>>>>>> directive works but I don't know why Apache doesn't act upon the
+>>>>>>> Location/LocationMatch.
+>>>>>>>
+>>>>>>> One of the applications on my web server that I'm trying to disable
+>>>>>>> a rule for is Subsonic. Subsonic requires Tomcat and is a connected to
+>>>>>>> Apache via the AJP connector module.
+>>>>>>>
+>>>>>>>  I have successfully disabled one of the Atomicorp delayed rules in
+>>>>>>> the past like this:
+>>>>>>>
+>>>>>>> <IfModule mod_jk.c>
+>>>>>>> JkMount /subsonic ajp13_worker
+>>>>>>>  JkMount /subsonic/* ajp13_worker
+>>>>>>> <Location /subsonic/upload.view>
+>>>>>>> SecRuleRemoveById 330792
+>>>>>>>  </Location>
+>>>>>>> </IfModule>
+>>>>>>>
+>>>>>>> I am now trying to disable rule 960010 from the CRS for the entire
+>>>>>>> application because of too many false positives.
+>>>>>>>
+>>>>>>> I have tried <Location /subsonic/>  as well as multiple regular
+>>>>>>> expressions for days but nothing works.
+>>>>>>>
+>>>>>>> Here is an example from the audit log:
+>>>>>>>
+>>>>>>> --35e37e6c-A--
+>>>>>>> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509
+>>>>>>> hidden 443
+>>>>>>> --35e37e6c-B--
+>>>>>>> POST
+>>>>>>> /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr HTTP/1.1
+>>>>>>> Host: hidden
+>>>>>>> Connection: keep-alive
+>>>>>>> Content-Length: 214
+>>>>>>> Origin: https://hidden
+>>>>>>> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
+>>>>>>> (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36
+>>>>>>> Content-Type: text/plain
+>>>>>>> Accept: */*
+>>>>>>> Referer: https://hidden/subsonic/right.view?
+>>>>>>> Accept-Encoding: gzip,deflate,sdch
+>>>>>>> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+>>>>>>> Cookie: player-656c6c6965=6; player-73727661646d=6;
+>>>>>>> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+>>>>>>> player-7068696c6c=9; compact_display_state=false
+>>>>>>>
+>>>>>>> --35e37e6c-F--
+>>>>>>> HTTP/1.1 403 Forbidden
+>>>>>>> Vary: Accept-Encoding
+>>>>>>> Content-Encoding: gzip
+>>>>>>> Content-Length: 221
+>>>>>>> Keep-Alive: timeout=5, max=88
+>>>>>>> Connection: Keep-Alive
+>>>>>>> Content-Type: text/html; charset=iso-8859-1
+>>>>>>>
+>>>>>>> --35e37e6c-H--
+>>>>>>> Message: Access denied with code 403 (phase 1). Match of "rx
+>>>>>>> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+>>>>>>> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+>>>>>>> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+>>>>>>> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+>>>>>>> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+>>>>>>> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+>>>>>>> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>>>>>>> Action: Intercepted (phase 1)
+>>>>>>> Stopwatch: 1384258745437774 1085 (- - -)
+>>>>>>> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0,
+>>>>>>> p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+>>>>>>> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+>>>>>>> OWASP_CRS/2.2.8.
+>>>>>>> Server: Apache
+>>>>>>> Engine-Mode: "ENABLED"
+>>>>>>>
+>>>>>>> --35e37e6c-Z--
+>>>>>>>
+>>>>>>> I'd be grateful of any advice.
+>>>>>>>
+>>>>>>> Thanks for your time.
+>>>>>>>
+>>>>>>>
+>>>>>>> _______________________________________________
+>>>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>>>
+>>>>>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>>>
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/35148500/attachment-0001.html>
+
+From RBarnett at trustwave.com  Tue Nov 26 14:41:19 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 26 Nov 2013 14:41:19 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+ failing to disable rules
+In-Reply-To: <CAONsccV_8dv-o43R=O4mCUwi7Eeq94HeN2-GNawFZQXXsyZaXQ@mail.gmail.com>
+Message-ID: <CEBA19FB.C67C9%rbarnett@trustwave.com>
+
+Hey Phil,
+Based on the info you gave about your setup, I think I know what the issue might be.  First of all, take a look at this Apache request flow diagram on the ModSecurity Reference Manual Wiki page -
+https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases
+
+This diagram shows where ModSecurity's Phase hooks are.  With this as a visual backdrop, now understand that if you place any ModSecurity rules or directives inside Apache scope locations (<Location>, <LocationMatch>, <Directory>, etc?) then they will only be available to ModSecurity in Phase:2 (Fixup hook).  The issue, most likely, is that your AJP proxying is happening before the Fixup Phase:2 hook so your rules/exceptions are not working.
+
+What I recommend for you situation would be to use SecRules + ctl:ruleRemoveById action in Phase:1 instead of nesting them within Apache scope locations.  Something like this (untested) added to a modsecurity_crs_15_custon.conf file so that it runs before the rest of the CRS rules -
+
+   SecRule REQUEST_FILENAME "@beginsWith /subsonic/" "id:1234,phase:1,t:none,nolog,pass,ctl:ruleRemoveById=330792"
+
+One other note ? you might need to recompile with "--enable-request-early" to get this to work in the "post-read-request" hook  (https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity)
+
+Hope this info helps.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+
+From: Phill Watkins <phill.watkins at gmail.com<mailto:phill.watkins at gmail.com>>
+Date: Monday, November 25, 2013 6:45 AM
+To: OWASP CRS Mailing List <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules
+
+Hi,
+
+For some reason I'm struggling to to disable rules using SecRuleRemoveById inside a Location or LocationMatch.
+
+I can disable rules globally (which isn't ideal) so I know the directive works but I don't know why Apache doesn't act upon the Location/LocationMatch.
+
+One of the applications on my web server that I'm trying to disable a rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache via the AJP connector module.
+
+I have successfully disabled one of the Atomicorp delayed rules in the past like this:
+
+<IfModule mod_jk.c>
+JkMount /subsonic ajp13_worker
+JkMount /subsonic/* ajp13_worker
+<Location /subsonic/upload.view>
+SecRuleRemoveById 330792
+</Location>
+</IfModule>
+
+I am now trying to disable rule 960010 from the CRS for the entire application because of too many false positives.
+
+I have tried <Location /subsonic/>  as well as multiple regular expressions for days but nothing works.
+
+Here is an example from the audit log:
+
+--35e37e6c-A--
+[12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509 hidden 443
+--35e37e6c-B--
+POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr HTTP/1.1
+Host: hidden
+Connection: keep-alive
+Content-Length: 214
+Origin: https://hidden
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36
+Content-Type: text/plain
+Accept: */*
+Referer: https://hidden/subsonic/right.view?
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+Cookie: player-656c6c6965=6; player-73727661646d=6; JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker; player-7068696c6c=9; compact_display_state=false
+
+--35e37e6c-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 221
+Keep-Alive: timeout=5, max=88
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--35e37e6c-H--
+Message: Access denied with code 403 (phase 1). Match of "rx ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+Action: Intercepted (phase 1)
+Stopwatch: 1384258745437774 1085 (- - -)
+Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0, p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/); OWASP_CRS/2.2.8.<http://2.2.8.>
+Server: Apache
+Engine-Mode: "ENABLED"
+
+--35e37e6c-Z--
+
+I'd be grateful of any advice.
+
+Thanks for your time.
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/43447133/attachment.html>
+
+From avi at greensmoke.net  Tue Nov 26 15:17:48 2013
+From: avi at greensmoke.net (Avi Rosenblatt)
+Date: Tue, 26 Nov 2013 17:17:48 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch
+	failing to disable rules
+Message-ID: <CAEHCsU+1re8UuVBz3Pv18SByQjfoCkq_sGYBMipkACdcbhU8Ew@mail.gmail.com>
+
+You can accomplish the same thing with a rule:
+
+SecRule REQUEST_URI "@pm <URI>" "phase:1,t:none,pass,id:<choose an id> \
+nolog,ctl:ruleRemovebyID=<rule id to remove>"
+
+Avi
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/dc44d96b/attachment.html>
+
+From phill.watkins at gmail.com  Tue Nov 26 21:54:54 2013
+From: phill.watkins at gmail.com (Phill Watkins)
+Date: Tue, 26 Nov 2013 21:54:54 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to
+	disable rules
+In-Reply-To: <CAEHCsU+1re8UuVBz3Pv18SByQjfoCkq_sGYBMipkACdcbhU8Ew@mail.gmail.com>
+References: <CAEHCsU+1re8UuVBz3Pv18SByQjfoCkq_sGYBMipkACdcbhU8Ew@mail.gmail.com>
+Message-ID: <CAONsccWC47rqTeVeFNr272P=VuL_tXAfo4PWpj3YkYQJXOX7kQ@mail.gmail.com>
+
+This has solved my problem.
+
+Thank you and everyone who has chimed in on this.
+
+One last question though. Is this generally a better approach than using
+Location, LocationMatch etc to disable rules?
+
+On Tuesday, November 26, 2013, Ryan Barnett wrote:
+
+>   Hey Phil,
+> Based on the info you gave about your setup, I think I know what the issue
+> might be.  First of all, take a look at this Apache request flow diagram on
+> the ModSecurity Reference Manual Wiki page -
+>
+> https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases
+>
+>  This diagram shows where ModSecurity's Phase hooks are.  With this as a
+> visual backdrop, now understand that if you place any ModSecurity rules or
+> directives inside Apache scope locations (<Location>, <LocationMatch>,
+> <Directory>, etc?) then they will only be available to ModSecurity in
+> Phase:2 (Fixup hook).  The issue, most likely, is that your AJP proxying is
+> happening before the Fixup Phase:2 hook so your rules/exceptions are not
+> working.
+>
+>  What I recommend for you situation would be to use SecRules +
+> ctl:ruleRemoveById action in Phase:1 instead of nesting them within Apache
+> scope locations.  Something like this (untested) added to a
+> modsecurity_crs_15_custon.conf file so that it runs before the rest of the
+> CRS rules -
+>
+>     SecRule REQUEST_FILENAME "@beginsWith /subsonic/"
+> "id:1234,phase:1,t:none,nolog,pass,ctl:ruleRemoveById=330792"
+>
+>  One other note ? you might need to recompile with
+> "--enable-request-early" to get this to work in the "post-read-request"
+> hook  (
+> https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity
+> )
+>
+>  Hope this info helps.
+>
+>  --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+>
+>    From: Phill Watkins <phill.watkins at gmail.com>
+> Date: Monday, November 25, 2013 6:45 AM
+> To: OWASP CRS Mailing List <
+> owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing
+> to disable rules
+>
+>   Hi,
+>
+>  For some reason I'm struggling to to disable rules using
+> SecRuleRemoveById inside a Location or LocationMatch.
+>
+>  I can disable rules globally (which isn't ideal) so I know the directive
+> works but I don't know why Apache doesn't act upon the
+> Location/LocationMatch.
+>
+>  One of the applications on my web server that I'm trying to disable a
+> rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache
+> via the AJP connector module.
+>
+>  I have successfully disabled one of the Atomicorp delayed rules in the
+> past like this:
+>
+>  <IfModule mod_jk.c>
+> JkMount /subsonic ajp13_worker
+> JkMount /subsonic/* ajp13_worker
+> <Location /subsonic/upload.view>
+> SecRuleRemoveById 330792
+> </Location>
+> </IfModule>
+>
+>  I am now trying to disable rule 960010 from the CRS for the entire
+> application because of too many false positives.
+>
+>  I have tried <Location /subsonic/>  as well as multiple regular
+> expressions for days but nothing works.
+>
+>  Here is an example from the audit log:
+>
+>  --35e37e6c-A--
+> [12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509 hidden
+> 443
+> --35e37e6c-B--
+> POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr
+> HTTP/1.1
+> Host: hidden
+> Connection: keep-alive
+> Content-Length: 214
+> Origin: https://hidden
+> User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,
+> like Gecko) Chrome/30.0.1599.114 Safari/537.36
+> Content-Type: text/plain
+> Accept: */*
+> Referer: https://hidden/subsonic/right.view?
+> Accept-Encoding: gzip,deflate,sdch
+> Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+> Cookie: player-656c6c6965=6; player-73727661646d=6;
+> JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker;
+> player-7068696c6c=9; compact_display_state=false
+>
+>  --35e37e6c-F--
+> HTTP/1.1 403 Forbidden
+> Vary: Accept-Encoding
+> Content-Encoding: gzip
+> Content-Length: 221
+> Keep-Alive: timeout=5, max=88
+> Connection: Keep-Alive
+> Content-Type: text/html; charset=iso-8859-1
+>
+>  --35e37e6c-H--
+> Message: Access denied with code 403 (phase 1). Match of "rx
+> ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file
+> "/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf"]
+> [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not
+> allowed by policy"] [data "text/plain"] [severity "CRITICAL"] [ver
+> "OWASP_CRS/2.2.8"] [maturity "9"] [accuracy "9"] [tag
+> "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag
+> "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+> Action: Intercepted (phase 1)
+> Stopwatch: 1384258745437774 1085 (- - -)
+> Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0, p4=0,
+> p5=63, sr=48, sw=0, l=0, gc=0
+> Producer: ModSecurity for Apache/2.7.5 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.8.
+> Server: Apache
+> Engine-Mode: "ENABLED"
+>
+>  --35e37e6c-Z--
+>
+>  I'd be grateful of any advice.
+>
+>  Thanks for your time.
+>
+>
+> ------------------------------
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is strictly prohibited. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131126/be710c59/attachment-0001.html>
+

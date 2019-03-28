@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is	a numeric ip address&quot; - redirect loop using default 3.0.0 conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20rule%20920350%20-%20%22host%20header%20is%0A%09a%20numeric%20ip%20address%22%20-%20redirect%20loop%20using%20default%203.0.0%20conf&In-Reply-To=%3CC597EED7-5ADC-412B-B0F0-CACE16A49A12%40spam.lifeforms.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002177.html">
+   <LINK REL="Next"  HREF="002179.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is	a numeric ip address&quot; - redirect loop using default 3.0.0 conf</H1>
+    <B>Walter Hop</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20rule%20920350%20-%20%22host%20header%20is%0A%09a%20numeric%20ip%20address%22%20-%20redirect%20loop%20using%20default%203.0.0%20conf&In-Reply-To=%3CC597EED7-5ADC-412B-B0F0-CACE16A49A12%40spam.lifeforms.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is	a numeric ip address&quot; - redirect loop using default 3.0.0 conf">modsec at spam.lifeforms.nl
+       </A><BR>
+    <I>Sun Jun  5 11:02:55 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002177.html">[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is a numeric ip address&quot; - redirect loop using default 3.0.0 conf
+</A></li>
+        <LI>Next message: <A HREF="002179.html">[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is a numeric ip address&quot; - redirect loop using default 3.0.0 conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2178">[ date ]</a>
+              <a href="thread.html#2178">[ thread ]</a>
+              <a href="subject.html#2178">[ subject ]</a>
+              <a href="author.html#2178">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> It looks to me that rule 920350, &quot;Host header is a numeric IP address&quot; (REQUEST-20-PROTOCOL-ENFORCEMENT.conf) will cause a redirect loop when combined with the default &quot;modsecurity_crs_10_setup.conf&quot; action.. 
+</I>&gt;<i> 
+</I>&gt;<i> SecDefaultAction &quot;phase:1,log,redirect:'<A HREF="http://%{request_headers.host">http://%{request_headers.host</A>}/',tag:'Host: %{request_headers.host}'&quot;
+</I>&gt;<i> SecDefaultAction &quot;phase:2,log,redirect:'<A HREF="http://%{request_headers.host">http://%{request_headers.host</A>}/',tag:'Host: %{request_headers.host}'&quot;
+</I>&gt;<i> 
+</I>&gt;<i> request_headers.host will always be the IP address, and the rule therefore will keep firing.
+</I>&gt;<i> 
+</I>&gt;<i> 1. Is this the intended action even for this rule?
+</I>&gt;<i> 2. Is there a way to override the action for this (or any specific) rule?
+</I>&gt;<i> 
+</I>&gt;<i> It seems like this could really hammer a site unintentionally, especially if you have a browser that isn't catching the redirect or some other script??
+</I>
+You make a very good point. It&#8217;s a bigger problem and not restricted to this rule though. I think the redirect loop will also happen if the client has been blocked due to a cookie. After all, the client will usually re-send the same cookie on the redirect to the homepage. And I think it will then redirect again and again. I&#8217;d have to check to make sure though.
+
+Personally I am not a fan of doing this redirect in case of a block.
+
+I can see how the redirect would be an interesting choice for some sites. An error page might scare the visitor too much. If they get thrown back to the homepage, that is still extremely frustrating, but they might re-try their request in some other way. At the other hand, it seems much better to configure a friendly error page and send the customer to a &#8220;report the problem, what did you do?&#8221; form which will help ironing out false positives much better.
+
+I would prefer that the default would be to just serve an error 403, but leaving the redirect as a commented-out example.
+
+What do others think?
+
+-- 
+Walter Hop | PGP key: <A HREF="https://lifeforms.nl/pgp">https://lifeforms.nl/pgp</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160605/aab660f4/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160605/aab660f4/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002177.html">[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is a numeric ip address&quot; - redirect loop using default 3.0.0 conf
+</A></li>
+	<LI>Next message: <A HREF="002179.html">[Owasp-modsecurity-core-rule-set] rule 920350 - &quot;host header is a numeric ip address&quot; - redirect loop using default 3.0.0 conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2178">[ date ]</a>
+              <a href="thread.html#2178">[ thread ]</a>
+              <a href="subject.html#2178">[ subject ]</a>
+              <a href="author.html#2178">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

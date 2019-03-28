@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Question about	REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Question%20about%0A%09REQUEST-920-PROTOCOL-ENFORCEMENT.conf&In-Reply-To=%3CCAE8hE%3DokaQU9AJyJw3gYwFhPy9k-%3DriRoc%2BE-meTcGZo3-CEdQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002421.html">
+   <LINK REL="Next"  HREF="002427.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Question about	REQUEST-920-PROTOCOL-ENFORCEMENT.conf</H1>
+    <B>Chaim Sanders</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Question%20about%0A%09REQUEST-920-PROTOCOL-ENFORCEMENT.conf&In-Reply-To=%3CCAE8hE%3DokaQU9AJyJw3gYwFhPy9k-%3DriRoc%2BE-meTcGZo3-CEdQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Question about	REQUEST-920-PROTOCOL-ENFORCEMENT.conf">chaim at chaimsanders.com
+       </A><BR>
+    <I>Mon Jul 31 14:59:49 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002421.html">[Owasp-modsecurity-core-rule-set] Question about	REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+</A></li>
+        <LI>Next message: <A HREF="002427.html">[Owasp-modsecurity-core-rule-set] Question about REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2426">[ date ]</a>
+              <a href="thread.html#2426">[ thread ]</a>
+              <a href="subject.html#2426">[ subject ]</a>
+              <a href="author.html#2426">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+ModSecurity has it's own custom logging format. This can be changed to JSON
+in ModSecurity 2.9 and greater. Generally though being able to understand
+the log typically involves looking at the message that is generated, and
+occasionally looking at the rule in question if this isn't enough. In this
+case you have two rules listed.
+The first rule, 920180, says that 'POST request missing Content-Length
+Header'. Generally this means that the Content-Length header, which
+typically specifies how much POST data is present was not provided. This
+can be triggered by using non-standard user-agents. All browsers known will
+provide this value as it is highly suggested by the RFC. This rule can be
+found here:
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/e4e0497be4d598cce0e0a8fef20d1f1e5578c8d0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf#L292">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/e4e0497be4d598cce0e0a8fef20d1f1e5578c8d0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf#L292</A>
+
+The next rule you have highlighted is 920270. This indicates that a null
+byte was passed to a cookie. Null bytes are used in various attacks but are
+almost always avoided by legit applications. This rule can be found here:
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/e4e0497be4d598cce0e0a8fef20d1f1e5578c8d0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf#L564">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/e4e0497be4d598cce0e0a8fef20d1f1e5578c8d0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf#L564</A>
+
+To see whole requests when a rule triggers you should enable the audit
+logging capability. For more details on this please see the following entry
+in the reference manual:
+<A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecAuditEngine">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecAuditEngine</A>
+
+
+
+On Thu, Jul 27, 2017 at 7:16 AM, &#1055;&#1072;&#1094;&#1077;&#1074; &#1040;&#1085;&#1090;&#1086;&#1085; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">patsev.anton at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hello!
+</I>&gt;<i> Can some help about REQUEST-920-PROTOCOL-ENFORCEMENT.conf?
+</I>&gt;<i> Used: modsecurity v3 from master, nginx 1.10.2, core rules from github
+</I>&gt;<i>
+</I>&gt;<i> crs-setup.conf:
+</I>&gt;<i> SecDefaultAction &quot;phase:1,log,auditlog,pass&quot;
+</I>&gt;<i> SecDefaultAction &quot;phase:2,log,auditlog,pass&quot;
+</I>&gt;<i> SecAction \
+</I>&gt;<i>   &quot;id:900000,\
+</I>&gt;<i>    phase:1,\
+</I>&gt;<i>    nolog,\
+</I>&gt;<i>    pass,\
+</I>&gt;<i>    t:none,\
+</I>&gt;<i>    setvar:tx.paranoia_level=1&quot;
+</I>&gt;<i> SecAction \
+</I>&gt;<i>  &quot;id:900110,\
+</I>&gt;<i>   phase:1,\
+</I>&gt;<i>   nolog,\
+</I>&gt;<i>   pass,\
+</I>&gt;<i>   t:none,\
+</I>&gt;<i>   setvar:tx.inbound_anomaly_score_threshold=5,\
+</I>&gt;<i>   setvar:tx.outbound_anomaly_score_threshold=4&quot;
+</I>&gt;<i> SecCollectionTimeout 600
+</I>&gt;<i> SecAction \
+</I>&gt;<i>  &quot;id:900990,\
+</I>&gt;<i>   phase:1,\
+</I>&gt;<i>   nolog,\
+</I>&gt;<i>   pass,\
+</I>&gt;<i>   t:none,\
+</I>&gt;<i>   setvar:tx.crs_setup_version=302&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Log file have:
+</I>&gt;<i>
+</I>&gt;<i> ModSecurity: Warning. Matched &quot;Operator `Eq' with parameter `0' against
+</I>&gt;<i> variable `REQUEST_HEADERS:Content-Length' (Value: `0' ) [file
+</I>&gt;<i> &quot;/etc/nginx/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;] [line &quot;258&quot;]
+</I>&gt;<i> [id &quot;920180&quot;] [rev &quot;1&quot;] [msg &quot;POST request missing Content-Length Header.&quot;]
+</I>&gt;<i> [data &quot;0&quot;] [severity &quot;4&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy
+</I>&gt;<i> &quot;9&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag
+</I>&gt;<i> &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/PROTOCOL_VIOLATION/INVALID_HREQ&quot;] [tag &quot;CAPEC-272&quot;] [ref
+</I>&gt;<i> &quot;o0,4v0,4&quot;]
+</I>&gt;<i>
+</I>&gt;<i> ModSecurity: Warning. Matched &quot;Operator `ValidadeByteRange' with parameter
+</I>&gt;<i> `1-255' against variable `REQUEST_HEADERS:Cookie' (Value:
+</I>&gt;<i> `JSESSIONID=XXXXXXXXXXXXXX; loggedin=true; hash=yyyyyyy; loggedUser=gggggg
+</I>&gt;<i> (781 characters omitted)' ) [file &quot;/etc/nginx/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+</I>&gt;<i> [line &quot;488&quot;] [id &quot;920270&quot;] [rev &quot;2&quot;] [msg &quot;Invalid character in request
+</I>&gt;<i> (null character)&quot;] [data &quot;&quot;] [severity &quot;2&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;]
+</I>&gt;<i> [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;application-multi&quot;] [tag
+</I>&gt;<i> &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/PROTOCOL_VIOLATION/EVASION&quot;] [ref
+</I>&gt;<i> &quot;o185,1o186,1o187,1o188,1o189,1o190,1o191,1o192,1o193,1o194,
+</I>&gt;<i> 1o195,1o196,1o197,1o198,1o199,1o200,1o201,1o202,1o313,1o314,
+</I>&gt;<i> 1o315,1o316,1o317,1o318,1o319,1o320,1o321,1o322,1o323,1o324,
+</I>&gt;<i> 1o325,1o326,1o327,1o328,1o329,1o330,1o331,1o332,1o333,1o334,
+</I>&gt;<i> 1o335,1o336,1o337,1o338,1o408,1o409,1o410,1o411,1o412,1o413,
+</I>&gt;<i> 1v479,881t:urlDecodeUni&quot;]
+</I>&gt;<i>
+</I>&gt;<i> How understend this is log? How Write request to log?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> &#1057; &#1091;&#1074;&#1072;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084;, &#1040;&#1085;&#1090;&#1086;&#1085; &#1055;&#1072;&#1094;&#1077;&#1074;.
+</I>&gt;<i> Best regards, Anton Patsev.
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+-- 
+Chaim Sanders
+<A HREF="http://www.ChaimSanders.com">http://www.ChaimSanders.com</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170731/2b9fcf5d/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20170731/2b9fcf5d/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002421.html">[Owasp-modsecurity-core-rule-set] Question about	REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+</A></li>
+	<LI>Next message: <A HREF="002427.html">[Owasp-modsecurity-core-rule-set] Question about REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2426">[ date ]</a>
+              <a href="thread.html#2426">[ thread ]</a>
+              <a href="subject.html#2426">[ subject ]</a>
+              <a href="author.html#2426">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

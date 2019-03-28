@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-vancouver] logging question
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-vancouver%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-vancouver%5D%20logging%20question&In-Reply-To=%3CCADjmq0gyRVAPjms_7pfFTvYf58zv9ymBCgaDuopqkBVTOLNaew%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000163.html">
+   <LINK REL="Next"  HREF="000165.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-vancouver] logging question</H1>
+    <B>Iain Duncan</B> 
+    <A HREF="mailto:owasp-vancouver%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-vancouver%5D%20logging%20question&In-Reply-To=%3CCADjmq0gyRVAPjms_7pfFTvYf58zv9ymBCgaDuopqkBVTOLNaew%40mail.gmail.com%3E"
+       TITLE="[Owasp-vancouver] logging question">iduncan at xornot.com
+       </A><BR>
+    <I>Wed Feb  8 18:02:16 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000163.html">[Owasp-vancouver] logging question
+</A></li>
+        <LI>Next message: <A HREF="000165.html">[Owasp-vancouver] Meeting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#164">[ date ]</a>
+              <a href="thread.html#164">[ thread ]</a>
+              <a href="subject.html#164">[ subject ]</a>
+              <a href="author.html#164">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks again Yvan!  Very helpful.
+
+Iain
+
+On Fri, Feb 3, 2012 at 10:26 PM, Yvan Boily &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">yvanboily at gmail.com</A>&gt; wrote:
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Feb 3, 2012 at 10:24 AM, Iain Duncan &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">iduncan at xornot.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Thanks so much for the detailed response Yvan. Some questions and answers
+</I>&gt;&gt;<i> below
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I'm implementing some fairly detailed logging for a client, for security
+</I>&gt;&gt;&gt;&gt;<i> and for legal coverage ( non-repudiation of reading disclaimers, etc).
+</I>&gt;&gt;&gt;&gt;<i> The
+</I>&gt;&gt;&gt;&gt;<i> records are being logged to a database, with the goal to convince the
+</I>&gt;&gt;&gt;&gt;<i> client that this db should be moved to a separate server so that logs
+</I>&gt;&gt;&gt;&gt;<i> go to
+</I>&gt;&gt;&gt;&gt;<i> a a remote machine for which the app has only insert privileges.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Logging to a remote server is always a good start, but I am curious
+</I>&gt;&gt;&gt;<i> about the decision to store logs in a database rather than a using a
+</I>&gt;&gt;&gt;<i> conventional logging service (syslog or one of its variants, a flat file
+</I>&gt;&gt;&gt;<i> that gets pushed or pulled periodically, etc).  Using a custom format or
+</I>&gt;&gt;&gt;<i> storing the records within a database may make it more difficult to get the
+</I>&gt;&gt;&gt;<i> data into an event processing engine that allows admins of your application
+</I>&gt;&gt;&gt;<i> to correlate application logs against system and network events.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In our case, we're using Pyramid and SQLAlchemy, so the decision to use
+</I>&gt;&gt;<i> the DB was because it make adding our our own event processing logic almost
+</I>&gt;&gt;<i> trivial. It also allows us to have a relational schema for logging that
+</I>&gt;&gt;<i> corresponds somewhat to the logic of the application, and we're logging
+</I>&gt;&gt;<i> application specific details. We may push this layer into WSGI middleware,
+</I>&gt;&gt;<i> not sure about that. Pyramid has some really nice facilities for hooking
+</I>&gt;&gt;<i> into the life cycle of the request, if you make a custom request factory,
+</I>&gt;&gt;<i> you can connect beginning and end of life cycle callbacks. Another design
+</I>&gt;&gt;<i> pattern of Pyramid that is useful for this is the Zope 3 style
+</I>&gt;&gt;<i> views-as-classes, which are multi-adapters of request and context and are
+</I>&gt;&gt;<i> always instantiated, called, and destroyed once per request ( no shared
+</I>&gt;&gt;<i> state between threads at all). A happy side effect of this is that it's
+</I>&gt;&gt;<i> safe to store your intermediate results of what the view is doing as
+</I>&gt;&gt;<i> attributes on the view. We do this, and we store the a ref to the view on
+</I>&gt;&gt;<i> the request object itself. This means that the end of life callback can
+</I>&gt;&gt;<i> introspect the view to figure out exactly what went on during this request.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The main driver for the logging is the non-repudiation, so by logging the
+</I>&gt;&gt;<i> http request, we collect user id, time, ip, url, etc, but this gets
+</I>&gt;&gt;<i> connected to entries that log file downloads, file uploads, reading the
+</I>&gt;&gt;<i> disclaimers, editing the user accounts, and activating the user accounts.
+</I>&gt;&gt;<i> Those all have their own schemas, but that is quite easy to implement on
+</I>&gt;&gt;<i> the framework we're using. So by putting it the db, it's very easy for us
+</I>&gt;&gt;<i> to provide the client ( and their legal counsel ) a record that shows they
+</I>&gt;&gt;<i> did their due diligence in making sure that users read the terms and
+</I>&gt;&gt;<i> conditions before uploading, etc. Hopefully that clarifies that design
+</I>&gt;&gt;<i> decision.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> That makes sense; you may also want to consider having the application
+</I>&gt;<i> servers generate an HMAC or signature for log messages if non-repudiation
+</I>&gt;<i> is a goal; without that there is no evidence that a DBA didn't modify the
+</I>&gt;<i> log entry (this is also a consideration for any logging format).  From an
+</I>&gt;<i> ops perspective, you may want to have some scripts handy for conversion
+</I>&gt;<i> into a more traditional logging format.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> One of the logs is of each request for a pyramid view ( essentially any
+</I>&gt;&gt;&gt;&gt;<i> kind of
+</I>&gt;&gt;&gt;&gt;<i> complete page, does not include requests for css/javascript/images ). I
+</I>&gt;&gt;&gt;&gt;<i> had
+</I>&gt;&gt;&gt;&gt;<i> read that it's a good idea to just log the whole http request, but of
+</I>&gt;&gt;&gt;&gt;<i> course that has the session token in it.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> In general, logging the entire HTTP request outside of a debug
+</I>&gt;&gt;&gt;<i> environment is unsafe since you invariably end up storing user credentials,
+</I>&gt;&gt;&gt;<i> session state data, and other sensitive data outside of the application and
+</I>&gt;&gt;&gt;<i> its database.  Best case scenario, this is a violation of best practice,
+</I>&gt;&gt;&gt;<i> worst case scenario it is a regulatory or compliance issue.  If you go that
+</I>&gt;&gt;&gt;<i> route, make sure you are properly sanitizing the fields that contain
+</I>&gt;&gt;&gt;<i> sensitive data before writing them to the database.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Is wiping out the cookies header and any password fields sufficient for
+</I>&gt;&gt;<i> this?
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The cookie header, secret user credential components (passwords, auth
+</I>&gt;<i> tokens, etc), but also consider CSRF or session tokens that may be embedded
+</I>&gt;<i> in a request body as well.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> I was thinking about attack awareness, and thought that monitoring POST
+</I>&gt;&gt;<i> vars would be good, because then one can detect repeated attempts to fudge
+</I>&gt;&gt;<i> them. But then we must be careful never to log any of the password
+</I>&gt;&gt;<i> submission variables.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I'm just wondering whether I should be concerned about the fact that if
+</I>&gt;&gt;&gt;&gt;<i> a compromise allowed someone to
+</I>&gt;&gt;&gt;&gt;<i> read the db, could they hijack an admin users session?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> In general, yes.  Note that in this case, you should be extending beyond
+</I>&gt;&gt;&gt;<i> the consideration of an external attacker and consider what a malicious
+</I>&gt;&gt;&gt;<i> user might be able to accomplish.  If your authentication scheme is
+</I>&gt;&gt;&gt;<i> designed properly, and you have proper separation of duties within your
+</I>&gt;&gt;&gt;<i> environment, a system administrator or DBA should not be able to violate
+</I>&gt;&gt;&gt;<i> the non-repudiation aspect of the design without resorting to collusion.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Great, thanks.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Which has me trying to figure out if that matters, given that if they
+</I>&gt;&gt;&gt;&gt;<i> can
+</I>&gt;&gt;&gt;&gt;<i> read the db, they're pretty far in. I could redact the session token (
+</I>&gt;&gt;&gt;&gt;<i> and
+</I>&gt;&gt;&gt;&gt;<i> all cookies ) before logging, but would this have potential negatives
+</I>&gt;&gt;&gt;&gt;<i> for
+</I>&gt;&gt;&gt;&gt;<i> forensics?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Generating a proper audit trail extends beyond capturing the content of
+</I>&gt;&gt;&gt;<i> an HTTP request; it would be more effective to generate an audit record of
+</I>&gt;&gt;&gt;<i> every privileged action a user performs (or, if necessary, of every action
+</I>&gt;&gt;&gt;<i> performed).  Generating this type of an audit capability serves two
+</I>&gt;&gt;&gt;<i> purposes:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> First, it lets you meet any requirements you might have around executing
+</I>&gt;&gt;&gt;<i> application level forensics of what happened.  Having discrete, clearly
+</I>&gt;&gt;&gt;<i> documented, and granular audit capabilities make it clear which subject
+</I>&gt;&gt;&gt;<i> performed with operation on which object, and the context in which that
+</I>&gt;&gt;&gt;<i> operation performed, without having to sift through HTTP request blobs in
+</I>&gt;&gt;&gt;<i> log files.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> Right, that's what we're accomplishing through the related schema of http
+</I>&gt;&gt;<i> requests to user actions.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Second, it provides data that can be used to make an application attack
+</I>&gt;&gt;&gt;<i> aware, which increases the likelihood of detecting and stopping an attack
+</I>&gt;&gt;&gt;<i> or compromise.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> You can read more about attack aware applications here:
+</I>&gt;&gt;&gt;<i>  - <A HREF="https://www.owasp.org/index.php/OWASP_AppSensor_Project">https://www.owasp.org/index.php/OWASP_AppSensor_Project</A> (especially
+</I>&gt;&gt;&gt;<i> the detection points)
+</I>&gt;&gt;&gt;<i>  -
+</I>&gt;&gt;&gt;<i> <A HREF="http://blog.mozilla.com/webappsec/2011/02/02/attack-aware-applications/">http://blog.mozilla.com/webappsec/2011/02/02/attack-aware-applications/</A>
+</I>&gt;&gt;&gt;<i>  - Mozilla's AMO uses CEF logging to implement attack awareness if you
+</I>&gt;&gt;&gt;<i> want some examples of how to do this in python (although that is specific
+</I>&gt;&gt;&gt;<i> to our use of Arcsight)
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am planning on looking further into that, Python's WSGI system is ideal
+</I>&gt;&gt;<i> for this as the middleware layer before the application can access the same
+</I>&gt;&gt;<i> db, look at the log events, and make decisions on allowing/disallowing
+</I>&gt;&gt;<i> incoming requests before any of the main application logic is even
+</I>&gt;&gt;<i> called.  I will definitely take a look at those!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> I forgot the link to AMO:
+</I>&gt;<i> <A HREF="https://github.com/mozilla/zamboni/">https://github.com/mozilla/zamboni/</A>
+</I>&gt;<i>
+</I>&gt;<i> You can take a look at how CEF logging is implemented by looking at the
+</I>&gt;<i> logging components there.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> And thanks again for the detailed response.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Iain
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000163.html">[Owasp-vancouver] logging question
+</A></li>
+	<LI>Next message: <A HREF="000165.html">[Owasp-vancouver] Meeting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#164">[ date ]</a>
+              <a href="thread.html#164">[ thread ]</a>
+              <a href="subject.html#164">[ subject ]</a>
+              <a href="author.html#164">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">More information about the Owasp-vancouver
+mailing list</a><br>
+</body></html>

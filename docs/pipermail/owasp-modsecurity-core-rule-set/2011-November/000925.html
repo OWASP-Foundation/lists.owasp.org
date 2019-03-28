@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on	request
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%09%3D%3Futf-8%3Fq%3FProblems_with_UTF-8_e%3F%3D%20%3D%3Futf-8%3Fq%3Fncoding_on%3D09request%3F%3D&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000924.html">
+   <LINK REL="Next"  HREF="000926.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on	request</H1>
+    <B>Piotr</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%09%3D%3Futf-8%3Fq%3FProblems_with_UTF-8_e%3F%3D%20%3D%3Futf-8%3Fq%3Fncoding_on%3D09request%3F%3D&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Problems with UTF-8 encoding on	request">piotr.adamocha at gmail.com
+       </A><BR>
+    <I>Wed Nov 16 18:42:20 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000924.html">[Owasp-modsecurity-core-rule-set] What is this rule means?
+</A></li>
+        <LI>Next message: <A HREF="000926.html">[Owasp-modsecurity-core-rule-set] How to replace response key words
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#925">[ date ]</a>
+              <a href="thread.html#925">[ thread ]</a>
+              <a href="subject.html#925">[ subject ]</a>
+              <a href="author.html#925">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Jeronimo Zucco &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jczucco at ...</A>&gt; writes:
+
+&gt;<i> 
+</I>&gt;<i> We have some issues with 960024 rule of CRS 2.2.2 here.
+</I>&gt;<i> 
+</I>&gt;<i> Our native language is Brazilian Portuguese, UTF-8 enconding (Django),
+</I>&gt;<i> and when we have some ARG by POST with special caracter content of our
+</I>&gt;<i> language (like &quot;&#199;&quot; for example), we get this modsecurity log:
+</I>&gt;<i> 
+</I>&gt;<i> Message: Access denied with code 403 (phase 2). Pattern match
+</I>&gt;<i> &quot;\\W{4,}&quot; at ARGS:descricao_procedencia. [file
+</I>&gt;<i> 
+</I>&quot;/dbs1/www/apache2/conf/modsecurity/crs/activated_rules/modsecurity_crs_41_sql_i
+njection_attacks.conf&quot;]
+&gt;<i> [line &quot;509&quot;] [id &quot;960024&quot;] [rev &quot;2.2.2&quot;] [msg &quot;SQL Character Anomaly
+</I>&gt;<i> Detection Alert - Repetative Non-Word Characters&quot;] [data
+</I>&gt;<i> &quot;\xc3\x87\xc3\x83&quot;]
+</I>&gt;<i> 
+</I>&gt;<i> The uncoding can be done this way in a python shell:
+</I>&gt;<i> 
+</I>&gt;<i> &gt;&gt;&gt; import urllib
+</I>&gt;<i> &gt;&gt;&gt; 
+</I>b=urllib.unquote_plus('4%C2%AA+COORDENADORIA+REGIONAL+DE+EDUCA%C3%87%C3%83O')
+&gt;<i> &gt;&gt;&gt; print b
+</I>&gt;<i> 4&#170; COORDENADORIA REGIONAL DE EDUCA&#199;&#195;O
+</I>&gt;<i> 
+</I>&gt;<i> We have enabled the option of UTF-8 enconding in 
+</I>modsecurity_crs_10_config.conf:
+&gt;<i> 
+</I>&gt;<i> SecAction 
+</I>&quot;phase:1,id:'981216',t:none,nolog,pass,setvar:tx.crs_validate_utf8_encoding=1&quot;
+&gt;<i> 
+</I>&gt;<i> How can I solve this issue ?
+</I>&gt;<i> 
+</I>&gt;<i> Thanks in advance.
+</I>&gt;<i> 
+</I>
+
+I've got the same issue - just disabled this particular rule.
+try this:
+edit /etc/httpd/conf.d/mod_security.conf
+add the following line:
+SecRuleRemoveById 960024 
+
+then reload the webserver.
+
+check logs, if you will find any other issues try to remove another rule (I had 
+to disable 4 rules before my encoding was accepted).
+
+Regards,
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000924.html">[Owasp-modsecurity-core-rule-set] What is this rule means?
+</A></li>
+	<LI>Next message: <A HREF="000926.html">[Owasp-modsecurity-core-rule-set] How to replace response key words
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#925">[ date ]</a>
+              <a href="thread.html#925">[ thread ]</a>
+              <a href="subject.html#925">[ subject ]</a>
+              <a href="author.html#925">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,822 @@
+From vpartington at xebia.com  Sat Dec  3 10:24:07 2005
+From: vpartington at xebia.com (Vincent Partington)
+Date: Sat, 03 Dec 2005 16:24:07 +0100
+Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml,
+ can't solve Predictable Session Identifier, missing lesson plans
+Message-ID: <4391B897.6060004@xebia.com>
+
+Hi,
+
+(I am resending this message without the attachments. Forgot I was 
+sending it to a list. If you want the files, please let me know.)
+
+First of all, I want to say that I really like WebGoat. I've used it for
+two secure coding classes now and it works very well to let people get a
+first hand feel for what the OWASP top ten vulnerabilities are about.
+The Top Ten itself is good for raising awareness of security issues, but
+WebGoat makes it even more visible. Thanks!
+
+I did have a few niggles with it:
+
+1. The StoredXss lesson doesn't work on Windows with the ODBC driver to
+connect to the Access database. The code in makeCurrent() wants to
+retrieve the MESSAGE_COL column twice and the ODBC driver (or the
+OdbcJdbcBridge) can't handle that. I changed the middle bit to only
+retrieve the column once (and store it in local variable "messageCol" to
+make it work:
+===
+    TR row2 = new TR( new TD( new B(new StringElement( "Message:" )) ) );
+    String messageCol = results.getString( MESSAGE_COL );
+    row2.addElement( new TD( new StringElement( messageCol ) ) );
+    t.addElement( row2 );
+	
+    // Edited by Chuck Willis - added display of the user who
+    // posted the message, so that if users use a cross site
+    // request forgery or XSS to make another user post a
+    // message, they can see that the message is attributed
+    // to that user
+					
+    TR row3 = new TR( new TD( new StringElement( "Posted By:" ) ) );
+    row3.addElement( new TD( new StringElement(
+      results.getString( USER_COL ) ) ) );
+    t.addElement( row3 );
+					
+    ec.addElement( t );
+	
+    if ( messageCol.toLowerCase().indexOf( "script" ) != -1 )
+    {
+      makeSuccess( s );
+    }
+===
+
+2. I couldn't solve the Predictable Session Identifier lesson. I used
+WebScarab (nice tool too!) to plot the session identified and although a
+weakness seems to be there, I wasn't able to exploit it. Is this lesson
+a lot harder than the other ones?
+
+3. There was a typo in DOS_Login.java and it had no lesson plan. I fixed
+the typo and wrote a lesson plan. Where can I submit these changes?
+
+4. The web services lessons also had no lesson plan: Soap Request, WSDL
+Scanning, and Web Service SQL Injection.
+
+5. The build.xml did not have a "dist" target, but a "dist_CBT" target.
+That target seemed to want to invoke the macro's <CopyWebCBTToBuild/>
+and <WarBuild/> but they hadn't been defined. I changed that to invoke
+the targets -WebXMLWindows, -CopyWebCBTToBuild and -WarBuild. The first
+was done to make sure the web-windows.xml was copied to web.xml, because
+that step would otherwise be skipped:
+   <target name="dist_CBT" depends="clean, compile"
+       description="Create CBT binary distribution">
+     <antcall target="-WebXMLWindows" />
+     <antcall target="-CopyWebCBTToBuild" />
+     <antcall target="-WarBuild" />
+   </target>
+
+Well, I hope these remarks are helpful. If you have any more questions,
+please let me know.
+
+Thanks for a great tool!
+
+Regards, Vincent Partington.
+
+
+
+
+
+From lists at dawes.za.net  Sun Dec  4 03:03:39 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Sun, 04 Dec 2005 10:03:39 +0200
+Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least),
+ bug in build.xml, can't solve Predictable Session Identifier, missing lesson
+ plans
+In-Reply-To: <4391B897.6060004@xebia.com>
+References: <4391B897.6060004@xebia.com>
+Message-ID: <4392A2DB.8030603@dawes.za.net>
+
+Vincent Partington wrote:
+
+> Hi,
+>
+[snip]
+
+> 2. I couldn't solve the Predictable Session Identifier lesson. I used
+> WebScarab (nice tool too!) to plot the session identified and although a
+> weakness seems to be there, I wasn't able to exploit it. Is this lesson
+> a lot harder than the other ones?
+>
+Well, it may be a bit harder than some of the others, but it is a fairly 
+advanced topic.
+
+The idea is that you should look at the pattern that the generated 
+WEAKID's follows. The key thing to notice is that there is a sequential 
+component, and a time-based component.
+
+The sequential component simply increments by one for each WEAKID 
+generated. Periodically, you will see that the WEAKID skips an increment 
+(i.e. increases by 2). The idea is that "someone else" has requested a 
+session at the same time, and so you can see exactly what the sequence 
+number for that WEAKID is (since you have the WEAKID's on either side!)
+
+The objective of the lesson is to brute force the time-based component 
+of the WEAKID, and gain access to the actual session that the other 
+"user" received. You can identify a successful compromise by the fact 
+that you will not be prompted to logon.
+
+To assist you in brute forcing the time-based component, there is a 
+pre-written script distributed with WebScarab in the scripts directory, 
+which does the necessary prompting.
+
+Take a loot at the script, try it out, and see if you get any results.
+
+Once you have identified the actual WEAKID, you can add it to the 
+"Shared Cookies" in WebScarab, and (under the Proxy -> Miscellaneous 
+tab) enable "Inject known cookies in requests", which will enable you to 
+view the session in your browser (if you reload the page). This is a 
+generic technique for hijacking sessions, if you would like to access 
+them using the browser, rather than hacking them manually ;-)
+
+>
+> Well, I hope these remarks are helpful. If you have any more questions,
+> please let me know.
+>
+> Thanks for a great tool!
+>
+> Regards, Vincent Partington.
+
+I hope my explanation was helpful. Glad you like the Web* tools
+
+Rogan
+
+
+
+From vpartington at xebia.com  Sat Dec  3 10:19:15 2005
+From: vpartington at xebia.com (Vincent Partington)
+Date: Sat, 03 Dec 2005 16:19:15 +0100
+Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml,
+ can't solve Predictable Session Identifier, missing lesson plans
+Message-ID: <4391B773.4010905@xebia.com>
+
+Hi,
+
+First of all, I want to say that I really like WebGoat. I've used it for 
+two secure coding classes now and it works very well to let people get a 
+first hand feel for what the OWASP top ten vulnerabilities are about. 
+The Top Ten itself is good for raising awareness of security issues, but 
+WebGoat makes it even more visible. Thanks!
+
+I did have a few niggles with it:
+
+1. The StoredXss lesson doesn't work on Windows with the ODBC driver to 
+connect to the Access database. The code in makeCurrent() wants to 
+retrieve the MESSAGE_COL column twice and the ODBC driver (or the 
+OdbcJdbcBridge) can't handle that. I changed the middle bit to only 
+retrieve the column once (and store it in local variable "messageCol" to 
+make it work:
+===
+   TR row2 = new TR( new TD( new B(new StringElement( "Message:" )) ) );
+   String messageCol = results.getString( MESSAGE_COL );
+   row2.addElement( new TD( new StringElement( messageCol ) ) );
+   t.addElement( row2 );
+	
+   // Edited by Chuck Willis - added display of the user who
+   // posted the message, so that if users use a cross site
+   // request forgery or XSS to make another user post a
+   // message, they can see that the message is attributed
+   // to that user
+					
+   TR row3 = new TR( new TD( new StringElement( "Posted By:" ) ) );
+   row3.addElement( new TD( new StringElement(
+     results.getString( USER_COL ) ) ) );
+   t.addElement( row3 );
+					
+   ec.addElement( t );
+	
+   if ( messageCol.toLowerCase().indexOf( "script" ) != -1 )
+   {
+     makeSuccess( s );
+   }
+===
+
+2. I couldn't solve the Predictable Session Identifier lesson. I used 
+WebScarab (nice tool too!) to plot the session identified and although a 
+weakness seems to be there, I wasn't able to exploit it. Is this lesson 
+a lot harder than the other ones?
+
+3. There was a typo in DOS_Login.java and it had no lesson plan. I fixed 
+the typo and wrote a lesson plan, see attachments.
+
+4. The web services lessons also had no lesson plan: Soap Request, WSDL 
+Scanning, and Web Service SQL Injection.
+
+5. The build.xml did not have a "dist" target, but a "dist_CBT" target. 
+That target seemed to want to invoke the macro's <CopyWebCBTToBuild/> 
+and <WarBuild/> but they hadn't been defined. I changed that to invoke 
+the targets -WebXMLWindows, -CopyWebCBTToBuild and -WarBuild. The first 
+was done to make sure the web-windows.xml was copied to web.xml, because 
+that step would otherwise be skipped. See attachment for the fixed 
+build.xml.
+
+Well, I hope these remarks are helpful. If you have any more questions, 
+please let me know.
+
+Thanks for a great tool!
+
+Regards, Vincent Partington.
+
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: StoredXss.java
+Url: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051203/bd448f04/attachment.pl 
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: DOS_Login.java
+Url: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051203/bd448f04/attachment-0001.pl 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051203/bd448f04/attachment.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: build.xml
+Type: text/xml
+Size: 20453 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051203/bd448f04/attachment.xml 
+
+From bruce.mayhew at aspectsecurity.com  Mon Dec  5 08:49:07 2005
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Mon, 5 Dec 2005 08:49:07 -0500
+Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+References: <4391B773.4010905@xebia.com>
+Message-ID: <04eb01c5f9a2$a9906d40$02fea8c0@intranet.aspectsecurity.com>
+
+Lesson PlanHi Vincent
+
+1) Has been fixed.  I have a patch release for OWASP but I haven't delivered it yet.  
+
+2) Rogan addressed in separate e-mail
+
+3) Thanks - I'll add to the patch release
+
+4) Working on that.
+
+5) I'll look into that and add that to my patch release.
+
+Thanks for the comments!
+
+Bruce
+
+  ----- Original Message ----- 
+  From: Vincent Partington 
+  To: owasp-webgoat at lists.sourceforge.net 
+  Sent: Saturday, December 03, 2005 10:19 AM
+  Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+
+
+  Hi,
+
+  First of all, I want to say that I really like WebGoat. I've used it for 
+  two secure coding classes now and it works very well to let people get a 
+  first hand feel for what the OWASP top ten vulnerabilities are about. 
+  The Top Ten itself is good for raising awareness of security issues, but 
+  WebGoat makes it even more visible. Thanks!
+
+  I did have a few niggles with it:
+
+  1. The StoredXss lesson doesn't work on Windows with the ODBC driver to 
+  connect to the Access database. The code in makeCurrent() wants to 
+  retrieve the MESSAGE_COL column twice and the ODBC driver (or the 
+  OdbcJdbcBridge) can't handle that. I changed the middle bit to only 
+  retrieve the column once (and store it in local variable "messageCol" to 
+  make it work:
+  ===
+     TR row2 = new TR( new TD( new B(new StringElement( "Message:" )) ) );
+     String messageCol = results.getString( MESSAGE_COL );
+     row2.addElement( new TD( new StringElement( messageCol ) ) );
+     t.addElement( row2 );
+
+     // Edited by Chuck Willis - added display of the user who
+     // posted the message, so that if users use a cross site
+     // request forgery or XSS to make another user post a
+     // message, they can see that the message is attributed
+     // to that user
+
+     TR row3 = new TR( new TD( new StringElement( "Posted By:" ) ) );
+     row3.addElement( new TD( new StringElement(
+       results.getString( USER_COL ) ) ) );
+     t.addElement( row3 );
+
+     ec.addElement( t );
+
+     if ( messageCol.toLowerCase().indexOf( "script" ) != -1 )
+     {
+       makeSuccess( s );
+     }
+  ===
+
+  2. I couldn't solve the Predictable Session Identifier lesson. I used 
+  WebScarab (nice tool too!) to plot the session identified and although a 
+  weakness seems to be there, I wasn't able to exploit it. Is this lesson 
+  a lot harder than the other ones?
+
+  3. There was a typo in DOS_Login.java and it had no lesson plan. I fixed 
+  the typo and wrote a lesson plan, see attachments.
+
+  4. The web services lessons also had no lesson plan: Soap Request, WSDL 
+  Scanning, and Web Service SQL Injection.
+
+  5. The build.xml did not have a "dist" target, but a "dist_CBT" target. 
+  That target seemed to want to invoke the macro's <CopyWebCBTToBuild/> 
+  and <WarBuild/> but they hadn't been defined. I changed that to invoke 
+  the targets -WebXMLWindows, -CopyWebCBTToBuild and -WarBuild. The first 
+  was done to make sure the web-windows.xml was copied to web.xml, because 
+  that step would otherwise be skipped. See attachment for the fixed 
+  build.xml.
+
+  Well, I hope these remarks are helpful. If you have any more questions, 
+  please let me know.
+
+  Thanks for a great tool!
+
+  Regards, Vincent Partington.
+
+
+  [...original text deleted...]
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051205/88708678/attachment.html 
+
+From vpartington at xebia.com  Tue Dec  6 02:18:36 2005
+From: vpartington at xebia.com (Vincent Partington)
+Date: Tue, 06 Dec 2005 08:18:36 +0100
+Subject: [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least),
+ bug in build.xml, can't solve Predictable Session Identifier, missing lesson
+ plans
+In-Reply-To: <04eb01c5f9a2$a9906d40$02fea8c0@intranet.aspectsecurity.com>
+References: <4391B773.4010905@xebia.com> <04eb01c5f9a2$a9906d40$02fea8c0@intranet.aspectsecurity.com>
+Message-ID: <43953B4C.4080904@xebia.com>
+
+Bruce Mayhew wrote:
+> 1) Has been fixed.  I have a patch release for OWASP but I haven't 
+> delivered it yet. 
+> 2) Rogan addressed in separate e-mail
+> 3) Thanks - I'll add to the patch release
+> 4) Working on that.
+> 5) I'll look into that and add that to my patch release.
+
+OK, I look forward to the next release. :)
+
+Regards, Vincent.
+
+
+
+
+From davidecharri at yahoo.es  Fri Dec  9 11:50:30 2005
+From: davidecharri at yahoo.es (David Echarri)
+Date: Fri, 9 Dec 2005 17:50:30 +0100 (CET)
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+Message-ID: <20051209165030.560.qmail@web26406.mail.ukl.yahoo.com>
+
+Hi everyone!
+
+I've installed WebGoat 3.7 under Linux, and found a
+problem when doing the test "How to perform Blind SQL
+Injection".
+
+The screen WebGoat presents to me always says "An
+error ocurred, please try again", which is given when
+an SQL Exception has been thrown.
+
+The log file has several entry like the following one:
+
+http-80-Processor25 SELECT TOP 1 first_name FROM
+user_data WHERE userid = 15613
+Don't understand SQL after: "SELECT"
+Expected: "INTO" found: "first_name"
+
+If anyone could give me a hint on how to solve the
+problem,
+I would greatly appreciate it! 
+
+Greetings,
+
+David Echarri
+
+
+		
+______________________________________________ 
+Renovamos el Correo Yahoo! 
+Nuevos servicios, m?s seguridad 
+http://correo.yahoo.es
+
+
+
+From lbrown at usmd.edu  Fri Dec  9 14:48:43 2005
+From: lbrown at usmd.edu (Lennox Brown)
+Date: Fri, 9 Dec 2005 14:48:43 -0500
+Subject: [OWASP-WEBGOAT]Only able to access webgoat first lesson
+Message-ID: <000a01c5fcf9$8f671180$3e047683@lbrown2k>
+
+Hi,
+
+I installed Webgoat and was able to run it. However, I am only able to access the first lesson. 
+
+when I attemp to access the other lessons, I am still presented with the page of the first lesson.
+
+Any help will be appreciated.
+
+Thanks.
+
+Lennox 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051209/758ef38d/attachment.html 
+
+From bruce.mayhew at aspectsecurity.com  Fri Dec  9 15:09:37 2005
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Fri, 9 Dec 2005 15:09:37 -0500
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+References: <20051209165030.560.qmail@web26406.mail.ukl.yahoo.com>
+Message-ID: <048701c5fcfc$7ad03230$6964a8c0@intranet.aspectsecurity.com>
+
+David
+
+This is most likely a problem with the enhydra DB we use for Linux.  I'll 
+try to get the fix for this in the patch release which should be released 
+soon.  Unfortunately, this one is a bug.
+
+Bruce.
+
+
+----- Original Message ----- 
+From: "David Echarri" <davidecharri at yahoo.es>
+To: <owasp-webgoat at lists.sourceforge.net>
+Sent: Friday, December 09, 2005 11:50 AM
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+
+
+> Hi everyone!
+>
+> I've installed WebGoat 3.7 under Linux, and found a
+> problem when doing the test "How to perform Blind SQL
+> Injection".
+>
+> The screen WebGoat presents to me always says "An
+> error ocurred, please try again", which is given when
+> an SQL Exception has been thrown.
+>
+> The log file has several entry like the following one:
+>
+> http-80-Processor25 SELECT TOP 1 first_name FROM
+> user_data WHERE userid = 15613
+> Don't understand SQL after: "SELECT"
+> Expected: "INTO" found: "first_name"
+>
+> If anyone could give me a hint on how to solve the
+> problem,
+> I would greatly appreciate it!
+>
+> Greetings,
+>
+> David Echarri
+>
+>
+>
+> ______________________________________________
+> Renovamos el Correo Yahoo!
+> Nuevos servicios, m?s seguridad
+> http://correo.yahoo.es
+>
+>
+> -------------------------------------------------------
+> This SF.net email is sponsored by: Splunk Inc. Do you grep through log 
+> files
+> for problems?  Stop!  Download the new AJAX search engine that makes
+> searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+> http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> 
+
+
+
+
+From chuck.lists at gmail.com  Fri Dec  9 16:48:22 2005
+From: chuck.lists at gmail.com (Chuck)
+Date: Fri, 9 Dec 2005 16:48:22 -0500
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+In-Reply-To: <048701c5fcfc$7ad03230$6964a8c0@intranet.aspectsecurity.com>
+References: <20051209165030.560.qmail@web26406.mail.ukl.yahoo.com>
+	 <048701c5fcfc$7ad03230$6964a8c0@intranet.aspectsecurity.com>
+Message-ID: <53b2a700512091348r5e3ee89s7b3b63e91131c7a4@mail.gmail.com>
+
+Yes, that was my fault.  When I wrote that lesson I thought WebGoat
+was no longer supported on non-Windows systems.  I'll update the
+lesson to work on both systems.  The line you mentioned needs to be
+changed, but all the hints are assuming you are using the MS Access
+back end, too, so they need to be updated.
+
+Chuck
+
+On 12/9/05, Bruce Mayhew <bruce.mayhew at aspectsecurity.com> wrote:
+> David
+>
+> This is most likely a problem with the enhydra DB we use for Linux.  I'll
+> try to get the fix for this in the patch release which should be released
+> soon.  Unfortunately, this one is a bug.
+>
+> Bruce.
+>
+>
+> ----- Original Message -----
+> From: "David Echarri" <davidecharri at yahoo.es>
+> To: <owasp-webgoat at lists.sourceforge.net>
+> Sent: Friday, December 09, 2005 11:50 AM
+> Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+>
+>
+> > Hi everyone!
+> >
+> > I've installed WebGoat 3.7 under Linux, and found a
+> > problem when doing the test "How to perform Blind SQL
+> > Injection".
+> >
+> > The screen WebGoat presents to me always says "An
+> > error ocurred, please try again", which is given when
+> > an SQL Exception has been thrown.
+> >
+> > The log file has several entry like the following one:
+> >
+> > http-80-Processor25 SELECT TOP 1 first_name FROM
+> > user_data WHERE userid = 15613
+> > Don't understand SQL after: "SELECT"
+> > Expected: "INTO" found: "first_name"
+> >
+> > If anyone could give me a hint on how to solve the
+> > problem,
+> > I would greatly appreciate it!
+> >
+> > Greetings,
+> >
+> > David Echarri
+> >
+> >
+> >
+> > ______________________________________________
+> > Renovamos el Correo Yahoo!
+> > Nuevos servicios, m?s seguridad
+> > http://correo.yahoo.es
+> >
+> >
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by: Splunk Inc. Do you grep through log
+> > files
+> > for problems?  Stop!  Download the new AJAX search engine that makes
+> > searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+> > http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+> > _______________________________________________
+> > OWASP-WEBGOAT mailing list
+> > OWASP-WEBGOAT at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> >
+>
+>
+>
+> -------------------------------------------------------
+> This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+> for problems?  Stop!  Download the new AJAX search engine that makes
+> searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+> http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+>
+
+
+
+From bruce.mayhew at aspectsecurity.com  Fri Dec  9 17:18:06 2005
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Fri, 9 Dec 2005 17:18:06 -0500
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+References: <20051209165030.560.qmail@web26406.mail.ukl.yahoo.com> <048701c5fcfc$7ad03230$6964a8c0@intranet.aspectsecurity.com> <53b2a700512091348r5e3ee89s7b3b63e91131c7a4@mail.gmail.com>
+Message-ID: <04bb01c5fd0e$6dface50$6964a8c0@intranet.aspectsecurity.com>
+
+Thanks Chuck.
+
+I have attached the latest source for this file.  Hopefully, it will compile 
+with the rest of the 3.7 source.  If not,  let me know and I'll update CVS 
+with the latest stuff.
+
+Bruce.
+
+----- Original Message ----- 
+From: "Chuck" <chuck.lists at gmail.com>
+To: "Bruce Mayhew" <bruce.mayhew at aspectsecurity.com>
+Cc: "David Echarri" <davidecharri at yahoo.es>; 
+<owasp-webgoat at lists.sourceforge.net>
+Sent: Friday, December 09, 2005 4:48 PM
+Subject: Re: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+
+
+Yes, that was my fault.  When I wrote that lesson I thought WebGoat
+was no longer supported on non-Windows systems.  I'll update the
+lesson to work on both systems.  The line you mentioned needs to be
+changed, but all the hints are assuming you are using the MS Access
+back end, too, so they need to be updated.
+
+Chuck
+
+On 12/9/05, Bruce Mayhew <bruce.mayhew at aspectsecurity.com> wrote:
+> David
+>
+> This is most likely a problem with the enhydra DB we use for Linux.  I'll
+> try to get the fix for this in the patch release which should be released
+> soon.  Unfortunately, this one is a bug.
+>
+> Bruce.
+>
+>
+> ----- Original Message -----
+> From: "David Echarri" <davidecharri at yahoo.es>
+> To: <owasp-webgoat at lists.sourceforge.net>
+> Sent: Friday, December 09, 2005 11:50 AM
+> Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+>
+>
+> > Hi everyone!
+> >
+> > I've installed WebGoat 3.7 under Linux, and found a
+> > problem when doing the test "How to perform Blind SQL
+> > Injection".
+> >
+> > The screen WebGoat presents to me always says "An
+> > error ocurred, please try again", which is given when
+> > an SQL Exception has been thrown.
+> >
+> > The log file has several entry like the following one:
+> >
+> > http-80-Processor25 SELECT TOP 1 first_name FROM
+> > user_data WHERE userid = 15613
+> > Don't understand SQL after: "SELECT"
+> > Expected: "INTO" found: "first_name"
+> >
+> > If anyone could give me a hint on how to solve the
+> > problem,
+> > I would greatly appreciate it!
+> >
+> > Greetings,
+> >
+> > David Echarri
+> >
+> >
+> >
+> > ______________________________________________
+> > Renovamos el Correo Yahoo!
+> > Nuevos servicios, m?s seguridad
+> > http://correo.yahoo.es
+> >
+> >
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by: Splunk Inc. Do you grep through log
+> > files
+> > for problems?  Stop!  Download the new AJAX search engine that makes
+> > searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+> > http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+> > _______________________________________________
+> > OWASP-WEBGOAT mailing list
+> > OWASP-WEBGOAT at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> >
+>
+>
+>
+> -------------------------------------------------------
+> This SF.net email is sponsored by: Splunk Inc. Do you grep through log 
+> files
+> for problems?  Stop!  Download the new AJAX search engine that makes
+> searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+> http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: BlindSqlInjection.java
+Type: application/octet-stream
+Size: 7447 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051209/4932675f/attachment.obj 
+
+From chuck.lists at gmail.com  Wed Dec 14 11:49:18 2005
+From: chuck.lists at gmail.com (Chuck)
+Date: Wed, 14 Dec 2005 08:49:18 -0800
+Subject: [OWASP-WEBGOAT]Problem with "Perform a blind SQL Injection"
+In-Reply-To: <04bb01c5fd0e$6dface50$6964a8c0@intranet.aspectsecurity.com>
+References: <20051209165030.560.qmail@web26406.mail.ukl.yahoo.com>
+	 <048701c5fcfc$7ad03230$6964a8c0@intranet.aspectsecurity.com>
+	 <53b2a700512091348r5e3ee89s7b3b63e91131c7a4@mail.gmail.com>
+	 <04bb01c5fd0e$6dface50$6964a8c0@intranet.aspectsecurity.com>
+Message-ID: <53b2a700512140849o557731d2ie9a0ebb9133372e@mail.gmail.com>
+
+I have updated the lesson and it works now, but I can't figure out how
+to solve it to write up the hints.  I hope the issues are just that I
+don't have the proper SQL syntax and not limitations of the database. 
+I've looked around on Google and I can't figure out the issues below. 
+If someone has any ideas or a good reference for the InstantDB, please
+let me know.  The documentation at
+http://www.instantdb.com/doc/index.html does not seem to cover these
+issues.
+
+1.  Nested SELECTs don't want to run.  On the String SQL lesson, for
+example, if I inject this:
+
+Smith' AND ((LENGTH("test")) < 100)
+
+It works, but if I inject this:
+
+Smith' AND ((LENGTH(SELECT first_name FROM user_data WHERE userid=15613)) < 100)
+
+I get a syntax error.  I have tried all sorts of variations here to
+get the select to run, but no luck.
+
+2.  I can't figure out how to convert from a character to a number
+(its ASCII value).  If I try to inject this:
+
+Smith' AND ((SUBSTR("test", 1, 1)) < 77)
+
+I get an error about "Illegal mixture of string/numeric."
+
+Thanks in advance for any help.
+
+Chuck
+
+On 12/9/05, Bruce Mayhew <bruce.mayhew at aspectsecurity.com> wrote:
+> Thanks Chuck.
+>
+> I have attached the latest source for this file.  Hopefully, it will compile
+> with the rest of the 3.7 source.  If not,  let me know and I'll update CVS
+> with the latest stuff.
+>
+> Bruce.
+
+
+
+From jeff.williams at owasp.org  Wed Dec 14 22:28:25 2005
+From: jeff.williams at owasp.org (Jeff Williams)
+Date: Wed, 14 Dec 2005 22:28:25 -0500
+Subject: [OWASP-WEBGOAT][Owasp-world] Happy Holidays from OWASP
+Message-ID: <064601c60127$9dbc6640$3604a8c0@intranet.aspectsecurity.com>
+
+To all the OWASP participants worldwide,
+
+ 
+
+ As 2005 comes to an end I want thank you all for making OWASP a success!
+With a growing membership and skyrocketing downloads we are making a real
+difference in finding and fighting the causes of application security
+vulnerabilities.
+
+ 
+
+Through your hard work in 2005, OWASP has released a completely overhauled
+Guide, powerful new features in WebScarab, and hosted two successful AppSec
+conferences. Our downloads have more than doubled to over 16,000 every
+month, our unique visitors have doubled to almost 35,000 every month, and
+our bandwidth requirements have soared 600% to over 18GB per month.
+
+ 
+
+Our New Jersey chapter has arranged for a Holiday discount for OWASP
+participants.  From now through December 31st, get 30% off any books you
+order through http://www.oreilly.com/buy. Just use Discount Code HOHOHO when
+you place your order.
+
+ 
+
+Have a wonderful Holiday season and best wishes for the New Year.
+
+ 
+
+--Jeff
+
+ 
+
+Jeff Williams, Chair
+
+The OWASP Foundation
+
+http://www.owasp.org
+
+email: jeff.williams at owasp.org
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20051214/0ee9c097/attachment.html 
+

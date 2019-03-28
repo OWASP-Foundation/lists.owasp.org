@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Issues with CRS3
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Issues%20with%20CRS3&In-Reply-To=%3C8ff92906-9eaa-6c34-0c57-3c35e07de981%40t-online.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002265.html">
+   <LINK REL="Next"  HREF="002268.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Issues with CRS3</H1>
+    <B>Heinrich M.</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Issues%20with%20CRS3&In-Reply-To=%3C8ff92906-9eaa-6c34-0c57-3c35e07de981%40t-online.de%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Issues with CRS3">heinrichm001 at t-online.de
+       </A><BR>
+    <I>Tue Nov 15 15:44:15 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002265.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity Core Rule Set	Version 3.0.0 Released
+</A></li>
+        <LI>Next message: <A HREF="002268.html">[Owasp-modsecurity-core-rule-set] Issues with CRS3
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2266">[ date ]</a>
+              <a href="thread.html#2266">[ thread ]</a>
+              <a href="subject.html#2266">[ subject ]</a>
+              <a href="author.html#2266">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Guys,
+
+thank you for your great work! It is just great that there exists an
+open source WAF and a corresponding ruleset! Thank you.
+
+I'm quite new to ModSecurity. Today, I found some time to play around
+with ModSecurity and the new CRS release in a basic testing setup. I
+hope that I will be able to introduce ModSec and the CRS3 in some small
+prod environment soon.
+
+During my first tests, I quickly came across some minor issues with the
+CRS3. For reference, that is my setup:
+
+Debian GNU/Linux 8.6 (jessie)
+ - Apache/2.4.10 (Debian)
+ - ModSecurity for Apache/2.8.0
+both installed with apt.
+
+I cloned the CRS from the github repository today
+(<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs.git">https://github.com/SpiderLabs/owasp-modsecurity-crs.git</A>), branch
+v3.0/master, Commit 90596883aa103599e2aa046181c5bb79b0b6b19c.
+
+Now, here are my issues...
+
+1. Issue
+After including the new CRS rule files, apache didn't fire up.
+journalctl provided the following error messages:
+
+[...] Syntax error on line 36 of
+/etc/modsecurity/owasp-modsecurity-crs/rules/RESPONSE-950-DATA-LEAKAGES.conf:
+[...] Error parsing actions: Unknown action: \\
+
+Workaround (I don't know what other effects of this might be...): Adding
+a space to line 36 resolved the issue: &quot;t:none, \&quot;
+
+2. Issue
+Changing the blocking actions did not work as documented in
+RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf.
+I tried to use the example  &quot;send an error 404&quot; (line 67 and below).
+With the two rules activated, blocking dind't work anymore. Removing the
+&quot;chain&quot; from the actions made blocking work again. The rules then are as
+follows:
+
+SecRuleUpdateActionById 949110 &quot;t:none,deny,status:404&quot;
+SecRuleUpdateActionById 959100 &quot;t:none,deny,status:404&quot;
+
+
+Please take a look at these issues. Not sure if this happens on other
+platforms as well or if something is wrong with my configuration or
+whatever... If you need additional information, let me know.
+
+Best Regards,
+
+Heinrich
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002265.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity Core Rule Set	Version 3.0.0 Released
+</A></li>
+	<LI>Next message: <A HREF="002268.html">[Owasp-modsecurity-core-rule-set] Issues with CRS3
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2266">[ date ]</a>
+              <a href="thread.html#2266">[ thread ]</a>
+              <a href="subject.html#2266">[ subject ]</a>
+              <a href="author.html#2266">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

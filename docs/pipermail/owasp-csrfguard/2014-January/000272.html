@@ -1,0 +1,325 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Query on CSRFGuard and usage in IBM Websphere	6.1
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20Query%20on%20CSRFGuard%20and%20usage%20in%20IBM%20Websphere%0A%096.1&In-Reply-To=%3CCAL4seLGi_9UMrLQTaxFku%2BwFnKL0s%2BOY62DcHOHo9YV5eFkvHg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000271.html">
+   <LINK REL="Next"  HREF="000273.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Query on CSRFGuard and usage in IBM Websphere	6.1</H1>
+    <B>Azzeddine Ramrami</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20Query%20on%20CSRFGuard%20and%20usage%20in%20IBM%20Websphere%0A%096.1&In-Reply-To=%3CCAL4seLGi_9UMrLQTaxFku%2BwFnKL0s%2BOY62DcHOHo9YV5eFkvHg%40mail.gmail.com%3E"
+       TITLE="[Owasp-csrfguard] Query on CSRFGuard and usage in IBM Websphere	6.1">azzeddine.ramrami at owasp.org
+       </A><BR>
+    <I>Wed Jan  8 20:02:13 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000271.html">[Owasp-csrfguard] Query on CSRFGuard and usage in IBM	Websphere	6.1
+</A></li>
+        <LI>Next message: <A HREF="000273.html">[Owasp-csrfguard] CSRF Token not appearing in JSF form.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#272">[ date ]</a>
+              <a href="thread.html#272">[ thread ]</a>
+              <a href="subject.html#272">[ subject ]</a>
+              <a href="author.html#272">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Erwin,
+Is this OK for you to add your installation steps on the CSRFGuard wiki
+project ?
+I will install a complete WS environnement to tests each steps.
+Regards,
+Azzeddine
+
+
+On Tue, Jan 7, 2014 at 9:10 PM, Erwin, Christy L &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Christy.L.Erwin at boeing.com</A>
+&gt;<i> wrote:
+</I>
+&gt;<i> Hello Ragha,
+</I>&gt;<i>
+</I>&gt;<i> I recently implemented CSRFGuard in an application using IBM WebSphere
+</I>&gt;<i> 8.0. There are some changes that need to be made to the code in order to
+</I>&gt;<i> get it to work with the WebSphere server. I found that the Installation
+</I>&gt;<i> Guide and other documentation on the OWASP site does not address this.
+</I>&gt;<i>
+</I>&gt;<i> In particular, in the csrfguard.properties file, I had to change the
+</I>&gt;<i> org.owasp.csrfguard.PRNG property
+</I>&gt;<i> From: org.owasp.csrfguard.PRNG =SHA1PRNG
+</I>&gt;<i> To: org.owasp.csrfguard.PRNG=IBMSecureRandom
+</I>&gt;<i>
+</I>&gt;<i> And in the CsrfGuard.java file, defaults are hard-coded for the following
+</I>&gt;<i> two values, which have to be changed for WebSphere servers
+</I>&gt;<i> From: org.owasp.csrfguard.PRNG=SHA1PRNG
+</I>&gt;<i> To: org.owasp.csrfguard.PRNG=IBMSecureRandom
+</I>&gt;<i> ---
+</I>&gt;<i> From: org.owasp.csrfguard.PRNG.Provider=SUN
+</I>&gt;<i> To: org.owasp.csrfguard.PRNG.Provider=IBMJCE
+</I>&gt;<i> ---
+</I>&gt;<i>
+</I>&gt;<i> Because of the change to the .java file, the code had to be recompiled.
+</I>&gt;<i> The OWASP CSRFGuard Install Guide shows how to list the CSRFGuardListener
+</I>&gt;<i> class in its example web.xml file. And the CSRFGuard.jar file on my
+</I>&gt;<i> company's application security web site contains this class file. But I was
+</I>&gt;<i> not able to find this java code anywhere. So instead, I used the
+</I>&gt;<i> CsrfGuardServletContextListener and CsrfGuardHttpSessionListener classes,
+</I>&gt;<i> and put them in my web.xml as follows:
+</I>&gt;<i>     &lt;listener&gt;
+</I>&gt;<i>
+</I>&gt;<i>  &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardServletContextListener&lt;/listener-class&gt;
+</I>&gt;<i>     &lt;/listener&gt;
+</I>&gt;<i>     &lt;listener&gt;
+</I>&gt;<i>
+</I>&gt;<i>  &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardHttpSessionListener&lt;/listener-class&gt;
+</I>&gt;<i>     &lt;/listener&gt;
+</I>&gt;<i>
+</I>&gt;<i> I would think that it would be possible to put both properties in
+</I>&gt;<i> csrfguard.properties and forgo the recompile of the Java code, but I didn't
+</I>&gt;<i> try this myself. It would look like this:
+</I>&gt;<i> org.owasp.csrfguard.PRNG=IBMSecureRandom
+</I>&gt;<i> org.owasp.csrfguard.PRNG.Provider=IBMJCE
+</I>&gt;<i>
+</I>&gt;<i> This is where info is on these properties for WebSphere:
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="http://files.jscape.com/secureftpserver/docs/index.html?running_under_ibm_jvm.htm">http://files.jscape.com/secureftpserver/docs/index.html?running_under_ibm_jvm.htm</A>
+</I>&gt;<i>
+</I>&gt;<i> Since I only needed to protect a couple pages in the application I worked
+</I>&gt;<i> on, I found it much simpler to use the provided JSP Tag Library,
+</I>&gt;<i> csrfguard.tld, and insert tokens into specific links. For me, this was
+</I>&gt;<i> preferable to using the default JavaScript token injection, which for my
+</I>&gt;<i> application, which has many links and older and faulty JavaScript code,
+</I>&gt;<i> surfaced a lot of previously unseen JS errors.
+</I>&gt;<i>
+</I>&gt;<i> Feel free to contact me if you have additional questions about CSRFGuard
+</I>&gt;<i> in WebSphere.
+</I>&gt;<i>
+</I>&gt;<i> Christa Erwin
+</I>&gt;<i> Programmer/Analyst, Boeing Enterprise Supplier Tools (BEST)
+</I>&gt;<i> Mon-Thurs, 8:00 - 4:30 pm
+</I>&gt;<i> Work: 425-234-5942
+</I>&gt;<i> Cell: 206-427-1787
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard-bounces at lists.owasp.org</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard-bounces at lists.owasp.org</A>] On Behalf Of
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard-request at lists.owasp.org</A>
+</I>&gt;<i> Sent: Thursday, December 26, 2013 4:00 AM
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> Subject: Owasp-csrfguard Digest, Vol 40, Issue 1
+</I>&gt;<i>
+</I>&gt;<i> Send Owasp-csrfguard mailing list submissions to
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> To subscribe or unsubscribe via the World Wide Web, visit
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i> or, via email, send a message with subject or body 'help' to
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard-request at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> You can reach the person managing the list at
+</I>&gt;<i>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard-owner at lists.owasp.org</A>
+</I>&gt;<i>
+</I>&gt;<i> When replying, please edit your Subject line so it is more specific than
+</I>&gt;<i> &quot;Re: Contents of Owasp-csrfguard digest...&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Today's Topics:
+</I>&gt;<i>
+</I>&gt;<i>    1. Query on CSRFGuard and usage in IBM Websphere 6.1 (Raghu Vedu)
+</I>&gt;<i>    2. Re: Query on CSRFGuard and usage in IBM Websphere 6.1
+</I>&gt;<i>       (Azzeddine Ramrami)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ----------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> Message: 1
+</I>&gt;<i> Date: 26 Dec 2013 04:58:27 -0000
+</I>&gt;<i> From: &quot;Raghu Vedu&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">vedeshwar777 at rediffmail.com</A>&gt;
+</I>&gt;<i> To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>&quot;
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: [Owasp-csrfguard] Query on CSRFGuard and usage in IBM
+</I>&gt;<i>         Websphere 6.1
+</I>&gt;<i> Message-ID: &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">20131226045827.26979.qmail at f4mail-235-197.rediffmail.com</A>&gt;
+</I>&gt;<i> Content-Type: text/plain; charset=&quot;utf-8&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hi,
+</I>&gt;<i> &nbsp;
+</I>&gt;<i> I am trying to use the source from
+</I>&gt;<i> <A HREF="https://github.com/esheri3/OWASP-CSRFGuard">https://github.com/esheri3/OWASP-CSRFGuard</A> and my need is to use the
+</I>&gt;<i> library in web application using IBM Websphere 6.1 server.
+</I>&gt;<i> &nbsp;
+</I>&gt;<i> I am seeing it is written for Maven, so please let me know if IBM
+</I>&gt;<i> websphere based project is also available.
+</I>&gt;<i> &nbsp;
+</I>&gt;<i> I am bit new to this, so please let me know the feasibility of using the
+</I>&gt;<i> CSRFguard in IBM server.
+</I>&gt;<i> &nbsp;
+</I>&gt;<i> Thanks
+</I>&gt;<i> Ragha
+</I>&gt;<i> -------------- next part --------------
+</I>&gt;<i> An HTML attachment was scrubbed...
+</I>&gt;<i> URL: &lt;
+</I>&gt;<i> <A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/9a1ded72/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/9a1ded72/attachment-0001.html</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> Message: 2
+</I>&gt;<i> Date: Thu, 26 Dec 2013 09:08:24 +0100
+</I>&gt;<i> From: Azzeddine Ramrami &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">azzeddine.ramrami at owasp.org</A>&gt;
+</I>&gt;<i> To: Raghu Vedu &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">vedeshwar777 at rediffmail.com</A>&gt;
+</I>&gt;<i> Cc: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>&quot;
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: Re: [Owasp-csrfguard] Query on CSRFGuard and usage in IBM
+</I>&gt;<i>         Websphere       6.1
+</I>&gt;<i> Message-ID:
+</I>&gt;<i>         &lt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">CAL4seLGp93CD61jEh8HTYxmBZiN3yqG871Jwf+xz9qO8G2Sz9A at mail.gmail.com</A>&gt;
+</I>&gt;<i> Content-Type: text/plain; charset=&quot;iso-8859-1&quot;
+</I>&gt;<i>
+</I>&gt;<i> Dear Sir,
+</I>&gt;<i> I ma the Leader of this project.
+</I>&gt;<i> You can use the CSRFGuard library with IBM WS as JavaEE filter.
+</I>&gt;<i>
+</I>&gt;<i> OWASP CSRFGuard utilizes request tokens to address Cross-Site Request
+</I>&gt;<i> Forgery.  CSRF is an attack where the victim is tricked into interacting
+</I>&gt;<i> with a website where they are already authenticated.
+</I>&gt;<i> CSRFGuard Provides code to generate unique request tokens to mitigate CSRF
+</I>&gt;<i> risks.
+</I>&gt;<i>
+</I>&gt;<i> You can integrate the source code using you own method (if you don't use
+</I>&gt;<i> Maven).
+</I>&gt;<i>
+</I>&gt;<i> The following link show how to integrate CSRFGuard with you application :
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://www.owasp.org/index.php/CSRFGuard_3_Installation">https://www.owasp.org/index.php/CSRFGuard_3_Installation</A>
+</I>&gt;<i>
+</I>&gt;<i> If you have any question contact me.
+</I>&gt;<i> Regards,
+</I>&gt;<i> Azzeddine RAMRAMI
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Thu, Dec 26, 2013 at 5:58 AM, Raghu Vedu &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">vedeshwar777 at rediffmail.com</A>
+</I>&gt;<i> &gt;wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I am trying to use the source from
+</I>&gt;<i> &gt; <A HREF="https://github.com/esheri3/OWASP-CSRFGuard&lt;https://mail.cognizant.com/">https://github.com/esheri3/OWASP-CSRFGuard&lt;https://mail.cognizant.com/</A>
+</I>&gt;<i> &gt; owa/redir.aspx?C=gctwdUlqRE6Dy9yipRCHDBaTrkSO1dAITOgP44EdTmawQQ3YMLYMT
+</I>&gt;<i> &gt; Ok3pVLoRqRK1yF4wY8ha-4.&amp;URL=https%3a%2f%2fgithub.com%2fesheri3%2fOWASP
+</I>&gt;<i> &gt; -CSRFGuard&gt;and my need is to use the library in web application using
+</I>&gt;<i> &gt; IBM Websphere
+</I>&gt;<i> &gt; 6.1 server.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I am seeing it is written for Maven, so please let me know if IBM
+</I>&gt;<i> &gt; websphere based project is also available.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I am bit new to this, so please let me know the feasibility of using
+</I>&gt;<i> &gt; the CSRFguard in IBM server.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Ragha
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; &lt;<A HREF="http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.co">http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.co</A>
+</I>&gt;<i> &gt; m/<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">signatureline.htm at Middle</A>?&gt; Get your own *FREE* website, *FREE*
+</I>&gt;<i> &gt; domain &amp; *FREE* mobile app with Company email.
+</I>&gt;<i> &gt; *Know More
+</I>&gt;<i> &gt; &gt;*&lt;<A HREF="http://track.rediff.com/click?url=___http://businessemail.rediff.co">http://track.rediff.com/click?url=___http://businessemail.rediff.co</A>
+</I>&gt;<i> &gt; m/company-email-hosting-services?sc_cid=sign-1-10-13___&amp;cmp=host&amp;lnk=s
+</I>&gt;<i> &gt; ign-1-10-13&amp;nsrv1=host&gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-csrfguard mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Azzeddine RAMRAMI
+</I>&gt;<i> +33 6 65 48 90 04.
+</I>&gt;<i> Enterprise Security Architect
+</I>&gt;<i> OWASP Leader (Morocco Chapter)
+</I>&gt;<i> Mozilla Security Projects Mentor
+</I>&gt;<i> -------------- next part --------------
+</I>&gt;<i> An HTML attachment was scrubbed...
+</I>&gt;<i> URL: &lt;
+</I>&gt;<i> <A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/a1922fc9/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20131226/a1922fc9/attachment-0001.html</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> End of Owasp-csrfguard Digest, Vol 40, Issue 1
+</I>&gt;<i> **********************************************
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Azzeddine RAMRAMI
++33 6 65 48 90 04.
+Enterprise Security Architect
+OWASP Leader (Morocco Chapter)
+Mozilla Security Projects Mentor
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20140108/5b2146c5/attachment.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20140108/5b2146c5/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000271.html">[Owasp-csrfguard] Query on CSRFGuard and usage in IBM	Websphere	6.1
+</A></li>
+	<LI>Next message: <A HREF="000273.html">[Owasp-csrfguard] CSRF Token not appearing in JSF form.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#272">[ date ]</a>
+              <a href="thread.html#272">[ thread ]</a>
+              <a href="subject.html#272">[ subject ]</a>
+              <a href="author.html#272">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

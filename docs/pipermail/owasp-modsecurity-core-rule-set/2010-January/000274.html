@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] rule bypass
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20rule%20bypass&In-Reply-To=4c9cc6791001170743u3fc5af89p85d3198e2dfc791f%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000273.html">
+   <LINK REL="Next"  HREF="000275.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] rule bypass</H1>
+    <B>Ivan Ristic</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20rule%20bypass&In-Reply-To=4c9cc6791001170743u3fc5af89p85d3198e2dfc791f%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] rule bypass">ivan.ristic at gmail.com
+       </A><BR>
+    <I>Sun Jan 17 10:50:01 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000273.html">[Owasp-modsecurity-core-rule-set] rule bypass
+</A></li>
+        <LI>Next message: <A HREF="000275.html">[Owasp-modsecurity-core-rule-set] rule bypass
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#274">[ date ]</a>
+              <a href="thread.html#274">[ thread ]</a>
+              <a href="subject.html#274">[ subject ]</a>
+              <a href="author.html#274">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sun, Jan 17, 2010 at 3:43 PM, Chris Datfung &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">chris.datfung at gmail.com</A>&gt; wrote:
+&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Hi Ivan,
+</I>&gt;&gt;<i> &gt; I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+</I>&gt;&gt;<i> &gt; ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+</I>&gt;&gt;<i> affect the configuration that will be used as a starting point for all
+</I>&gt;&gt;<i> requests. The ctl:ruleRemoveById action is executed on per-transaction
+</I>&gt;&gt;<i> basis and can only affect the transaction in which it executes.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hi Ivan,
+</I>&gt;<i>
+</I>&gt;<i> I still don't understand why you can't have a ctl:ruleRemoveByMsg action
+</I>&gt;<i> that is executed on a per-transaction basis.
+</I>
+You most certainly can. In fact, that's the only way to conditionally
+remove a rule (which sounds like what you're after).
+
+
+&gt;&gt;<i> &gt; Ideally, in this
+</I>&gt;&gt;<i> &gt; case, I'd like to create a single rule that first matches the effected
+</I>&gt;&gt;<i> &gt; parameter and then removes the rule based on the message. I guess I
+</I>&gt;&gt;<i> &gt; could
+</I>&gt;&gt;<i> &gt; still do that by chaining two rules together.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yes, that sounds likely.
+</I>&gt;<i>
+</I>&gt;<i> I've been playing around with this and have hit a dead end. I created the
+</I>&gt;<i> following rule:
+</I>&gt;<i>
+</I>&gt;<i> SecRule REQUEST_URI &quot;script.cfm&quot;
+</I>&gt;<i> phase:1,t:none,t:urlDecode,t:lowercase,t:normalisePath,chain
+</I>&gt;<i> SecRule &amp;FILES:Filename &quot;@gt 0&quot; chain
+</I>&gt;<i> SecRuleRemoveByMsg &quot;Attempted multipart\/form-data bypass&quot;
+</I>
+SecRuleRemoveByMsg is also not a rule and cannot be chained. It's a
+configuration directive. You should be using the ctl: action in your
+second rule.
+
+
+&gt;<i> but whenever that rule is uncommented I get the following error:
+</I>&gt;<i>
+</I>&gt;<i> Syntax error on line 21 of
+</I>&gt;<i> /opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf:
+</I>&gt;<i> ModSecurity: Execution phases can only be specified by chain starter rules.
+</I>
+What's on line 21?
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [<A HREF="https://www.feistyduck.com]">https://www.feistyduck.com]</A>
+SSL Labs [<A HREF="https://www.ssllabs.com/ssldb/]">https://www.ssllabs.com/ssldb/]</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000273.html">[Owasp-modsecurity-core-rule-set] rule bypass
+</A></li>
+	<LI>Next message: <A HREF="000275.html">[Owasp-modsecurity-core-rule-set] rule bypass
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#274">[ date ]</a>
+              <a href="thread.html#274">[ thread ]</a>
+              <a href="subject.html#274">[ subject ]</a>
+              <a href="author.html#274">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

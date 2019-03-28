@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-webgoat%40lists.owasp.org?Subject=%5BOWASP-WEBGOAT%5DWebGoat%203.7%3A%20bug%20in%20StoredXss%20%28on%20Windows%20at%20least%29%2C%20bug%20in%20build.xml%2C%0A%20can%27t%20solve%20Predictable%20Session%20Identifier%2C%20missing%20lesson%20plans&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000288.html">
+   <LINK REL="Next"  HREF="000285.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans</H1>
+    <B>Vincent Partington</B> 
+    <A HREF="mailto:owasp-webgoat%40lists.owasp.org?Subject=%5BOWASP-WEBGOAT%5DWebGoat%203.7%3A%20bug%20in%20StoredXss%20%28on%20Windows%20at%20least%29%2C%20bug%20in%20build.xml%2C%0A%20can%27t%20solve%20Predictable%20Session%20Identifier%2C%20missing%20lesson%20plans&In-Reply-To="
+       TITLE="[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans">vpartington at xebia.com
+       </A><BR>
+    <I>Sat Dec  3 10:24:07 EST 2005</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000288.html">[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+</A></li>
+        <LI>Next message: <A HREF="000285.html">[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#284">[ date ]</a>
+              <a href="thread.html#284">[ thread ]</a>
+              <a href="subject.html#284">[ subject ]</a>
+              <a href="author.html#284">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+(I am resending this message without the attachments. Forgot I was 
+sending it to a list. If you want the files, please let me know.)
+
+First of all, I want to say that I really like WebGoat. I've used it for
+two secure coding classes now and it works very well to let people get a
+first hand feel for what the OWASP top ten vulnerabilities are about.
+The Top Ten itself is good for raising awareness of security issues, but
+WebGoat makes it even more visible. Thanks!
+
+I did have a few niggles with it:
+
+1. The StoredXss lesson doesn't work on Windows with the ODBC driver to
+connect to the Access database. The code in makeCurrent() wants to
+retrieve the MESSAGE_COL column twice and the ODBC driver (or the
+OdbcJdbcBridge) can't handle that. I changed the middle bit to only
+retrieve the column once (and store it in local variable &quot;messageCol&quot; to
+make it work:
+===
+    TR row2 = new TR( new TD( new B(new StringElement( &quot;Message:&quot; )) ) );
+    String messageCol = results.getString( MESSAGE_COL );
+    row2.addElement( new TD( new StringElement( messageCol ) ) );
+    t.addElement( row2 );
+	
+    // Edited by Chuck Willis - added display of the user who
+    // posted the message, so that if users use a cross site
+    // request forgery or XSS to make another user post a
+    // message, they can see that the message is attributed
+    // to that user
+					
+    TR row3 = new TR( new TD( new StringElement( &quot;Posted By:&quot; ) ) );
+    row3.addElement( new TD( new StringElement(
+      results.getString( USER_COL ) ) ) );
+    t.addElement( row3 );
+					
+    ec.addElement( t );
+	
+    if ( messageCol.toLowerCase().indexOf( &quot;script&quot; ) != -1 )
+    {
+      makeSuccess( s );
+    }
+===
+
+2. I couldn't solve the Predictable Session Identifier lesson. I used
+WebScarab (nice tool too!) to plot the session identified and although a
+weakness seems to be there, I wasn't able to exploit it. Is this lesson
+a lot harder than the other ones?
+
+3. There was a typo in DOS_Login.java and it had no lesson plan. I fixed
+the typo and wrote a lesson plan. Where can I submit these changes?
+
+4. The web services lessons also had no lesson plan: Soap Request, WSDL
+Scanning, and Web Service SQL Injection.
+
+5. The build.xml did not have a &quot;dist&quot; target, but a &quot;dist_CBT&quot; target.
+That target seemed to want to invoke the macro's &lt;CopyWebCBTToBuild/&gt;
+and &lt;WarBuild/&gt; but they hadn't been defined. I changed that to invoke
+the targets -WebXMLWindows, -CopyWebCBTToBuild and -WarBuild. The first
+was done to make sure the web-windows.xml was copied to web.xml, because
+that step would otherwise be skipped:
+   &lt;target name=&quot;dist_CBT&quot; depends=&quot;clean, compile&quot;
+       description=&quot;Create CBT binary distribution&quot;&gt;
+     &lt;antcall target=&quot;-WebXMLWindows&quot; /&gt;
+     &lt;antcall target=&quot;-CopyWebCBTToBuild&quot; /&gt;
+     &lt;antcall target=&quot;-WarBuild&quot; /&gt;
+   &lt;/target&gt;
+
+Well, I hope these remarks are helpful. If you have any more questions,
+please let me know.
+
+Thanks for a great tool!
+
+Regards, Vincent Partington.
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000288.html">[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+</A></li>
+	<LI>Next message: <A HREF="000285.html">[OWASP-WEBGOAT]WebGoat 3.7: bug in StoredXss (on Windows at least), bug in build.xml, can't solve Predictable Session Identifier, missing lesson plans
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#284">[ date ]</a>
+              <a href="thread.html#284">[ thread ]</a>
+              <a href="subject.html#284">[ subject ]</a>
+              <a href="author.html#284">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-webgoat">More information about the Owasp-webgoat
+mailing list</a><br>
+</body></html>

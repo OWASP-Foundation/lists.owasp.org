@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42,	46, and 49
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20CRS%202.0.6%20Optional%20Rules%3A%2042%2C%0A%0946%2C%20and%2049&In-Reply-To=074F0C4BE8F9FB4CB1410BF8D1E10B54AF2D9C%40CF--AMER002E--3.americas.sgi.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000344.html">
+   <LINK REL="Next"  HREF="000346.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42,	46, and 49</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20CRS%202.0.6%20Optional%20Rules%3A%2042%2C%0A%0946%2C%20and%2049&In-Reply-To=074F0C4BE8F9FB4CB1410BF8D1E10B54AF2D9C%40CF--AMER002E--3.americas.sgi.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42,	46, and 49">ryan.barnett at breach.com
+       </A><BR>
+    <I>Wed Mar 24 22:40:42 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000344.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42, 46,	and 49
+</A></li>
+        <LI>Next message: <A HREF="000346.html">[Owasp-modsecurity-core-rule-set] Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#345">[ date ]</a>
+              <a href="thread.html#345">[ thread ]</a>
+              <a href="subject.html#345">[ subject ]</a>
+              <a href="author.html#345">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wednesday 24 March 2010 21:46:59 Mark Lavi wrote:
+&gt;<i> Hello all,
+</I>&gt;<i> 
+</I>&gt;<i> I've upgraded to CRS 2.0.6 with ModSecurity 2.5.12 on my development web
+</I>&gt;<i> server and reviewed the documentation on
+</I>&gt;<i> <A HREF="http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Pr">http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Pr</A>
+</I>&gt;<i> oject#tab=Documentation. I've got a few questions that I haven't see
+</I>&gt;<i> addressed in the last two months on the mailing list.
+</I>&gt;<i> 
+</I>&gt;<i> For the first three below, I've created empty files and then ModSecurity
+</I>&gt;<i> could load and execute these rules. My question boils down to, how am I
+</I>&gt;<i> supposed to populate these data files?
+</I>&gt;<i> 
+</I>&gt;<i> 1) optional_rules/modsecurity_crs_42_comment_spam.conf: requires a data
+</I>&gt;<i> file &quot;optional_rules/modsecurity_42_comment_spam.data,&quot; but that doesn't
+</I>&gt;<i> exist.
+</I>&gt;<i> 
+</I>The various *.data files are actually in the base_rules dir so you can either copy/move the 
+file over under the optional_rules dir or change the path to the file in the @pmFromFile 
+operator.  I suggest the former.
+
+&gt;<i> The documentation mentions a RBL check against SPAMHAUS, am I supposed to
+</I>&gt;<i> provide the source IP address in this file?
+</I>&gt;<i> 
+</I>The following rule in the 42 comment spam file will automatically take the client's IP from 
+the REMOTE_ADDR variable and check it against the sbl-xml SPAMHAUS RBL -
+
+SecRule REMOTE_ADDR &quot;@rbl sbl-xbl.spamhaus.org&quot; 
+&quot;phase:1,t:none,pass,nolog,auditlog,msg:'RBL Match for SPAM 
+Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule.msg}',setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.
+%{rule.id}-
+AUTOMATION/MALICIOUS-%{matched_var_name}=%{matched_var},setvar:ip.spammer=1,expirevar:ip.spammer=86400,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400,skipAfter:END_RBL_CHECK&quot;
+
+This rule also sets a few variable so that it will only run a remote RBL check once per 
+day/per IP address and it saves the results.  The various rules around this one 
+(before/after) inspect the saved TX variables on subsequent requests.
+
+&gt;<i> 2) optional_rules/modsecurity_crs_46_et_sql_injection.conf: requires a data
+</I>&gt;<i> file &quot;optional_rules/modsecurity_46_et_sql_injection.data,&quot; but that
+</I>&gt;<i> doesn't exist. 
+</I>
+Same as above - suggest copying it from the base_rules dir.
+
+&gt;<i> 3) optional_rules/modsecurity_crs_46_et_web_rules.conf:
+</I>&gt;<i> requires a data file &quot;optional_rules/modsecurity_46_et_web_rules.data,&quot;
+</I>&gt;<i> but that doesn't exist.
+</I>&gt;<i> 
+</I>
+Same as above.
+
+&gt;<i> I see that you're converting
+</I>&gt;<i> <A HREF="http://www.emergingthreats.net/cgi-bin/cvsweb.cgi/rules/">http://www.emergingthreats.net/cgi-bin/cvsweb.cgi/rules/</A>
+</I>&gt;<i> emerging-web_server.rules and emerging-web_specific_apps.rules. Am I
+</I>&gt;<i> supposed to pull down these Snort rule sets from their web site? I imagine
+</I>&gt;<i> that I'm looking for your converted versions instead, is that right?
+</I>&gt;<i> 
+</I>
+We have already done the conversion for you and the data is all in the 46 files.
+
+&gt;<i> 4) optional_rules/modsecurity_crs_49_header_tagging.conf : Syntax error on
+</I>&gt;<i> line 29 of optional_rules/modsecurity_crs_49_header_tagging.conf: Invalid
+</I>&gt;<i> command 'RequestHeader', perhaps misspelled or defined by a module not
+</I>&gt;<i> included in the server configuration.
+</I>&gt;<i> 
+</I>&gt;<i> I see this is an Apache directive for mod_headers
+</I>&gt;<i> (<A HREF="http://httpd.apache.org/docs/2.2/mod/mod_headers.html">http://httpd.apache.org/docs/2.2/mod/mod_headers.html</A>), but this module
+</I>&gt;<i> is disabled by default. It is not mentioned in mod_security's installation
+</I>&gt;<i> documentation:
+</I>&gt;<i> <A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecu">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecu</A>
+</I>&gt;<i> rity2-apache-reference.html#installation.
+</I>&gt;<i> 
+</I>
+This is a new experimental rule set and thus we haven't gone back to update any of the 
+ModSecurity install data for it.  I believe it is best to mention it in the CRS README and 
+in the comments for this file.
+
+&gt;<i> Can we add a note to configure Apache with: --enable-headers for this
+</I>&gt;<i> optional rule?
+</I>&gt;<i> 
+</I>&gt;<i> Also, would it be prudent to enclose the entire file or perhaps just the
+</I>&gt;<i> RequestHeader lines inside a &lt;IfModule mod_headers.c&gt; &lt;/IfModule&gt;
+</I>&gt;<i> condition?  I did so and got ModSecurity to load this rule and start up.
+</I>&gt;<i> 
+</I>
+Good idea.
+
+On another note for the 49 request header tagging file - I am assuming you are running 
+ModSecurity on a reverse proxy, correct?  This rules file will add Mod alert match data to 
+some new Request Headers when it is proxied so that the destination server may inspect 
+them and potentially take action.  Is this your intent?  Are you going to try and inspect 
+these headers on the destination app?  I am interested in the request header concept as I 
+believe that it has potential for WAFs to share data with the destination app servers but 
+it is a new concept and I want to get feedback from users.
+
+Cheers,
+Ryan
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000344.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42, 46,	and 49
+</A></li>
+	<LI>Next message: <A HREF="000346.html">[Owasp-modsecurity-core-rule-set] Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#345">[ date ]</a>
+              <a href="thread.html#345">[ thread ]</a>
+              <a href="subject.html#345">[ subject ]</a>
+              <a href="author.html#345">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

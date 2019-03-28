@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too broad?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20RegEx%20in%20CRS%203.0.2%20942200%20too%0A%20broad%3F&In-Reply-To=%3C20180111063129.pvppucrz7ojsjuvf%40leander%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002523.html">
+   <LINK REL="Next"  HREF="002525.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too broad?</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20RegEx%20in%20CRS%203.0.2%20942200%20too%0A%20broad%3F&In-Reply-To=%3C20180111063129.pvppucrz7ojsjuvf%40leander%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too broad?">christian.folini at netnea.com
+       </A><BR>
+    <I>Thu Jan 11 06:31:29 UTC 2018</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002523.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?
+</A></li>
+        <LI>Next message: <A HREF="002525.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2524">[ date ]</a>
+              <a href="thread.html#2524">[ thread ]</a>
+              <a href="subject.html#2524">[ subject ]</a>
+              <a href="author.html#2524">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ken,
+
+We used to have ML problems, but it seems at least your message went through.
+Hopefully OWASP HQ has fixed it for good.
+
+I confirm the FP here and can only add that 942200 has been set to PL2
+for causing FPs from time to time.
+
+Franziska B&#252;hler disassembled the regexes of the SQL rules, so you can
+take a better look at the sources behind the performance optimized
+regexes:
+
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.1/dev/util/regexp-assemble/regexp-942200.data">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.1/dev/util/regexp-assemble/regexp-942200.data</A>
+
+Maybe she can chime in here and add her thoughts on this rule.
+
+Best,
+
+Christian
+
+On Wed, Jan 10, 2018 at 11:23:48AM -0800, Ken Brucker wrote:
+&gt;<i>    I've been looking at some false positives related to rule 942200.
+</I>&gt;<i> 
+</I>&gt;<i>    Side note, I'm running CRS 3.0.2 but the rules still have a version
+</I>&gt;<i>    3.0.0 tag. I was surprised to see that.
+</I>&gt;<i>    Here's an exemplar from the audit file:
+</I>&gt;<i>    Message: Warning. Pattern match
+</I>&gt;<i>    &quot;(?i:(?:,.*?[)\\da-f\&quot;'`][\&quot;'`](?:[\&quot;'`].*?[\&quot;'`]|\\Z|[^\&quot;'`]+))|(?:\\W
+</I>&gt;<i>    select.+\\W*?from)|((?:select|create|rename|truncate|load|alter|delete|
+</I>&gt;<i>    update|insert|desc)\\s*?\\(\\s*?space\\s*?\\())&quot; at ARGS:data[]. [file
+</I>&gt;<i>    &quot;/etc/httpd/modsecurity.d/crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI
+</I>&gt;<i>    .conf&quot;] [line &quot;649&quot;] [id &quot;942200&quot;] [rev &quot;2&quot;] [msg &quot;Detects MySQL
+</I>&gt;<i>    comment-/space-obfuscated injections and backtick termination&quot;] [data
+</I>&gt;<i>    &quot;Matched Data: ,4947,4937,4935,4929,4463,4430,5905,5766,7878,7570\x22]
+</I>&gt;<i>    found within ARGS:data[]: [gallery columns=\x225\x22
+</I>&gt;<i>    size=\x22medium\x22
+</I>&gt;<i>    ids=\x224953,4947,4937,4935,4929,4463,4430,5905,5766,7878,7570\x22]&quot;]
+</I>&gt;<i>    [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy
+</I>&gt;<i>    &quot;8&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag
+</I>&gt;<i>    &quot;platform-multi&quot;] [tag &quot;attack-sqli&quot;] [tag
+</I>&gt;<i>    &quot;OWASP_CRS/WEB_ATTACK/SQL_INJECTION&quot;] [tag &quot;WASCTC/WASC-19&quot;] [tag
+</I>&gt;<i>    &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/CIE1&quot;] [tag &quot;PCI/6.5.2&quot;] [tag
+</I>&gt;<i>    &quot;paranoia-level/2&quot;]
+</I>&gt;<i>    After looking at this rule a bit, it will trigger on a string like:
+</I>&gt;<i>    To quote William Shakespeare, &quot;to be, or not to be&quot;.
+</I>&gt;<i>    The first alternative in the regex matches a very broad range of text
+</I>&gt;<i>    and seems far too general. Is this intentional? It looks like the
+</I>&gt;<i>    intent is to capture variations on quoted numbers but it's going above
+</I>&gt;<i>    and beyond.
+</I>&gt;<i> 
+</I>&gt;<i>    The rule:
+</I>&gt;<i> 
+</I>&gt;<i>    SecRule
+</I>&gt;<i>    REQUEST_COOKIES|!REQUEST_COOKIES:/__utm/|REQUEST_COOKIES_NAMES|ARGS_NAM
+</I>&gt;<i>    E
+</I>&gt;<i>    S|ARGS|XML:/*
+</I>&gt;<i>    &quot;(?i:(?:,.*?[)\da-f\&quot;'`][\&quot;'`](?:[\&quot;'`].*?[\&quot;'`]|\Z|[^\&quot;'`]+))|(?:
+</I>&gt;<i>    \Wselect.+\W*?from)|((?:select|create|rename|truncate|load|alter|delete
+</I>&gt;<i>    |update|i
+</I>&gt;<i>    nsert|desc)\s*?\(\s*?space\s*?\())&quot; \
+</I>&gt;<i>            &quot;phase:request,\
+</I>&gt;<i>            rev:'2',\
+</I>&gt;<i>            ver:'OWASP_CRS/3.0.0',\
+</I>&gt;<i>            maturity:'9',\
+</I>&gt;<i>            accuracy:'8',\
+</I>&gt;<i>            capture,\
+</I>&gt;<i>            t:none,t:urlDecodeUni,\
+</I>&gt;<i>            block,\
+</I>&gt;<i>            msg:'Detects MySQL comment-/space-obfuscated injections and
+</I>&gt;<i>    backtick ter
+</I>&gt;<i>    mination',\
+</I>&gt;<i>            id:942200,\
+</I>&gt;<i>            tag:'application-multi',\
+</I>&gt;<i>            tag:'language-multi',\
+</I>&gt;<i>            tag:'platform-multi',\
+</I>&gt;<i>            tag:'attack-sqli',\
+</I>&gt;<i>            tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',\
+</I>&gt;<i>            tag:'WASCTC/WASC-19',\
+</I>&gt;<i>            tag:'OWASP_TOP_10/A1',\
+</I>&gt;<i>            tag:'OWASP_AppSensor/CIE1',\
+</I>&gt;<i>            tag:'PCI/6.5.2',\
+</I>&gt;<i>            tag:'paranoia-level/2',\
+</I>&gt;<i>            logdata:'Matched Data: %{TX.0} found within
+</I>&gt;<i>    %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',\
+</I>&gt;<i>            severity:'CRITICAL',\
+</I>&gt;<i>            setvar:'tx.msg=%{rule.msg}',\
+</I>&gt;<i>            setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},\
+</I>&gt;<i>            setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},\
+</I>&gt;<i> 
+</I>&gt;<i>    setvar:'tx.%{[1]rule.id}-OWASP_CRS/WEB_ATTACK/SQLI-%{matched_var_name}=
+</I>&gt;<i>    %{tx.0}'&quot;
+</I>&gt;<i> 
+</I>&gt;<i> References
+</I>&gt;<i> 
+</I>&gt;<i>    1. <A HREF="http://rule.id/">http://rule.id/</A>
+</I>
+&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+-- 
+<A HREF="https://www.feistyduck.com/training/modsecurity-training-course">https://www.feistyduck.com/training/modsecurity-training-course</A>
+<A HREF="https://www.feistyduck.com/books/modsecurity-handbook/">https://www.feistyduck.com/books/modsecurity-handbook/</A>
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+twitter: @ChrFolini
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002523.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?
+</A></li>
+	<LI>Next message: <A HREF="002525.html">[Owasp-modsecurity-core-rule-set] RegEx in CRS 3.0.2 942200 too	broad?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2524">[ date ]</a>
+              <a href="thread.html#2524">[ thread ]</a>
+              <a href="subject.html#2524">[ subject ]</a>
+              <a href="author.html#2524">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

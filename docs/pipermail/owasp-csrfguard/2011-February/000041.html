@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Potential Vulnerability in isValidUrl
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Potential%20Vulnerability%20in%20isValidUrl&In-Reply-To=4D5551E6.60304%40owasp.org">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000040.html">
+   <LINK REL="Next"  HREF="000042.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Potential Vulnerability in isValidUrl</H1>
+    <B>Eric Sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Potential%20Vulnerability%20in%20isValidUrl&In-Reply-To=4D5551E6.60304%40owasp.org"
+       TITLE="[Owasp-csrfguard] Potential Vulnerability in isValidUrl">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Sat Feb 12 09:49:10 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000040.html">[Owasp-csrfguard] Potential Vulnerability in isValidUrl
+</A></li>
+        <LI>Next message: <A HREF="000042.html">[Owasp-csrfguard] Potential Vulnerability in isValidUrl
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#41">[ date ]</a>
+              <a href="thread.html#41">[ thread ]</a>
+              <a href="subject.html#41">[ subject ]</a>
+              <a href="author.html#41">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Botched testing on my part - the browser assumes the current protocol. I
+ran this locally and it assumed file. If I hosted the doc, it would
+become http(s). Botched test on my part. I'll be pushing a fix shortly.
+
+-Eric
+
+On 2/11/11 10:12 AM, Eric Sheridan wrote:
+&gt;<i> Just an update: I'm having trouble reproducing this in every browser
+</I>&gt;<i> that I've tried - always resolves to <A HREF="file://attacker.com">file://attacker.com</A> which shouldn't
+</I>&gt;<i> have the token but is still local resource. So this might just be a
+</I>&gt;<i> functional bug and not a security bug.
+</I>&gt;<i> 
+</I>&gt;<i> -Eric
+</I>&gt;<i> 
+</I>&gt;<i> On 2/11/11 9:35 AM, Eric Sheridan wrote:
+</I>&gt;&gt;<i> List,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Koto on GitHub pointed out a potential vulnerability in the &quot;isValidUrl&quot;
+</I>&gt;&gt;<i> method of the dynamic JavaScript code - and I believe this person is
+</I>&gt;&gt;<i> correct. This method is poorly written and this problem only highlights
+</I>&gt;&gt;<i> that fact. Here is the snippet:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> /** determine if uri/url points to valid domain * */
+</I>&gt;&gt;<i> function isValidUrl(src) {
+</I>&gt;&gt;<i> 	var result = false;
+</I>&gt;&gt;<i> 	
+</I>&gt;&gt;<i> 	/** parse out domain to make sure it points to our own * */
+</I>&gt;&gt;<i> 	if(src.substring(0, 7) == &quot;<A HREF="http://&quot;">http://&quot;</A> || src.substring(0, 8) == &quot;<A HREF="https://&quot;">https://&quot;</A>) {
+</I>&gt;&gt;<i> 		// check if is valid domain
+</I>&gt;&gt;<i> 	} else if(src.charAt(0) == '#') {
+</I>&gt;&gt;<i> 		...
+</I>&gt;&gt;<i> 	} else if(src.charAt(0) == '/' || src.indexOf(':') == -1) {
+</I>&gt;&gt;<i> 		result = true;
+</I>&gt;&gt;<i> 	}
+</I>&gt;&gt;<i> 		
+</I>&gt;&gt;<i> 	return result;
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The idea behind this code is to determine if the form/url location
+</I>&gt;&gt;<i> points to a page for which we must include the CSRF token. This helps
+</I>&gt;&gt;<i> ensure that a token destined for abc.com is not sent off site to an
+</I>&gt;&gt;<i> xyz.com. However, the following URL //attacker.com/whatever is not local
+</I>&gt;&gt;<i> yet will translate to <A HREF="http://attacker.com/whatever">http://attacker.com/whatever</A> and the token will be
+</I>&gt;&gt;<i> included. If the user clicks the link, their CSRF token destined for
+</I>&gt;&gt;<i> abc.com is sent to attacker.com.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Any thoughts on how I could do this uri/url parsing logic in a cleaner
+</I>&gt;&gt;<i> fashion without introducing a third party library? I could sneak in a
+</I>&gt;&gt;<i> third conditional (&amp;&amp; !src.startsWith(&quot;//&quot;)) but this seems really fragile.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -Eric
+</I>&gt;<i> 
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000040.html">[Owasp-csrfguard] Potential Vulnerability in isValidUrl
+</A></li>
+	<LI>Next message: <A HREF="000042.html">[Owasp-csrfguard] Potential Vulnerability in isValidUrl
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#41">[ date ]</a>
+              <a href="thread.html#41">[ thread ]</a>
+              <a href="subject.html#41">[ subject ]</a>
+              <a href="author.html#41">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

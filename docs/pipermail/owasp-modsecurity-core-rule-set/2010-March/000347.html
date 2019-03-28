@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Ha%3A%20%20Unknown%20blockage&In-Reply-To=OFB334781B.052CB5B3-ON852576F1.006A6DE0-852576F1.006B1028%40excelsior.edu">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000346.html">
+   <LINK REL="Next"  HREF="000348.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage</H1>
+    <B>Artyom Davidov</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Ha%3A%20%20Unknown%20blockage&In-Reply-To=OFB334781B.052CB5B3-ON852576F1.006A6DE0-852576F1.006B1028%40excelsior.edu"
+       TITLE="[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage">ard at 100.pfr.ru
+       </A><BR>
+    <I>Thu Mar 25 16:10:53 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000346.html">[Owasp-modsecurity-core-rule-set] Unknown blockage
+</A></li>
+        <LI>Next message: <A HREF="000348.html">[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#347">[ date ]</a>
+              <a href="thread.html#347">[ thread ]</a>
+              <a href="subject.html#347">[ subject ]</a>
+              <a href="author.html#347">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> 
+</I>&gt;<i> Hi - 
+</I>&gt;<i> 
+</I>&gt;<i> I'm upgrading from Core Rules 1.x to 2.0.6, and for the life of me I
+</I>&gt;<i> can't figure out whats blocking a bunch of requests going to images,
+</I>&gt;<i> css and auxilary files after I set my secdefaultaction from pass --&gt; 
+</I>fail. 
+&gt;<i> 
+</I>&gt;<i> I'm running modsec 2.5.12 on httpd 2.2.14 on redhat 4 in a proxy 
+</I>&gt;<i> situation.  Below is the audit log of a failed transaction.  I've 
+</I>&gt;<i> scrubbed some cookies, IPs and such.  Many of the rules that it 
+</I>&gt;<i> matched on don't make sense - for instance two seem to reference 
+</I>&gt;<i> content in my GET, but as you can see from the audit log - that is not 
+</I>true. 
+&gt;<i> 
+</I>&gt;<i> basically, I switch from SecDefaultAction &quot;phase:2,pass&quot; to 
+</I>&gt;<i> SecDefaultAction &quot;phase:2,deny&quot; and things blow up. 
+</I>&gt;<i> 
+</I>&gt;<i> Thanks in advance. 
+</I>&gt;<i> 
+</I>[...skipped...]
+&gt;<i> SecRule &quot;RESPONSE_BODY&quot; &quot;!@pmFromFile modsecurity_50_outbound.data&quot; 
+</I>&gt;<i> &quot;phase:4,rev:2.0.6,t:none,capture,t:urlDecodeUni,t:htmlEntityDecode,
+</I>&gt;<i> nolog,skipAfter:END_OUTBOUND_CHECK&quot; 
+</I>
+Hmmm... Strange.
+It seems that a part of the bug with id &quot;CORERULES-36&quot; is still in place.
+Just checked modsecurity_crs_50_outbound.conf and it looks like it's still 
+missing default action in this rule.
+We've got the same behaviour with 2.0.5 rules until we've added a &quot;pass&quot; 
+default action to this rule.
+So the corrected rule should look like the following:
+
+SecRule RESPONSE_BODY &quot;!@pmFromFile modsecurity_50_outbound.data&quot; \
+ 
+&quot;phase:4,rev:'2.0.6',t:none,capture,t:urlDecodeUni,t:htmlEntityDecode,pass,nolog,skipAfter:END_OUTBOUND_CHECK&quot;
+
+Strange though. Maybe Ryan can comment on this.
+
+wbr
+Artyom
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100325/abde635e/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100325/abde635e/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000346.html">[Owasp-modsecurity-core-rule-set] Unknown blockage
+</A></li>
+	<LI>Next message: <A HREF="000348.html">[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#347">[ date ]</a>
+              <a href="thread.html#347">[ thread ]</a>
+              <a href="subject.html#347">[ subject ]</a>
+              <a href="author.html#347">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

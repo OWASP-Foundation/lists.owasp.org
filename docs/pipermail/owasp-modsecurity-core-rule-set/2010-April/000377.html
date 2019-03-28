@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [mod-security-users] Error	message when accessing backendhttps	server
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5Bmod-security-users%5D%20Error%0A%09message%20when%20accessing%20backendhttps%09server&In-Reply-To=FBCF1B116B45A3408BD3FA651E2B833602B88A39EC%40USANBREX01.ds.liz.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000376.html">
+   <LINK REL="Next"  HREF="000378.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [mod-security-users] Error	message when accessing backendhttps	server</H1>
+    <B>Mark Lavi</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5Bmod-security-users%5D%20Error%0A%09message%20when%20accessing%20backendhttps%09server&In-Reply-To=FBCF1B116B45A3408BD3FA651E2B833602B88A39EC%40USANBREX01.ds.liz.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] [mod-security-users] Error	message when accessing backendhttps	server">mlavi at sgi.com
+       </A><BR>
+    <I>Tue Apr 27 20:53:30 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000376.html">[Owasp-modsecurity-core-rule-set] Reminder about Virtual Patching	Training at Blackhat USA
+</A></li>
+        <LI>Next message: <A HREF="000378.html">[Owasp-modsecurity-core-rule-set] [mod-security-users] Error	message when accessing	backendhttps	server[ScanMail	Notification] &lt;&lt;Your mail is fully scanned.&gt;&gt;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#377">[ date ]</a>
+              <a href="thread.html#377">[ thread ]</a>
+              <a href="subject.html#377">[ subject ]</a>
+              <a href="author.html#377">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, you want to learn and set the variables ending in _anomaly_score, which are defined in modsecurity_crs_10_config.conf. You could adjust critical_anomaly, since it defines the score which blocks a request.
+
+This is touched on in the documentation, see section &quot;Rules - Detection and Management&quot; under &quot;CRS 2.0 - Collaborative Detection&quot; on <A HREF="http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project#tab=Documentation">http://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Project#tab=Documentation</A>
+
+Rather than modify that file, I have adjusted them by overriding their values (I redefine them) in my own modsecurity_crs_15_customrules.conf
+
+E.g.:
+
+# Adjustment (2.0.6) modsecurity_crs_10_config.conf: double notice from 5 to 10
+SecAction &quot;phase:1,t:none,nolog,pass, \
+setvar:tx.critical_anomaly_score=20, \
+setvar:tx.error_anomaly_score=15, \
+setvar:tx.warning_anomaly_score=10, \
+setvar:tx.notice_anomaly_score=10&quot;
+
+Hope this helps, I'm still learning the details of the CRS.
+
+Mark Lavi
+Senior Web Producer
+
+sgi
+
+46600 Landing Parkway
+Fremont, CA 94538
+(510) 933-5234 direct
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mlavi at sgi.com</A> 
+www.sgi.com
+
+
+-----Original Message-----
+From: Ruiyuan Jiang [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Ruiyuan_Jiang at liz.com</A>] 
+Sent: Friday, April 23, 2010 1:32 PM
+To: MPaule Torre; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+Subject: Re: [mod-security-users] Error message when accessing backendhttps server
+
+What I did was modifying the file modsecurity_crs_10_config.conf file since nobody responded to me for that. I changed the line:
+
+Setvar:tx.warning_anomaly_score=10 to 5
+
+I still get all the messages but it does not block the traffic. 
+
+Ryan
+
+-----Original Message-----
+From: MPaule Torre [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">torre at obs-vlfr.fr</A>]
+Sent: Friday, April 23, 2010 11:52 AM
+To: Ruiyuan Jiang; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+Subject: RE: [mod-security-users] Error message when accessing backend https server
+
+Hye
+
+I have exactly the same problem and I do not find  solution nor answer  !
+
+Could you help me ?
+
+
+More thanks
+
+MPaule
+
+
+
+----------------------------------------------------------------------------
+--------------------
+MPaule TORRE
+
+    Observatoire Oc&#233;anologique
+    Base de Donn&#233;es LEFE-CYBER
+    Quai de la Darse, BP 8
+    06238 VILLEFRANCHE s/Mer
+    France
+
+Tel / phone :: 33-4.93.76.38.77
+Fax /copy   :: 33-4.93.76.37.39
+
+
+&gt;<i> -----Message d'origine-----
+</I>&gt;<i> De&#160;: Ruiyuan Jiang [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Ruiyuan_Jiang at liz.com</A>] Envoy&#233;&#160;: jeudi 18 
+</I>&gt;<i> mars 2010 22:08 &#192;&#160;: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+</I>&gt;<i> Objet&#160;: [mod-security-users] Error message when accessing backend 
+</I>&gt;<i> https server
+</I>&gt;<i> 
+</I>&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> I have installed Mod Security v2.5.12 with CRS v2.0.6 and Apache 2.2.15.
+</I>&gt;<i> When I access the server, I got a message:
+</I>&gt;<i> 
+</I>&gt;<i> [Thu Mar 18 16:56:58 2010] [error] [client 12.44.50.210] ModSecurity:
+</I>&gt;<i> Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file 
+</I>&gt;<i> &quot;/opt/apache2.2.15/conf/modsecurity/base_rules/modsecurity_crs_60_corr
+</I>&gt;<i> elat ion.conf&quot;] [line &quot;31&quot;] [msg &quot;Inbound Anomaly Score (Total Inbound 
+</I>&gt;<i> Score:
+</I>&gt;<i> 10, SQLi=, XSS=): HTTP header is restricted by policy&quot;] [hostname 
+</I>&gt;<i> &quot;x.x.com&quot;] [uri &quot;/&quot;] [unique_id &quot;S6KTmpySAp8AAC-vK68AAAAE&quot;]
+</I>&gt;<i> 
+</I>&gt;<i> How do I fix that problem? Thanks.
+</I>&gt;<i> 
+</I>&gt;<i> Ryan
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> This message (including any attachments) is intended solely for the 
+</I>&gt;<i> specific individual(s) or entity(ies) named above, and may contain 
+</I>&gt;<i> legally privileged and confidential information. If you are not the 
+</I>&gt;<i> intended recipient, please notify the sender immediately by replying 
+</I>&gt;<i> to this message and then delete it.
+</I>&gt;<i> Any disclosure, copying, or distribution of this message, or the 
+</I>&gt;<i> taking of any action based on it, by other than the intended 
+</I>&gt;<i> recipient, is strictly prohibited.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ----------------------------------------------------------------------
+</I>&gt;<i> ----
+</I>&gt;<i> ----
+</I>&gt;<i> Download Intel&amp;#174; Parallel Studio Eval Try the new software tools 
+</I>&gt;<i> for yourself. Speed compiling, find bugs proactively, and fine-tune 
+</I>&gt;<i> applications for parallel performance.
+</I>&gt;<i> See why Intel Parallel Studio got high marks during beta.
+</I>&gt;<i> <A HREF="http://p.sf.net/sfu/intel-sw-dev">http://p.sf.net/sfu/intel-sw-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> mod-security-users mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+</I>&gt;<i> <A HREF="https://lists.sourceforge.net/lists/listinfo/mod-security-users">https://lists.sourceforge.net/lists/listinfo/mod-security-users</A>
+</I>&gt;<i> Commercial ModSecurity Appliances, Rule Sets and Support:
+</I>&gt;<i> <A HREF="http://www.modsecurity.org/breach/index.html">http://www.modsecurity.org/breach/index.html</A>
+</I>
+
+
+
+This message (including any attachments) is intended solely for the specific individual(s) or entity(ies) named above, and may contain legally privileged and confidential information. If you are not the intended recipient, please notify the sender immediately by replying to this message and then delete it.
+Any disclosure, copying, or distribution of this message, or the taking of any action based on it, by other than the intended recipient, is strictly prohibited.
+
+
+------------------------------------------------------------------------------
+_______________________________________________
+mod-security-users mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mod-security-users at lists.sourceforge.net</A>
+<A HREF="https://lists.sourceforge.net/lists/listinfo/mod-security-users">https://lists.sourceforge.net/lists/listinfo/mod-security-users</A>
+Commercial ModSecurity Appliances, Rule Sets and Support:
+<A HREF="http://www.modsecurity.org/breach/index.html">http://www.modsecurity.org/breach/index.html</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000376.html">[Owasp-modsecurity-core-rule-set] Reminder about Virtual Patching	Training at Blackhat USA
+</A></li>
+	<LI>Next message: <A HREF="000378.html">[Owasp-modsecurity-core-rule-set] [mod-security-users] Error	message when accessing	backendhttps	server[ScanMail	Notification] &lt;&lt;Your mail is fully scanned.&gt;&gt;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#377">[ date ]</a>
+              <a href="thread.html#377">[ thread ]</a>
+              <a href="subject.html#377">[ subject ]</a>
+              <a href="author.html#377">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

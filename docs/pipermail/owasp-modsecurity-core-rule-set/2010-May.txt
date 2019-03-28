@@ -1,0 +1,970 @@
+From kcoward at infozen.com  Mon May  3 17:05:58 2010
+From: kcoward at infozen.com (Kevin Coward)
+Date: Mon, 3 May 2010 17:05:58 -0400
+Subject: [Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing in
+	modsecurity
+Message-ID: <60CC541F94ABE1488431E6CF96AC986BC97D61@izexchange.infozen.com>
+
+ 
+
+I have questions regarding the response to a previous response regarding content types supported by ModSecurity. 
+
+ 
+
+"ModSecurity only supports HTTP form based and XML based RPC nativly[sic].
+
+However, if you have developers, you can add an extension to ModSecurity to parse about anything."
+
+ 
+
+First, is the suggested mode of mod_security extension "configuration-based" or "code-/module-based"?
+
+ 
+
+Is it possible to "extend" the available types parsed by ModSecurity via configuration? (Candidate configuration rule follows):
+
+ 
+
+# Parse requests with Content-Type "text/plain" as URLENCODED
+
+SecRule REQUEST_CONTENT_TYPE ^text/plain nolog,pass,ctl:requestBodyProcessor=URLENCODED
+
+ 
+
+Finally, could the solution require something as involved as writing a custom Apache module defining a custom type of REQUESTBODY_PROCESSOR as an "operator" extension?
+
+ 
+
+I am ultimately trying to use mod_security to parse GWT-RPC form data to leverage existing core and custom rules.
+
+ 
+
+Any explicit guidance on this would be considered helpful.
+
+ 
+
+Thanks you,
+
+ 
+
+ 
+
+Kevin Coward 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100503/137d84a1/attachment.html 
+
+From Brian.Rectanus at breach.com  Mon May  3 17:29:10 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Mon, 3 May 2010 14:29:10 -0700
+Subject: [Owasp-modsecurity-core-rule-set] gwt-rpc form data parsing
+	in	modsecurity
+In-Reply-To: <60CC541F94ABE1488431E6CF96AC986BC97D61@izexchange.infozen.com>
+References: <60CC541F94ABE1488431E6CF96AC986BC97D61@izexchange.infozen.com>
+Message-ID: <4BDF4026.4080901@breach.com>
+
+Moving this over to users list.  See below...
+
+On 05/03/2010 02:05 PM, Kevin Coward wrote:
+>  
+> 
+> I have questions regarding the response to a previous response regarding
+> content types supported by ModSecurity.
+> 
+>  
+> 
+> ?ModSecurity only supports HTTP form based and XML based RPC nativly[sic].
+> 
+> However, if you have developers, you can add an extension to ModSecurity
+> to parse about anything.?
+> 
+>  
+> 
+> First, is the suggested mode of mod_security extension
+> ?configuration-based? or ?code-/module-based??
+
+Code
+
+> Is it possible to ?extend? the available types parsed by ModSecurity via
+> configuration? (Candidate configuration rule follows):
+
+Not currently.  But plans are to extend Lua support to be able to do
+this without compiled code.
+
+> *# Parse requests with Content-Type "text/plain" as URLENCODED*
+> 
+> *SecRule REQUEST_CONTENT_TYPE ^text/plain
+> nolog,pass,ctl:requestBodyProcessor=URLENCODED*
+
+How does that "extend" available type?  You just want to parse that
+particular type as URLENCODED?  Then that should work provided you do it
+in phase:1.
+
+> Finally, could the solution require something as involved as writing a
+> custom Apache module defining a custom type of REQUESTBODY_PROCESSOR as
+> an ?operator? extension?
+> 
+>  
+> 
+> I am ultimately trying to use mod_security to parse GWT-RPC form data to
+> leverage existing core and custom rules.
+
+The problem is that CRS will not specify the custom target, operator or
+transformation no matter what you do.
+
+> Any explicit guidance on this would be considered helpful.
+
+Probably easiest to extend this as a target that produces a custom
+collection (similar to how ARGS are produced now).  Then your rules
+could just be:
+
+SecRule GWTRPC:fieldname ...
+
+But this does not solve the CRS issue as CRS will not be looking at GWTRPC.
+
+Best, would be to patch ModSecurity to add a new request body processor.
+ This would parse into ARGS and work with CRS existing rules, etc.
+Currently this is not available as an extension, but it should be.
+Perhaps a 2.6 feature to add (probably not that hard to add it) so that
+you can write new body parsers.
+
+If you are serious about adding GWT-RPC support, then I can work with
+you on it and get the proper hooks into the 2.6 branch.  It would be an
+interesting addition to ModSecurity (even if only a custom extension for
+now).
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+
+From Ryan.Barnett at breach.com  Mon May 17 13:14:10 2010
+From: Ryan.Barnett at breach.com (Brian Rectanus (JIRA))
+Date: Mon, 17 May 2010 10:14:10 -0700
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-31)
+	Request Clarification
+Message-ID: <7009033.283.1274116450558.JavaMail.jira@modsec-apps.colo.breach.com>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-31?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Brian Rectanus resolved CORERULES-31.
+-------------------------------------
+
+    Resolution: Duplicate
+
+Duplicate of CORERULES-29
+
+> Request Clarification
+> ---------------------
+>
+>                 Key: CORERULES-31
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-31
+>             Project: Core Rules
+>          Issue Type: Bug
+>      Security Level: Normal
+>          Components: False positive
+>            Reporter: Josiah Ritchie
+>            Assignee: Ryan Barnett
+>
+> A mod security rule is causing problems with Drupal. In the current development version, jquery.cookie.js is being used. This rule is keeping it form being loaded and we would like to know why and if this can't be stopped since it is catching a perfectly legitimate file. The discussion at Drupal can be found here: http://drupal.org/node/522646.
+> SecRule REQUEST_FILENAME|ARGS|ARGS_NAMES "(?:\b(?:(?:type\b\W*?\b(?:text\b\W*?\b(?:j(?:ava)?|ecma|vb)|application\b\W*?\bx-(?:java|vb))script|c(?:opyparentfolder|reatetextrange)|get(?:special|parent)folder|iframe\b.{0,100}?\bsrc)\b|on(?:(?:mo(?:use(?:o(?:ver|ut)|down|move|up)|ve)|key(?:press|down|up)|c(?:hange|lick)|s(?:elec|ubmi)t|(?:un)?load|dragdrop|resize|focus|blur)\b\W*?=|abort\b)|(?:l(?:owsrc\b\W*?\b(?:(?:java|vb)script|shell|http)|ivescript)|(?:href|url)\b\W*?\b(?:(?:java|vb)script|shell)|background-image|mocha):|s(?:(?:tyle\b\W*=.*\bexpression\b\W*|ettimeout\b\W*?)\(|rc\b\W*?\b(?:(?:java|vb)script|shell|http):)|a(?:ctivexobject\b|lert\b\W*?\(|sfunction:))|<(?:(?:body\b.*?\b(?:backgroun|onloa)d|input\b.*?\btype\b\W*?\bimage)\b| ?(?:(?:script|meta)\b|iframe)|!\[cdata\[)|(?:\.(?:(?:execscrip|addimpor)t|(?:fromcharcod|cooki)e|innerhtml)|\@import)\b)"
+
+-- 
+This message is automatically generated by JIRA.
+-
+If you think it was sent incorrectly contact one of the administrators: https://www.modsecurity.org/tracker/secure/Administrators.jspa
+-
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+From rajeevsethi777 at yahoo.com  Wed May 19 04:08:51 2010
+From: rajeevsethi777 at yahoo.com (Rajeev Sethi)
+Date: Wed, 19 May 2010 01:08:51 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] Xss rules- can these be
+	simplified/combined ?
+Message-ID: <928256.82204.qm@web114615.mail.gq1.yahoo.com>
+
+Hi all, 
+
+I've noticed that core rule set comes loaded with several XSS filter, during my testing, I found that many filters from different categories (PHPID, IE8 etc) are hit. So, I am wondering, if someone has been able to reduce xss filters by removing redundant filters?
+
+For example, I think IE8 XSS rule is always hit whenever I try XSS, so does it mean if I use ONLY IE8 XSS filter, I'm covered from XSS attacks? or, if I use only PHPIDS XSS filter, will I be missing any potential xss payloads? I'm hoping to find an "intersection" of all the rules. 
+
+thoughts? 
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100519/d21ea784/attachment.html 
+
+From ryan.barnett at breach.com  Wed May 19 10:10:19 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 19 May 2010 10:10:19 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Xss rules- can these be
+	simplified/combined ?
+In-Reply-To: <928256.82204.qm@web114615.mail.gq1.yahoo.com>
+References: <928256.82204.qm@web114615.mail.gq1.yahoo.com>
+Message-ID: <201005191010.19642.ryan.barnett@breach.com>
+
+On Wednesday 19 May 2010 04:08:51 Rajeev Sethi wrote:
+> Hi all,
+> 
+> I've noticed that core rule set comes loaded with several XSS filter,
+> during my testing, I found that many filters from different categories
+> (PHPID, IE8 etc) are hit. So, I am wondering, if someone has been able to
+> reduce xss filters by removing redundant filters?
+> 
+> For example, I think IE8 XSS rule is always hit whenever I try XSS, so does
+> it mean if I use ONLY IE8 XSS filter, I'm covered from XSS attacks? or, if
+> I use only PHPIDS XSS filter, will I be missing any potential xss
+> payloads? I'm hoping to find an "intersection" of all the rules.
+> 
+> thoughts?
+
+I am sure that there is some overlap between the signatures in the CRS XSS file 
+(modsecurity_crs_41_xss_attacks.conf) and the PHP filters 
+(modsecurity_crs_41_phpids_filters.conf) however there are also signatures that are unique 
+to each.  We chose to keep the 2 files separate since the PHP signatures, which are 
+converted from the PHPIDS default_filter.xml file (https://svn.php-
+ids.org/svn/trunk/lib/IDS/default_filter.xml), are updated periodically and outside of the 
+control of the CRS.  We have a script that will convert the PHPIDS filters so we just run 
+it when we update the CRS.
+
+-Ryan 
+
+From msantana at terremark.com  Wed May 19 10:17:45 2010
+From: msantana at terremark.com (Mario Santana)
+Date: Wed, 19 May 2010 10:17:45 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Setting default action for
+	blocking rules only?
+Message-ID: <BD05115B-4474-4495-A759-0BAC87387A1E@terremark.com>
+
+
+Hi, all.
+
+I'm looking for a way to set a SESSION variable in all blocking rules.  If I put "setvar:SESSION.tagged=1" in SecDefaultAction, then that variable will be set when some non-blocking rules match.  I've read Ivan's book, browsed the code, and experimented with Lua - without finding a way.  Any pointers?
+
+I'm about to despair and just manually add the setvar action to all blocking rules in the CRS...
+
+
+From Brian.Rectanus at breach.com  Wed May 19 12:47:42 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Wed, 19 May 2010 09:47:42 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Setting default action for
+ blocking rules only?
+In-Reply-To: <BD05115B-4474-4495-A759-0BAC87387A1E@terremark.com>
+References: <BD05115B-4474-4495-A759-0BAC87387A1E@terremark.com>
+Message-ID: <4BF4162E.2010305@breach.com>
+
+On 05/19/2010 07:17 AM, Mario Santana wrote:
+> 
+> Hi, all.
+> 
+> I'm looking for a way to set a SESSION variable in all blocking rules.  If I put "setvar:SESSION.tagged=1" in SecDefaultAction, then that variable will be set when some non-blocking rules match.  I've read Ivan's book, browsed the code, and experimented with Lua - without finding a way.  Any pointers?
+
+What version of CRS?  If 2.x, then blocking is done via anomaly scoring.
+ This setvar can be added to the rule checking the anomaly score.
+
+> 
+> I'm about to despair and just manually add the setvar action to all blocking rules in the CRS...
+
+If an older 1.6 CRS, then you could use SecRuleUpdateActionById for each
+blocking rule that you want to have set the SESSION var so that you do
+not have to edit the CRS files.  You could probably write a script to
+maintain this :)
+
+SecRuleUpdateActionById 12345 setvar:SESSION.tagged=1
+
+
+But I think the easiest way is to use a phase:5 rule.  For example:
+
+# Example blocking rule
+SecRule ARGS "attack" \
+  "phase:2,log,auditlog,deny,status:403,id:12345"
+
+# In phase 5, then look for that 403 and set SESSION var
+SecRule RESPONSE_STATUS "@eq 403" \
+  "phase:5,pass,nolog,setvar:SESSION.tagged=1"
+
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From msantana at terremark.com  Wed May 19 14:20:54 2010
+From: msantana at terremark.com (Mario Santana)
+Date: Wed, 19 May 2010 14:20:54 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Setting default action for
+ blocking rules only?
+In-Reply-To: <4BF4162E.2010305@breach.com>
+References: <BD05115B-4474-4495-A759-0BAC87387A1E@terremark.com>
+	<4BF4162E.2010305@breach.com>
+Message-ID: <C8B3969B-F83A-4A56-9E8C-88B5675A4D07@terremark.com>
+
+
+On May 19, 2010, at 12:47 PM, Brian Rectanus wrote:
+
+> What version of CRS?  If 2.x, then blocking is done via anomaly scoring.
+> This setvar can be added to the rule checking the anomaly score.
+
+I'm actually using the rules on the trunk, thought I'm only playing with the base_rules so far.  And you're right - there are only two rules that check the anomaly score.  I've added the setvar to them, but there are 19 other rules that don't specify a disruptive action (i.e., pass.)  Also, at least some of those rules don't seem to have id: actions.  (Many of these rules seem to be auto-generated from PHPIDS?)  No worries - I added the setvar to those rules directly, but I wonder if those rules could be better integrated into the whole anomaly-scoring scheme?
+
+I still have some finishing up to do, but all in all it was a lot less work than I thought it would be.  Mostly due to the elegance of the CRS - so thanks!  =)  Still, a generic solution would let me work with any rule set without modifying it...
+
+> You could probably write a script to
+> maintain this :)
+
+That's the next step, part of figuring out how to keep the rules updated once this goes into production.
+
+> But I think the easiest way is to use a phase:5 rule.  For example:
+> 
+> # Example blocking rule
+> SecRule ARGS "attack" \
+>  "phase:2,log,auditlog,deny,status:403,id:12345"
+> 
+> # In phase 5, then look for that 403 and set SESSION var
+> SecRule RESPONSE_STATUS "@eq 403" \
+>  "phase:5,pass,nolog,setvar:SESSION.tagged=1"
+
+I played with this sort of scenario for most of a day.  The underlying problem is to identify whether a transaction has been blocked.  Using a status like your example (or TX variables, or whatever) only rearranges the problem, because (as far as I can tell) mod_security doesn't expose a flag to show whether the transaction is being blocked.
+
+I went so far as to browse the mod_security code to see how hard it would be to expose that information, perhaps by enhancing the RULE collection.  I quickly realized that it would take more than an idle afternoon to familiarize myself with the code enough to even begin thinking about that...
+
+
+
+From jfmtopnettlc at gmail.com  Tue May 25 11:25:47 2010
+From: jfmtopnettlc at gmail.com (James Muse)
+Date: Tue, 25 May 2010 11:25:47 -0400
+Subject: [Owasp-modsecurity-core-rule-set] restricted extensions
+Message-ID: <AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r@mail.gmail.com>
+
+Moderator,
+
+I am having an issue with the restricted_extensions variable and core rule
+file modsecurity_crs_30_http_policy.conf line 87.  One of my applications
+uses the file extension .do and there appears to be a .dos in the
+restricted extensions list.. The audit log shows the extension as [data
+".do"]  do is not in the restricted_extension list .dos is.  When I remove
+.dos from the restricted extensions I no longer have this issue.  May be I
+don't understand the within operator but do is no the same as dos.  Is there
+a bug here or am I doing something wrong?  I think I would like to keep dos
+and an extension I would like to block but it appears to be causing and
+issue with my application which uses .do
+
+James
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100525/7e07483c/attachment.html 
+
+From ryan.barnett at breach.com  Tue May 25 17:50:28 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Tue, 25 May 2010 17:50:28 -0400
+Subject: [Owasp-modsecurity-core-rule-set] restricted extensions
+In-Reply-To: <AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r@mail.gmail.com>
+References: <AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r@mail.gmail.com>
+Message-ID: <201005251750.29256.ryan.barnett@breach.com>
+
+On Tuesday 25 May 2010 11:25:47 James Muse wrote:
+> Moderator,
+> 
+> I am having an issue with the restricted_extensions variable and core rule
+> file modsecurity_crs_30_http_policy.conf line 87.  One of my applications
+> uses the file extension .do and there appears to be a .dos in the
+> restricted extensions list.. The audit log shows the extension as [data
+> ".do"]  do is not in the restricted_extension list .dos is.  When I remove
+> .dos from the restricted extensions I no longer have this issue.  May be I
+> don't understand the within operator but do is no the same as dos.  Is
+> there a bug here or am I doing something wrong?  I think I would like to
+> keep dos and an extension I would like to block but it appears to be
+> causing and issue with my application which uses .do
+> 
+> James
+
+This seems to be a byproduct of using the @within operator in the 30 file to check the 
+current file extension against the deny variable listing from the 10 file.  The problem is 
+that ".do" is shorter than ".dos" and it matches the beginning.  I will put in a fix in the 
+v2.0.7.
+
+-Ryan
+
+From modsec at enosis.com  Tue May 25 17:41:55 2010
+From: modsec at enosis.com (modsec at enosis.com)
+Date: Tue, 25 May 2010 14:41:55 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @within in crs_30 and similar
+	(restricted extensions)
+In-Reply-To: <mailman.37.1274803215.6370.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.37.1274803215.6370.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <003b01cafc53$1c0364b0$540a2e10$@com>
+
+James: 
+
+I suspect your problem is related to the earlier-reported 
+REQUEST_HEADERS_NAMES problem in 
+<https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2010-April/000357.html>
+
+The @within operator is misnamed for modsec's semantics.
+Or the documentation could be clearer. Or both.
+
+@within is (essentially) a simple linear string search: 
+your argument ".do" was found in "foo .dos bar" IOW, the
+operation is what is more usually called "string match".
+Perhaps it should be called "@sm".
+
+Because modsec provides "set" semantics ("Collections") and
+the appearance of tokenized input (such as your space-delimited
+%{tx.restricted.extensions} it's sensible for you (and by
+the evidence, the crs authors) to believe that @within will
+understand the context and magically switch between strings 
+and tokens. Maybe it c/should in some cases.
+
+An operator like @containsWord does match on locale alphanum_ 
+tokens, but on the reverse of match and target for the rule 
+variable and operator argument.
+
+@within is not, however, token based. So crs_30 rules like 
+960035 and 960038 will unexpectedly match even when the 
+operation appears 'obviously' token-based. (e.g., on 960038, 
+the ordinary and acceptable "Connection" header will be found 
+@within "Proxy-Connection ...").
+
+One might think @pm would be a workable substitute for the 
+rule 960038 case, but @pm apparently doesn't perform %{macro} 
+substitution for its entire argument (@2.5.12). In the case 
+of this rule, tho, the simple workaround is to use @pm and 
+just put the restricted headers list directly into the rule.
+
+But in your case, with the longer list for rule 960035, @pm is 
+out. As a workaround, perhaps use @pmFromFile. Just move the 
+list to a one-per-line file of your making.
+
+Let us know, please.
+
+--Nick 
+
+> Date: Tue, 25 May 2010 11:25:47 -0400
+> From: James Muse <jfmtopnettlc at gmail.com>
+> Subject: [Owasp-modsecurity-core-rule-set] restricted extensions
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Message-ID:
+> 	<AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r at mail.gmail.com>
+> Content-Type: text/plain; charset="iso-8859-1"
+> 
+> Moderator,
+> 
+> I am having an issue with the restricted_extensions variable and core rule
+> file modsecurity_crs_30_http_policy.conf line 87.  One of my applications
+> uses the file extension .do and there appears to be a .dos in the
+> restricted extensions list.. The audit log shows the extension as [data
+> ".do"]  do is not in the restricted_extension list .dos is.  When I remove
+> .dos from the restricted extensions I no longer have this issue.  May be I
+> don't understand the within operator but do is no the same as dos.  Is there
+> a bug here or am I doing something wrong?  I think I would like to keep dos
+> and an extension I would like to block but it appears to be causing and
+> issue with my application which uses .do
+> 
+> James
+
+
+
+From ryan.barnett at breach.com  Tue May 25 18:20:12 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Tue, 25 May 2010 18:20:12 -0400
+Subject: [Owasp-modsecurity-core-rule-set] @within in crs_30 and similar
+	(restricted extensions)
+In-Reply-To: <003b01cafc53$1c0364b0$540a2e10$@com>
+References: <mailman.37.1274803215.6370.owasp-modsecurity-core-rule-set@lists.owasp.org>
+	<003b01cafc53$1c0364b0$540a2e10$@com>
+Message-ID: <201005251820.12804.ryan.barnett@breach.com>
+
+On Tuesday 25 May 2010 17:41:55 modsec at enosis.com wrote:
+> James:
+> 
+> I suspect your problem is related to the earlier-reported
+> REQUEST_HEADERS_NAMES problem in
+> <https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2010-Apr
+> il/000357.html>
+> 
+> The @within operator is misnamed for modsec's semantics.
+> Or the documentation could be clearer. Or both.
+> 
+> @within is (essentially) a simple linear string search:
+> your argument ".do" was found in "foo .dos bar" IOW, the
+> operation is what is more usually called "string match".
+> Perhaps it should be called "@sm".
+> 
+Yeah, we had some internal debates about naming operators.  The thought was that the 
+average Mod user was not necessarily a developer/programmer so they might not understand 
+some of these terms.  That is why we tried to name them in an easier (albeit not quite as 
+accurate as you have pointed out) name.
+
+> Because modsec provides "set" semantics ("Collections") and
+> the appearance of tokenized input (such as your space-delimited
+> %{tx.restricted.extensions} it's sensible for you (and by
+> the evidence, the crs authors) to believe that @within will
+> understand the context and magically switch between strings
+> and tokens. Maybe it c/should in some cases.
+> 
+> An operator like @containsWord does match on locale alphanum_
+> tokens, but on the reverse of match and target for the rule
+> variable and operator argument.
+> 
+> @within is not, however, token based. So crs_30 rules like
+> 960035 and 960038 will unexpectedly match even when the
+> operation appears 'obviously' token-based. (e.g., on 960038,
+> the ordinary and acceptable "Connection" header will be found
+> @within "Proxy-Connection ...").
+> 
+> One might think @pm would be a workable substitute for the
+> rule 960038 case, but @pm apparently doesn't perform %{macro}
+> substitution for its entire argument (@2.5.12). In the case
+> of this rule, tho, the simple workaround is to use @pm and
+> just put the restricted headers list directly into the rule.
+> 
+> But in your case, with the longer list for rule 960035, @pm is
+> out. As a workaround, perhaps use @pmFromFile. Just move the
+> list to a one-per-line file of your making.
+
+I just updated the source templates for v2.0.7 and I opted to use boundary characters 
+(/.../) when specifying the TX variables and then including them when we do the checks 
+later.  It is a similar concept to what Brian documented for @pmFromFile and IP addresses 
+where you want to avoid partial matches - 
+http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-
+reference.html#N11D9B
+
+> 
+> Let us know, please.
+> 
+> --Nick
+> 
+> > Date: Tue, 25 May 2010 11:25:47 -0400
+> > From: James Muse <jfmtopnettlc at gmail.com>
+> > Subject: [Owasp-modsecurity-core-rule-set] restricted extensions
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> > 
+> > Message-ID:
+> > 	<AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r at mail.gmail.com>
+> > 
+> > Content-Type: text/plain; charset="iso-8859-1"
+> > 
+> > Moderator,
+> > 
+> > I am having an issue with the restricted_extensions variable and core
+> > rule file modsecurity_crs_30_http_policy.conf line 87.  One of my
+> > applications uses the file extension .do and there appears to be a .dos
+> > in the restricted extensions list.. The audit log shows the extension as
+> > [data ".do"]  do is not in the restricted_extension list .dos is.  When
+> > I remove .dos from the restricted extensions I no longer have this
+> > issue.  May be I don't understand the within operator but do is no the
+> > same as dos.  Is there a bug here or am I doing something wrong?  I
+> > think I would like to keep dos and an extension I would like to block
+> > but it appears to be causing and issue with my application which uses
+> > .do
+> > 
+> > James
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100525/88e4e5b2/attachment-0001.html 
+
+From Brian.Rectanus at breach.com  Tue May 25 22:21:13 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Tue, 25 May 2010 19:21:13 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @within in crs_30 and similar
+ (restricted extensions)
+In-Reply-To: <201005251820.12804.ryan.barnett@breach.com>
+References: <mailman.37.1274803215.6370.owasp-modsecurity-core-rule-set@lists.owasp.org>	<003b01cafc53$1c0364b0$540a2e10$@com>
+	<201005251820.12804.ryan.barnett@breach.com>
+Message-ID: <4BFC8599.2030406@breach.com>
+
+[Apologies if anyone gets this >1x -- email server problems today]
+
+On 05/25/2010 03:20 PM, Ryan Barnett wrote:
+> On Tuesday 25 May 2010 17:41:55 modsec at enosis.com wrote:
+> 
+>> James:
+> 
+>>
+> 
+>> I suspect your problem is related to the earlier-reported
+> 
+>> REQUEST_HEADERS_NAMES problem in
+> 
+>>
+> <https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2010-Apr
+> 
+>> il/000357.html>
+> 
+>>
+> 
+>> The @within operator is misnamed for modsec's semantics.
+> 
+>> Or the documentation could be clearer. Or both.
+> 
+>>
+> 
+>> @within is (essentially) a simple linear string search:
+> 
+>> your argument ".do" was found in "foo .dos bar" IOW, the
+> 
+>> operation is what is more usually called "string match".
+> 
+>> Perhaps it should be called "@sm".
+> 
+>>
+> 
+> Yeah, we had some internal debates about naming operators. The thought
+> was that the average Mod user was not necessarily a developer/programmer
+> so they might not understand some of these terms. That is why we tried
+> to name them in an easier (albeit not quite as accurate as you have
+> pointed out) name.
+
+Not "string match" as that is what @streq is.  This is a "substring
+match", which @contains and @within are.  @within is similar to
+@contains, but one major difference in that the matching operands are
+reversed:
+
+SecRule ARGS:foo "@contains bar" is "evaluate true if the foo argument
+value contains 'bar' string".  So if foo=foobar, then bar would match as
+it is a substring of "foobar".
+
+SecRule ARGS:foo "@within bar" is "evaluate true if the foo argument
+value is found within the string 'bar'".  So, if foo=foobar then there
+is no match as there is no "foobar" substring in "bar".
+
+
+> 
+>> Because modsec provides "set" semantics ("Collections") and
+> 
+>> the appearance of tokenized input (such as your space-delimited
+> 
+>> %{tx.restricted.extensions} it's sensible for you (and by
+> 
+>> the evidence, the crs authors) to believe that @within will
+> 
+>> understand the context and magically switch between strings
+> 
+>> and tokens. Maybe it c/should in some cases.
+> 
+>>
+> 
+>> An operator like @containsWord does match on locale alphanum_
+> 
+>> tokens, but on the reverse of match and target for the rule
+> 
+>> variable and operator argument.
+
+Eventually there will be a similar operator with boundaries.  But what
+are those boundaries (whitespace, what localle, etc)?  That makes things
+complex for configuration.
+
+> 
+>>
+> 
+>> @within is not, however, token based. So crs_30 rules like
+> 
+>> 960035 and 960038 will unexpectedly match even when the
+> 
+>> operation appears 'obviously' token-based. (e.g., on 960038,
+> 
+>> the ordinary and acceptable "Connection" header will be found
+> 
+>> @within "Proxy-Connection ...").
+> 
+>>
+> 
+>> One might think @pm would be a workable substitute for the
+> 
+>> rule 960038 case, but @pm apparently doesn't perform %{macro}
+> 
+>> substitution for its entire argument (@2.5.12). In the case
+> 
+>> of this rule, tho, the simple workaround is to use @pm and
+> 
+>> just put the restricted headers list directly into the rule.
+> 
+>>
+> 
+>> But in your case, with the longer list for rule 960035, @pm is
+> 
+>> out. As a workaround, perhaps use @pmFromFile. Just move the
+> 
+>> list to a one-per-line file of your making.
+
+@pm and @pmFromFile are identical from a matching point of view.
+@pmFromFile just accepts longer lists and also preserves whitespace
+instead of tokenizing on whitespace.
+
+
+> 
+> I just updated the source templates for v2.0.7 and I opted to use
+> boundary characters (/.../) when specifying the TX variables and then
+> including them when we do the checks later. It is a similar concept to
+> what Brian documented for @pmFromFile and IP addresses where you want to
+> avoid partial matches -
+> http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-reference.html#N11D9B
+
+
+Yep, that is unfortunatly how it has to be done right now.
+
+You could also do it like this:
+
+SecAction "pass,nolog,setvar:tx.restricted_extensions='.dos|.foo|.bar|.baz'"
+...
+SecRule REQUEST_FILENAME "(\.[^\.]{1,10})$" \
+  "capture,pass,setvar:TX.EXTENSION='tx.1|',..."
+...
+SecRule TX:EXTENSION "@within %{tx.restricted_extensions}|" \
+  "deny,..."
+
+Essentially, that grabs out the extension (1 to 10 chars), prefixes it
+with a ".", appends a "|" (so you have ".do|" in TX:EXTENSION for
+example), then matches this within ".do|.foo|.bar|.baz|" properly.
+
+This looks nicer for extensions, but you could also do:
+
+SecAction "pass,nolog,setvar:tx.restricted_extensions='dos|foo|bar|baz'"
+...
+SecRule REQUEST_FILENAME "\.([^\.]{1,10})$" \
+  "capture,pass,setvar:TX.EXTENSION='|tx.1|',..."
+...
+SecRule TX:EXTENSION "@within |%{tx.restricted_extensions}|" \
+  "deny,..."
+
+Which looks better (more consistent) for other forms of data as well.
+Or maybe use "," instead of "|"?  Non-regex geeks may like that better :)
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From dreamice.jiang at gmail.com  Wed May 26 05:17:16 2010
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Wed, 26 May 2010 17:17:16 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Is there any other type of
+	inspecting upload fie?
+Message-ID: <AANLkTilgM5p09fjWtPlznXFSTNMMsMajGTLktmPiIlFC@mail.gmail.com>
+
+Dear all,
+I know we can use FILES_TMPNAMES to inspect an upload file. The manual and
+the cookbook are both using clamav-scanner. I want know is there any other
+type of method?
+If I want to write scripts and using my own keywords for matching the vir,
+how can I do that?
+
+Could you share your experience for me?
+
+Thanks in advance!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100526/2acdd638/attachment.html 
+
+From Brian.Rectanus at breach.com  Wed May 26 12:14:01 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Wed, 26 May 2010 09:14:01 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Is there any other type of
+ inspecting upload fie?
+In-Reply-To: <AANLkTilgM5p09fjWtPlznXFSTNMMsMajGTLktmPiIlFC@mail.gmail.com>
+References: <AANLkTilgM5p09fjWtPlznXFSTNMMsMajGTLktmPiIlFC@mail.gmail.com>
+Message-ID: <4BFD48C9.8070507@breach.com>
+
+On 05/26/2010 02:17 AM, Junyong Jiang wrote:
+> Dear all,
+> I know we can use FILES_TMPNAMES to inspect an upload file. The manual
+> and the cookbook are both using clamav-scanner. I want know is there any
+> other type of method?
+> If I want to write scripts and using my own keywords for matching the
+> vir, how can I do that?
+> 
+> Could you share your experience for me?
+> 
+> Thanks in advance!
+
+Any script will work that just looks at the given filename (first and
+only argument to the script).  It just needs to output a "0" (zero) as
+the first character of the output on failure.  Any other output is a
+success.  The exit code is ignored.  For example:
+
+#!/bin/sh
+
+FILE=$1
+
+# Fail if any of the words are found in the file
+if grep "list|of|words" $FILE > /dev/null; then
+  echo "0 $0: FAILED"
+  exit
+fi
+
+echo "1 $0: OK"
+
+
+
+-- 
+Brian Rectanus
+Breach Security
+
+From christian.folini at post.ch  Mon May 31 01:27:49 2010
+From: christian.folini at post.ch (christian.folini at post.ch)
+Date: Mon, 31 May 2010 07:27:49 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Is there any other type of
+ inspecting upload fie?
+In-Reply-To: <4BFD48C9.8070507@breach.com>
+References: <AANLkTilgM5p09fjWtPlznXFSTNMMsMajGTLktmPiIlFC@mail.gmail.com>
+	<4BFD48C9.8070507@breach.com>
+Message-ID: <B99BC770CB46D6428EFBC95DFA7C36BF2BBDF04EC3@hxmb01.pnet.ch>
+
+Hi Brian,
+
+I think the official documentation is very weak/thin in this area. One or two examples
+along the lines you presented would really help. I've just come up with the same
+information - but I had to read Ivan's book before I really got it.
+
+Best,
+
+Christian
+
+
+-- 
+Christian Folini, IT 222
+Webserver Security Engineer
+
+
+-----Urspr?ngliche Nachricht-----
+Von: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] Im Auftrag von Brian Rectanus
+Gesendet: Mittwoch, 26. Mai 2010 18:14
+An: Junyong Jiang
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: Re: [Owasp-modsecurity-core-rule-set] Is there any other type of inspecting upload fie?
+
+On 05/26/2010 02:17 AM, Junyong Jiang wrote:
+> Dear all,
+> I know we can use FILES_TMPNAMES to inspect an upload file. The manual 
+> and the cookbook are both using clamav-scanner. I want know is there 
+> any other type of method?
+> If I want to write scripts and using my own keywords for matching the 
+> vir, how can I do that?
+> 
+> Could you share your experience for me?
+> 
+> Thanks in advance!
+
+Any script will work that just looks at the given filename (first and only argument to the script).  It just needs to output a "0" (zero) as the first character of the output on failure.  Any other output is a success.  The exit code is ignored.  For example:
+
+#!/bin/sh
+
+FILE=$1
+
+# Fail if any of the words are found in the file if grep "list|of|words" $FILE > /dev/null; then
+  echo "0 $0: FAILED"
+  exit
+fi
+
+echo "1 $0: OK"
+
+
+
+--
+Brian Rectanus
+Breach Security
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From brian.rectanus at breach.com  Mon May 31 14:58:02 2010
+From: brian.rectanus at breach.com (Brian Rectanus)
+Date: Mon, 31 May 2010 14:58:02 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Is there any other type of
+ inspecting upload fie?
+Message-ID: <BF0C95903677F34292AFAF0F7D7906DCCD3092A4@MONET.utopiasystems.net>
+
+Ivan has done quite a bit of work on the official docs with his work on his book. He will start integrating these changes back into the official docs for 2.6 soon. I am also interested in better docs, so please do send us where it really needs work.
+
+-B
+
+
+--
+Brian Rectanus
+Breach Security
+
+-----Original Message-----
+From: christian.folini at post.ch [christian.folini at post.ch]
+Received: 5/30/10 10:27 PM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org [owasp-modsecurity-core-rule-set at lists.owasp.org]
+Subject: Re: [Owasp-modsecurity-core-rule-set] Is there any other type of inspecting upload fie?
+
+Hi Brian,
+
+I think the official documentation is very weak/thin in this area. One or two examples
+along the lines you presented would really help. I've just come up with the same
+information - but I had to read Ivan's book before I really got it.
+
+Best,
+
+Christian
+
+
+--
+Christian Folini, IT 222
+Webserver Security Engineer
+
+
+-----Urspr?ngliche Nachricht-----
+Von: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] Im Auftrag von Brian Rectanus
+Gesendet: Mittwoch, 26. Mai 2010 18:14
+An: Junyong Jiang
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Betreff: Re: [Owasp-modsecurity-core-rule-set] Is there any other type of inspecting upload fie?
+
+On 05/26/2010 02:17 AM, Junyong Jiang wrote:
+> Dear all,
+> I know we can use FILES_TMPNAMES to inspect an upload file. The manual
+> and the cookbook are both using clamav-scanner. I want know is there
+> any other type of method?
+> If I want to write scripts and using my own keywords for matching the
+> vir, how can I do that?
+>
+> Could you share your experience for me?
+>
+> Thanks in advance!
+
+Any script will work that just looks at the given filename (first and only argument to the script).  It just needs to output a "0" (zero) as the first character of the output on failure.  Any other output is a success.  The exit code is ignored.  For example:
+
+#!/bin/sh
+
+FILE=$1
+
+# Fail if any of the words are found in the file if grep "list|of|words" $FILE > /dev/null; then
+  echo "0 $0: FAILED"
+  exit
+fi
+
+echo "1 $0: OK"
+
+
+
+--
+Brian Rectanus
+Breach Security
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100531/4811d2c8/attachment.html 
+

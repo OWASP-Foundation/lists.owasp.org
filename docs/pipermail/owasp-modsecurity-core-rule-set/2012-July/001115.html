@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20DOS_Protection%20Problem%3A%20Could%20not%0A%20set%20variable%20%22ip.dos_counter%22%20as%20the%20collection%20does%20not%20exist.&In-Reply-To=%3CCC264B27.A995%25powster%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001114.html">
+   <LINK REL="Next"  HREF="001116.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.</H1>
+    <B>JPow (powster)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20DOS_Protection%20Problem%3A%20Could%20not%0A%20set%20variable%20%22ip.dos_counter%22%20as%20the%20collection%20does%20not%20exist.&In-Reply-To=%3CCC264B27.A995%25powster%40gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.">powster at gmail.com
+       </A><BR>
+    <I>Fri Jul 13 14:01:11 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001114.html">[Owasp-modsecurity-core-rule-set] exclusion
+</A></li>
+        <LI>Next message: <A HREF="001116.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1115">[ date ]</a>
+              <a href="thread.html#1115">[ thread ]</a>
+              <a href="subject.html#1115">[ subject ]</a>
+              <a href="author.html#1115">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi there,
+
+I am facing a problem where I get &quot;Could not set variable &quot;ip.dos_counter&quot;
+as the collection does not exist.&quot; debug output when using the
+dos_protection rule set ( &quot;modsecurity_crs_11_dos_protection.conf&quot;).
+* DOS_Protection works as it should, so no issues with that (I have
+uncommented the relevant lines in the crs_10_setup.conf, as well as properly
+linked up the crs_11_dos_protection.conf
+* However, I find that the debug is littered with &quot;Could not set variable
+&quot;ip.dos_counter&quot; as the collection does not exist.&quot;
+* I've realized that this is NOT a problem with INITCOL:IP not being called
+in the setup conf file --&gt; This works properly (I am using the default
+crs_10_setup.conf)
+* The issue ONLY occurs with Apache (internal dummy connection) (see below
+debug / audit output)
+&gt;<i> * If you see below Audit Output, it is not a standard &quot;GET&quot; request.
+</I>&gt;<i> * From my understanding, Apache's internal dummy connections are just done by
+</I>&gt;<i> Apache to wake up its child processes.
+</I>* I am puzzled why this happens, because I thought there already is an
+exception for Apache internal dummy connections in 47
+common_exceptions.conf?
+Any reason why these dummy connections are still causing the error messages
+in the debug? And if so, how to solve this issue?
+
+Thanks!
+
+My system:
+-Ubuntu 12.04 on Amazon EC2
+-Apache 2.6.3 Mod_Security
+-OWASP_CRS/2.2.5.
+
+Debug output:
+[13/Jul/2012:13:29:46 +0000]
+[ip-XX-XXX-XX-XX.ap-southeast-1.compute.internal/sid#7f40d4a48370][rid#7f40d
+64c60a0][*][3] Could not set variable &quot;ip.dos_counter&quot; as the collection
+does not exist.
+
+Audit Output:
+--695eef13-A--
+[13/Jul/2012:13:29:46 +0000] UAAiygqAUUgAABqMEm0AAAAE 127.0.0.1 34716
+127.0.0.1 80
+--695eef13-B--
+OPTIONS * HTTP/1.0
+User-Agent: Apache (internal dummy connection)
+
+--695eef13-F--
+HTTP/1.1 200 OK
+Content-Length: 0
+Connection: close
+
+--695eef13-H--
+Message: Could not set variable &quot;ip.dos_counter&quot; as the collection does not
+exist.
+Stopwatch: 1342186186315250 284 (- - -)
+Stopwatch2: 1342186186315250 284; combined=119, p1=0, p2=0, p3=0, p4=0,
+p5=118, sr=0, sw=1, l=0, gc=0
+Producer: ModSecurity for Apache/2.6.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+Server: Apache
+
+--695eef13-Z--
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120713/4ed2d36b/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120713/4ed2d36b/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001114.html">[Owasp-modsecurity-core-rule-set] exclusion
+</A></li>
+	<LI>Next message: <A HREF="001116.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1115">[ date ]</a>
+              <a href="thread.html#1115">[ thread ]</a>
+              <a href="subject.html#1115">[ subject ]</a>
+              <a href="author.html#1115">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

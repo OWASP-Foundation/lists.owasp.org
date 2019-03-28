@@ -1,0 +1,166 @@
+From parasharsh at gmail.com  Thu Mar  1 16:47:40 2012
+From: parasharsh at gmail.com (Shrinivas Parashar)
+Date: Thu, 1 Mar 2012 22:17:40 +0530
+Subject: [Owasp-csrfguard] Why the latest release of CSRF guard is
+ marked as ALPHA
+In-Reply-To: <CAGzcv2YDo8vTv4F+nwckhHu3j3KD8wogi6TcRUyN+St35xY6PA@mail.gmail.com>
+References: <CAMvnUtPzQiTyMb56X=CvPetpFZg6Fnf69mqkB5ZFHMPPF9mn-g@mail.gmail.com>
+	<CAGzcv2YDo8vTv4F+nwckhHu3j3KD8wogi6TcRUyN+St35xY6PA@mail.gmail.com>
+Message-ID: <CAMvnUtNqjEU1300iAQm0dOdfH5BiFF_b-1nsijL7UHiLUBmmQg@mail.gmail.com>
+
+Thanks Anton. Eric do you have any updates.
+On Feb 29, 2012 8:50 PM, "Anton Fomin" <afomin at jaspersoft.com> wrote:
+>
+> Hi Shrinivas,
+>
+> The most current code is in master code line in github, so you better
+build jar from latest sources. However, new release of the CSRF Guard was
+announced recently, I think Eric may know exact dates.
+>
+> Anton.
+>
+> 2012/2/29 Shrinivas Parashar <parasharsh at gmail.com>
+>>
+>> Hi,
+>> We are planning to use CSRF guard in out project. But our legal approval
+team has few concerns as the jar which we are using is marked as APLHA.
+>> Do we have any non alpha release. Is there any plan to release a newer
+version which would be non ALPHA?
+>>
+>> Regards,
+>> Shrinivas
+>>
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20120301/c6ae553f/attachment.html>
+
+From koorella.suri at gmail.com  Mon Mar  5 07:13:34 2012
+From: koorella.suri at gmail.com (suresh kumar)
+Date: Mon, 5 Mar 2012 12:43:34 +0530
+Subject: [Owasp-csrfguard] Why doPost(--) in JavaScriptServlet.java enforces
+	enabling TokenPerPage?
+Message-ID: <CAGBuPxnGqWgFiPDUXhTTLyb6+1MKRQZFFS3Pfe+hrc7RqJ_F4w@mail.gmail.com>
+
+Hi,
+
+Why doPost(--) in JavaScriptServlet.java enforces enabling TokenPerPage?
+
+
+Code snippet taken from JavaScriptServlet.java file:
+
+public void doPost(HttpServletRequest request, HttpServletResponse response)
+throws IOException
+{
+HttpSession session = request.getSession(true);
+CsrfGuard csrfGuard =
+(CsrfGuard)session.getAttribute("Owasp_CsrfGuard_Session_Key");
+
+if ((csrfGuard != null) && (csrfGuard.isTokenPerPageEnabled()))
+writePageTokens(request, response);
+else
+response.sendError(404);
+}
+
+
+Thanks,
+Suresh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20120305/7fef9d22/attachment.html>
+
+From forellacecile at hotmail.fr  Thu Mar 15 11:47:42 2012
+From: forellacecile at hotmail.fr (cecile forella)
+Date: Thu, 15 Mar 2012 11:47:42 +0000
+Subject: [Owasp-csrfguard] configuration of javascript solution
+Message-ID: <SNT120-W141EE12F0E6EBAA6C9EEA4C05E0@phx.gbl>
+
+
+
+Hello,
+ 
+I've configured Owasp csrfguard javascript's solution :
+ 
+- I've configured my web.xml file
+- I've configured the Owasp.CsrfGuard.properties
+ 
+What do we have to do in order the javascriptServlet to be called? I've tried to put the script :
+ 
+<script src="/JavaScriptServlet"></script> in my pages but I dont think the servlet is called.
+ 
+So I always have the following error in the console :
+ 
+[Error] potential cross-site request forgery (CSRF) attack thwarted
+
+as if the script wasn't called...
+ 
+Does someone have an idea?
+
+Thanks in advance for your help
+
+Cecile 
+ 
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20120315/64a2b9bd/attachment.html>
+
+From mail2snap at googlemail.com  Fri Mar 23 12:11:48 2012
+From: mail2snap at googlemail.com (Andreas Schnapp)
+Date: Fri, 23 Mar 2012 13:11:48 +0100
+Subject: [Owasp-csrfguard] Question about secure REST request for csrf
+Message-ID: <CAESEMBw-YqLjybd8vw_aDn5g0X82v1wwsvaMC6JQHFwHBp_pZw@mail.gmail.com>
+
+hi together,
+
+i hope my question is not out of scope. I haven't found a generell
+owasp mailing group for csrf related discussion/questions.
+
+i want to secure REST requests for csrf attacks and have searched for
+possible solutions. i'm not sure if your framework is a little bit
+over sized for my needs.
+
+i have found on wikipedia the following prevention: (
+http://en.wikipedia.org/wiki/Cross-site_request_forgery )
+"
+A variation on this approach is to double submit cookies for users who
+use JavaScript. If an authentication cookie is read using JavaScript
+before the post is made, JavaScript's stricter (and more correct)
+cross-domain rules will be applied. If the server requires requests to
+contain the value of the authentication cookie in the body of POST
+requests or the URL of dangerous GET requests, then the request must
+have come from a trusted domain, since other domains are unable to
+read cookies from the trusting domain.
+"
+
+i think some modification of this will work for me perfectly:
+- before the client send the ajax request(which should be csrf
+secure), a one time use random token is generated (if this is not
+secure on client side this can be get from backend by an pre-REST
+request to the server).
+- this token will be put to cookie from js
+- this token will also be added per GET for the ajax request
+- the server will compare the both values
+- after the rest is successfull the client remove the value from the cookie
+
+for me this method seems really secure. the token will only be used
+once. and an atacker can't set cookies for my domain on there side.
+Also this can be used for not REST requests if some JS magic will be
+adding the token to cookie and GET paramter before the submit action
+is invoced.
+
+
+
+can someone please tell me if i have missed an important aspect?
+
+i'm sorry if this is the wrong place for the question. i someone give
+me a hint i will post it on some other topic.
+
+thanks for reading and best regards
+Andreas Schnapp
+

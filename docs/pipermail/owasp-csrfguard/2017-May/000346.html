@@ -1,0 +1,348 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Issue : &quot;error:request token does not match	page token&quot;
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20Issue%20%3A%20%22error%3Arequest%20token%20does%20not%20match%0A%09page%20token%22&In-Reply-To=%3CCA%2Bo4hfeFQK7XGw2V1zQPkXO5PNRZf3RnVh8vV-X1w9pc7MLJpA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000345.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Issue : &quot;error:request token does not match	page token&quot;</H1>
+    <B>Byron</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20Issue%20%3A%20%22error%3Arequest%20token%20does%20not%20match%0A%09page%20token%22&In-Reply-To=%3CCA%2Bo4hfeFQK7XGw2V1zQPkXO5PNRZf3RnVh8vV-X1w9pc7MLJpA%40mail.gmail.com%3E"
+       TITLE="[Owasp-csrfguard] Issue : &quot;error:request token does not match	page token&quot;">dbyron at gmail.com
+       </A><BR>
+    <I>Mon May 22 10:05:55 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000345.html">[Owasp-csrfguard] Issue : &quot;error:request token does not match page	token&quot;
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#346">[ date ]</a>
+              <a href="thread.html#346">[ thread ]</a>
+              <a href="subject.html#346">[ subject ]</a>
+              <a href="author.html#346">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi ,
+
+I could finally make the owasp csrfguard library work changing the strategy
+configuration.
+
+Basically is to use &quot;tokenperpage = false&quot; , so the tokens are all
+per-sesion and the &quot;org.owasp.csrfguard.Rotate&quot; = &quot;true&quot;, so in all the
+posted messages the library evaluates the session token and if it is a
+valid token it will be refreshed.
+
+So making a summary,  the main configuration is the following:
+
+--------------------------------------------------------------------------------------------
+
+org.owasp.csrfguard.ProtectedMethods=POST,PUT,DELETE
+
+org.owasp.csrfguard.TokenPerPage=false
+
+org.owasp.csrfguard.TokenPerPagePrecreate=false
+
+org.owasp.csrfguard.Rotate=true
+
+org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invalidate
+
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+
+org.owasp.csrfguard.JavascriptServlet.injectGetForms = false
+
+org.owasp.csrfguard.JavascriptServlet.injectFormAttributes = false
+
+org.owasp.csrfguard.JavascriptServlet.injectIntoAttributes = false
+
+---------------------------------------------------------------------------------------------
+
+Hope this helps to anyone that reads this thread.
+
+Best regards!.
+
+
+
+
+
+
+On Thu, May 11, 2017 at 2:05 PM, Byron &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">dbyron at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> We implemented the OWASP CSRFGuard 3.1.0 solution in a webapplication
+</I>&gt;<i> running in a Eclipse IDE with liberty profile  and we are having a false
+</I>&gt;<i> positive CSRF Attack detected when clicking on a &quot;back&quot; button, this button
+</I>&gt;<i> calls a javascript function that sets the form.action value and executes
+</I>&gt;<i> the form.submit();
+</I>&gt;<i>
+</I>&gt;<i> This is the javascript function:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> function goToSearch(action) {
+</I>&gt;<i> var form = document.forms[0];
+</I>&gt;<i> form.Method.value = 'goToSearch';
+</I>&gt;<i> form.actionNavigate.value = 'goToSearch';
+</I>&gt;<i> form.action = action
+</I>&gt;<i> form.submit();
+</I>&gt;<i> }
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The form.action value when submiting is :
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> http_//10.40.206.78:9086/WEBPROYECT/OperationLogAction.
+</I>&gt;<i> do?OWASP_CSRFTOKEN=ZGY3-ETDN-OPT6-PNPX-WWA4-S6P8-TNC6-ZTDP&quot;
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The application works with no CSRF errors in other use cases through
+</I>&gt;<i> several pages, most of all are querying actions and displaying a table with
+</I>&gt;<i> records.
+</I>&gt;<i>
+</I>&gt;<i> There is another &quot;back&quot; button in the last page of the application and
+</I>&gt;<i> clicking this button there is no CSRF error. This button submits the same
+</I>&gt;<i> form in the application.
+</I>&gt;<i>
+</I>&gt;<i> Javascript function:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> function goBack() {
+</I>&gt;<i> var form = document.forms[0];
+</I>&gt;<i> form.Method.value = 'goBack';
+</I>&gt;<i> form.actionNavigate.value = 'goBack';
+</I>&gt;<i> form.submit();
+</I>&gt;<i> }
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This back button is inside this &lt;h:form&gt;:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> &lt;html:form action=&quot;DetailLogAction&quot; method=&quot;post&quot;&gt;
+</I>&gt;<i>                   &lt;input type=&quot;hidden&quot; name=&quot;&lt;csrf:tokenname/&gt;&quot;
+</I>&gt;<i>  value=&quot;&lt;csrf:tokenvalue uri=&quot;DetailLogAction&quot;/&gt;&quot; /&gt;
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> And the back button calls the &lt;h:form&gt; in the previous page that has the
+</I>&gt;<i> following code:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> &lt;html:form action=&quot;OperationLogAction&quot; method=&quot;post&quot;&gt;
+</I>&gt;<i>                   &lt;input type=&quot;hidden&quot; name=&quot;&lt;csrf:tokenname/&gt;&quot;
+</I>&gt;<i>  value=&quot;&lt;csrf:tokenvalue uri=&quot;OperationLogAction&quot;/&gt;&quot; /&gt;
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The next block is the BurpSuite Intercepted POST that is captured:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> POST /WEBPROYECT/OperationLogAction.do?OWASP_
+</I>&gt;<i> CSRFTOKEN=ZGY3-ETDN-OPT6-PNPX-WWA4-S6P8-TNC6-ZTDP HTTP/1.1
+</I>&gt;<i> Accept: text/html, application/xhtml+xml, */*
+</I>&gt;<i> Referer: <A HREF="http://10.40.206.78:9086/WEBPROYECT/DetailLogAction.do">http://10.40.206.78:9086/WEBPROYECT/DetailLogAction.do</A>
+</I>&gt;<i> Accept-Language: es-ES
+</I>&gt;<i> User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like
+</I>&gt;<i> Gecko
+</I>&gt;<i> Content-Type: application/x-www-form-urlencoded
+</I>&gt;<i> Host: 10.40.206.78:9086
+</I>&gt;<i> Content-Length: 260
+</I>&gt;<i> Pragma: no-cache
+</I>&gt;<i> Cookie: JSESSIONID=0000cy9DmOFLqoZQAgsj-9fcAzl:0d1334c5-0c6e-44da-b0c8-
+</I>&gt;<i> 369cc6057789
+</I>&gt;<i> Connection: close
+</I>&gt;<i>
+</I>&gt;<i> OWASP_CSRFTOKEN=OXG1-DOUN-ZT79-BT9E-TOTJ-CEWV-RV4H-7S0P&amp;
+</I>&gt;<i> stAccion=&amp;stSeleccion=&amp;Method=goToSearch&amp;selectedKey=2017-
+</I>&gt;<i> 05-11-02.15.53.345444&amp;cambioSeleccion=false&amp;actionNavigate=goToSearch&amp;
+</I>&gt;<i> goBack=&amp;OWASP_CSRFTOKEN=ZGY3-ETDN-OPT6-PNPX-WWA4-S6P8-TNC6-ZTDP
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> And this is the error show in the console after the intercept action is
+</I>&gt;<i> released , showing the false positive:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> ADVERTENCIA] isValidRequest 3 - tokenFromSession:OXG1-DOUN-
+</I>&gt;<i> ZT79-BT9E-TOTJ-CEWV-RV4H-7S0P
+</I>&gt;<i> [ADVERTENCIA] tokenFromSession:OXG1-DOUN-ZT79-BT9E-TOTJ-CEWV-RV4H-7S0P ,
+</I>&gt;<i> tokenFromRequest: ZGY3-ETDN-OPT6-PNPX-WWA4-S6P8-TNC6-ZTDP, tokenFromPages
+</I>&gt;<i> 0R3Q-9T8B-63NJ-5F63-V3T4-CXR7-NQKM-L74F , pageTokens:
+</I>&gt;<i>  {/WEBPROYECT/DetailLogAction.do=ZGY3-ETDN-OPT6-PNPX-WWA4-S6P8-TNC6-ZTDP,
+</I>&gt;<i> /WEBPROYECT/OperationLogAction.do=0R3Q-9T8B-63NJ-5F63-V3T4-CXR7-NQKM-L74F}
+</I>&gt;<i> [ADVERTENCIA] potential cross-site request forgery (CSRF) attack thwarted
+</I>&gt;<i> (user:&lt;anonymous&gt;, ip:10.40.206.78, method:POST, uri:/WEBPROYECT/OperationLogAction.do,
+</I>&gt;<i> error:request token does not match page token)
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I think that the problem might be going back from one form to a different
+</I>&gt;<i> one, each form has a different &quot;tokenperpage&quot; asigned.
+</I>&gt;<i>
+</I>&gt;<i> &#191;Any ideas why the CSRFGuard is giving this false positive.?
+</I>&gt;<i>
+</I>&gt;<i> Thank you.
+</I>&gt;<i>
+</I>&gt;<i> Best regards.
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> More information :
+</I>&gt;<i>
+</I>&gt;<i> The following are the &quot;csrfguard.properties&quot; and the &quot;web.xml&quot; files:
+</I>&gt;<i>
+</I>&gt;<i> &quot;csrfguard.properties&quot; configuration:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i> org.owasp.csrfguard.Enabled = true
+</I>&gt;<i> org.owasp.csrfguard.ValidateWhenNoSessionExists = true
+</I>&gt;<i> org.owasp.csrfguard.ProtectedMethods=POST,PUT,DELETE
+</I>&gt;<i> org.owasp.csrfguard.TokenPerPage=true
+</I>&gt;<i> org.owasp.csrfguard.TokenPerPagePrecreate=false
+</I>&gt;<i> org.owasp.csrfguard.Ajax=true
+</I>&gt;<i> org.owasp.csrfguard.unprotected.Error=../html/CSRF_error.html
+</I>&gt;<i> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+</I>&gt;<i> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+</I>&gt;<i> forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+</I>&gt;<i> method:%request_method%, uri:%request_uri%, error:%exception_message%)
+</I>&gt;<i> org.owasp.csrfguard.action.Invalidate=org.owasp.
+</I>&gt;<i> csrfguard.action.Invalidate
+</I>&gt;<i> org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+</I>&gt;<i> org.owasp.csrfguard.action.Redirect.Page=../html/CSRF_error.html
+</I>&gt;<i> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+</I>&gt;<i> org.owasp.csrfguard.TokenLength=32
+</I>&gt;<i> org.owasp.csrfguard.PRNG=SHA1PRNG
+</I>&gt;<i> org.owasp.csrfguard.PRNG.Provider=SUN
+</I>&gt;<i> org.owasp.csrfguard.Config.Print = true
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.sourceFile =
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.domainStrict = true
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.cacheControl = private, maxage=28800
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.refererPattern = .*
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.refererMatchDomain = true
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.injectIntoForms = true
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.injectGetForms = false
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.injectIntoAttributes = false
+</I>&gt;<i> org.owasp.csrfguard.JavascriptServlet.xRequestedWith = OWASP CSRFGuard
+</I>&gt;<i> Project
+</I>&gt;<i> org.owasp.csrfguard.configOverlay.hierarchy = classpath:csrfguard.properties,
+</I>&gt;<i> classpath:Owasp.CsrfGuard.overlay.properties
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> And the web.xml csrf added features:
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> &lt;!-- CSRF Filter --&gt;
+</I>&gt;<i> &lt;filter&gt;
+</I>&gt;<i>  &lt;filter-name&gt;CSRFGuardFilter&lt;/filter-name&gt;
+</I>&gt;<i>  &lt;filter-class&gt;org.owasp.csrfguard.CsrfGuardFilter&lt;/filter-class&gt;
+</I>&gt;<i> &lt;/filter&gt;
+</I>&gt;<i> &lt;filter-mapping&gt;
+</I>&gt;<i>  &lt;filter-name&gt;CSRFGuardFilter&lt;/filter-name&gt;
+</I>&gt;<i>  &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+</I>&gt;<i> &lt;/filter-mapping&gt;
+</I>&gt;<i> &lt;!-- CSRF Filter mapping --&gt;
+</I>&gt;<i> &lt;!-- CSRF Listener--&gt;
+</I>&gt;<i> &lt;listener&gt;
+</I>&gt;<i>  &lt;listener-class&gt;
+</I>&gt;<i>    org.owasp.csrfguard.CsrfGuardServletContextListener
+</I>&gt;<i>  &lt;/listener-class&gt;
+</I>&gt;<i> &lt;/listener&gt;
+</I>&gt;<i> &lt;listener&gt;
+</I>&gt;<i>  &lt;listener-class&gt;
+</I>&gt;<i>    org.owasp.csrfguard.CsrfGuardHttpSessionListener
+</I>&gt;<i>  &lt;/listener-class&gt;
+</I>&gt;<i> &lt;/listener&gt;
+</I>&gt;<i> &lt;context-param&gt;
+</I>&gt;<i>  &lt;param-name&gt;Owasp.CsrfGuard.Config&lt;/param-name&gt;
+</I>&gt;<i>  &lt;param-value&gt;WEB-INF/csrfguard.properties&lt;/param-value&gt;
+</I>&gt;<i> &lt;/context-param&gt;
+</I>&gt;<i> &lt;context-param&gt;
+</I>&gt;<i>  &lt;param-name&gt;Owasp.CsrfGuard.Config.Print&lt;/param-name&gt;
+</I>&gt;<i>  &lt;param-value&gt;false&lt;/param-value&gt;
+</I>&gt;<i> &lt;/context-param&gt;
+</I>&gt;<i>
+</I>&gt;<i> &lt;!-- CSRF JavaScript Servlet / CSRF Ajax support --&gt;
+</I>&gt;<i> &lt;servlet&gt;
+</I>&gt;<i>     &lt;servlet-name&gt;JavaScriptServlet&lt;/servlet-name&gt;
+</I>&gt;<i>     &lt;servlet-class&gt;
+</I>&gt;<i>         org.owasp.csrfguard.servlet.JavaScriptServlet
+</I>&gt;<i>     &lt;/servlet-class&gt;
+</I>&gt;<i>     &lt;init-param&gt;
+</I>&gt;<i>         &lt;param-name&gt;source-file&lt;/param-name&gt;
+</I>&gt;<i>      &lt;param-value&gt;&lt;/param-value&gt;
+</I>&gt;<i>     &lt;/init-param&gt;
+</I>&gt;<i>     &lt;init-param&gt;
+</I>&gt;<i>         &lt;param-name&gt;inject-into-forms&lt;/param-name&gt;
+</I>&gt;<i>         &lt;param-value&gt;true&lt;/param-value&gt;
+</I>&gt;<i>     &lt;/init-param&gt;
+</I>&gt;<i>     &lt;init-param&gt;
+</I>&gt;<i>         &lt;param-name&gt;inject-into-attributes&lt;/param-name&gt;
+</I>&gt;<i>         &lt;param-value&gt;false&lt;/param-value&gt;
+</I>&gt;<i>     &lt;/init-param&gt;
+</I>&gt;<i>     &lt;init-param&gt;
+</I>&gt;<i>         &lt;param-name&gt;domain-strict&lt;/param-name&gt;
+</I>&gt;<i>         &lt;param-value&gt;false&lt;/param-value&gt;
+</I>&gt;<i>     &lt;/init-param&gt;
+</I>&gt;<i>     &lt;init-param&gt;
+</I>&gt;<i> &lt;param-name&gt;x-requested-with&lt;/param-name&gt;
+</I>&gt;<i>  &lt;param-value&gt;OWASP CSRFGuard Project&lt;/param-value&gt;
+</I>&gt;<i> &lt;/init-param&gt;
+</I>&gt;<i> &lt;/servlet&gt;
+</I>&gt;<i> &lt;!-- CSRF JavaScript Servlet --&gt;
+</I>&gt;<i> &lt;servlet-mapping&gt;
+</I>&gt;<i>     &lt;servlet-name&gt;JavaScriptServlet&lt;/servlet-name&gt;
+</I>&gt;<i>     &lt;url-pattern&gt;/JavaScriptServlet&lt;/url-pattern&gt;
+</I>&gt;<i> &lt;/servlet-mapping&gt;
+</I>&gt;<i> ------------------------------------------------------------
+</I>&gt;<i> ----------------------------------------------------------
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20170522/943c2263/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20170522/943c2263/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000345.html">[Owasp-csrfguard] Issue : &quot;error:request token does not match page	token&quot;
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#346">[ date ]</a>
+              <a href="thread.html#346">[ thread ]</a>
+              <a href="subject.html#346">[ subject ]</a>
+              <a href="author.html#346">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

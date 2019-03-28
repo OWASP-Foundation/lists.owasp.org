@@ -1,0 +1,110 @@
+From eric.sheridan at owasp.org  Mon Apr  4 11:13:45 2011
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Mon, 04 Apr 2011 11:13:45 -0400
+Subject: [Owasp-csrfguard] uploading files
+In-Reply-To: <C411C2EF-AAE5-4285-AE16-7A043DA154BB@gorilla-concept.de>
+References: <C411C2EF-AAE5-4285-AE16-7A043DA154BB@gorilla-concept.de>
+Message-ID: <4D99E029.1040505@owasp.org>
+
+Eike,
+
+Welcome to the list and thanks for helping test out the newly added
+multipart support. Looks like I really need to revisit the multi-part
+support code and associated test cases. I'm not sure the "/** skip files
+**/" part matters as I (possibly incorrectly) thought that higher level
+classes would call getInputStream and parse it into their own Multipart
+request object as Spring does.
+
+I'm going to take a much closer look at how the Spring guys did it. I'm
+adding this to the GitHub issues as we speak. If you have time/interest,
+please feel free to take a crack at this and I'd gladly integrate your
+changes into the baseline along with appropriate attribution.
+
+-Eric
+
+On 3/29/11 3:09 AM, Eike Hirsch wrote:
+> Hi Eric, hi list,
+> 
+> this is my first post - thanks for this project!
+> 
+> For the background:  I am trying to integrate the csrf-gurad in a yui3 - spring mvc application.
+> 
+> With the multipart stuff in place I had a hard time fixing my upload-forms. I was able to secure the upload now but it seemed that the csrf-filter always removed the uploaded files out of the request. 
+> So dove a little bit into the sources. I think there might be a problem in org.owasp.csrfguard.http.MultipartHttpServletRequest:
+> 
+> --- 
+> public MultipartHttpServletRequest(HttpServletRequest request) throws IOException {
+> ...
+> 	if(fileItem.isFormField()) {
+> 		List<String> values = parameters.get(fileItem.getFieldName());
+> 					
+> 		if(values == null) {
+> 			values = new ArrayList<String>();
+> 			parameters.put(fileItem.getFieldName(), values);
+> 		}
+> 					
+> 		values.add(fileItem.getString());
+> 	} else {
+> 		/** skip files **/                                                      <----------------------------- ???
+> 	}
+> ?
+> }
+> ---
+> skip files???? 
+> 
+> I don't know if this is really a problem but after wrapping the request in this wrapper - spring was not able to extract any files out of the request anymore. For a quick fix I changed the csrf-filter in line 60. 
+> 
+> old:
+> 	httpRequest = new MultipartHttpServletRequest(httpRequest);
+> new:
+> 	httpRequest = new CommonsMultipartResolver().resolveMultipart(httpRequest);
+> 
+> 
+> The CommonsMultipartResolver is a spring class, so I guess this will not fix the general problem. But if there was a way to plugin a MultipartResolver as needed. This problem could get fixed - I guess.
+> The filter could get a setter for its resolver, which in turn would need to implement a new csrf-guard interface (something like springs org.springframework.web.multipart.MultipartResolver).
+> With such a resolver in place the filter would be able to cleanup any temporary files created during "resolveMultipart" once the filter chain finishes. 
+> 
+> Any thoughts?
+> 
+> Eike  
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+
+From eric.sheridan at owasp.org  Thu Apr 14 10:38:36 2011
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Thu, 14 Apr 2011 10:38:36 -0400
+Subject: [Owasp-csrfguard] Funding and or Resource Donation
+Message-ID: <4DA706EC.10700@owasp.org>
+
+List,
+
+CSRFGuard adoption is steadily increasing and I'm finding myself falling
+behind in terms of support. Many of you have identified valid bugs or
+valid features that need addressing in CSRFGuard. Unfortunately, I'm
+very low in "free time" these days and very much need support. Support
+can be in the form of funding (http://ericsheridan.blogspot.com/, see
+'Donate' button in lower right hand side) or in the form of code
+contributions/support. If you are interested in donating to the project,
+whether it be in time or in dollars, please let me know!
+
+A couple of problems that CSRFGuard faces today:
+
+- incomplete multi-part file upload support
+- dynamic javascript needs more testing/evaluation in internet explorer
+- javascript should inject tokens into dynamically created html
+	-> i.e. hook calls such as 'createElement'
+- general bugs that users have identified.
+
+-Eric
+

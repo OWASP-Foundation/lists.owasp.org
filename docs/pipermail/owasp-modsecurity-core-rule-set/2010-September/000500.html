@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] false positive on 959006
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20on%20959006&In-Reply-To=574A77A5-A649-44E1-A65C-BAB21ABFA312%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000499.html">
+   <LINK REL="Next"  HREF="000501.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] false positive on 959006</H1>
+    <B>Russell Clemings</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20false%20positive%20on%20959006&In-Reply-To=574A77A5-A649-44E1-A65C-BAB21ABFA312%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] false positive on 959006">rclemings at gmail.com
+       </A><BR>
+    <I>Wed Sep 22 20:28:54 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000499.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+        <LI>Next message: <A HREF="000501.html">[Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: XSS	Defense via Content Injection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#500">[ date ]</a>
+              <a href="thread.html#500">[ thread ]</a>
+              <a href="subject.html#500">[ subject ]</a>
+              <a href="author.html#500">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>So they do, sorry. I don't see anything else with that ID except the
+SecAction line. Here's the whole section in case it clarifies.
+
+# Command injection
+SecRule ARGS &quot;@pm uname wguest.exe /perl /nasm rcmd.exe nc tclsh /xterm
+finger tftp chown /echo nmap.exe ping /passwd /chsh ps /uname telnet.exe
+/ftp ls tclsh8 lsof /ping echo cmd.exe /kill python traceroute /ps perl
+passwd wsh.exe /rm /cpp chgrp /telnet localgroup kill /chgrp /finger nasm
+/ls nc.exe id /chmod /nc /g++ /id /chown cmd /nmap chsh /gcc net.exe /python
+/lsof ftp.exe ftp xterm mail /mail tracert nmap rm cd chmod cpp telnet
+cmd32.exe gcc g++&quot; \
+        &quot;phase:2,t:none,t:htmlEntityDecode,t:lowercase,pass,nolog,skip:1&quot;
+SecAction phase:2,pass,nolog,skipAfter:950006
+SecRule ARGS
+&quot;(?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b\W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\W*?[\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))&quot;
+\
+
+&quot;phase:2,capture,t:none,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+Command
+Injection',id:'950006',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+SecRule
+REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES
+\
+        &quot;@pm uname wguest.exe /perl /nasm rcmd.exe nc tclsh /xterm finger
+tftp chown /echo nmap.exe ping /passwd /chsh ps /uname telnet.exe /ftp ls
+tclsh8 lsof /ping echo cmd.exe /kill python traceroute /ps perl passwd
+wsh.exe /rm /cpp chgrp /telnet localgroup kill /chgrp /finger nasm /ls
+nc.exe id /chmod /nc /g++ /id /chown cmd /nmap chsh /gcc net.exe /python
+/lsof ftp.exe ftp xterm mail /mail tracert nmap rm cd chmod cpp telnet
+cmd32.exe gcc g++&quot; \
+
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,pass,nolog,skip:1&quot;
+SecAction pass,nolog,skipAfter:959006
+SecRule
+REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES
+\
+
+&quot;(?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b\W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\W*?[\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))&quot;
+\
+
+&quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+Command
+Injection',id:'959006',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+SecRule ARGS \
+        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+
+&quot;phase:2,capture,t:none,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+Command
+Injection',id:'950907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+SecRule
+&quot;REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs|User-Agent)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES&quot;
+\
+        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+
+&quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+Command
+Injection',id:'959907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+
+
+On Wed, Sep 22, 2010 at 5:18 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;wrote:
+
+&gt;<i> Those have different rule id's vs the alert you showed -  [id &quot;959006&quot;]
+</I>&gt;<i>
+</I>&gt;<i> Sent from my iPhone
+</I>&gt;<i>
+</I>&gt;<i> On Sep 22, 2010, at 8:12 PM, &quot;Russell Clemings&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i> It's whatever cPanel supplies by default. Maybe that's part of the problem.
+</I>&gt;<i>
+</I>&gt;<i> On the ARGS, I just stopped copying too soon. I think this is it:
+</I>&gt;<i>
+</I>&gt;<i> SecRule ARGS \
+</I>&gt;<i>        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+</I>&gt;<i>
+</I>&gt;<i>  &quot;phase:2,capture,t:none,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+</I>&gt;<i> Command
+</I>&gt;<i> Injection',id:'950907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+</I>&gt;<i> SecRule
+</I>&gt;<i> &quot;REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs|User-Agent)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES&quot;
+</I>&gt;<i> \
+</I>&gt;<i>        &quot;(?:(?:[\;\|\`]\W*?\bcc|\bwget)\b|\/cc(?:[\'\&quot;\|\;\`\-\s]|$))&quot; \
+</I>&gt;<i>
+</I>&gt;<i>  &quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+</I>&gt;<i> Command
+</I>&gt;<i> Injection',id:'959907',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Sep 22, 2010 at 5:06 PM, Ryan Barnett &lt;&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt; wrote:
+</I>&gt;<i> Rus,
+</I>&gt;<i> What CRS version are you using?  This looks old as the newer versions are
+</I>&gt;<i> listed in the alert using the rev action.  Also i believe the variable
+</I>&gt;<i> listing/targets for this rule were updated as it is missing ARGS.
+</I>&gt;<i>
+</I>&gt;<i> Sent from my iPhone
+</I>&gt;<i>
+</I>&gt;<i> On Sep 22, 2010, at 7:56 PM, &quot;Russell Clemings&quot; &lt;&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;&gt;
+</I>&gt;<i> wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt; I could use some help dealing with the following false positive (some
+</I>&gt;<i> identifying details masked):
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 116818:[Tue Sep 21 22:52:43 2010] [error] [client XX.XX.XX.XX]
+</I>&gt;<i> ModSecurity: Access denied with code 501 (phase 2). Pattern match
+</I>&gt;<i> &quot;(?:\\b(?:(?:n(?:et(?:\\b\\W+?\\blocalgroup|\\.exe)|(?:map|c)\\.exe)|t(?:racer(?:oute|t)|elnet\\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\\.exe|echo\\b\\W*?\\by+)\\b|c(?:md(?:(?:32)?\\.exe\\b|\\b\\W*?\\/c)|d(?:\\b\\W*?[\\\\/]|\\W*?\\.\\.)|hmod.{0,40}?\\+.{0,3}x))|[\\;\\|\\`]\\W*?
+</I>&gt;<i> ...&quot; at REQUEST_COOKIES:__utmz. [file
+</I>&gt;<i> &quot;/usr/local/apache/conf/modsec2.user.conf&quot;] [line &quot;149&quot;] [id &quot;959006&quot;] [msg
+</I>&gt;<i> &quot;System Command Injection&quot;] [data &quot;/mail&quot;] [severity &quot;CRITICAL&quot;] [tag
+</I>&gt;<i> &quot;WEB_ATTACK/COMMAND_INJECTION&quot;] [hostname &quot;xxx.xxx.xxx&quot;] [uri
+</I>&gt;<i> &quot;/xxxx-xxxxx-xxxxxxxx&quot;] [unique_id &quot;TJlve0CDUIUAAHyD6SMAAAAL&quot;]
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; A couple of previous posts suggest that this is hitting on a Google
+</I>&gt;<i> Analytics cookie (REQUEST_COOKIES:__utmz) that tracks where the user came
+</I>&gt;<i> from. It only seems to affect a few users. I've commented out the rule, and
+</I>&gt;<i> that fixed the immediate problem, but of course I would rather create a
+</I>&gt;<i> narrow exemption and leave the rule intact otherwise.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; How would I do that? FWIW, this is a cPanel VPS so the exceptions have to
+</I>&gt;<i> go in an unusual place (e.g.
+</I>&gt;<i> /usr/local/apache/conf/userdata/std/2/etc/etc/etc) but I can handle that
+</I>&gt;<i> part. It's how to write the rule that confuses me.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Here's the rule as it stands now:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; SecRule
+</I>&gt;<i> REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:'/^(Cookie|Referer|X-OS-Prefs)$/'|REQUEST_COOKIES|REQUEST_COOKIES_NAMES
+</I>&gt;<i> \
+</I>&gt;<i> &gt;
+</I>&gt;<i> &quot;(?:\b(?:(?:n(?:et(?:\b\W+?\blocalgroup|\.exe)|(?:map|c)\.exe)|t(?:racer(?:oute|t)|elnet\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\.exe|echo\b\W*?\by+)\b|c(?:md(?:(?:32)?\.exe\b|\b\W*?\/c)|d(?:\b\W*?[\\\/]|\W*?\.\.)|hmod.{0,40}?\+.{0,3}x))|[\;\|\`]\W*?\b(?:(?:c(?:h(?:grp|mod|own|sh)|md|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)\b|g(?:\+\+|cc\b))|\/(?:c(?:h(?:grp|mod|own|sh)|pp)|p(?:asswd|ython|erl|ing|s)|n(?:asm|map|c)|f(?:inger|tp)|(?:kil|mai)l|g(?:\+\+|cc)|(?:xte)?rm|ls(?:of)?|telnet|uname|echo|id)(?:[\'\&quot;\|\;\`\-\s]|$))&quot;
+</I>&gt;<i> \
+</I>&gt;<i> &gt;
+</I>&gt;<i> &quot;phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,status:501,msg:'System
+</I>&gt;<i> Command
+</I>&gt;<i> Injection',id:'959006',tag:'WEB_ATTACK/COMMAND_INJECTION',logdata:'%{TX.0}',severity:'2'&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I probably should add that I'm functionally regex-illiterate, so please
+</I>&gt;<i> speak slowly :)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; rac
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt; &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> &gt; &lt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100922/45f2fa46/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100922/45f2fa46/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000499.html">[Owasp-modsecurity-core-rule-set] false positive on 959006
+</A></li>
+	<LI>Next message: <A HREF="000501.html">[Owasp-modsecurity-core-rule-set] Advanced Topic of the Week: XSS	Defense via Content Injection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#500">[ date ]</a>
+              <a href="thread.html#500">[ thread ]</a>
+              <a href="subject.html#500">[ subject ]</a>
+              <a href="author.html#500">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

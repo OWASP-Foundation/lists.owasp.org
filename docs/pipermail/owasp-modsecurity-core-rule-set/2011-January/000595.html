@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection Mode not working
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Anomoly%20Scoring%20Detection%0A%20Mode%20not%20working&In-Reply-To=201101061024.42998.dyioulos%40firstbhph.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000594.html">
+   <LINK REL="Next"  HREF="000596.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection Mode not working</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Anomoly%20Scoring%20Detection%0A%20Mode%20not%20working&In-Reply-To=201101061024.42998.dyioulos%40firstbhph.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection Mode not working">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Jan  6 16:15:50 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000594.html">[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection	Mode not working
+</A></li>
+        <LI>Next message: <A HREF="000596.html">[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection	Mode not working
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#595">[ date ]</a>
+              <a href="thread.html#595">[ thread ]</a>
+              <a href="subject.html#595">[ subject ]</a>
+              <a href="author.html#595">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ok, I think I found Dimitri's issue.  I am sending this out the list so
+others are aware.
+
+Dimitri sent me an audit log file and it showed that is using ModSecurity
+v2.5.9.  The macro expansions used in the 49 inbound blocking file use
+features of ModSecurity v2.5.12 and greater.  This is listed in the
+modsecurity_crs_10_config.conf.example file -
+
+
+#
+# -=[ Anomaly Scoring Threshold Levels ]=-
+#
+# These variables are used in macro expansion in the 49 inbound blocking
+and 59
+# outbound blocking files.
+#
+# **MUST HAVE** ModSecurity v2.5.12 or higher to use macro expansion in
+numeric
+# operators.  If you have an earlier version, edit the 49/59 files
+directly to
+# set the appropriate anomaly score levels.
+#
+# You should set the score to the proper threshold you would prefer. If
+set to &quot;5&quot;
+# it will work similarly to previous Mod CRS rules and will create an
+event in the error_log
+# file if there are any rules that match.  If you would like to lessen the
+number of events
+# generated in the error_log file, you should increase the anomaly score
+threshold to
+# something like &quot;20&quot;.  This would only generate an event in the error_log
+file if
+# there are multiple lower severity rule matches or if any 1 higher
+severity item matches.
+#
+SecAction 
+&quot;phase:1,t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5&quot;
+SecAction 
+&quot;phase:1,t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4&quot;
+
+
+
+This means that for Dimitri's install, the following part of the chained
+rule in the modsecurity_crs_49_inbound_blocking.conf file is not doing
+macro expansion to properly evaluate the tx.inbound_anomaly_score_level
+against the @ge operator -
+
+SecRule TX:ANOMALY_SCORE &quot;@ge %{tx.inbound_anomaly_score_level}&quot;
+
+
+So, Dimitri - you have two options:
+
+1) Upgrade ModSecurity to the latest version (recommended), or
+2) As the comments say above, if you can't upgrade, you need to edit the
+49 file and change the rule so that it doesn't use macro expansion -
+
+SecRule TX:ANOMALY_SCORE &quot;@ge 5&quot;
+
+Hope this helps,
+Ryan
+
+
+On 1/6/11 10:24 AM, &quot;Dimitri Yioulos&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dyioulos at firstbhph.com</A>&gt; wrote:
+
+&gt;<i>All,
+</I>&gt;<i>
+</I>&gt;<i>Anything more on this?
+</I>&gt;<i>
+</I>&gt;<i>Thanks.
+</I>&gt;<i>
+</I>&gt;<i>Dimitri
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>On Tuesday 04 January 2011 4:22:20 pm Dimitri
+</I>&gt;<i>Yioulos wrote:
+</I>&gt;&gt;<i> The value in the 10 config file is the default:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecAction
+</I>&gt;&gt;<i> &quot;phase:1,t:none,nolog,pass,setvar:tx.inbound_an
+</I>&gt;&gt;<i>omaly_score_level=5&quot; SecAction
+</I>&gt;&gt;<i> &quot;phase:1,t:none,nolog,pass,setvar:tx.outbound_a
+</I>&gt;&gt;<i>nomaly_score_level=4&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Dimitri
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Tuesday 04 January 2011 4:03:31 pm Ryan
+</I>&gt;&gt;<i> Barnett
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i> &gt; The alerts say that there was a user-agent
+</I>&gt;&gt;<i> &gt; string match (mozilla 4.0( ) with the comment
+</I>&gt;&gt;<i> &gt; spam rules.  This match raised the
+</I>&gt;&gt;<i> &gt; tx.inbound_anomaly_score to 3. What do you
+</I>&gt;&gt;<i> &gt; have this value set to in the 10 config file?
+</I>&gt;&gt;<i> &gt;  By default the blocking level is 5.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; --
+</I>&gt;&gt;<i> &gt; Ryan Barnett
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On Jan 4, 2011, at 3:46 PM, Dimitri Yioulos
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dyioulos at firstbhph.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; &gt; On Tuesday 04 January 2011 3:21:41 pm you
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i> &gt; &gt;&gt; On Tue, Jan 4, 2011 at 10:01 PM, Dimitri
+</I>&gt;&gt;<i> &gt; &gt;&gt; Yioulos
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dyioulos at firstbhph.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; &gt;&gt;&gt; Did I forget something in setting up
+</I>&gt;&gt;<i> &gt; &gt;&gt;&gt; Anomoly Scoring Detection Mode, or
+</I>&gt;&gt;<i> &gt; &gt;&gt;&gt; misconfigure something?
+</I>&gt;&gt;<i> &gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt; &gt;&gt; Hi Dimitri,
+</I>&gt;&gt;<i> &gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt; &gt;&gt; What do the logs say?
+</I>&gt;&gt;<i> &gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt; &gt;&gt; --
+</I>&gt;&gt;<i> &gt; &gt;&gt; - Josh
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Josh,
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; I'm not great at deciphering the log
+</I>&gt;&gt;<i> &gt; &gt; messages that modsec generates.  I think
+</I>&gt;&gt;<i> &gt; &gt; I've captured some relevant data, and put
+</I>&gt;&gt;<i> &gt; &gt; it here:
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="http://pastebin.com/kCQ9i8p4">http://pastebin.com/kCQ9i8p4</A>
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Dimitri
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; --
+</I>&gt;&gt;<i> &gt; &gt; This message has been scanned for viruses
+</I>&gt;&gt;<i> &gt; &gt; and dangerous content by MailScanner, and
+</I>&gt;&gt;<i> &gt; &gt; is believed to be clean.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; ___________________________________________
+</I>&gt;&gt;<i> &gt; &gt;__ __ Owasp-modsecurity-core-rule-set
+</I>&gt;&gt;<i> &gt; &gt; mailing list
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp</A>
+</I>&gt;&gt;<i> &gt; &gt;.o rg
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/ow">https://lists.owasp.org/mailman/listinfo/ow</A>
+</I>&gt;&gt;<i> &gt; &gt;as p-modsecurity-core-rule-set
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>-- 
+</I>&gt;<i>This message has been scanned for viruses and
+</I>&gt;<i>dangerous content by MailScanner, and is
+</I>&gt;<i>believed to be clean.
+</I>&gt;<i>
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000594.html">[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection	Mode not working
+</A></li>
+	<LI>Next message: <A HREF="000596.html">[Owasp-modsecurity-core-rule-set] Anomoly Scoring Detection	Mode not working
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#595">[ date ]</a>
+              <a href="thread.html#595">[ thread ]</a>
+              <a href="subject.html#595">[ subject ]</a>
+              <a href="author.html#595">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

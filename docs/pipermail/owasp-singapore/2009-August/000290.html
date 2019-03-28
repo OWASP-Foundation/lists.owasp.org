@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-singapore] Follow-up from yesterday's meetup
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-singapore%40lists.owasp.org?Subject=%5BOwasp-singapore%5D%20Follow-up%20from%20yesterday%27s%20meetup&In-Reply-To=4A85420E.9090404%40usa.net">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000287.html">
+   <LINK REL="Next"  HREF="000291.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-singapore] Follow-up from yesterday's meetup</H1>
+    <B>Winston.Leong at sg.ey.com</B> 
+    <A HREF="mailto:owasp-singapore%40lists.owasp.org?Subject=%5BOwasp-singapore%5D%20Follow-up%20from%20yesterday%27s%20meetup&In-Reply-To=4A85420E.9090404%40usa.net"
+       TITLE="[Owasp-singapore] Follow-up from yesterday's meetup">Winston.Leong at sg.ey.com
+       </A><BR>
+    <I>Sun Aug 16 22:18:57 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000287.html">[Owasp-singapore] Follow-up from yesterday's meetup
+</A></li>
+        <LI>Next message: <A HREF="000291.html">[Owasp-singapore] Follow-up from yesterday's meetup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#290">[ date ]</a>
+              <a href="thread.html#290">[ thread ]</a>
+              <a href="subject.html#290">[ subject ]</a>
+              <a href="author.html#290">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+It appears that this is a load balancer (a outdated one anyway). I believe
+these are the default and more often than not, appliance company like to
+show off their appliances by using these banners and headers.
+
+These can be disabled with the following instructions (via
+<A HREF="http://kb.juniper.net/index?page=content&amp;id=KB12832&amp;cat=DX_SERIES&amp;actp=LIST">http://kb.juniper.net/index?page=content&amp;id=KB12832&amp;cat=DX_SERIES&amp;actp=LIST</A>) :
+
+You can disable the DX setting the Via and/or&#160;Warning&#160; HTTP headers
+respectively with:?
+
+
+  set server factory h v disabled
+
+
+&#160; set server factory h w disabled
+
+
+these are global settings, you can adjust these per cluster too with:
+
+
+&#160; set cluster &lt;cluster name&gt; factory h v disabled
+
+
+&#160; set cluster &lt;cluster name&gt; factory h&#160;w disabled
+
+
+The DX adds these as it is acting as a&#160;reverse proxy; these headers&#160;notify
+clients&#160; they don't talk directly to&#160;the server but through a proxy as per
+the HTTP&#160;RFC.
+
+
+After disabling these you can use apprules to insert your own Via and/or
+warning header as required e.g.
+
+
+PTH: url starts_with &quot;/&quot; then insert_reply_header &quot;Via&quot; &quot;The long way&quot;
+
+
+You can use apprules to modify headers set by the target server, from your
+output it looks like you are using nitro.apprule or a modified version of
+it.&#160;&#160; You can view this default file with 'show file nitro.apprule', within
+are statements that hide the Server header e.g.
+
+
+#PTH20
+PTH: reply_header &quot;Content-Type&quot; contains &quot;plain&quot;
+&#160;&#160;&#160; and reply_header &quot;Cache-Control&quot; not_contains &quot;no&quot;
+&#160;&#160;&#160; and reply_header &quot;Cache-Control&quot; not_contains &quot;private&quot;
+&#160;&#160;&#160; and reply_header &quot;Cache-Control&quot; not_contains &quot;max-age&quot;
+&#160;&#160;&#160; and reply_header &quot;Pragma&quot; not_contains &quot;no-cache&quot;
+&#160;&#160;&#160; and reply_header &quot;Expires&quot; not_exists
+&#160;&#160;&#160; and http_reply_code equals &quot;200&quot;
+&#160;&#160;&#160; and query_string not_exists
+&#160;&#160;&#160; then insert_reply_header &quot;Cache-Control&quot; &quot;max-age=600&quot;
+&#160;&#160;&#160; and update_reply_header &quot;Server&quot; &quot;Concealed by Juniper Networks DX&quot;
+&#160;&#160;&#160; and cache &quot;600&quot;
+
+
+You can either modify your applied apprule to&#160;set the Server header as you
+wish (or preserve it by deleting the relevant line).
+
+Regards, Winston Leong
+                                                                                                      
+ (Embedded image moved   Winston Leong | Technology and Security Risk Services                        
+ to file: pic00527.gif)                                                                               
+                                                                                                      
+                         Ernst &amp; Young Risk Advisory Services Pte. Ltd                                
+                                                                                                      
+                         One Raffles Quay, North Tower, Level 18, Singapore 048583                    
+                                                                                                      
+                         Office: +65 6309 6766 | Fax: +65 6532 7662                                   
+                                                                                                      
+                         Mobile: +65 9028 3600                                                        
+                                                                                                      
+                         Website: www.ey.com                                                          
+                                                                                                      
+                         Thank you for considering the environmental impact of printing emails.       
+                                                                                                      
+
+
+
+
+The information contained in this communication is intended solely for the
+use of the individual or entity to whom it is addressed and others
+authorized to receive it. It may contain confidential or legally privileged
+information. If you are not the intended recipient you are hereby notified
+that any disclosure, copying, distribution or taking any action in reliance
+on the contents of this information is strictly prohibited and may be
+unlawful. If you have received this communication in error, please notify
+us immediately by responding to this email and then delete it from your
+system. We are neither liable for the proper and complete transmission of
+the information contained in this communication nor for any delay in its
+receipt.
+
+Ernst &amp; Young LLP (UEN T08LL0859H) is an accounting limited
+liability partnership registered in Singapore under the Limited Liability
+Partnerships Act (Chapter 163A).
+
+Ernst &amp; Young Solutions LLP (UEN T08LL0784H) is a limited
+liability partnership registered in Singapore under the Limited Liability
+Partnerships Act (Chapter 163A).
+
+Ernst &amp; Young Advisory Pte. Ltd. is a company incorporated in Singapore
+with UEN 198905395E.
+
+Ernst &amp; Young Corporate Finance Pte Ltd is a company incorporated in
+Singapore with UEN 199702967E.
+
+Ernst &amp; Young Customs &amp; International Trade Services Private Limited is a
+company incorporated in Singapore with UEN 200206660G.
+
+                                                                           
+             Wong Onn Chee                                                 
+             &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">ocwong at usa.net</A>&gt;                                              
+             Sent by:                                                   To 
+             owasp-singapore-b         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">security-77 at meetup.com</A>,             
+             <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">ounces at lists.owas</A>         <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">owasp-singapore at lists.owasp.org</A>     
+             p.org                                                      cc 
+                                                                           
+                                                                   Subject 
+             14/08/2009 06:53          [Owasp-singapore] Follow-up from    
+             PM                        yesterday's meetup                  
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+
+
+
+
+For those of you who were there in yesterday's meetup,
+
+Besides the SG govt leak, I also shared how I spotted one of our local
+transport companies did not do a clean job in securing their web site
+information becos they expose the WAF/Firewall that they are using.
+
+Here is the HTTP response for your reference:
+
+HTTP/1.x 200 OK
+Date: Fri, 14 Aug 2009 10:38:03 GMT
+X-Powered-By: ASP.NET
+X-AspNet-Version: 1.1.4322
+Cache-Control: private
+Content-Type: text/html; charset=utf-8
+Server: Concealed by Juniper Networks DX
+Content-Encoding: deflate
+Warning: 214  &quot;Juniper Networks DX Active&quot;
+Vary: Accept-Encoding, User-Agent
+Transfer-Encoding: chunked
+Via: 1.1 dx2 (Juniper Networks Application Acceleration Platform - DX 5.2.6
+0)
+Set-Cookie: rl-sticky-key=c0a8089b; path=/;
+
+Yes, they have done something good by adding a Juniper WAF in front of
+their web server, but is there really a need to tell the entire world you
+are using Juniper Networks Application Acceleration Platform - DX 5.2.6 0?
+And that you are running ASP.Net version 1.1.4322 too?
+Why changed the Server to &quot;Concealed&quot; at all when everything else is
+leaked?
+
+Lesson: If you want to conceal, please conceal fully. Don't conceal one
+thing and reveal another thing. IS pros should not be playing peekaboo
+games....we don't work in Geylang.
+
+Again, ostrich symptom in play here - thinking that there is nothing more
+to be done after slapping a Juniper in front of your web server.
+
+Maybe we can run the first SG OWASP conference and call it &quot;Ostrich
+Conference&quot;?
+Any seconders? ;-)
+
+
+Regards
+Onn Chee_______________________________________________
+Owasp-singapore mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">Owasp-singapore at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-singapore">https://lists.owasp.org/mailman/listinfo/owasp-singapore</A>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: pic00527.gif
+Type: image/gif
+Size: 2521 bytes
+Desc: not available
+Url : <A HREF="https://lists.owasp.org/mailman/private/owasp-singapore/attachments/20090817/8ce89fc6/attachment.gif">https://lists.owasp.org/mailman/private/owasp-singapore/attachments/20090817/8ce89fc6/attachment.gif</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000287.html">[Owasp-singapore] Follow-up from yesterday's meetup
+</A></li>
+	<LI>Next message: <A HREF="000291.html">[Owasp-singapore] Follow-up from yesterday's meetup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#290">[ date ]</a>
+              <a href="thread.html#290">[ thread ]</a>
+              <a href="subject.html#290">[ subject ]</a>
+              <a href="author.html#290">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-singapore">More information about the Owasp-singapore
+mailing list</a><br>
+</body></html>

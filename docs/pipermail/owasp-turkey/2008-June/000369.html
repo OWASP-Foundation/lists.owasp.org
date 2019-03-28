@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-turkey] En fazla 128 byte olabilecek veriden 4 byte sonu&#231; &#252;reten hash fonksiyonlar?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%0A%09%3D%3Futf-8%3Fq%3FEn_fazla_128_byte_olabilecek_veriden_4_b%3F%3D%0A%09%3D%3Futf-8%3Fq%3Fyte_sonu%3DC3%3DA7_%3DC3%3DBCreten_hash_fonksiyonlar%3D3F%3F%3D&In-Reply-To=BAY104-W53721E69358ECBD4150DE0D6AF0%40phx.gbl">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000368.html">
+   <LINK REL="Next"  HREF="000370.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-turkey] En fazla 128 byte olabilecek veriden 4 byte sonu&#231; &#252;reten hash fonksiyonlar?</H1>
+    <B>mert ozarar</B> 
+    <A HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%0A%09%3D%3Futf-8%3Fq%3FEn_fazla_128_byte_olabilecek_veriden_4_b%3F%3D%0A%09%3D%3Futf-8%3Fq%3Fyte_sonu%3DC3%3DA7_%3DC3%3DBCreten_hash_fonksiyonlar%3D3F%3F%3D&In-Reply-To=BAY104-W53721E69358ECBD4150DE0D6AF0%40phx.gbl"
+       TITLE="[Owasp-turkey] En fazla 128 byte olabilecek veriden 4 byte sonu&#231; &#252;reten hash fonksiyonlar?">mert.ozarar at gmail.com
+       </A><BR>
+    <I>Sun Jun 15 06:48:26 EDT 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000368.html">[Owasp-turkey]  RE:  En fazla 128 byte olabilecek veriden 4 byte sonu&#231; &#252;reten hash fonksiyonlar?
+</A></li>
+        <LI>Next message: <A HREF="000370.html">[Owasp-turkey] OWASP-TR &#214;zg&#252;r Yaz&#305;l&#305;m Konferans&#305;'nda!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#369">[ date ]</a>
+              <a href="thread.html#369">[ thread ]</a>
+              <a href="subject.html#369">[ subject ]</a>
+              <a href="author.html#369">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Herkese selam,
+
+Hash(&#246;zet) fonksiyonlar&#305;n&#305;n 3 temel &#246;zellikleri vardir:
+1. De&#287;i&#351;ken veri boyutunu her zaman sabit bir boya yollarlar.
+2. Tek y&#246;nl&#252; fonksiyonlard&#305;r yani range k&#252;mesinden yola &#231;&#305;karak
+domain'in hangi eleman&#305;n inverse map'i oldugu bilinmemelidir.
+3. Collision-free olmal&#305;lard&#305;r, yani 1-1 olmaya ne kadar yak&#305;n
+olurlarsa o kadar iyidir. Range k&#252;mesine iyi fiffuse etmelidir.
+
+Sizin istediginiz i&#351;lev i&#231;in 2 ve 3 nolu maddelerin fail etme
+olasiligi hayli fazla zira 1024 bit -&gt; 32 bit map'de &#231;ok iyi bir
+diffusion olacagini zannetmiyorum. Zaten 2^32+1 tane inoput sonra ki
+bu 4.3 milyar civar&#305;nda mutlaka &#231;ak&#305;&#351;ma olacakt&#305;r.
+
+B&#252;t&#252;n bunlar&#305;n yan&#305;nda &#231;&#246;z&#252;m&#252;n bir par&#231;as&#305; olmak i&#231;in &quot;sihirli
+sabitler&quot; i i&#231;eren Robert Jenkins'in 32 bit hashini tavsiye
+edebilirim.
+
+uint32_t hash( uint32_t a)
+{
+   a = (a+0x7ed55d16) + (a&lt;&lt;12);
+   a = (a^0xc761c23c) ^ (a&gt;&gt;19);
+   a = (a+0x165667b1) + (a&lt;&lt;5);
+   a = (a+0xd3a2646c) ^ (a&lt;&lt;9);
+   a = (a+0xfd7046c5) + (a&lt;&lt;3);
+   a = (a^0xb55a4f09) ^ (a&gt;&gt;16);
+   return a;
+}
+
+Input'u modifiye ederek 32 bit &#231;&#305;kt&#305; alabilirsiniz. Umar&#305;m yard&#305;mc&#305;
+olmu&#351;umdur ..
+
+2008/6/14 Bedirhan Urgun &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">urgunb at hotmail.com</A>&gt;:
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Merhaba,
+</I>&gt;<i>
+</I>&gt;<i> 128 bit MD5 hash fonksiyonu guvensiz bir kriptografik fonksiyon kabul
+</I>&gt;<i> ediliyor. Boyle bi teknik varsa (4 byte ozet ureten) bile sanirim sadece
+</I>&gt;<i> HashMap gibi cakisma problemleri minimum risk tasiyan islemler/yapilar icin
+</I>&gt;<i> kullanilabilir.
+</I>&gt;<i>
+</I>&gt;<i> Guvenilir bir fonksiyon istediginiz icin &quot;girdinizin SHA kriptografik
+</I>&gt;<i> ozetini bulup, belirleyeceginiz indexlerdeki 4 karakteri alin diyecektim&quot;
+</I>&gt;<i> ama demiyorum :) Diger islemler bi yana, bu tip cozumler lisans (key) uretme
+</I>&gt;<i> islemlerinde kullaniliyor ama guvensiz.
+</I>&gt;<i>
+</I>&gt;<i> Bir yer s&#305;k&#305;nt&#305;s&#305; var herhalde, o nedenle 4 byte istiyorsunuz?
+</I>&gt;<i>
+</I>&gt;<i> bedirhan
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> Date: Fri, 13 Jun 2008 19:34:37 +0300
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">murattpc at gmail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">Owasp-turkey at lists.owasp.org</A>
+</I>&gt;<i> Subject: [Owasp-turkey] En fazla 128 byte olabilecek veriden 4 byte sonu&#231;
+</I>&gt;<i> &#252;reten hash fonksiyonlar?
+</I>&gt;<i>
+</I>&gt;<i> Ba&#351;l&#305;kta belirtti&#287;im ihtiya&#231;lar&#305;m&#305; kar&#351;&#305;layabilecek bildi&#287;iniz g&#252;venilir
+</I>&gt;<i> hash fonksiyon varm&#305;? 128 byte in i&#231;erisinde sadece k&#252;&#231;&#252;k harfler, tire(-)
+</I>&gt;<i> ve nokta(.) i&#351;areti olacak.  Di&#287;er  olas&#305;l&#305;klar&#305; kapsamasada olur. Hatta en
+</I>&gt;<i> fazla 64 byte olabilecek veriyi bile hashlese olur.
+</I>&gt;<i>
+</I>&gt;<i> Yard&#305;mlar&#305;n&#305;z i&#231;in &#351;imdiden te&#351;ekk&#252;rler.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> www.ajanstasarim.com
+</I>&gt;<i>
+</I>&gt;<i> www.formulsoft.com
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> Now you can invite friends from Facebook and other groups to join you on
+</I>&gt;<i> Windows Live&#8482; Messenger. Add them now!
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-turkey mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">Owasp-turkey at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">https://lists.owasp.org/mailman/listinfo/owasp-turkey</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Mert &#214;zarar
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">mert.ozarar at gmail.com</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000368.html">[Owasp-turkey]  RE:  En fazla 128 byte olabilecek veriden 4 byte sonu&#231; &#252;reten hash fonksiyonlar?
+</A></li>
+	<LI>Next message: <A HREF="000370.html">[Owasp-turkey] OWASP-TR &#214;zg&#252;r Yaz&#305;l&#305;m Konferans&#305;'nda!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#369">[ date ]</a>
+              <a href="thread.html#369">[ thread ]</a>
+              <a href="subject.html#369">[ subject ]</a>
+              <a href="author.html#369">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-turkey">More information about the Owasp-turkey
+mailing list</a><br>
+</body></html>

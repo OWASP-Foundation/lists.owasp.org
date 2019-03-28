@@ -1,0 +1,526 @@
+From anil.teegala86 at gmail.com  Tue Aug  1 03:20:12 2017
+From: anil.teegala86 at gmail.com (Anil Teegala)
+Date: Mon, 31 Jul 2017 22:20:12 -0500
+Subject: [Owasp-java-encoder-project] Regarding alternative methods of ESAPI
+	in owasp java encoder
+Message-ID: <CAK_j5hmg4bHXd0mCpd5OLV90CThdQR_28pnk-sz=sBJWoY=9Bw@mail.gmail.com>
+
+Hi,
+
+I am migrating my application logging from log4j to log4j2. we are using
+ESAPI in our application for encoding and decoding and some for other
+stuff. I removed ESAPI jar in our application classpath (Since esapi
+doesn't support log4j2).  In place of ESAPI I am using owasp java encoder,
+in which I found some encoder method ( like forHtml,forCssUrl,forXml
+methods etc). But in our application we are using esapi decoder methods
+also like (ESAPI.encoder().decodeURL(String)) but i dont see any methods
+related to decoder.
+
+And also we are using ESAPI HttpUtilities methods but I did not see any
+alternative methods in java encoder project.
+
+Could you please suggest me how to go further.
+
+Thanks,
+Anil
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170731/dc5b96eb/attachment.html>
+
+From mseil at acm.org  Tue Aug  1 03:29:01 2017
+From: mseil at acm.org (Matt Seil)
+Date: Tue, 01 Aug 2017 03:29:01 +0000
+Subject: [Owasp-java-encoder-project] Regarding alternative methods of
+ ESAPI in owasp java encoder
+In-Reply-To: <CAK_j5hmg4bHXd0mCpd5OLV90CThdQR_28pnk-sz=sBJWoY=9Bw@mail.gmail.com>
+References: <CAK_j5hmg4bHXd0mCpd5OLV90CThdQR_28pnk-sz=sBJWoY=9Bw@mail.gmail.com>
+Message-ID: <CADYkqj6epfdFjBQW-vvzh2uZonUhMnfxJd8rQd7uTXUsCWcoiA@mail.gmail.com>
+
+Yup.
+
+Encoder is JUST output encoding.  No decoding.
+
+That other stuff is unique to ESAPI.  You won't find that elsewhere.
+
+I think you can just replace all your logging calls using ESAPI.logger()
+with log4j2.  I know that the logger already escapes newlines.  If you need
+HTML entity encoding in your logs, you can use an. HTML layout.
+
+The only thing I don't think you get from log4j2 is Intrusion Detection
+from potentially malicious input.
+
+
+
+On Mon, Jul 31, 2017, 20:20 Anil Teegala <anil.teegala86 at gmail.com> wrote:
+
+> Hi,
+>
+> I am migrating my application logging from log4j to log4j2. we are using
+> ESAPI in our application for encoding and decoding and some for other
+> stuff. I removed ESAPI jar in our application classpath (Since esapi
+> doesn't support log4j2).  In place of ESAPI I am using owasp java encoder,
+> in which I found some encoder method ( like forHtml,forCssUrl,forXml
+> methods etc). But in our application we are using esapi decoder methods
+> also like (ESAPI.encoder().decodeURL(String)) but i dont see any methods
+> related to decoder.
+>
+> And also we are using ESAPI HttpUtilities methods but I did not see any
+> alternative methods in java encoder project.
+>
+> Could you please suggest me how to go further.
+>
+> Thanks,
+> Anil
+> _______________________________________________
+> Owasp-java-encoder-project mailing list
+> Owasp-java-encoder-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170801/051dc7c8/attachment.html>
+
+From anil.teegala86 at gmail.com  Tue Aug  1 12:26:19 2017
+From: anil.teegala86 at gmail.com (Anil Teegala)
+Date: Tue, 01 Aug 2017 12:26:19 +0000
+Subject: [Owasp-java-encoder-project] Regarding alternative methods of
+ ESAPI in owasp java encoder
+In-Reply-To: <CADYkqj6epfdFjBQW-vvzh2uZonUhMnfxJd8rQd7uTXUsCWcoiA@mail.gmail.com>
+References: <CAK_j5hmg4bHXd0mCpd5OLV90CThdQR_28pnk-sz=sBJWoY=9Bw@mail.gmail.com>
+	<CADYkqj6epfdFjBQW-vvzh2uZonUhMnfxJd8rQd7uTXUsCWcoiA@mail.gmail.com>
+Message-ID: <CAK_j5hmsN7Ay8p7u_=H46J8RuuqZUzzDYOavUQKFnns2fvKuvg@mail.gmail.com>
+
+Thanks Matt for your reply.
+
+The problem is in out application we are not just esapi loggers and also
+using Esapi.validator.getValidatorInput() method which finally referencing
+log4j1.x and hence i am getting class cast exception.
+
+Thanks,
+Anil
+
+On Mon, Jul 31, 2017 at 10:29 PM Matt Seil <mseil at acm.org> wrote:
+
+> Yup.
+>
+> Encoder is JUST output encoding.  No decoding.
+>
+> That other stuff is unique to ESAPI.  You won't find that elsewhere.
+>
+> I think you can just replace all your logging calls using ESAPI.logger()
+> with log4j2.  I know that the logger already escapes newlines.  If you need
+> HTML entity encoding in your logs, you can use an. HTML layout.
+>
+> The only thing I don't think you get from log4j2 is Intrusion Detection
+> from potentially malicious input.
+>
+>
+>
+> On Mon, Jul 31, 2017, 20:20 Anil Teegala <anil.teegala86 at gmail.com> wrote:
+>
+>> Hi,
+>>
+>> I am migrating my application logging from log4j to log4j2. we are using
+>> ESAPI in our application for encoding and decoding and some for other
+>> stuff. I removed ESAPI jar in our application classpath (Since esapi
+>> doesn't support log4j2).  In place of ESAPI I am using owasp java encoder,
+>> in which I found some encoder method ( like forHtml,forCssUrl,forXml
+>> methods etc). But in our application we are using esapi decoder methods
+>> also like (ESAPI.encoder().decodeURL(String)) but i dont see any methods
+>> related to decoder.
+>>
+>> And also we are using ESAPI HttpUtilities methods but I did not see any
+>> alternative methods in java encoder project.
+>>
+>> Could you please suggest me how to go further.
+>>
+>> Thanks,
+>> Anil
+>>
+> _______________________________________________
+>> Owasp-java-encoder-project mailing list
+>> Owasp-java-encoder-project at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170801/f19deecd/attachment.html>
+
+From b.plessis at doyousoft.com  Thu Aug 24 09:47:55 2017
+From: b.plessis at doyousoft.com (Benoit Plessis)
+Date: Thu, 24 Aug 2017 11:47:55 +0200
+Subject: [Owasp-java-encoder-project] Weak "javascript" encoding ?
+Message-ID: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+
+Hi,
+
+I'm a bit confused by the encoding provided with the java encoder
+project, mostly in comparaison with the ESAPI lib and the XSS prevention
+cheatsheat.
+
+I need to use advanced encoding function on an old Coldfusion engine
+which doesn't provide them, and the ESAPI Encoder seem is a bit complex
+to instantiate in our context as a "simple"
+
+? ESAPIEncoder = createObject("java", "org.owasp.esapi.ESAPI").encoder();
+
+Trigger an error "java.lang.reflect.InvocationTargetException
+SecurityConfiguration class
+(org.owasp.esapi.reference.DefaultSecurityConfiguration) CTOR threw
+exception"
+
+So i'm focusing on the simpler OWASP Java Encoder which give me thoses
+modified string:
+
+EncodeForHTML: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;&#39;/&#34;!$
+EncodeForHTMLContent: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;'/"!$
+EncodeForHTMLAttribute: &lt;script>&lt;/script> | &amp;&lt;>&#39;/&#34;!$
+EncodeForJavascript: <script><\/script> | \x26<>\x27\/\x22!$
+EncodeForJavascriptBlock: <script><\/script> | \x26<>\'\/\"!$
+EncodeForJavascriptAttribute: <script></script> | \x26<>\x27/\x22!$
+EncodeForUri: %3Cscript%3E%3C/script%3E | &%3C%3E'/%22!$
+EncodeForCSSString: \3cscript\3e\3c\2fscript\3e | \26\3c\3e\27\2f\22!$
+
+I'm a bit puzzled as to why the "<script></script>" isn't replaced with the recommended hex-syntax when using the java encoded ?
+
+When compared to Coldfusion 11 "Native" advanced function (using ESAPI 2.0.1 in the background) :
+
+Source: <script></script> | &<>'/"!$
+EncodeForHTML: &lt;script&gt;&lt;&#x2f;script&gt; |
+&amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+EncodeForHTMLAttribute: &lt;script&gt;&lt;&#x2f;script&gt; |
+&amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+EncodeForJavascript: \x3Cscript\x3E\x3C\x2Fscript\x3E |
+\x26\x3C\x3E\x27\x2F\x22\x21\x24
+EncodeForURL: %3Cscript%3E%3C%2Fscript%3E | %26%3C%3E%27%2F%22%21%24
+EncodeForCSS: \3c script\3e \3c \2f script\3e | \26 \3c \3e \27 \2f \22
+\21 \24
+
+That seem a bit better..
+
+-- 
+Benoit Plessis
+
+
+From jim.manico at owasp.org  Thu Aug 24 10:02:08 2017
+From: jim.manico at owasp.org (Jim Manico)
+Date: Thu, 24 Aug 2017 05:02:08 -0500
+Subject: [Owasp-java-encoder-project] Weak "javascript" encoding ?
+In-Reply-To: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+References: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+Message-ID: <c669f8fd-839c-f191-7418-32adc85b7964@owasp.org>
+
+What security benefit do you get when encoding tags when you're already
+in a JavaScript content? Out conjecture: none. This is a performance
+enhancement over other libraries like ESAPI. These functions are for
+contexts like:
+
+ <script type="text/javascript">
+ var msg = "<%= *Encode.forJavaScriptBlock(UNTRUSTED)*?%>";
+ alert(msg);
+ </script>
+
+.. and ...
+
+ <button 
+ onclick="alert('<%= *Encode.forJavaScriptAttribute(UNTRUSTED)*?%>');">
+ click me</button>
+
+
+You're already in a script context with these functions. How does
+injecting a script tag - or any other tag - cause harm?
+
+Aloha,
+Jim
+
+
+
+On 8/24/17 4:47 AM, Benoit Plessis wrote:
+> Hi,
+>
+> I'm a bit confused by the encoding provided with the java encoder
+> project, mostly in comparaison with the ESAPI lib and the XSS prevention
+> cheatsheat.
+>
+> I need to use advanced encoding function on an old Coldfusion engine
+> which doesn't provide them, and the ESAPI Encoder seem is a bit complex
+> to instantiate in our context as a "simple"
+>
+> ? ESAPIEncoder = createObject("java", "org.owasp.esapi.ESAPI").encoder();
+>
+> Trigger an error "java.lang.reflect.InvocationTargetException
+> SecurityConfiguration class
+> (org.owasp.esapi.reference.DefaultSecurityConfiguration) CTOR threw
+> exception"
+>
+> So i'm focusing on the simpler OWASP Java Encoder which give me thoses
+> modified string:
+>
+> EncodeForHTML: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;&#39;/&#34;!$
+> EncodeForHTMLContent: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;'/"!$
+> EncodeForHTMLAttribute: &lt;script>&lt;/script> | &amp;&lt;>&#39;/&#34;!$
+> EncodeForJavascript: <script><\/script> | \x26<>\x27\/\x22!$
+> EncodeForJavascriptBlock: <script><\/script> | \x26<>\'\/\"!$
+> EncodeForJavascriptAttribute: <script></script> | \x26<>\x27/\x22!$
+> EncodeForUri: %3Cscript%3E%3C/script%3E | &%3C%3E'/%22!$
+> EncodeForCSSString: \3cscript\3e\3c\2fscript\3e | \26\3c\3e\27\2f\22!$
+>
+> I'm a bit puzzled as to why the "<script></script>" isn't replaced with the recommended hex-syntax when using the java encoded ?
+>
+> When compared to Coldfusion 11 "Native" advanced function (using ESAPI 2.0.1 in the background) :
+>
+> Source: <script></script> | &<>'/"!$
+> EncodeForHTML: &lt;script&gt;&lt;&#x2f;script&gt; |
+> &amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+> EncodeForHTMLAttribute: &lt;script&gt;&lt;&#x2f;script&gt; |
+> &amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+> EncodeForJavascript: \x3Cscript\x3E\x3C\x2Fscript\x3E |
+> \x26\x3C\x3E\x27\x2F\x22\x21\x24
+> EncodeForURL: %3Cscript%3E%3C%2Fscript%3E | %26%3C%3E%27%2F%22%21%24
+> EncodeForCSS: \3c script\3e \3c \2f script\3e | \26 \3c \3e \27 \2f \22
+> \21 \24
+>
+> That seem a bit better..
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/a158d116/attachment.html>
+
+From mseil at acm.org  Thu Aug 24 13:53:19 2017
+From: mseil at acm.org (Matt Seil)
+Date: Thu, 24 Aug 2017 13:53:19 +0000
+Subject: [Owasp-java-encoder-project] Weak "javascript" encoding ?
+In-Reply-To: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+References: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+Message-ID: <CADYkqj5jCqTvM7=4JCWsia7CTOc=emiNQ99Xr-KFDjXbi9BiUQ@mail.gmail.com>
+
+Hi,
+
+I do work on ESAPI's encoder and decoder.
+
+I can tell you this for sure, 2.0.1 is extremely outdated.
+
+And after having worked on ESAPI's encoder, I know for that when dealing
+with HTML entities, we typically encode human-readable escapes when
+available, and use hex for everything else.  I say typically because this
+is what the current encoder produces for your script tag input:
+
+<script></script> | &<>'/"!$
+
+&lt;script&gt;&lt;&#x2f;script&gt;&#x20;&#x7c;&#x20;&amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+
+Hex only has an advantage when dealing with non-BMP code points as well as
+any character set larger than Latin 1. Browsers render either human
+readable and hex escapes equally well.
+
+What makes you think that &lt; is weaker than &#60; ?
+
+Either one will trigger all current browsers to render '<'
+
+On Thu, Aug 24, 2017 at 2:48 AM Benoit Plessis <b.plessis at doyousoft.com>
+wrote:
+
+> Hi,
+>
+> I'm a bit confused by the encoding provided with the java encoder
+> project, mostly in comparaison with the ESAPI lib and the XSS prevention
+> cheatsheat.
+>
+> I need to use advanced encoding function on an old Coldfusion engine
+> which doesn't provide them, and the ESAPI Encoder seem is a bit complex
+> to instantiate in our context as a "simple"
+>
+>   ESAPIEncoder = createObject("java", "org.owasp.esapi.ESAPI").encoder();
+>
+> Trigger an error "java.lang.reflect.InvocationTargetException
+> SecurityConfiguration class
+> (org.owasp.esapi.reference.DefaultSecurityConfiguration) CTOR threw
+> exception"
+>
+> So i'm focusing on the simpler OWASP Java Encoder which give me thoses
+> modified string:
+>
+> EncodeForHTML: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;&#39;/&#34;!$
+> EncodeForHTMLContent: &lt;script&gt;&lt;/script&gt; | &amp;&lt;&gt;'/"!$
+> EncodeForHTMLAttribute: &lt;script>&lt;/script> | &amp;&lt;>&#39;/&#34;!$
+> EncodeForJavascript: <script><\/script> | \x26<>\x27\/\x22!$
+> EncodeForJavascriptBlock: <script><\/script> | \x26<>\'\/\"!$
+> EncodeForJavascriptAttribute: <script></script> | \x26<>\x27/\x22!$
+> EncodeForUri: %3Cscript%3E%3C/script%3E | &%3C%3E'/%22!$
+> EncodeForCSSString: \3cscript\3e\3c\2fscript\3e | \26\3c\3e\27\2f\22!$
+>
+> I'm a bit puzzled as to why the "<script></script>" isn't replaced with
+> the recommended hex-syntax when using the java encoded ?
+>
+> When compared to Coldfusion 11 "Native" advanced function (using ESAPI
+> 2.0.1 in the background) :
+>
+> Source: <script></script> | &<>'/"!$
+> EncodeForHTML: &lt;script&gt;&lt;&#x2f;script&gt; |
+> &amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+> EncodeForHTMLAttribute: &lt;script&gt;&lt;&#x2f;script&gt; |
+> &amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+> EncodeForJavascript: \x3Cscript\x3E\x3C\x2Fscript\x3E |
+> \x26\x3C\x3E\x27\x2F\x22\x21\x24
+> EncodeForURL: %3Cscript%3E%3C%2Fscript%3E | %26%3C%3E%27%2F%22%21%24
+> EncodeForCSS: \3c script\3e \3c \2f script\3e | \26 \3c \3e \27 \2f \22
+> \21 \24
+>
+> That seem a bit better..
+>
+> --
+> Benoit Plessis
+>
+> _______________________________________________
+> Owasp-java-encoder-project mailing list
+> Owasp-java-encoder-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-java-encoder-project
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/6a8ce879/attachment.html>
+
+From b.plessis at doyousoft.com  Thu Aug 24 14:15:01 2017
+From: b.plessis at doyousoft.com (Benoit Plessis)
+Date: Thu, 24 Aug 2017 16:15:01 +0200
+Subject: [Owasp-java-encoder-project] Weak "javascript" encoding ?
+In-Reply-To: <CADYkqj5jCqTvM7=4JCWsia7CTOc=emiNQ99Xr-KFDjXbi9BiUQ@mail.gmail.com>
+References: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+	<CADYkqj5jCqTvM7=4JCWsia7CTOc=emiNQ99Xr-KFDjXbi9BiUQ@mail.gmail.com>
+Message-ID: <ac998d79-bdee-8f48-41f3-dec2a2c751c0@doyousoft.com>
+
+Le 24/08/2017 ? 15:53, Matt Seil a ?crit?:
+> Hi,
+>
+> I do work on ESAPI's encoder and decoder.??
+>
+> I can tell you this for sure, 2.0.1 is extremely outdated.??
+>
+> And after having worked on ESAPI's encoder, I know for that when
+> dealing with HTML entities, we typically encode human-readable escapes
+> when available, and use hex for everything else.? I say typically
+> because this is what the current encoder produces for your script tag
+> input:
+>
+> <script></script> | &<>'/"!$?
+> ?
+> &lt;script&gt;&lt;&#x2f;script&gt;&#x20;&#x7c;&#x20;&amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+>
+> Hex only has an advantage when dealing with non-BMP code points as
+> well as any character set larger than Latin 1. Browsers render either
+> human readable and hex escapes equally well.? ?
+>
+> What makes you think that &lt; is weaker than?&#60;??
+
+I do not think that, i was puzzled by the fact that the XSS Cheat sheet
+strongly recommended a full escaping of all non-alphanum chars but that
+the java encoder lib wasn't doing that.
+
+> Except for alphanumeric characters, escape all characters less than
+> 256 with the \xHH format to prevent switching out of the data value
+> into the script context or into another attribute. DO NOT use any
+> escaping shortcuts like \" because the quote character may be matched
+> by the HTML attribute parser which runs first. These escaping
+> shortcuts are also susceptible to "escape-the-escape" attacks where
+> the attacker sends \" and the vulnerable code turns that into \\"
+> which enables the quote.
+
+EncodeForJavascript: <script><\/script> | \x26<>\x27\/\x22!$
+EncodeForJavascriptBlock: <script><\/script> | \x26<>\'\/\"!$
+EncodeForJavascriptAttribute: <script></script> | \x26<>\x27/\x22!$
+
+
+Also i did miss the fact that the encoder did at least escape the "/"
+from the closing tag (not my brightest day), it's not as bad as i
+initialy saw it.
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/2c1fd1d4/attachment.html>
+
+From mseil at acm.org  Thu Aug 24 14:45:16 2017
+From: mseil at acm.org (Matt Seil)
+Date: Thu, 24 Aug 2017 14:45:16 +0000
+Subject: [Owasp-java-encoder-project] Weak "javascript" encoding ?
+In-Reply-To: <ac998d79-bdee-8f48-41f3-dec2a2c751c0@doyousoft.com>
+References: <ac372d80-181e-52be-adeb-0ef27ebe65c5@doyousoft.com>
+	<CADYkqj5jCqTvM7=4JCWsia7CTOc=emiNQ99Xr-KFDjXbi9BiUQ@mail.gmail.com>
+	<ac998d79-bdee-8f48-41f3-dec2a2c751c0@doyousoft.com>
+Message-ID: <CADYkqj5EJCVqdc29hpcLf7PEh5EMVn4eRLkcQ3ZmQ5aJ19YnKA@mail.gmail.com>
+
+On Thu, Aug 24, 2017 at 7:24 AM Benoit Plessis <b.plessis at doyousoft.com>
+wrote:
+
+> Le 24/08/2017 ? 15:53, Matt Seil a ?crit :
+>
+> Hi,
+>
+> I do work on ESAPI's encoder and decoder.
+>
+> I can tell you this for sure, 2.0.1 is extremely outdated.
+>
+> And after having worked on ESAPI's encoder, I know for that when dealing
+> with HTML entities, we typically encode human-readable escapes when
+> available, and use hex for everything else.  I say typically because this
+> is what the current encoder produces for your script tag input:
+>
+> <script></script> | &<>'/"!$
+>
+>
+> &lt;script&gt;&lt;&#x2f;script&gt;&#x20;&#x7c;&#x20;&amp;&lt;&gt;&#x27;&#x2f;&quot;&#x21;&#x24;
+>
+> Hex only has an advantage when dealing with non-BMP code points as well as
+> any character set larger than Latin 1. Browsers render either human
+> readable and hex escapes equally well.
+>
+> What makes you think that &lt; is weaker than &#60; ?
+>
+>
+> I do not think that, i was puzzled by the fact that the XSS Cheat sheet
+> strongly recommended a full escaping of all non-alphanum chars but that the
+> java encoder lib wasn't doing that.
+>
+> Except for alphanumeric characters, escape all characters less than 256
+> with the \xHH format to prevent switching out of the data value into the
+> script context or into another attribute. DO NOT use any escaping shortcuts
+> like \" because the quote character may be matched by the HTML attribute
+> parser which runs first. These escaping shortcuts are also susceptible to
+> "escape-the-escape" attacks where the attacker sends \" and the vulnerable
+> code turns that into \\" which enables the quote.
+>
+>
+> EncodeForJavascript: <script><\/script> | \x26<>\x27\/\x22!$
+> EncodeForJavascriptBlock: <script><\/script> | \x26<>\'\/\"!$
+> EncodeForJavascriptAttribute: <script></script> | \x26<>\x27/\x22!$
+>
+>
+>
+Actually, I share your concern.  ESAPI's output for
+
+<script></script> | &<>'/"!$
+
+in the specific JavaScript context is
+
+ \x3Cscript\x3E\x3C\x2Fscript\x3E\x20\x7C\x20\x26\x3C\x3E\x27\x2F\x22\x21\x24\x20
+
+The chars ">, <" while more lethal in the HTML context coudl still
+interfere with javaScript logic.
+
+Jim, any idea as to why "<" and ">" aren't getting encoded?
+
+
+> Also i did miss the fact that the encoder did at least escape the "/" from
+> the closing tag (not my brightest day), it's not as bad as i initialy saw
+> it.
+>
+>
+>
+My recommendation when debugging escaped characters is to drop them into an
+html file and see what gets rendered.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20170824/e5c9bc93/attachment-0001.html>
+

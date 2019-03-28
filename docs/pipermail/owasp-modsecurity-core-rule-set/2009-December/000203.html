@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] no rule ID &#65311;
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%09%3D%3Futf-8%3Fq%3Fno_rule_ID_%3DEF%3DBC%3D9F%3F%3D&In-Reply-To=4B21A1D9.50906%40gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000199.html">
+   <LINK REL="Next"  HREF="000206.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] no rule ID &#65311;</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%09%3D%3Futf-8%3Fq%3Fno_rule_ID_%3DEF%3DBC%3D9F%3F%3D&In-Reply-To=4B21A1D9.50906%40gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] no rule ID &#65311;">ryan.barnett at breach.com
+       </A><BR>
+    <I>Fri Dec 11 09:09:02 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000199.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+        <LI>Next message: <A HREF="000206.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#203">[ date ]</a>
+              <a href="thread.html#203">[ thread ]</a>
+              <a href="subject.html#203">[ subject ]</a>
+              <a href="author.html#203">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thursday 10 December 2009 08:35:21 pm ll wrote:
+&gt;<i> Yes ,I'm reading the 48 local excetions.but still confuse.here is my
+</I>&gt;<i>  auditlog, thanks your help.I just want to disable this rule for this url
+</I>&gt;<i>  (/news/abc.swf?id=20091211&amp;style=3) ,other website still need to be
+</I>&gt;<i>  inspect
+</I>&gt;<i> --cecdfa17-A--
+</I>&gt;<i> [10/Dec/2009:16:22:14 +0800] SyCvtdJMQTgAABXDVjcAAAAC 127.0.0.1 60252
+</I>&gt;<i>  127.0.0.1 8000 --cecdfa17-B--
+</I>&gt;<i> GET /news/abc.swf?id=20091211&amp;style=3 HTTP/1.1
+</I>&gt;<i> Accept: */*
+</I>&gt;<i> Referer: <A HREF="http://www.abc.com/news/index.html">http://www.abc.com/news/index.html</A>
+</I>&gt;<i> Accept-Language: zh-cn
+</I>&gt;<i> UA-CPU: x86
+</I>&gt;<i> Accept-Encoding: gzip, deflate
+</I>&gt;<i> User-Agent: Mozilla/4.0 ()
+</I>&gt;<i> Host: www.abc.com&lt;<A HREF="http://www.abc.com">http://www.abc.com</A>&gt;
+</I>&gt;<i> Cookie: JSESSIONID=869946B0D9D6C75C3600E22E54A2C172
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+If you look in your debug log when this match occurs, you will see a line like 
+this where it is setting the TX variable -
+
+[9] Set variable &quot;tx.-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot; to 
+&quot;/news/abc.swf?id=20091211&amp;style=3&quot;.
+
+You can now use this TX data to create the following exception rule in the 
+modsecurity_crs_48_local_exceptions.conf file (keep in mind that this is a 
+chained rule with 2 SecRules and they should be on two lines so make sure to 
+correct this if copy/pasting from email) -
+
+SecRule TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW 
+&quot;^\/news\/abc\.swf\?id=\d+&amp;style=\d+$&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+       SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; &quot;capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-20&quot;
+
+This will look for this exact TX variable name with a regex for the URI 
+payload (which allows for digit payloads both the id and style parameters).  
+If there is a match, it will remove this TX variable and decrease the anomaly 
+score by 20.  Here is the debug log show the exception in action -
+
+
+[4] Recipe: Invoking rule b8a6248; [file 
+&quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+[line &quot;44&quot;].
+[5] Rule b8a6248: SecRule &quot;TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot; &quot;@rx 
+^\\/news\\/abc\\.swf\\?id=\\d+&amp;style=\\d+$&quot; &quot;phase:2,chain,t:none,nolog,pass&quot;
+[4] Transformation completed in 2 usec.
+[4] Executing operator &quot;rx&quot; with param 
+&quot;^\\/news\\/abc\\.swf\\?id=\\d+&amp;style=\\d+$&quot; against TX:-WEB_ATTACK/XSS-
+REQUEST_URI_RAW.
+[9] Target value: &quot;/news/abc.swf?id=20091211&amp;style=3&quot;
+[4] Operator completed in 6 usec.
+[4] Rule returned 1.
+[9] Match -&gt; mode NEXT_RULE.
+[4] Recipe: Invoking rule b8a6b10; [file 
+&quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+[line &quot;45&quot;].
+[5] Rule b8a6b10: SecRule &quot;MATCHED_VAR_NAME&quot; &quot;@rx TX\\:(.*)&quot; 
+&quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-20&quot;
+[4] Transformation completed in 2 usec.
+[4] Executing operator &quot;rx&quot; with param &quot;TX\\:(.*)&quot; against MATCHED_VAR_NAME.
+[9] Target value: &quot;TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;
+[9] Added regex subexpression to TX.0: TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW
+[9] Added regex subexpression to TX.1: -WEB_ATTACK/XSS-REQUEST_URI_RAW
+[4] Operator completed in 36 usec.
+[9] Setting variable: !tx.%{tx.1}=1
+[9] Resolved macro %{tx.1} to &quot;-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;
+[9] Unset variable &quot;tx.-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;.
+[9] Setting variable: tx.anomaly_score=-20
+[9] Original collection variable: tx.anomaly_score = &quot;20&quot;
+[9] Relative change: anomaly_score=20-20
+[9] Set variable &quot;tx.anomaly_score&quot; to &quot;0&quot;.
+[4] Warning. Pattern match &quot;TX\:(.*)&quot; at MATCHED_VAR_NAME. [file 
+&quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+[line &quot;44&quot;]
+[4] Rule returned 1.
+[9] Match -&gt; mode NEXT_RULE.
+
+Hope this helps,
+Ryan
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000199.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+	<LI>Next message: <A HREF="000206.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#203">[ date ]</a>
+              <a href="thread.html#203">[ thread ]</a>
+              <a href="subject.html#203">[ subject ]</a>
+              <a href="author.html#203">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%0A%20modsecurity_crs_11_dos_protection.conf&In-Reply-To=%3CD125274A.3744%25csanders%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001722.html">
+   <LINK REL="Next"  HREF="001725.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf</H1>
+    <B>Chaim Sanders</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%0A%20modsecurity_crs_11_dos_protection.conf&In-Reply-To=%3CD125274A.3744%25csanders%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf">CSanders at trustwave.com
+       </A><BR>
+    <I>Wed Mar 11 03:54:43 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001722.html">[Owasp-modsecurity-core-rule-set] Questions about	modsecurity_crs_11_dos_protection.conf
+</A></li>
+        <LI>Next message: <A HREF="001725.html">[Owasp-modsecurity-core-rule-set] Questions about	modsecurity_crs_11_dos_protection.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1724">[ date ]</a>
+              <a href="thread.html#1724">[ thread ]</a>
+              <a href="subject.html#1724">[ subject ]</a>
+              <a href="author.html#1724">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sorry for the delay in response, I wanted to push the merge request before
+I sent a reply. I have addressed your questions inline below. Thank you
+for your suggestions and feedback. Keep them coming :)
+
+On 3/6/15, 7:52 AM, &quot;Barry Pollard&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt; wrote:
+
+&gt;<i>I've a few questions about modsecurity_crs_11_dos_protection.conf
+</I>&gt;<i>
+</I>&gt;<i>Question 1. The first set of rules are these:
+</I>&gt;<i>
+</I>&gt;<i>#
+</I>&gt;<i># Enforce an existing IP address block and log only 1-time/minute
+</I>&gt;<i># We don't want to get flooded by alerts during an attack or scan so
+</I>&gt;<i># we are only triggering an alert once/minute.  You can adjust how often
+</I>&gt;<i># you want to receive status alerts by changing the expirevar setting
+</I>&gt;<i>below.
+</I>&gt;<i>#
+</I>&gt;<i>SecRule IP:DOS_BLOCK &quot;@eq 1&quot; &quot;chain,phase:1,id:'981044',drop,msg:'Denial
+</I>&gt;<i>of Service (DoS) Attack Identified from %{tx.real_ip}
+</I>&gt;<i>(%{tx.dos_block_counter} hits since last
+</I>&gt;<i>alert)',setvar:ip.dos_block_counter=+1&quot;
+</I>&gt;<i>       SecRule &amp;IP:DOS_BLOCK_FLAG &quot;@eq 0&quot;
+</I>&gt;<i>&quot;setvar:ip.dos_block_flag=1,expirevar:ip.dos_block_flag=60,setvar:tx.dos_b
+</I>&gt;<i>lock_counter=%{ip.dos_block_counter},setvar:ip.dos_block_counter=0&quot;
+</I>&gt;<i>
+</I>&gt;<i>#
+</I>&gt;<i># Block and track # of requests but don't log
+</I>&gt;<i>SecRule IP:DOS_BLOCK &quot;@eq 1&quot;
+</I>&gt;<i>&quot;phase:1,id:'981045',t:none,drop,nolog,setvar:ip.dos_block_counter=+1&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>Is rule 981045 needed? Rule 981044 already increments the counter even if
+</I>&gt;<i>the chained rule does not match so I don't see the point in rule 981045.
+</I>&gt;<i>Or am I misunderstanding this:
+</I>&gt;<i><A HREF="http://scanmail.trustwave.com/?c=4062&amp;d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw">http://scanmail.trustwave.com/?c=4062&amp;d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw</A>
+</I>&gt;<i>rskdE9ZA&amp;s=5&amp;u=https%3a%2f%2fgithub%2ecom%2fSpiderLabs%2fModSecurity%2fwik
+</I>&gt;<i>i%2fReference-Manual%23setvar
+</I>
+The difference between these two rules is that rule 981044 is there to
+generate the log event when the threshold has been hit, whereas rule
+981045 is present to increment the counter. 981045 does not write to the
+log, otherwise during a DOS your log would fill up with many alerts.
+Instead the rules have been split out to such that logging only occurs
+once per DOS event.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>Question 2:
+</I>&gt;<i>
+</I>&gt;<i>#
+</I>&gt;<i># DOS Counter
+</I>&gt;<i># Count the number of requests to non-static resoures
+</I>&gt;<i>#
+</I>&gt;<i>SecRule REQUEST_BASENAME &quot;!\.(jpe?g|png|gif|js|css|ico)$&quot;
+</I>&gt;<i>&quot;phase:5,id:'981047',t:none,nolog,pass,setvar:ip.dos_counter=+1&quot;
+</I>&gt;<i>
+</I>&gt;<i>Any reason we don't use t:lowercase instead of assuming the file
+</I>&gt;<i>extensions are already in lowercase? Would also be nice to specify the
+</I>&gt;<i>exact pattern match in modsecurity_crs_10_setup.conf with it defaulting
+</I>&gt;<i>to above though I guess you can always use SecRuleUpdateTargetById to add
+</I>&gt;<i>your own extensions or other pattern matching.
+</I>
+These are great ideas, I have pushed a merge request to the 3.0.0 branch
+with these changes. After testing you should see it in there.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>Question 3:
+</I>&gt;<i>
+</I>&gt;<i>#
+</I>&gt;<i># Check DOS Counter
+</I>&gt;<i># If the request count is greater than or equal to user settings,
+</I>&gt;<i># we then set the burst counter
+</I>&gt;<i>#
+</I>&gt;<i>SecRule IP:DOS_COUNTER &quot;@gt %{tx.dos_counter_threshold}&quot;
+</I>&gt;<i>&quot;phase:5,id:'981048',t:none,nolog,pass,t:none,setvar:ip.dos_burst_counter=
+</I>&gt;<i>+1,expirevar:ip.dos_burst_counter=%{tx.dos_burst_time_slice},setvar:!ip.do
+</I>&gt;<i>s_counter&quot;
+</I>&gt;<i>
+</I>&gt;<i>I presume this is a typo to have t:none specified twice in this rule?
+</I>
+This is part of the previous merge request as well, seems to be a typo.
+
+&gt;<i>
+</I>&gt;<i>Question 4:
+</I>&gt;<i>
+</I>&gt;<i>Not directly related to this but has anyone made any progress in keeping
+</I>&gt;<i>ip.pag down to a reasonable size as doesn't seem to clean up like it
+</I>&gt;<i>should do? Several posts about this about the place but not managed to
+</I>&gt;<i>find any definitive answers...
+</I>&gt;<i>
+</I>
+Asking around the answer is that there are no definitive answers. The
+problem is that we are using a database that was built to store a small
+amount of data to store a massive amount of data and the mechanism that
+sdbm has to protect agains race conditions were not built for the massive
+amount of data that we are saving. There are ways to circumvent the
+problem by using the modsec-sdbm utility + periodicals restarts but that
+is pretty much as good as we get right now. This is a known issue and as
+we look towards features for modsecv3 this is an underlying issue we are
+looking to address.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="http://scanmail.trustwave.com/?c=4062&amp;d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw">http://scanmail.trustwave.com/?c=4062&amp;d=haj51OzUC8ULIw1rYMiGpRoqW4jwxmAZPw</A>
+</I>&gt;<i>u4y9FoZA&amp;s=5&amp;u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fow
+</I>&gt;<i>asp-modsecurity-core-rule-set
+</I>
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001722.html">[Owasp-modsecurity-core-rule-set] Questions about	modsecurity_crs_11_dos_protection.conf
+</A></li>
+	<LI>Next message: <A HREF="001725.html">[Owasp-modsecurity-core-rule-set] Questions about	modsecurity_crs_11_dos_protection.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1724">[ date ]</a>
+              <a href="thread.html#1724">[ thread ]</a>
+              <a href="subject.html#1724">[ subject ]</a>
+              <a href="author.html#1724">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

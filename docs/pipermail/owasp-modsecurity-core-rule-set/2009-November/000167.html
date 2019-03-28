@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] rule bypass question
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20rule%20bypass%20question&In-Reply-To=4c9cc6790911290741m19dc155bk2e23e2e2d6a2cbf6%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000162.html">
+   <LINK REL="Next"  HREF="000163.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] rule bypass question</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20rule%20bypass%20question&In-Reply-To=4c9cc6790911290741m19dc155bk2e23e2e2d6a2cbf6%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] rule bypass question">ryan.barnett at breach.com
+       </A><BR>
+    <I>Mon Nov 30 16:32:26 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000162.html">[Owasp-modsecurity-core-rule-set] rule bypass question
+</A></li>
+        <LI>Next message: <A HREF="000163.html">[Owasp-modsecurity-core-rule-set] rule bypass question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#167">[ date ]</a>
+              <a href="thread.html#167">[ thread ]</a>
+              <a href="subject.html#167">[ subject ]</a>
+              <a href="author.html#167">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sunday 29 November 2009 10:41:56 am Chris Datfung wrote:
+&gt;<i> I have the following in section H of an event that was a false positive:
+</I>&gt;<i> 
+</I>&gt;<i> Message: Operator GT matched 1 at TX:arg_name_menu. [file
+</I>&gt;<i>  &quot;/opt/modsecurity/etc/crs/base_rules/modsecurity_crs_40_generic_attacks.co
+</I>&gt;<i> nf&quot;] [line &quot;28&quot;] [msg &quot;Possible HTTP Parameter Pollution Attack: Multiple
+</I>&gt;<i>  Parameters with the same Name.&quot;] Message: Warning. Operator GE matched 5
+</I>&gt;<i>  at TX:anomaly_score. [file
+</I>&gt;<i>  &quot;/opt/modsecurity/etc/crs/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i>  [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score (score 20): Possible HTTP
+</I>&gt;<i>  Parameter Pollution Attack: Multiple Parameters with the same Name.&quot;]
+</I>&gt;<i>  Action: Intercepted (phase 2)
+</I>&gt;<i> Apache-Handler: proxy-server
+</I>&gt;<i> Stopwatch: 1259298234088338 14916 (181 11756 -)
+</I>&gt;<i> Producer: ModSecurity for Apache/2.5.11 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core
+</I>&gt;<i>  ruleset/2.0.3.&lt;<A HREF="http://2.0.3.">http://2.0.3.</A>&gt; Server: Apache/2.2.14 (Unix) mod_ssl/2.2.14
+</I>&gt;<i>  OpenSSL/0.9.8l
+</I>&gt;<i> 
+</I>&gt;<i> The rule at line 28 in modsecurity_crs_40_generic_attacks.conf does not
+</I>&gt;<i>  have a rule ID. The false positive appears in multiple parameters in the
+</I>&gt;<i>  /VulnScript.php script, so ideally, I'd like to add a SecRuleRemoveById
+</I>&gt;<i>  rule, which does not look like a possible in this case. I read the
+</I>&gt;<i>  examples in modsecurity_crs_48_local_exceptions.conf, but am still unclear
+</I>&gt;<i>  how to bypass this rule. Can someone point me in the right direction?
+</I>&gt;<i> 
+</I>Hey Chris,
+Please see my other email that I just sent to the list about the new CRS 
+v2.0.4 as the HTTP Parameter Pollution rule now has a rule id.  With this 
+info, you can now add the following example exception rule to the 48 local 
+exceptions conf file -
+
+SecRule REQUEST_FILENAME &quot;@streq /VulnScript.php&quot; 
+&quot;chain,phase:2,t:none,nolog,pass&quot;
+SecRule TX:/^HPP-1.*ARGS:(foo|bar)/ &quot;.&quot; &quot;chain,setvar:tx.hpp-
+counter=+1,setvar:tx.hpp-%{tx.hpp-counter}=%{matched_var_name}&quot;
+        SecRule TX:'/^HPP-/' &quot;^TX:(hpp.*ARGS:(foo|bar))$&quot; &quot;capture,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-20&quot;
+
+This exception will first check the URL and then it will check to see if there 
+are any TX matches for http parameter pollution for either the foo or bar 
+parameters (adjust these accordingly for your page where the false positives 
+are occurring).  If matches are found, then it will both expire the TX 
+variables and adjust the anomaly score.
+
+Let me know if you need any more help.
+
+-Ryan
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000162.html">[Owasp-modsecurity-core-rule-set] rule bypass question
+</A></li>
+	<LI>Next message: <A HREF="000163.html">[Owasp-modsecurity-core-rule-set] rule bypass question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#167">[ date ]</a>
+              <a href="thread.html#167">[ thread ]</a>
+              <a href="subject.html#167">[ subject ]</a>
+              <a href="author.html#167">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

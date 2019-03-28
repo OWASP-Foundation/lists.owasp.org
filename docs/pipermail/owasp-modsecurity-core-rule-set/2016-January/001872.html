@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] LDAP injection rule
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20LDAP%20injection%20rule&In-Reply-To=%3Cmvartyk0wyvtajr2ao4f0bx2.1452749604743%40email.android.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001870.html">
+   <LINK REL="Next"  HREF="001865.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] LDAP injection rule</H1>
+    <B>Leos Rivas Manuel</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20LDAP%20injection%20rule&In-Reply-To=%3Cmvartyk0wyvtajr2ao4f0bx2.1452749604743%40email.android.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] LDAP injection rule">Manuel.LeosRivas at gemalto.com
+       </A><BR>
+    <I>Thu Jan 14 05:33:29 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001870.html">[Owasp-modsecurity-core-rule-set] LDAP injection rule
+</A></li>
+        <LI>Next message: <A HREF="001865.html">[Owasp-modsecurity-core-rule-set] Location of	modsecurity_crs_10_setup.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1872">[ date ]</a>
+              <a href="thread.html#1872">[ thread ]</a>
+              <a href="subject.html#1872">[ subject ]</a>
+              <a href="author.html#1872">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi eenis,
+
+(?:something)  means do not capture the values that matched something, kind of save it for later so you may use it, the less you capture things you don't need the better it is for performance.
+
+Regards,
+Manuel
+
+Envoy&#233; de mon Galaxy S5 4G+ Orange
+
+
+-------- Original message --------
+From: Denis Kolegov &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">d.n.kolegov at gmail.com</A>&gt;
+Date: 14/01/2016 00:10 (GMT+01:00)
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">achim at owasp.org</A>
+Cc: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] LDAP injection rule
+
+
+Hi.
+
+It seems my question was not clear.
+I asked about logic of regular expression.
+
+What is a purpose of first part of RE where it checks string beginning with '('?
+
+(?:\((?:\W*?(?:objectc(?:ategory|lass)|homedirectory|[gu]idnumber|cn)\b\W*?=|[^\w\x80-\xFF]*?[\!\&amp;\|][^\w\x80-\xFF]*?\())
+Thanks.
+---
+Denis Kolegov
+
+14 &#1071;&#1085;&#1074; 2016 &#1075;. 3:18 &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &quot;Achim&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">achim at owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">achim at owasp.org</A>&gt;&gt; &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1083;:
+Hi Denis,
+
+the round brackets in RE are used to group, in particular to group variants.
+If they should be a literal character, they need to be escaped with a
+\ (backslash).
+
+Said this, you see both usages -- ( as grouping meta character, and \( as
+literal character -- in your visualized picture. You see the literal \(
+one only, but not the grouping ( in the picture.
+
+In LDAP round brackets are a core syntax element.
+
+Does this help?
+Achim
+
+
+
+On 13.01.2016 12:21, Denis Kolegov wrote:
+&gt;<i> Hello All.
+</I>&gt;<i>
+</I>&gt;<i> I am working on RE for LDAP injection.
+</I>&gt;<i> Could anybody explain the structure of the LDAP injection detection rule?
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/base_rules/modsecurity_crs_40_generic_attacks.conf">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/base_rules/modsecurity_crs_40_generic_attacks.conf</A>
+</I>&gt;<i>
+</I>&gt;<i> Its regular expression is the following:
+</I>&gt;<i>
+</I>&gt;<i> (?:\((?:\W*?(?:objectc(?:ategory|lass)|homedirectory|[gu]idnumber|cn)\b\W*?=|[^\w\x80-\xFF]*?[\!\&amp;\|][^\w\x80-\xFF]*?\()|\)[^\w\x80-\xFF]*?\([^\w\x80-\xFF]*?[\!\&amp;\|])
+</I>&gt;<i>
+</I>&gt;<i> See regular expression visualizer (<A HREF="https://jex.im/regulex">https://jex.im/regulex</A>) screenshot  in
+</I>&gt;<i> the attachment.
+</I>&gt;<i>
+</I>&gt;<i> My questions:
+</I>&gt;<i>
+</I>&gt;<i> 1.  What is the purpose of RE after '(' character? Which context is
+</I>&gt;<i> supposed there?
+</I>&gt;<i>
+</I>&gt;<i> I found the following vectors:
+</I>&gt;<i>
+</I>&gt;<i> Alonso-Parada vectors:
+</I>&gt;<i>
+</I>&gt;<i> foo)(sn=100
+</I>&gt;<i> foo)(&amp;)
+</I>&gt;<i> documents)(security_level=*))(&amp;(directory=documents
+</I>&gt;<i> printer)(uid=*)
+</I>&gt;<i> printer)(department=fa*)
+</I>&gt;<i>
+</I>&gt;<i> printer)(department=*fa*)
+</I>&gt;<i> *)(objectClass=*))(&amp;(objectClass=void
+</I>&gt;<i> *)(objectClass=users))(&amp;(objectClass=foo
+</I>&gt;<i> void)(objectClass=users))(&amp;(objectClass=void)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Exploit DB:
+</I>&gt;<i>
+</I>&gt;<i> ka0x)(|(homedirectory=*)
+</I>&gt;<i> 5faa0382d747b754)(sn=*
+</I>&gt;<i> 5faa0382d747b754)!(sn=*
+</I>&gt;<i>
+</I>&gt;<i> Burp:
+</I>&gt;<i>
+</I>&gt;<i> eb9adbd87d)(sn=*
+</I>&gt;<i> eb9adbd87d)!(sn=*
+</I>&gt;<i> *)(sn=*
+</I>&gt;<i> *)!(sn=*
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2.  Some trivial LDAPi vectors are not detected. For example,
+</I>&gt;<i>
+</I>&gt;<i> printer)(uid=*)
+</I>&gt;<i>
+</I>&gt;<i> from Alonso-Parada slides
+</I>&gt;<i> <A HREF="https://www.blackhat.com/presentations/bh-europe-08/Alonso-Parada/Whitepaper/bh-eu-08-alonso-parada-WP.pdf">https://www.blackhat.com/presentations/bh-europe-08/Alonso-Parada/Whitepaper/bh-eu-08-alonso-parada-WP.pdf</A>
+</I>&gt;<i>
+</I>&gt;<i> Thanks.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+________________________________
+This message and any attachments are intended solely for the addressees and may contain confidential information. Any unauthorized use or disclosure, either whole or partial, is prohibited.
+E-mails are susceptible to alteration. Our company shall not be liable for the message if altered, changed or falsified. If you are not the intended recipient of this message, please delete it and notify the sender.
+Although all reasonable efforts have been made to keep this transmission free from viruses, the sender will not be liable for damages caused by a transmitted virus.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160114/7d0f696e/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160114/7d0f696e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001870.html">[Owasp-modsecurity-core-rule-set] LDAP injection rule
+</A></li>
+	<LI>Next message: <A HREF="001865.html">[Owasp-modsecurity-core-rule-set] Location of	modsecurity_crs_10_setup.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1872">[ date ]</a>
+              <a href="thread.html#1872">[ thread ]</a>
+              <a href="subject.html#1872">[ subject ]</a>
+              <a href="author.html#1872">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

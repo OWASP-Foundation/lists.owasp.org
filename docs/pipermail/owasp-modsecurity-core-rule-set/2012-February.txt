@@ -1,0 +1,2547 @@
+From anders at kvistmail.dk  Wed Feb  1 11:30:09 2012
+From: anders at kvistmail.dk (Anders Kvist)
+Date: Wed, 01 Feb 2012 12:30:09 +0100
+Subject: [Owasp-modsecurity-core-rule-set] "Detects chained SQL injection
+	attempts 1/2" in PHPSESSID cookie
+Message-ID: <4F292241.30804@kvistmail.dk>
+
+Hi
+
+I'm trying to update to the newest rule set (from a quite old rule set)
+and a few things are bugging - the first thought is just to comment out
+the rule below, but I would prefer to have the rules as standard as
+possible so an update next time is easier...
+
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:(?:@.+=\s*\(\s*select)|(?:\d+\s*x?or|div|like|between|and\s*\d+\s*[\-+])|(?:\/\w+;?\s+(?:having|and|x?or|div|like|between|and|select)\W)|(?:\d\s+group\s+by.+\()|(?:(?:;|#|--)\s*(?:drop|alter))|(?:(?:;|#|--)\s*(?:update|insert)\s*\w{2,})|(?:[^\w]SET
+..." at REQUEST_COOKIES:PHPSESSID. [file
+"/path/to/modsecurity-crs/current/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+1/2"] [data "9or"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+"WEB_ATTACK/ID"]
+Producer: ModSecurity for Apache/2.5.12 (http://www.modsecurity.org/);
+core ruleset/2.2.3.
+
+Here is the cookie line from the header - "9or" is the reason for the
+block...
+Cookie: PHPSESSID=q7dgso9ort42e60o3eq9j997a1
+
+SecRule
+REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+"(?i:(?:@.+=\s*\(\s*select)|(?:\d+\s*x?or|div|like|between|and\s*\d+\s*[\-+])|(?:\/\w+;?\s+(?:having|and|x?or|div|like|between|and|select)\W)|(?:\d\s+group\s+by.+\()|(?:(?:;|#|--)\s*(?:drop|alter))|(?:(?:;|#|--)\s*(?:update|insert)\s*\w{2,})|(?:[^\w]SET\s*@\w+)|(?:(?:n?and|x?x?or|div|like|between|and|not
+|\|\||\&\&)[\s(]+\w+[\s)]*[!=+]+[\s\d]*[(\"|'|`|?|?|?)=()]))"
+"phase:2,capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,block,msg:'Detects
+chained SQL injection attempts
+1/2',id:'981248',tag:'WEB_ATTACK/SQLI',tag:'WEB_ATTACK/ID',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.id}-%{rule.msg}',setvar:tx.anomaly_score=+6,setvar:'tx.%{tx.msg}-WEB_ATTACK/SQLI-%{matched_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/ID-%{matched_var_name}=%{tx.0}'"
+
+What is recommended to handle such an "error"?
+
+/Anders
+
+From RBarnett at trustwave.com  Fri Feb  3 16:22:08 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 3 Feb 2012 10:22:08 -0600
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Virtual Patching
+ Workshop/Training at OWASP AppSecDC 2012
+In-Reply-To: <CB3DA952.412D2%rbarnett@trustwave.com>
+Message-ID: <CB5172E9.4225D%rbarnett@trustwave.com>
+
+FYI ? early bird discount rates end today.
+
+This workshop is going to be pretty hard core :)  We are going to be using the OWASP Broken Web Applications VM - http://code.google.com/p/owaspbwa/wiki/ProjectSummary as it already has ModSecurity installed.  It will give us a wide range of web apps/vulns to try and tackle.  I also have a really cool integration between ModSecurity and Arachni (http://arachni-scanner.com/) that we will use.
+
+Hope to see you at the workshop!
+
+-Ryan
+
+From: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Date: Thu, 19 Jan 2012 10:04:50 -0600
+To: "mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>" <mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: ModSecurity Virtual Patching Workshop/Training at OWASP AppSecDC 2012
+
+OWASP has just announced that my 2-day ModSecurity Virtual Patching Workshop training class as part of AppSecDC 2012 is online - https://www.owasp.org/index.php/OWASP_AppSec_DC_2012/Training/Virtual_Patching_Workshop
+
+In this training, we will walk through the theory of Virtual Patching ? when, where and how to best use it.  We will be working through the "Virtual Patching: Best Practices" document and even be updating it as we go with feedback.  We will then have hands-on labs where our goal will be to virtually patch as many of the OWASP WebGoat vulnerabilities as possible.  We will also cover topics such as automatic virtual patch creation from web app scanner output (with a lab).
+
+Let me know if you have any questions or comments.  I hope you will join me for this in-depth workshop!
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+www.trustwave.com
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Wed Feb  8 20:20:52 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 8 Feb 2012 14:20:52 -0600
+Subject: [Owasp-modsecurity-core-rule-set] WASC Distributed Web Honeypots
+	Project Update
+Message-ID: <CB584354.42B36%rbarnett@trustwave.com>
+
+FYI - http://blog.spiderlabs.com/2012/02/wasc-distributed-web-honeypots-project-update.html
+
+By the way ? we have options for adding Apache config updates to your existing Apache/ModSecurity installs that will allow you to participate.  Essentially, you can have Apache listen on some new, unused ports (like 8000, 8080 and 8888) and then anything that comes into those ports is considered "honeypot traffic" and the ModSecurity audit log data can be forwarded to the WASC central log hosts by using SecAuditLog2 directive with a separate mlogc.conf file.
+
+If anyone is interested in participating, please let me know.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+Email: rbarnett at trustwave.com
+www.trustwave.com
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 17:00:41 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 11:00:41 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Updating the OWASP ModSecurity
+	Core Rule Set - Community Effort
+Message-ID: <CB5EABE9.43337%rbarnett@trustwave.com>
+
+Greetings everyone,
+Please excuse the cross-posting but I wanted to make sure that everyone saw this post.  We are going to start an initiative to re-architect the OWASP ModSecurity Core Rule Set.  We, SpiderLabs, want this to be a "community-based" effort where we openly discuss various methods of architecting the CRS so that they provide the most value.  Here are a few goals -
+
+ 1.  To make the CRS more accurate ? which means to significantly reduce the # of false positives.  Most users want move to a blocking mode but can't until they are comfortable with the accuracy of the rules.
+ 2.  To make exceptions easier ? there are a number of scenarios where exceptions need to be made to exclude certain parameters or URLs from inspection.
+ 3.  To increase the security coverage ? which means to reduce the # of false negatives.  We don't want to miss any legitimate attacks.
+
+We will be starting a string of discussion threads on the OWASP ModSecurity CRS mail-list -
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+If you would like to participate in this project ? I suggest that you sign up for the mail-list.  We want feedback from all different types of ModSecurity users ? home users, corporate users, government, education, hosting providers, etc?  Let us know what your challenges are so that we can fix them!
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 17:14:08 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 11:14:08 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+ Use of a central config file - modsecurity_crs_10_config.conf
+Message-ID: <CB5EAF10.43366%rbarnett@trustwave.com>
+
+First question to kick-off the discussion is this -
+
+Do you like/dislike the concept of having a central config file ? modsecurity_crs_10_config.conf?
+
+The idea with this file is to try and consolidate a number of local settings within one file rather than having to edit the settings within a number of other individual files.  Once these settings are made, the information is them propagated to the various rules by use of macro expansions.
+
+Do you like or dislike this concept?  If you don't like it, why now?  How can this file be made better?
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 17:17:36 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 11:17:36 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+ Traditional vs. Anomaly Scoring Mode Concepts
+Message-ID: <CB5EAFE0.43376%rbarnett@trustwave.com>
+
+Reference this blog post -
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+
+How do you run the ModSecurity CRS?  Do you use traditional or anomaly scoring mode?
+
+Do you have any recommendations for making it easier to run the CRS in either mode and allowing easy switching between the modes?
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From listas at sapao.net  Mon Feb 13 17:22:00 2012
+From: listas at sapao.net (Lucas Ferreira)
+Date: Mon, 13 Feb 2012 12:22:00 -0500
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Use of a central config file - modsecurity_crs_10_config.conf
+In-Reply-To: <CB5EAF10.43366%rbarnett@trustwave.com>
+References: <CB5EAF10.43366%rbarnett@trustwave.com>
+Message-ID: <CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+
+I like it. Centralized settings help me keep my configs more organized. And
+it is easier to know where to go when changes are needed.
+
+Regards,
+
+Lucas
+
+On Mon, Feb 13, 2012 at 12:14, Ryan Barnett <RBarnett at trustwave.com> wrote:
+
+> First question to kick-off the discussion is this -
+>
+> Do you like/dislike the concept of having a central config file ?
+> modsecurity_crs_10_config.conf?
+>
+> The idea with this file is to try and consolidate a number of local
+> settings within one file rather than having to edit the settings within a
+> number of other individual files.  Once these settings are made, the
+> information is them propagated to the various rules by use of macro
+> expansions.
+>
+> Do you like or dislike this concept?  If you don't like it, why now?  How
+> can this file be made better?
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> ________________________________
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+
+-- 
+Homo sapiens non urinat in ventum.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120213/fab1a4de/attachment.html>
+
+From jtrooney at nexdlevel.com  Mon Feb 13 17:37:21 2012
+From: jtrooney at nexdlevel.com (Jeff Rooney)
+Date: Mon, 13 Feb 2012 11:37:21 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Use of a central config file - modsecurity_crs_10_config.conf
+In-Reply-To: <CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+References: <CB5EAF10.43366%rbarnett@trustwave.com>
+	<CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+Message-ID: <CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+
++1 for centralized.
+
+
+Jeff Rooney
+jtrooney at nexdlevel.com
+
+
+On Mon, Feb 13, 2012 at 11:22 AM, Lucas Ferreira <listas at sapao.net> wrote:
+
+> I like it. Centralized settings help me keep my configs more organized.
+> And it is easier to know where to go when changes are needed.
+>
+> Regards,
+>
+> Lucas
+>
+>
+> On Mon, Feb 13, 2012 at 12:14, Ryan Barnett <RBarnett at trustwave.com>wrote:
+>
+>> First question to kick-off the discussion is this -
+>>
+>> Do you like/dislike the concept of having a central config file ?
+>> modsecurity_crs_10_config.conf?
+>>
+>> The idea with this file is to try and consolidate a number of local
+>> settings within one file rather than having to edit the settings within a
+>> number of other individual files.  Once these settings are made, the
+>> information is them propagated to the various rules by use of macro
+>> expansions.
+>>
+>> Do you like or dislike this concept?  If you don't like it, why now?  How
+>> can this file be made better?
+>>
+>> --
+>> Ryan Barnett
+>> Trustwave SpiderLabs
+>> ModSecurity Project Leader
+>> OWASP ModSecurity CRS Project Leader
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you
+>> are not the intended recipient, you are hereby notified that any
+>> disclosure, copying, distribution, or use of the information contained
+>> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+>> received this transmission in error, please immediately contact the sender
+>> and destroy the material in its entirety, whether in electronic or hard
+>> copy format.
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>
+>
+>
+> --
+> Homo sapiens non urinat in ventum.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120213/70e4bf07/attachment.html>
+
+From listas at sapao.net  Mon Feb 13 17:49:54 2012
+From: listas at sapao.net (Lucas Ferreira)
+Date: Mon, 13 Feb 2012 12:49:54 -0500
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Traditional vs. Anomaly Scoring Mode Concepts
+In-Reply-To: <CB5EAFE0.43376%rbarnett@trustwave.com>
+References: <CB5EAFE0.43376%rbarnett@trustwave.com>
+Message-ID: <CA+HzegY8anth79xqmWcr5nUCo1xd4qGdv-5G5FcL5fqzFKBX5A@mail.gmail.com>
+
+We started with anomaly scoring and then slowly adjusted the thresholds.
+The thresholds should equivalent to the traditional mode nowadays.
+
+Regards,
+
+Lucas
+
+On Mon, Feb 13, 2012 at 12:17, Ryan Barnett <RBarnett at trustwave.com> wrote:
+
+> Reference this blog post -
+>
+> http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+>
+> How do you run the ModSecurity CRS?  Do you use traditional or anomaly
+> scoring mode?
+>
+> Do you have any recommendations for making it easier to run the CRS in
+> either mode and allowing easy switching between the modes?
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> ________________________________
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+
+-- 
+Homo sapiens non urinat in ventum.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120213/5f77213a/attachment-0001.html>
+
+From RBarnett at trustwave.com  Mon Feb 13 17:57:36 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 11:57:36 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Traditional vs. Anomaly Scoring Mode Concepts
+In-Reply-To: <CA+HzegY8anth79xqmWcr5nUCo1xd4qGdv-5G5FcL5fqzFKBX5A@mail.gmail.com>
+Message-ID: <CB5EB7BE.4341E%rbarnett@trustwave.com>
+
+We will start another discussion topic on the concepts of of individual rule Severity Levels and their associated anomaly scores.
+
+The problems that I see here are that, if the accuracy levels of the individual rules are not adequate (too many false positives), then having the severity levels in traditional/anomaly scoring be the same does not seem right.  Anomaly scoring mode allows you to set a threshold for blocking that is right for your particular blocking tolerance.  By adjusting the threshold up a bit, it indirectly allows for a false positive hit and still block if the transaction is "bad" enough.
+
+I think we need to complete the idea of adding in the following tags to each rule -
+
+ *   MATURITY
+ *   ACCURACY
+
+Reference this previous thread - https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2011-May/000773.html
+
+
+-Ryan
+
+From: Lucas Ferreira <listas at sapao.net<mailto:listas at sapao.net>>
+Date: Mon, 13 Feb 2012 11:49:54 -0600
+To: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread] Traditional vs. Anomaly Scoring Mode Concepts
+
+We started with anomaly scoring and then slowly adjusted the thresholds. The thresholds should equivalent to the traditional mode nowadays.
+
+Regards,
+
+Lucas
+
+On Mon, Feb 13, 2012 at 12:17, Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+Reference this blog post -
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+
+How do you run the ModSecurity CRS?  Do you use traditional or anomaly scoring mode?
+
+Do you have any recommendations for making it easier to run the CRS in either mode and allowing easy switching between the modes?
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+
+--
+Homo sapiens non urinat in ventum.
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 18:15:44 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 12:15:44 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+	Rule ACCURACY and MATURITY
+Message-ID: <CB5EBD80.43491%rbarnett@trustwave.com>
+
+We previously introduced this concept -
+https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2011-May/000773.html
+
+The idea is to designate both MATURITY and ACCURACY levels of each rule.  The benefits of this approach are obvious as users would then be able to easily disable entire groups of rules by using SecRuleRemoveByTag.
+
+The issue I see are that we, SpiderLabs, have absolutely no insight into how these rules are working in your environments.  The only way that we know that a particular rule is not working well is -
+
+ 1.  If you send a note to the mail-list.  We do have a mail-list setup just for reporting false positives - https://lists.sourceforge.net/lists/listinfo/mod-security-report-false-positives.  I guess we need to be more vigilant in redirecting FP emails to that list instead.
+ 2.  If you open a JIRA ticket for the CRS - https://www.modsecurity.org/tracker/browse/CORERULES
+
+We need help from the community in reporting back accuracy issues with rules.  If you have any good ideas for getting details on false positives let me know.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From colin.watson at owasp.org  Mon Feb 13 20:20:36 2012
+From: colin.watson at owasp.org (Colin Watson)
+Date: Mon, 13 Feb 2012 20:20:36 +0000
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Use of a central config file - modsecurity_crs_10_config.conf
+In-Reply-To: <CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+References: <CB5EAF10.43366%rbarnett@trustwave.com>
+	<CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+	<CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+Message-ID: <CAAxdBBmWi25eq7n4_Jzt55c=qQ=S6KB-JXdK=hi4EOvrQvqJ9A@mail.gmail.com>
+
+Yes, I like the central config file.
+
+On 13 February 2012 17:37, Jeff Rooney <jtrooney at nexdlevel.com> wrote:
+> +1 for centralized.
+>
+>
+> Jeff Rooney
+> jtrooney at nexdlevel.com
+>
+>
+>
+> On Mon, Feb 13, 2012 at 11:22 AM, Lucas Ferreira <listas at sapao.net> wrote:
+>>
+>> I like it. Centralized settings help me keep my configs more organized.
+>> And it is easier to know where to go when changes are needed.
+>>
+>> Regards,
+>>
+>> Lucas
+>>
+>>
+>> On Mon, Feb 13, 2012 at 12:14, Ryan Barnett <RBarnett at trustwave.com>
+>> wrote:
+>>>
+>>> First question to kick-off the discussion is this -
+>>>
+>>> Do you like/dislike the concept of having a central config file ?
+>>> modsecurity_crs_10_config.conf?
+>>>
+>>> The idea with this file is to try and consolidate a number of local
+>>> settings within one file rather than having to edit the settings within a
+>>> number of other individual files. ?Once these settings are made, the
+>>> information is them propagated to the various rules by use of macro
+>>> expansions.
+>>>
+>>> Do you like or dislike this concept? ?If you don't like it, why now? ?How
+>>> can this file be made better?
+>>>
+>>> --
+>>> Ryan Barnett
+>>> Trustwave SpiderLabs
+>>> ModSecurity Project Leader
+>>> OWASP ModSecurity CRS Project Leader
+>>>
+>>> ________________________________
+>>> This transmission may contain information that is privileged,
+>>> confidential, and/or exempt from disclosure under applicable law. If you are
+>>> not the intended recipient, you are hereby notified that any disclosure,
+>>> copying, distribution, or use of the information contained herein (including
+>>> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+>>> transmission in error, please immediately contact the sender and destroy the
+>>> material in its entirety, whether in electronic or hard copy format.
+>>>
+>>> _______________________________________________
+>>> Owasp-modsecurity-core-rule-set mailing list
+>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+>>
+>>
+>> --
+>> Homo sapiens non urinat in ventum.
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+From colin.watson at owasp.org  Mon Feb 13 20:24:05 2012
+From: colin.watson at owasp.org (Colin Watson)
+Date: Mon, 13 Feb 2012 20:24:05 +0000
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Rule ACCURACY and MATURITY
+In-Reply-To: <CB5EBD80.43491%rbarnett@trustwave.com>
+References: <CB5EBD80.43491%rbarnett@trustwave.com>
+Message-ID: <CAAxdBBn56p5M_QZbfYGn7871HAcv2Cfq4Msfb0YLoAyWTgViDQ@mail.gmail.com>
+
+Recording maturity and accuracy would be a useful classification, but
+I see that accuracy will depend on context. Still, it might be useful
+to be able to only include anomaly scoring values from rules that
+surpass certain maturity and/or accuracy thresholds, plus the ability
+to force include and force exclude additional rules.
+
+Colin
+
+On 13 February 2012 18:15, Ryan Barnett <RBarnett at trustwave.com> wrote:
+> We previously introduced this concept -
+> https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2011-May/000773.html
+>
+> The idea is to designate both MATURITY and ACCURACY levels of each rule. ?The benefits of this approach are obvious as users would then be able to easily disable entire groups of rules by using SecRuleRemoveByTag.
+>
+> The issue I see are that we, SpiderLabs, have absolutely no insight into how these rules are working in your environments. ?The only way that we know that a particular rule is not working well is -
+>
+> ?1. ?If you send a note to the mail-list. ?We do have a mail-list setup just for reporting false positives - https://lists.sourceforge.net/lists/listinfo/mod-security-report-false-positives. ?I guess we need to be more vigilant in redirecting FP emails to that list instead.
+> ?2. ?If you open a JIRA ticket for the CRS - https://www.modsecurity.org/tracker/browse/CORERULES
+>
+> We need help from the community in reporting back accuracy issues with rules. ?If you have any good ideas for getting details on false positives let me know.
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From RBarnett at trustwave.com  Mon Feb 13 21:09:07 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 15:09:07 -0600
+Subject: [Owasp-modsecurity-core-rule-set] OWASP Web Application Virtual
+	Patching Survey
+Message-ID: <CB5EE623.43602%rbarnett@trustwave.com>
+
+As I know that most of you use ModSecurity for virtual patching of web vulnerabilities, I wanted to pass this on to you all.
+
+Does your organization use virtual patching? If so, please fill out the "OWASP Web Application Virtual Patching Survey" http://svy.mk/y7y2FE<http://www.linkedin.com/redirect?url=http%3A%2F%2Fsvy%2Emk%2Fy7y2FE&urlhash=LlFj&_t=tracking_anet>
+
+
+It is only 10 questions and that data will help us to develop both the Best Practices and Cheat Sheet documents. You could also win a free spot in the OWASP AppSecDC Virtual Patching Workshop -https://www.owasp.org/index.php/OWASP_AppSec_DC_2012/Training/Virtual_Patching_Workshop<http://www.linkedin.com/redirect?url=https%3A%2F%2Fwww%2Eowasp%2Eorg%2Findex%2Ephp%2FOWASP_AppSec_DC_2012%2FTraining%2FVirtual_Patching_Workshop&urlhash=kNRz&_t=tracking_anet>
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From chris at jwall.org  Mon Feb 13 21:56:08 2012
+From: chris at jwall.org (Christian Bockermann)
+Date: Mon, 13 Feb 2012 22:56:08 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Updating the OWASP
+	ModSecurity Core Rule Set - Community Effort
+In-Reply-To: <CB5EABE9.43337%rbarnett@trustwave.com>
+References: <CB5EABE9.43337%rbarnett@trustwave.com>
+Message-ID: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+
+Hi Ryan, hi all,
+
+my experience with the core-rules is only limited. I installed the rules and tweaked
+them to match my needs and generally use my own rules for research/toy purposes. Based
+on that limited experience, I'd like to start the discussion a little beforehand, as I
+believe the fundamentals need to be *right* and *transparent* before mangling the
+existing rules into more complicated ones.
+
+So, I'd like to start with what I am missing a bit in the current rule sets, trying to
+compile a list of objectives we should all agree upon, before getting our hands dirty:
+
+
+ (1) Transparency
+
+     To a high degree the concept of the rules need to be transparent to the user. If
+     it takes one more than two days, to read/understand the structure of the rules, it
+     might shrug people off from using the rules in the first step.
+     Likewise, the outcome (alerts) of the rules needs to be understandable to anyone.
+
+     The switch from the old (pre 2.x) version to anomaly scoring was a good idea, but
+     the communication was suboptimal. 
+
+     Any central place where we have a documentation on the scale of the anomaly score?
+     What is a "good" threshold meant to be? Can we fix this beforehand? Can you share
+     experiences with tests, e.g. the average score when hitting some app with sqlmap?
+     How are the severity levels being used? I know they exist, but I do not have a clue
+     on how consistent and with which intention they're spread in the rules.
+
+
+ (2) Modularity & Documentation
+
+     The current rules have a modular structure, but to most people it is not clear how
+     to exactly adjust rules. Though I do like the blog-posts we have about tweaking the
+     rules, we need to have some central, clean and well-structured documentation. This
+     needs to be maintainable and easy to understand.
+
+     I'd propose to use a simply style (e.g. markdown) to document the rules inline and
+     additionally provide tools to automatically generate docs from that.      
+     The idea of the rule-doc template is nice, but we need a nice and *clean* looking
+     central page for that (the current homepage at owasp looks terrible confusing). 
+
+     For example, if I'm hit by rule-ID 960012 - it would be perfect to go to 
+
+          http://www.modsecurity.org/crs/rule/960012
+
+     and immediately have an explanation of that rule. 
+     I'd be happy to directly create a link to such a URL into the AuditConsole. A similar
+     thing could be done for rule-tags.
+     For example, the AuditConsole provides a "goto" link based on hashtags, e.g. if an
+     event is tagged as "#sql-injection", then one can define a target such as
+
+          http://my.internal.wiki.org/security/sql-injection
+
+
+ (3) Usage Statistics
+
+     Ryan once provided the idea of gathering usage statistics on rules. Some central
+     place to simply collect "the hits for rule X", "the average TX-score per request"
+     or the like.
+     Would anyone be interested in sharing such data if a central place would exist?
+
+     I shortly discussed the option to include some "report-false-positive" button
+     into the AuditConsole. That might e.g. send a report including an obfuscated audit
+     event to the false-positive-report-mailing list.
+     Would anyone use such a thing?
+     What kind of information is one willing to provide?
+
+     If there is a requirement of having a central place/application to gather such
+     information, I'd be interested to come to assistance.
+
+
+ (4) Provide packages for RPM/Debian
+
+     Josh and me had a discussion on "the perfect setup" a while ago, thinking about the
+     best structure on how to setup ModSecurity rules and configurations. Having a simple
+     structure provided within RPM and Debian packages would ease the setup and could be
+     valuable as upgrade-tool as well.
+     From my perspective it would be perfect to follow Ivan's ModSecurity Handbook in this
+     perspective (e.g. the /opt/modsecurity/ directory structure). 
+     This could go hand-in-hand with signing the packages with official GPG-keys.
+
+     In addition to providing a ZIP/alternative package (e.g. for Windows), of course.
+
+
+ (5) Regression Testing / Evaluation
+
+     The current CRS rules provide a regression-test environment. Did anyone ever use
+     that? Does there exist some official test-data set? Can we assemble one?
+     Maybe we can run automatic tests and have a way for documentating the test outcomes?
+
+     I've been working on a similar testing-environment to replay HTTP traffic with the
+     jwall-tools. The idea was like this:
+
+       - allow for tagging events as "false-positives" or "true positives" in the AuditConsole
+       - downloading these events into a local test-dataset
+       - specify expectations (e.g. the expected score/threshold) for each event
+       - replay the events/requests and test the outcoming score against the expected one
+
+     If there's interest in completing that, I'd be happy to further extend the stuff I
+     already have.
+
+
+
+@Ryan, please don't take anything of this as personal offence. This is by no means
+intended. I know about the difficulty of writing *generic* rules and highly appreciate
+all the work you've put into the rules.
+
+
+Looking forward to contributing to a revised core-rules set.
+
+Chris
+
+
+
+
+Am 13.02.2012 um 18:00 schrieb Ryan Barnett:
+
+> Greetings everyone,
+> Please excuse the cross-posting but I wanted to make sure that everyone saw this post.  We are going to start an initiative to re-architect the OWASP ModSecurity Core Rule Set.  We, SpiderLabs, want this to be a "community-based" effort where we openly discuss various methods of architecting the CRS so that they provide the most value.  Here are a few goals -
+> 
+> 1.  To make the CRS more accurate ? which means to significantly reduce the # of false positives.  Most users want move to a blocking mode but can't until they are comfortable with the accuracy of the rules.
+> 2.  To make exceptions easier ? there are a number of scenarios where exceptions need to be made to exclude certain parameters or URLs from inspection.
+> 3.  To increase the security coverage ? which means to reduce the # of false negatives.  We don't want to miss any legitimate attacks.
+> 
+> We will be starting a string of discussion threads on the OWASP ModSecurity CRS mail-list -
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+> If you would like to participate in this project ? I suggest that you sign up for the mail-list.  We want feedback from all different types of ModSecurity users ? home users, corporate users, government, education, hosting providers, etc?  Let us know what your challenges are so that we can fix them!
+> 
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+> 
+> ________________________________
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From RBarnett at trustwave.com  Mon Feb 13 22:05:29 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 16:05:29 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+	Transparency
+In-Reply-To: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+Message-ID: <CB5EF18A.43685%rbarnett@trustwave.com>
+
+I am separating out these discussion topics into separate emails for
+better tracking purposes.
+
+Comments inline below.
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+
+>Hi Ryan, hi all,
+>
+>my experience with the core-rules is only limited. I installed the rules
+>and tweaked
+>them to match my needs and generally use my own rules for research/toy
+>purposes. Based
+>on that limited experience, I'd like to start the discussion a little
+>beforehand, as I
+>believe the fundamentals need to be *right* and *transparent* before
+>mangling the
+>existing rules into more complicated ones.
+>
+>So, I'd like to start with what I am missing a bit in the current rule
+>sets, trying to
+>compile a list of objectives we should all agree upon, before getting our
+>hands dirty:
+>
+>
+> (1) Transparency
+>
+>     To a high degree the concept of the rules need to be transparent to
+>the user. If
+>     it takes one more than two days, to read/understand the structure of
+>the rules, it
+>     might shrug people off from using the rules in the first step.
+>     Likewise, the outcome (alerts) of the rules needs to be
+>understandable to anyone.
+>
+>     The switch from the old (pre 2.x) version to anomaly scoring was a
+>good idea, but
+>     the communication was suboptimal.
+>
+>     Any central place where we have a documentation on the scale of the
+>anomaly score?
+>     What is a "good" threshold meant to be? Can we fix this beforehand?
+>Can you share
+>     experiences with tests, e.g. the average score when hitting some app
+>with sqlmap?
+>     How are the severity levels being used? I know they exist, but I do
+>not have a clue
+>     on how consistent and with which intention they're spread in the
+>rules.
+
+I agree that we need better transparency between SpiderLabs and the
+community which is why we are starting this effort :)  What we don't want
+to have happen is that we suddenly make all these sweeping changes that
+catches the community off-guard (which admittedly is what happened in the
+move from CRS v1 to v2).  We want collaboration with the community.
+
+We have wiki-based documentation on the SourceForge site here -
+https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Main_Pa
+ge
+
+
+We can certainly add in new wiki pages for these topics.  We just need to
+agree on formatting and how to present the topics.  We have a lot of
+source material for this in the blog posts, but I feel that the blog posts
+are in an unorganized state and not easily referenced by (new) users.
+Perhaps that is a starting point - I can create a page that lists all of
+the ModSecurity blog  topics on a wiki page.
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 22:15:43 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 16:15:43 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+	Modularity & Documentation
+In-Reply-To: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+Message-ID: <CB5EF371.436A7%rbarnett@trustwave.com>
+
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+
+>
+> (2) Modularity & Documentation
+>
+>     The current rules have a modular structure, but to most people it is
+>not clear how
+>     to exactly adjust rules. Though I do like the blog-posts we have
+>about tweaking the
+>     rules, we need to have some central, clean and well-structured
+>documentation. This
+>     needs to be maintainable and easy to understand.
+
+Agreed.  I think I responded to this on the other email thread.
+
+>
+>     I'd propose to use a simply style (e.g. markdown) to document the
+>rules inline and
+>     additionally provide tools to automatically generate docs from that.
+>
+>     The idea of the rule-doc template is nice, but we need a nice and
+>*clean* looking
+>     central page for that (the current homepage at owasp looks terrible
+>confusing).
+
+Yeah, OWASP recently updated the wiki templates and it blew away the
+presentation and tabbed formatting so it is all messed up now.
+
+>
+>     For example, if I'm hit by rule-ID 960012 - it would be perfect to
+>go to
+>
+>          http://www.modsecurity.org/crs/rule/960012
+>
+>     and immediately have an explanation of that rule.
+
+I tried this approach.  I setup a rules documentation template here which
+is modeled after the Snort sig documentation pages -
+https://www.owasp.org/index.php/ModSecurity_CRS_Rule_Description_Template
+
+
+An example page is here -
+
+https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-960911
+
+
+The big challenge to this approach is the up-front work involved.  We have
+thousands of rules...  I am hesitant to do the up front work at this
+current time as our plans of re-architecting the CRS might impact the # of
+rules we need to maintain (which I would like to reduce by the way).
+
+
+>
+>     I'd be happy to directly create a link to such a URL into the
+>AuditConsole. A similar
+>     thing could be done for rule-tags.
+>     For example, the AuditConsole provides a "goto" link based on
+>hashtags, e.g. if an
+>     event is tagged as "#sql-injection", then one can define a target
+>such as
+>
+>          http://my.internal.wiki.org/security/sql-injection
+
+We already have some of those URL types of TAGS in the CRS, for example -
+
+SecRule REQUEST_LINE
+"!^(?:(?:[a-z]{3,10}\s+(?:\w{3,7}?://[\w\-\./]*(?::\d+)?)?/[^?#]*(?:\?[^#\s
+]*)?(?:#[\S]*)?|connect (?:\d{1,3}\.){3}\d{1,3}\.?(?::\d+)?|options
+\*)\s+[\w\./]+|get /[^?#]*(?:\?[^#\s]*)?(?:#[\S]*)?)$" \
+    "phase:1,t:none,t:lowercase,block,msg:'Invalid HTTP Request
+Line',id:'960911',severity:'4',rev:'2.2.3',logdata:'%{request_line}',tag:'h
+ttps://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}',tag:'http:/
+/www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.2.1',tag:'RULE_MATURIT
+Y/8',tag:'RULE_ACCURACY/8',setvar:'tx.msg=%{rule.msg}',setvar:'tx.id=%{rule
+.id}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protoco
+l_violation_score=+%{tx.notice_anomaly_score},setvar:'tx.%{rule.id}-PROTOCO
+L_VIOLATION/INVALID_REQ-%{matched_var_name}=%{matched_var}'"
+
+
+
+The
+"tag:'https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}'"
+data will be macro expanded at run time to include the current rule id in
+the url.
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 22:20:03 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 16:20:03 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+	Usage Statistics
+In-Reply-To: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+Message-ID: <CB5EF5D2.436D1%rbarnett@trustwave.com>
+
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+>
+> (3) Usage Statistics
+>
+>     Ryan once provided the idea of gathering usage statistics on rules.
+>Some central
+>     place to simply collect "the hits for rule X", "the average TX-score
+>per request"
+>     or the like.
+>     Would anyone be interested in sharing such data if a central place
+>would exist?
+>
+>     I shortly discussed the option to include some
+>"report-false-positive" button
+>     into the AuditConsole. That might e.g. send a report including an
+>obfuscated audit
+>     event to the false-positive-report-mailing list.
+>     Would anyone use such a thing?
+>     What kind of information is one willing to provide?
+>
+>     If there is a requirement of having a central place/application to
+>gather such
+>     information, I'd be interested to come to assistance.
+
+I would love to have a more automated method of gathering rule statistics
+and accuracy issues.  As I mentioned, users can currently either send an
+email to the mod-security-report-false-positives at lists.sourceforge.net
+mailing list or create a JIRA ticket.  We created the mail-list because we
+figured it would be easier for someone to shoot off an email rather having
+to log into JIRA and create a ticket.
+
+I am open to any ideas that the community has for better identifying how
+rules work and any false positives.
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 22:24:57 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 16:24:57 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+	Provide packages for RPM/Debian
+In-Reply-To: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+Message-ID: <CB5EF6D1.436E4%rbarnett@trustwave.com>
+
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+>
+> (4) Provide packages for RPM/Debian
+>
+>     Josh and me had a discussion on "the perfect setup" a while ago,
+>thinking about the
+>     best structure on how to setup ModSecurity rules and configurations.
+>Having a simple
+>     structure provided within RPM and Debian packages would ease the
+>setup and could be
+>     valuable as upgrade-tool as well.
+>     From my perspective it would be perfect to follow Ivan's ModSecurity
+>Handbook in this
+>     perspective (e.g. the /opt/modsecurity/ directory structure).
+>     This could go hand-in-hand with signing the packages with official
+>GPG-keys.
+>
+>     In addition to providing a ZIP/alternative package (e.g. for
+>Windows), of course.
+
+I know that we already have some package manager folks (Jason Litka,
+Alberto Gonzalez Iniesta, etc...) handling the ModSecurity engine itself
+which are listed under the "Community-Produced Binary Packages" listing -
+http://www.modsecurity.org/download/
+
+Maybe we can discuss this with them.
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Mon Feb 13 22:34:54 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 13 Feb 2012 16:34:54 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]
+In-Reply-To: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+Message-ID: <CB5EF7F8.436F9%rbarnett@trustwave.com>
+
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+>
+> (5) Regression Testing / Evaluation
+>
+>     The current CRS rules provide a regression-test environment. Did
+>anyone ever use
+>     that? Does there exist some official test-data set? Can we assemble
+>one?
+>     Maybe we can run automatic tests and have a way for documentating
+>the test outcomes?
+>
+>     I've been working on a similar testing-environment to replay HTTP
+>traffic with the
+>     jwall-tools. The idea was like this:
+>
+>       - allow for tagging events as "false-positives" or "true
+>positives" in the AuditConsole
+>       - downloading these events into a local test-dataset
+>       - specify expectations (e.g. the expected score/threshold) for
+>each event
+>       - replay the events/requests and test the outcoming score against
+>the expected one
+>
+>     If there's interest in completing that, I'd be happy to further
+>extend the stuff I
+>     already have.
+
+I started to update the regression testing suite to include tests for each
+of the rules.  This is not completed yet but the infrastructure is there.
+Ideally, there would be a test for each rule as this would also help users
+to understand what true positive matches look like.
+
+Here are the steps if you want to test -
+
+#############################
+INSTALLATION STEPS:
+
+1) Edit the rulestest.pl script to define local path to perl
+
+2) Edit the ruletest.conf script to define the proper global settings for:
+        - servers to test
+        - path to the modsecurity audit log
+
+3) Copy the testserver.cgi script to the /cgi-bin directory if you wish to
+   test the outbound/response rules.
+
+4) Edit the modsecurity_crs_10_config.conf file and update/enable the
+   Regression Testing variable settings.
+
+5) Copy/Symlink the modsecurity_crs_59_header_tagging.conf file to the
+   activated_rules directory
+
+6) Restart Apache
+
+7) Run the rulestest.pl script using the rules files in the local /tests
+   directory.
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From bpkroth at gmail.com  Mon Feb 13 22:55:51 2012
+From: bpkroth at gmail.com (Brian Kroth)
+Date: Mon, 13 Feb 2012 16:55:51 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Use of a central config file - modsecurity_crs_10_config.conf
+In-Reply-To: <CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+References: <CB5EAF10.43366%rbarnett@trustwave.com>
+	<CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+	<CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+Message-ID: <20120213225550.GH8300@gmail.com>
+
++1
+
+It usually makes upgrading much more reasonable as then I really only 
+have ~3 files with my tweaks in them.
+
+Thanks,
+Brian
+
+Jeff Rooney <jtrooney at nexdlevel.com> 2012-02-13 11:37:
+>   +1 for centralized.
+>   Jeff Rooney
+>   [1]jtrooney at nexdlevel.com
+>
+>   On Mon, Feb 13, 2012 at 11:22 AM, Lucas Ferreira <[2]listas at sapao.net>
+>   wrote:
+>
+>     I like it. Centralized settings help me keep my configs more organized.
+>     And it is easier to know where to go when changes are needed.
+>     Regards,
+>     Lucas
+>
+>     On Mon, Feb 13, 2012 at 12:14, Ryan Barnett <[3]RBarnett at trustwave.com>
+>     wrote:
+>
+>       First question to kick-off the discussion is this -
+>
+>       Do you like/dislike the concept of having a central config file ?
+>       modsecurity_crs_10_config.conf?
+>
+>       The idea with this file is to try and consolidate a number of local
+>       settings within one file rather than having to edit the settings
+>       within a number of other individual files. ?Once these settings are
+>       made, the information is them propagated to the various rules by use
+>       of macro expansions.
+>
+>       Do you like or dislike this concept? ?If you don't like it, why now?
+>       ?How can this file be made better?
+>
+>       --
+>       Ryan Barnett
+>       Trustwave SpiderLabs
+>       ModSecurity Project Leader
+>       OWASP ModSecurity CRS Project Leader
+>
+>       ________________________________
+>       This transmission may contain information that is privileged,
+>       confidential, and/or exempt from disclosure under applicable law. If
+>       you are not the intended recipient, you are hereby notified that any
+>       disclosure, copying, distribution, or use of the information contained
+>       herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+>       received this transmission in error, please immediately contact the
+>       sender and destroy the material in its entirety, whether in electronic
+>       or hard copy format.
+>
+>       _______________________________________________
+>       Owasp-modsecurity-core-rule-set mailing list
+>       [4]Owasp-modsecurity-core-rule-set at lists.owasp.org
+>       [5]https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>     --
+>     Homo sapiens non urinat in ventum.
+>     _______________________________________________
+>     Owasp-modsecurity-core-rule-set mailing list
+>     [6]Owasp-modsecurity-core-rule-set at lists.owasp.org
+>     [7]https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> References
+>
+>   Visible links
+>   1. mailto:jtrooney at nexdlevel.com
+>   2. mailto:listas at sapao.net
+>   3. mailto:RBarnett at trustwave.com
+>   4. mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org
+>   5. https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>   6. mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org
+>   7. https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: Digital signature
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120213/0eda6125/attachment-0001.pgp>
+
+From klaubert at gmail.com  Tue Feb 14 13:03:40 2012
+From: klaubert at gmail.com (Klaubert Herr da Silveira)
+Date: Tue, 14 Feb 2012 11:03:40 -0200
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Usage Statistics
+In-Reply-To: <CB5EF5D2.436D1%rbarnett@trustwave.com>
+References: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+	<CB5EF5D2.436D1%rbarnett@trustwave.com>
+Message-ID: <CAFoCuZrZZYUAucw5BNTtmGQhwikAvY4vmGbrLN1YzP1tiq4_0g@mail.gmail.com>
+
+Ryan,
+
+to automate (and more, to stimulate) the tracking false positive, like
+Christian, I believe that the best way is to rely on consoles like Waf-Fle
+and AuditConsole, this is easy to implement. But most important, it need to
+be easy to the user, so that he/she can send a anonymized fp, can to
+include some user commentary.
+Used this way, I believe that it shouldn't send to mailing-list, once that
+it can become more "popular", a centralized and rule-id indexed target can
+be more objective (I don't know if Jira can do this), and allow a fast
+detection of what is "hot" as false positive (helping in a automatic
+ranking of accuracy/maturity), helping in to attack what is creating more
+fp first.
+
+Best regards,
+
+Klaubert
+
+
+On Mon, Feb 13, 2012 at 8:20 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+>
+> On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+> >
+> > (3) Usage Statistics
+> >
+> >     Ryan once provided the idea of gathering usage statistics on rules.
+> >Some central
+> >     place to simply collect "the hits for rule X", "the average TX-score
+> >per request"
+> >     or the like.
+> >     Would anyone be interested in sharing such data if a central place
+> >would exist?
+> >
+> >     I shortly discussed the option to include some
+> >"report-false-positive" button
+> >     into the AuditConsole. That might e.g. send a report including an
+> >obfuscated audit
+> >     event to the false-positive-report-mailing list.
+> >     Would anyone use such a thing?
+> >     What kind of information is one willing to provide?
+> >
+> >     If there is a requirement of having a central place/application to
+> >gather such
+> >     information, I'd be interested to come to assistance.
+>
+> I would love to have a more automated method of gathering rule statistics
+> and accuracy issues.  As I mentioned, users can currently either send an
+> email to the mod-security-report-false-positives at lists.sourceforge.net
+> mailing list or create a JIRA ticket.  We created the mail-list because we
+> figured it would be easier for someone to shoot off an email rather having
+> to log into JIRA and create a ticket.
+>
+> I am open to any ideas that the community has for better identifying how
+> rules work and any false positives.
+>
+> -Ryan
+>
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120214/73e4b925/attachment.html>
+
+From agi at inittab.org  Tue Feb 14 13:24:53 2012
+From: agi at inittab.org (Alberto Gonzalez Iniesta)
+Date: Tue, 14 Feb 2012 14:24:53 +0100
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Provide packages for RPM/Debian
+In-Reply-To: <CB5EF6D1.436E4%rbarnett@trustwave.com>
+References: <9C3EBFD6-0A75-44F2-841A-1AD5190D6180@jwall.org>
+	<CB5EF6D1.436E4%rbarnett@trustwave.com>
+Message-ID: <20120214132453.GC3465@lib.inittab.org>
+
+On Mon, Feb 13, 2012 at 04:24:57PM -0600, Ryan Barnett wrote:
+> 
+> On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org> wrote:
+> >
+> > (4) Provide packages for RPM/Debian
+> >
+> >     Josh and me had a discussion on "the perfect setup" a while ago,
+> >thinking about the
+> >     best structure on how to setup ModSecurity rules and configurations.
+> >Having a simple
+> >     structure provided within RPM and Debian packages would ease the
+> >setup and could be
+> >     valuable as upgrade-tool as well.
+> >     From my perspective it would be perfect to follow Ivan's ModSecurity
+> >Handbook in this
+> >     perspective (e.g. the /opt/modsecurity/ directory structure).
+> >     This could go hand-in-hand with signing the packages with official
+> >GPG-keys.
+> >
+> >     In addition to providing a ZIP/alternative package (e.g. for
+> >Windows), of course.
+> 
+> I know that we already have some package manager folks (Jason Litka,
+> Alberto Gonzalez Iniesta, etc...) handling the ModSecurity engine itself
+> which are listed under the "Community-Produced Binary Packages" listing -
+> http://www.modsecurity.org/download/
+> 
+> Maybe we can discuss this with them.
+
+Hi there!
+
+Debian packages (and probably RH ones) won't install files under /opt.
+That tree is left for 3rd party apps (as in not supplied by the
+distribution).
+
+The Debian package uses /usr/share/modsecurity-crs/, as per FHS [1], and
+suggests how to include the rules from your ModSecurity configuration
+file [2].
+
+Any improvement/suggestion is always welcome!
+
+Regards,
+
+Alberto
+
+
+[1] http://www.pathname.com/fhs/2.2/fhs-4.11.html
+[2] /usr/share/doc/modsecurity-crs/README.Debian
+-- 
+Alberto Gonzalez Iniesta    | Formaci?n, consultor?a y soporte t?cnico
+agi@(inittab.org|debian.org)| en GNU/Linux y software libre
+Encrypted mail preferred    | http://inittab.com
+
+Key fingerprint = 9782 04E7 2B75 405C F5E9  0C81 C514 AF8E 4BA4 01C3
+
+From RBarnett at trustwave.com  Tue Feb 14 13:36:22 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 14 Feb 2012 07:36:22 -0600
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Usage Statistics
+In-Reply-To: <CAFoCuZrZZYUAucw5BNTtmGQhwikAvY4vmGbrLN1YzP1tiq4_0g@mail.gmail.com>
+Message-ID: <CB5FC925.438D2%rbarnett@trustwave.com>
+
+I agree that using the various audit console-type tools is a good approach.  I am not sure what the percentage is of people that use one of these tools vs. using some other type of log analysis tool (SIEM like Splunk).  Maybe if this type of functionality were added to the consoles, it would draw more people to use them.
+
+We, SpiderLabs, could setup our own AuditConsole instance which could serve as a central FP host (give it a public DNS name like ? report.modsecurity.org or something).  Users could then forward these events to us.
+
+-Ryan
+
+From: Klaubert Herr da Silveira <klaubert at gmail.com<mailto:klaubert at gmail.com>>
+Date: Tue, 14 Feb 2012 07:03:40 -0600
+To: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread] Usage Statistics
+
+Ryan,
+
+to automate (and more, to stimulate) the tracking false positive, like Christian, I believe that the best way is to rely on consoles like Waf-Fle and AuditConsole, this is easy to implement. But most important, it need to be easy to the user, so that he/she can send a anonymized fp, can to include some user commentary.
+Used this way, I believe that it shouldn't send to mailing-list, once that it can become more "popular", a centralized and rule-id indexed target can be more objective (I don't know if Jira can do this), and allow a fast detection of what is "hot" as false positive (helping in a automatic ranking of accuracy/maturity), helping in to attack what is creating more fp first.
+
+Best regards,
+
+Klaubert
+
+
+On Mon, Feb 13, 2012 at 8:20 PM, Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+
+On 2/13/12 4:56 PM, "Christian Bockermann" <chris at jwall.org<mailto:chris at jwall.org>> wrote:
+>
+> (3) Usage Statistics
+>
+>     Ryan once provided the idea of gathering usage statistics on rules.
+>Some central
+>     place to simply collect "the hits for rule X", "the average TX-score
+>per request"
+>     or the like.
+>     Would anyone be interested in sharing such data if a central place
+>would exist?
+>
+>     I shortly discussed the option to include some
+>"report-false-positive" button
+>     into the AuditConsole. That might e.g. send a report including an
+>obfuscated audit
+>     event to the false-positive-report-mailing list.
+>     Would anyone use such a thing?
+>     What kind of information is one willing to provide?
+>
+>     If there is a requirement of having a central place/application to
+>gather such
+>     information, I'd be interested to come to assistance.
+
+I would love to have a more automated method of gathering rule statistics
+and accuracy issues.  As I mentioned, users can currently either send an
+email to the mod-security-report-false-positives at lists.sourceforge.net<mailto:mod-security-report-false-positives at lists.sourceforge.net>
+mailing list or create a JIRA ticket.  We created the mail-list because we
+figured it would be easier for someone to shoot off an email rather having
+to log into JIRA and create a ticket.
+
+I am open to any ideas that the community has for better identifying how
+rules work and any false positives.
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From klaubert at gmail.com  Tue Feb 14 17:14:47 2012
+From: klaubert at gmail.com (Klaubert Herr da Silveira)
+Date: Tue, 14 Feb 2012 15:14:47 -0200
+Subject: [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion
+ Thread] Use of a central config file - modsecurity_crs_10_config.conf
+In-Reply-To: <20120213225550.GH8300@gmail.com>
+References: <CB5EAF10.43366%rbarnett@trustwave.com>
+	<CA+Hzegb=sVxzLTB-0wORDGC1DL8x5CGw6dTkn8_g-Mqn8sT0Fw@mail.gmail.com>
+	<CAMaTcxWb=8h5aGaN4=A3xVBwep72VSwijUGYu29637VMEPhK0Q@mail.gmail.com>
+	<20120213225550.GH8300@gmail.com>
+Message-ID: <CAFoCuZp1oqiyKQG4mTZ_jSLP0XKtExn8xTQwu55aYbN=tZswuQ@mail.gmail.com>
+
+This discussion come in a very good time. I plan to start coding a new
+Waf-Fle feature: Rule Managment, as soon I release the next version (next
+month, I hope), that will be useful for new users, and for advanced users
+with large deployments. So the discuss the structure of CRS is very
+important.
+
+The central config file make things clear, and make more simple to a more
+large deployment to don't need to handle to many different files.
+
+Regarding to the rules itself (a little bit off-topic in this email), the
+current struture in "base", "optional", "experimental" and "slr"  make
+clear to user, but will be very good too include the "RULE_MATURITY' and
+"RULE_ACCURACY" tags in all rules, to expand the usage of
+"SecRuleRemoveByTag".
+
+Klaubert
+
+
+
+
+On Mon, Feb 13, 2012 at 8:55 PM, Brian Kroth <bpkroth at gmail.com> wrote:
+
+> +1
+>
+> It usually makes upgrading much more reasonable as then I really only have
+> ~3 files with my tweaks in them.
+>
+> Thanks,
+> Brian
+>
+> Jeff Rooney <jtrooney at nexdlevel.com> 2012-02-13 11:37:
+>
+>>  +1 for centralized.
+>>  Jeff Rooney
+>>  [1]jtrooney at nexdlevel.com
+>>
+>>  On Mon, Feb 13, 2012 at 11:22 AM, Lucas Ferreira <[2]listas at sapao.net>
+>>
+>>  wrote:
+>>
+>>    I like it. Centralized settings help me keep my configs more organized.
+>>    And it is easier to know where to go when changes are needed.
+>>    Regards,
+>>    Lucas
+>>
+>>    On Mon, Feb 13, 2012 at 12:14, Ryan Barnett <[3]RBarnett at trustwave.com
+>> >
+>>
+>>    wrote:
+>>
+>>      First question to kick-off the discussion is this -
+>>
+>>      Do you like/dislike the concept of having a central config file ?
+>>      modsecurity_crs_10_config.**conf?
+>>
+>>      The idea with this file is to try and consolidate a number of local
+>>      settings within one file rather than having to edit the settings
+>>      within a number of other individual files.  Once these settings are
+>>      made, the information is them propagated to the various rules by use
+>>      of macro expansions.
+>>
+>>      Do you like or dislike this concept?  If you don't like it, why now?
+>>       How can this file be made better?
+>>
+>>      --
+>>      Ryan Barnett
+>>      Trustwave SpiderLabs
+>>      ModSecurity Project Leader
+>>      OWASP ModSecurity CRS Project Leader
+>>
+>>      ______________________________**__
+>>      This transmission may contain information that is privileged,
+>>      confidential, and/or exempt from disclosure under applicable law. If
+>>      you are not the intended recipient, you are hereby notified that any
+>>      disclosure, copying, distribution, or use of the information
+>> contained
+>>      herein (including any reliance thereon) is STRICTLY PROHIBITED. If
+>> you
+>>      received this transmission in error, please immediately contact the
+>>      sender and destroy the material in its entirety, whether in
+>> electronic
+>>      or hard copy format.
+>>
+>>      ______________________________**_________________
+>>      Owasp-modsecurity-core-rule-**set mailing list
+>>      [4]Owasp-modsecurity-core-**rule-set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>      [5]https://lists.owasp.org/**mailman/listinfo/owasp-**
+>> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>
+>>
+>>    --
+>>    Homo sapiens non urinat in ventum.
+>>    ______________________________**_________________
+>>    Owasp-modsecurity-core-rule-**set mailing list
+>>    [6]Owasp-modsecurity-core-**rule-set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>    [7]https://lists.owasp.org/**mailman/listinfo/owasp-**
+>> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>
+>> References
+>>
+>>  Visible links
+>>  1. mailto:jtrooney at nexdlevel.com
+>>  2. mailto:listas at sapao.net
+>>  3. mailto:RBarnett at trustwave.com
+>>  4. mailto:Owasp-modsecurity-core-**rule-set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>  5. https://lists.owasp.org/**mailman/listinfo/owasp-**
+>> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>  6. mailto:Owasp-modsecurity-core-**rule-set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>  7. https://lists.owasp.org/**mailman/listinfo/owasp-**
+>> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>
+>
+>  ______________________________**_________________
+>> Owasp-modsecurity-core-rule-**set mailing list
+>> Owasp-modsecurity-core-rule-**set at lists.owasp.org<Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> https://lists.owasp.org/**mailman/listinfo/owasp-**
+>> modsecurity-core-rule-set<https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>
+>
+>
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.9 (GNU/Linux)
+>
+> iEYEARECAAYFAk85lPYACgkQdtkBin+QuSC3LwCcDS81rh5Of1eDC/LSPt19y7a6
+> NYkAoNBYmvDDimiBPwEpeIRxPDSV8cqt
+> =yqoK
+> -----END PGP SIGNATURE-----
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120214/2444d3c4/attachment-0001.html>
+
+From RBarnett at trustwave.com  Wed Feb 15 22:14:16 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 15 Feb 2012 16:14:16 -0600
+Subject: [Owasp-modsecurity-core-rule-set] OWASP Web Application Virtual
+	Patching Survey
+In-Reply-To: <CB5EE623.43602%rbarnett@trustwave.com>
+Message-ID: <CB619836.43ED0%rbarnett@trustwave.com>
+
+If you all could please take a few minutes to take this survey it would be greatly appreciated.
+
+Thanks,
+Ryan
+
+From: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Date: Mon, 13 Feb 2012 15:09:07 -0600
+To: "mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>" <mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: OWASP Web Application Virtual Patching Survey
+
+As I know that most of you use ModSecurity for virtual patching of web vulnerabilities, I wanted to pass this on to you all.
+
+Does your organization use virtual patching? If so, please fill out the "OWASP Web Application Virtual Patching Survey" http://svy.mk/y7y2FE<http://www.linkedin.com/redirect?url=http%3A%2F%2Fsvy%2Emk%2Fy7y2FE&urlhash=LlFj&_t=tracking_anet>
+
+
+It is only 10 questions and that data will help us to develop both the Best Practices and Cheat Sheet documents. You could also win a free spot in the OWASP AppSecDC Virtual Patching Workshop -https://www.owasp.org/index.php/OWASP_AppSec_DC_2012/Training/Virtual_Patching_Workshop<http://www.linkedin.com/redirect?url=https%3A%2F%2Fwww%2Eowasp%2Eorg%2Findex%2Ephp%2FOWASP_AppSec_DC_2012%2FTraining%2FVirtual_Patching_Workshop&urlhash=kNRz&_t=tracking_anet>
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Wed Feb 15 22:25:20 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 15 Feb 2012 16:25:20 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Updating the "Ignore Static
+	Content" Rules
+Message-ID: <CB619B00.43EE4%rbarnett@trustwave.com>
+
+I would like to update the logic of the this ruleset -
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_10_ignore_static.conf
+
+The concept is that rather than audit log all transactions (with SecAuditLog On), you want to exclude logging requests for static resources.  The trick is that we need to try and ensure that the attack surface is significantly reduced.  In order to do that, I am testing this updated ruleset -
+
+SecRule REQUEST_METHOD "@pm GET HEAD" "id:'999001',chain,phase:1,t:none,nolog,pass"
+        SecRule REQUEST_URI "!@contains ?" "chain"
+                SecRule &ARGS "@eq 0" "chain"
+                        SecRule &REQUEST_HEADERS:Content-Length|&REQUEST_HEADERS:Content-Type "@eq 0" "ctl:ruleEngine=Off,ctl:auditEngine=Off"
+
+This rule checks the following -
+
+ 1.  That the request method is either a GET or HEAD.  If it is anything else, they it should probably be logged as it is a dynamic request method looking to alter data.
+ 2.  Verifies that there is no query string by checking for ? Char in the URI.
+ 3.  Verifies that there are no ARGS being passed
+ 4.  Verifies that there is no request body by checking for the existence of Content-Length and Content-Type request headers.
+
+If all of these rules match, then the ctl actions are used to toggle off both the audit and rule engines.
+
+Does anyone have any feedback on this updated ruleset?  Any improvements?
+
+Thanks.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Wed Feb 15 22:52:42 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 15 Feb 2012 16:52:42 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Updating the "Ignore Static
+	Content" Rules
+In-Reply-To: <CB619B00.43EE4%rbarnett@trustwave.com>
+References: <CB619B00.43EE4%rbarnett@trustwave.com>
+Message-ID: <231ED6F4-CA08-4AA4-B8F4-1CE4AA10C418@trustwave.com>
+
+One potential bypass issue - Cookies. This was an issue in the SQL injection challenge.
+
+I guess we could add a check to make sure there are no cookies either. If so, we should run the request through normal inspection.
+
+Ryan
+
+On Feb 15, 2012, at 5:25 PM, "Ryan Barnett" <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+
+I would like to update the logic of the this ruleset -
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_10_ignore_static.conf
+
+The concept is that rather than audit log all transactions (with SecAuditLog On), you want to exclude logging requests for static resources.  The trick is that we need to try and ensure that the attack surface is significantly reduced.  In order to do that, I am testing this updated ruleset -
+
+SecRule REQUEST_METHOD "@pm GET HEAD" "id:'999001',chain,phase:1,t:none,nolog,pass"
+        SecRule REQUEST_URI "!@contains ?" "chain"
+                SecRule &ARGS "@eq 0" "chain"
+                        SecRule &REQUEST_HEADERS:Content-Length|&REQUEST_HEADERS:Content-Type "@eq 0" "ctl:ruleEngine=Off,ctl:auditEngine=Off"
+
+This rule checks the following -
+
+ 1.  That the request method is either a GET or HEAD.  If it is anything else, they it should probably be logged as it is a dynamic request method looking to alter data.
+ 2.  Verifies that there is no query string by checking for ? Char in the URI.
+ 3.  Verifies that there are no ARGS being passed
+ 4.  Verifies that there is no request body by checking for the existence of Content-Length and Content-Type request headers.
+
+If all of these rules match, then the ctl actions are used to toggle off both the audit and rule engines.
+
+Does anyone have any feedback on this updated ruleset?  Any improvements?
+
+Thanks.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From michael.haas10 at gmail.com  Wed Feb 15 23:39:38 2012
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Thu, 16 Feb 2012 00:39:38 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Updating the "Ignore Static
+ Content" Rules
+In-Reply-To: <231ED6F4-CA08-4AA4-B8F4-1CE4AA10C418@trustwave.com>
+References: <CB619B00.43EE4%rbarnett@trustwave.com>
+	<231ED6F4-CA08-4AA4-B8F4-1CE4AA10C418@trustwave.com>
+Message-ID: <CAFW5hxAbdqgxgL6py+qtin+gFxp86_7DDBJD53ZRTa9TOK9qew@mail.gmail.com>
+
+If there is a check for a Cookie there would be no chance to exclude
+static resources for sites which require authentication?
+
+Michael
+
+
+2012/2/15 Ryan Barnett <RBarnett at trustwave.com>:
+> One potential bypass issue - Cookies. This was an issue in the SQL injection challenge.
+>
+> I guess we could add a check to make sure there are no cookies either. If so, we should run the request through normal inspection.
+>
+> Ryan
+>
+> On Feb 15, 2012, at 5:25 PM, "Ryan Barnett" <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+>
+> I would like to update the logic of the this ruleset -
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_10_ignore_static.conf
+>
+> The concept is that rather than audit log all transactions (with SecAuditLog On), you want to exclude logging requests for static resources. ?The trick is that we need to try and ensure that the attack surface is significantly reduced. ?In order to do that, I am testing this updated ruleset -
+>
+> SecRule REQUEST_METHOD "@pm GET HEAD" "id:'999001',chain,phase:1,t:none,nolog,pass"
+> ? ? ? ?SecRule REQUEST_URI "!@contains ?" "chain"
+> ? ? ? ? ? ? ? ?SecRule &ARGS "@eq 0" "chain"
+> ? ? ? ? ? ? ? ? ? ? ? ?SecRule &REQUEST_HEADERS:Content-Length|&REQUEST_HEADERS:Content-Type "@eq 0" "ctl:ruleEngine=Off,ctl:auditEngine=Off"
+>
+> This rule checks the following -
+>
+> ?1. ?That the request method is either a GET or HEAD. ?If it is anything else, they it should probably be logged as it is a dynamic request method looking to alter data.
+> ?2. ?Verifies that there is no query string by checking for ? Char in the URI.
+> ?3. ?Verifies that there are no ARGS being passed
+> ?4. ?Verifies that there is no request body by checking for the existence of Content-Length and Content-Type request headers.
+>
+> If all of these rules match, then the ctl actions are used to toggle off both the audit and rule engines.
+>
+> Does anyone have any feedback on this updated ruleset? ?Any improvements?
+>
+> Thanks.
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From jerome at netpeas.com  Thu Feb 16 01:17:08 2012
+From: jerome at netpeas.com (Jerome Athias)
+Date: Thu, 16 Feb 2012 01:17:08 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Software Vulnerability Mitigation
+	Automation - IVIL v1.0
+Message-ID: <4F3C5914.6000700@netpeas.com>
+
+As mentioned in the U.S. "INTERNATIONAL STRATEGY FOR CYBERSPACE"[1] 
+document,
+we need "interoperable and secure technical standards, determined by 
+technical experts".
+
+I would like to introduce my vision of "Software Vulnerability 
+Mitigation Automation"
+via IVIL v1.0 via a (incomplete) Conceptual Map.
+
+Requirements: ~15 minutes of your time, a headset and the Bol?ro
+
+https://corevidence.com/research/vulnerability_interoperability_ivil_v1.jpg
+
+(I extracted some links, please see below)
+
+
+
+i = x2ivil + ivil2x
+where "i" is interoperability and "x" a software (vulnerability 
+scanner,... + waf, virtual patching system, ...)
+
+What do you think?
+
+Thank you.
+Best regards,
+
+Jerome Athias - NETpeas
+VP, Director of Software Engineer
+Palo Alto - Paris - Casablanca
+http://www.netpeas.com
+
+"The computer security is an art form. It's the ultimate martial art."
+
+
+
+[1] 
+http://www.whitehouse.gov/blog/2011/05/16/launching-us-international-strategy-cyberspace 
+
+IVIL-XML 
+http://www.cupfighter.net/index.php/2010/10/ivil-an-xml-schema-to-exchange-vulnerability-information/ 
+
+ThreadFix http://code.google.com/p/threadfix/
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120216/55e46e2c/attachment.html>
+
+From RBarnett at trustwave.com  Thu Feb 16 01:19:29 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 15 Feb 2012 19:19:29 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Updating the "Ignore Static
+ Content" Rules
+In-Reply-To: <CAFW5hxAbdqgxgL6py+qtin+gFxp86_7DDBJD53ZRTa9TOK9qew@mail.gmail.com>
+Message-ID: <CB61C1A9.43EF9%rbarnett@trustwave.com>
+
+Correct, that is the dilemma...  Maybe we should make two versions in the
+config (one with a Cookie existence check and one without) and let the
+user enable the one they want for the issue that is more of a concern:
+increasing performance or reducing false negatives.
+
+
+-Ryan
+
+On 2/15/12 6:39 PM, "Michael Haas" <michael.haas10 at gmail.com> wrote:
+
+>If there is a check for a Cookie there would be no chance to exclude
+>static resources for sites which require authentication?
+>
+>Michael
+>
+>
+>2012/2/15 Ryan Barnett <RBarnett at trustwave.com>:
+>> One potential bypass issue - Cookies. This was an issue in the SQL
+>>injection challenge.
+>>
+>> I guess we could add a check to make sure there are no cookies either.
+>>If so, we should run the request through normal inspection.
+>>
+>> Ryan
+>>
+>> On Feb 15, 2012, at 5:25 PM, "Ryan Barnett"
+>><RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>> wrote:
+>>
+>> I would like to update the logic of the this ruleset -
+>>
+>>http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/opt
+>>ional_rules/modsecurity_crs_10_ignore_static.conf
+>>
+>> The concept is that rather than audit log all transactions (with
+>>SecAuditLog On), you want to exclude logging requests for static
+>>resources.  The trick is that we need to try and ensure that the attack
+>>surface is significantly reduced.  In order to do that, I am testing
+>>this updated ruleset -
+>>
+>> SecRule REQUEST_METHOD "@pm GET HEAD"
+>>"id:'999001',chain,phase:1,t:none,nolog,pass"
+>>        SecRule REQUEST_URI "!@contains ?" "chain"
+>>                SecRule &ARGS "@eq 0" "chain"
+>>                        SecRule
+>>&REQUEST_HEADERS:Content-Length|&REQUEST_HEADERS:Content-Type "@eq 0"
+>>"ctl:ruleEngine=Off,ctl:auditEngine=Off"
+>>
+>> This rule checks the following -
+>>
+>>  1.  That the request method is either a GET or HEAD.  If it is
+>>anything else, they it should probably be logged as it is a dynamic
+>>request method looking to alter data.
+>>  2.  Verifies that there is no query string by checking for ? Char in
+>>the URI.
+>>  3.  Verifies that there are no ARGS being passed
+>>  4.  Verifies that there is no request body by checking for the
+>>existence of Content-Length and Content-Type request headers.
+>>
+>> If all of these rules match, then the ctl actions are used to toggle
+>>off both the audit and rule engines.
+>>
+>> Does anyone have any feedback on this updated ruleset?  Any
+>>improvements?
+>>
+>> Thanks.
+>>
+>> --
+>> Ryan Barnett
+>> Trustwave SpiderLabs
+>> ModSecurity Project Leader
+>> OWASP ModSecurity CRS Project Leader
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>>confidential, and/or exempt from disclosure under applicable law. If you
+>>are not the intended recipient, you are hereby notified that any
+>>disclosure, copying, distribution, or use of the information contained
+>>herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+>>received this transmission in error, please immediately contact the
+>>sender and destroy the material in its entirety, whether in electronic
+>>or hard copy format.
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From matt at betweenbrain.com  Fri Feb 17 15:08:06 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Fri, 17 Feb 2012 10:08:06 -0500
+Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+Message-ID: <CAOXGsbK9vtFCk1cqCqpSR7ZuD+ioSjdUa+m=hGaV_=7hVUVAKg@mail.gmail.com>
+
+Hi Folks,
+
+I've recently started using the 2.2.3 ruleset with mod_security 2.5.11-1
+(Ubuntu 10.04). I'm having an issue with with a standard Joomla 2.5.1
+install triggering line 31 or
+base_rules/modsecurity_crs_23_request_limits.conf "Too many arguments in
+request". I'm using an unmodified version
+of modsecurity_crs_10_config.conf. When I adjust max_num_args
+in modsecurity_crs_10_config.conf, it doesn't seem to have any affect on
+the above issue. I've tried anywhere from 1 to 400000. I am restarting
+Apache between each change. But, if I comment out SecAction
+"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255" the too
+many arguments issue is resolved.
+
+It appears as if the numerical changes I am making to max_num_args aren't
+being loaded. I'm not sure. Any ideas?
+
+Thanks in advance!
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120217/ea9c5ba8/attachment.html>
+
+From RBarnett at trustwave.com  Fri Feb 17 15:16:54 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 17 Feb 2012 09:16:54 -0600
+Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+In-Reply-To: <CAOXGsbK9vtFCk1cqCqpSR7ZuD+ioSjdUa+m=hGaV_=7hVUVAKg@mail.gmail.com>
+Message-ID: <CB63D94A.44086%rbarnett@trustwave.com>
+
+Hey Matt,
+You need to be running at least mod_security v2.5.12 to get the macro support for numeric operators.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+From: Matt Thomas <matt at betweenbrain.com<mailto:matt at betweenbrain.com>>
+Date: Fri, 17 Feb 2012 09:08:06 -0600
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+
+Hi Folks,
+
+I've recently started using the 2.2.3 ruleset with mod_security 2.5.11-1 (Ubuntu 10.04). I'm having an issue with with a standard Joomla 2.5.1 install triggering line 31 or base_rules/modsecurity_crs_23_request_limits.conf "Too many arguments in request". I'm using an unmodified version of modsecurity_crs_10_config.conf. When I adjust max_num_args in modsecurity_crs_10_config.conf, it doesn't seem to have any affect on the above issue. I've tried anywhere from 1 to 400000. I am restarting Apache between each change. But, if I comment out SecAction "phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255" the too many arguments issue is resolved.
+
+It appears as if the numerical changes I am making to max_num_args aren't being loaded. I'm not sure. Any ideas?
+
+Thanks in advance!
+
+Best,
+
+Matt Thomas
+Founder betweenbrain<http://betweenbrain.com/>?
+Lead Developer Construct Template Development Framework<http://construct-framework.com/>
+Phone: 203.632.9322<tel:203.632.9322>
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From matt at betweenbrain.com  Fri Feb 17 20:03:44 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Fri, 17 Feb 2012 15:03:44 -0500
+Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+In-Reply-To: <CB63D94A.44086%rbarnett@trustwave.com>
+References: <CAOXGsbK9vtFCk1cqCqpSR7ZuD+ioSjdUa+m=hGaV_=7hVUVAKg@mail.gmail.com>
+	<CB63D94A.44086%rbarnett@trustwave.com>
+Message-ID: <CAOXGsbLPdNGDkHUVaq530_fOyn7WP7Cqnhb9ACCbK-cWc-hhWg@mail.gmail.com>
+
+Hi Ryan,
+
+Thanks! I was afraid that might be the root cause, but great to know where
+to focus my efforts.
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+
+
+
+On Fri, Feb 17, 2012 at 10:16 AM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+> Hey Matt,
+> You need to be running at least mod_security v2.5.12 to get the macro
+> support for numeric operators.
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> From: Matt Thomas <matt at betweenbrain.com<mailto:matt at betweenbrain.com>>
+> Date: Fri, 17 Feb 2012 09:08:06 -0600
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+>
+> Hi Folks,
+>
+> I've recently started using the 2.2.3 ruleset with mod_security 2.5.11-1
+> (Ubuntu 10.04). I'm having an issue with with a standard Joomla 2.5.1
+> install triggering line 31 or
+> base_rules/modsecurity_crs_23_request_limits.conf "Too many arguments in
+> request". I'm using an unmodified version of
+> modsecurity_crs_10_config.conf. When I adjust max_num_args in
+> modsecurity_crs_10_config.conf, it doesn't seem to have any affect on the
+> above issue. I've tried anywhere from 1 to 400000. I am restarting Apache
+> between each change. But, if I comment out SecAction
+> "phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255" the too
+> many arguments issue is resolved.
+>
+> It appears as if the numerical changes I am making to max_num_args aren't
+> being loaded. I'm not sure. Any ideas?
+>
+> Thanks in advance!
+>
+> Best,
+>
+> Matt Thomas
+> Founder betweenbrain<http://betweenbrain.com/>?
+> Lead Developer Construct Template Development Framework<
+> http://construct-framework.com/>
+> Phone: 203.632.9322<tel:203.632.9322>
+> Twitter: @betweenbrain
+> Github: https://github.com/betweenbrain
+>
+>
+> ________________________________
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120217/8f9a9edb/attachment.html>
+
+From owasp-modsecurity-core-rule-set at lists.owasp.org  Tue Feb 21 13:23:22 2012
+From: owasp-modsecurity-core-rule-set at lists.owasp.org (owasp-modsecurity-core-rule-set at lists.owasp.org)
+Date: Tue, 21 Feb 2012 13:23:22 GMT
+Subject: [Owasp-modsecurity-core-rule-set]
+	owasp-modsecurity-core-rule-set@lists.owasp.org Nacha Alert ID34495
+Message-ID: <201202211323.q1LDNMfV001527@lists.owasp.org>
+
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120221/88c849f1/attachment.html>
+
+From RBarnett at trustwave.com  Tue Feb 21 13:44:25 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 21 Feb 2012 07:44:25 -0600
+Subject: [Owasp-modsecurity-core-rule-set]
+ owasp-modsecurity-core-rule-set@lists.owasp.org Nacha Alert ID34495
+In-Reply-To: <201202211323.q1LDNMfV001527@lists.owasp.org>
+Message-ID: <CB690992.44399%rbarnett@trustwave.com>
+
+Sorry this email came through.  It seems that someone/group is targeting OWASP mail-lists with these attacks (with EXE attachments).
+
+I will try and prevent these from coming through in the future.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+From: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Date: Tue, 21 Feb 2012 07:23:22 -0600
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org> Nacha Alert ID34495
+
+Please click the link the NACHA site and update your user account:ID4641801<http://ftp.qb9.net/e6pWeddY/iu4jFQ.exe>
+
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From achim at owasp.org  Tue Feb 21 13:54:10 2012
+From: achim at owasp.org (Achim)
+Date: Tue, 21 Feb 2012 14:54:10 +0100
+Subject: [Owasp-modsecurity-core-rule-set]
+ owasp-modsecurity-core-rule-set@lists.owasp.org Nacha Alert ID34495
+In-Reply-To: <CB690992.44399%rbarnett@trustwave.com>
+References: <CB690992.44399%rbarnett@trustwave.com>
+Message-ID: <4F43A202.1010503@owasp.org>
+
+This seems to be a general problem at lists.owasp.org.
+Do you habe a login, I guess urgent activity is required.
+
+Achim
+
+Am 21.02.2012 14:44, schrieb Ryan Barnett:
+> Sorry this email came through.  It seems that someone/group is targeting OWASP mail-lists with these attacks (with EXE attachments).
+> 
+> I will try and prevent these from coming through in the future.
+
+From matt at betweenbrain.com  Tue Feb 21 13:54:22 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Tue, 21 Feb 2012 08:54:22 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+ owasp-modsecurity-core-rule-set@lists.owasp.org Nacha Alert ID34495
+In-Reply-To: <CB690992.44399%rbarnett@trustwave.com>
+References: <201202211323.q1LDNMfV001527@lists.owasp.org>
+	<CB690992.44399%rbarnett@trustwave.com>
+Message-ID: <CAOXGsbJ9TaWq9_a9vVNA5FK+9CFikVLwCdx6+0zk_ouq9EH9sA@mail.gmail.com>
+
+No problem, thanks for your diligence!
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+
+
+
+On Tue, Feb 21, 2012 at 8:44 AM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+> Sorry this email came through.  It seems that someone/group is targeting
+> OWASP mail-lists with these attacks (with EXE attachments).
+>
+> I will try and prevent these from coming through in the future.
+>
+> --
+> Ryan Barnett
+> Trustwave SpiderLabs
+> ModSecurity Project Leader
+> OWASP ModSecurity CRS Project Leader
+>
+> From: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Date: Tue, 21 Feb 2012 07:23:22 -0600
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Subject: [Owasp-modsecurity-core-rule-set]
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org> Nacha Alert ID34495
+>
+> Please click the link the NACHA site and update your user
+> account:ID4641801<http://ftp.qb9.net/e6pWeddY/iu4jFQ.exe>
+>
+>
+>
+>
+> ________________________________
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120221/651f6bdd/attachment.html>
+
+From owasp-modsecurity-core-rule-set at lists.owasp.org  Tue Feb 21 15:51:18 2012
+From: owasp-modsecurity-core-rule-set at lists.owasp.org (owasp-modsecurity-core-rule-set at lists.owasp.org)
+Date: Tue, 21 Feb 2012 15:51:18 GMT
+Subject: [Owasp-modsecurity-core-rule-set]
+	owasp-modsecurity-core-rule-set@lists.owasp.org Nacha Alert ID75034
+Message-ID: <201202211551.q1LFpIKt016766@lists.owasp.org>
+
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120221/93dadd88/attachment.html>
+
+From matt at betweenbrain.com  Wed Feb 22 21:55:20 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Wed, 22 Feb 2012 16:55:20 -0500
+Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+In-Reply-To: <CAOXGsbLPdNGDkHUVaq530_fOyn7WP7Cqnhb9ACCbK-cWc-hhWg@mail.gmail.com>
+References: <CAOXGsbK9vtFCk1cqCqpSR7ZuD+ioSjdUa+m=hGaV_=7hVUVAKg@mail.gmail.com>
+	<CB63D94A.44086%rbarnett@trustwave.com>
+	<CAOXGsbLPdNGDkHUVaq530_fOyn7WP7Cqnhb9ACCbK-cWc-hhWg@mail.gmail.com>
+Message-ID: <CAOXGsbLUsBUQi3LkDxw7N6z2XDYMF0hkD+N6JompqorRZ_63Yw@mail.gmail.com>
+
+Hi Ryan,
+
+Is it a suitable fix to hard code a value in place of this numeric
+operator. For example:
+
+sed -i "s/%{tx.max_num_args}/255/g"
+> /base_rules/modsecurity_crs_23_request_limits.conf
+
+
+/base_rules/modsecurity_crs_23_request_limits.conf is the only place I see
+it being used.
+
+Thanks!
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+
+
+
+On Fri, Feb 17, 2012 at 3:03 PM, Matt Thomas <matt at betweenbrain.com> wrote:
+
+> Hi Ryan,
+>
+> Thanks! I was afraid that might be the root cause, but great to know where
+> to focus my efforts.
+>
+> Best,
+>
+> Matt Thomas
+> Founder betweenbrain <http://betweenbrain.com/>?
+> Lead Developer Construct Template Development Framework<http://construct-framework.com/>
+> Phone: 203.632.9322
+> Twitter: @betweenbrain
+> Github: https://github.com/betweenbrain
+>
+>
+>
+> On Fri, Feb 17, 2012 at 10:16 AM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+>
+>> Hey Matt,
+>> You need to be running at least mod_security v2.5.12 to get the macro
+>> support for numeric operators.
+>>
+>> --
+>> Ryan Barnett
+>> Trustwave SpiderLabs
+>> ModSecurity Project Leader
+>> OWASP ModSecurity CRS Project Leader
+>>
+>> From: Matt Thomas <matt at betweenbrain.com<mailto:matt at betweenbrain.com>>
+>> Date: Fri, 17 Feb 2012 09:08:06 -0600
+>> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+>> Subject: [Owasp-modsecurity-core-rule-set] tx.max_num_args issue
+>>
+>> Hi Folks,
+>>
+>> I've recently started using the 2.2.3 ruleset with mod_security 2.5.11-1
+>> (Ubuntu 10.04). I'm having an issue with with a standard Joomla 2.5.1
+>> install triggering line 31 or
+>> base_rules/modsecurity_crs_23_request_limits.conf "Too many arguments in
+>> request". I'm using an unmodified version of
+>> modsecurity_crs_10_config.conf. When I adjust max_num_args in
+>> modsecurity_crs_10_config.conf, it doesn't seem to have any affect on the
+>> above issue. I've tried anywhere from 1 to 400000. I am restarting Apache
+>> between each change. But, if I comment out SecAction
+>> "phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255" the too
+>> many arguments issue is resolved.
+>>
+>> It appears as if the numerical changes I am making to max_num_args aren't
+>> being loaded. I'm not sure. Any ideas?
+>>
+>> Thanks in advance!
+>>
+>> Best,
+>>
+>> Matt Thomas
+>> Founder betweenbrain<http://betweenbrain.com/>?
+>> Lead Developer Construct Template Development Framework<
+>> http://construct-framework.com/>
+>> Phone: 203.632.9322<tel:203.632.9322>
+>> Twitter: @betweenbrain
+>> Github: https://github.com/betweenbrain
+>>
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you
+>> are not the intended recipient, you are hereby notified that any
+>> disclosure, copying, distribution, or use of the information contained
+>> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+>> received this transmission in error, please immediately contact the sender
+>> and destroy the material in its entirety, whether in electronic or hard
+>> copy format.
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120222/9281a0e5/attachment.html>
+
+From RBarnett at trustwave.com  Mon Feb 27 17:33:10 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 27 Feb 2012 11:33:10 -0600
+Subject: [Owasp-modsecurity-core-rule-set] OWASP Web Application Virtual
+	Patching Survey
+In-Reply-To: <CB5EE623.43602%rbarnett@trustwave.com>
+Message-ID: <CB712841.44974%rbarnett@trustwave.com>
+
+Just a reminder ? if you are using ModSecurity for virtual patching, please take a few minutes and complete our survey - https://www.surveymonkey.com/s/76YQH5J
+
+Thanks.
+
+--
+Ryan Barnett
+
+From: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>
+Date: Mon, 13 Feb 2012 15:09:07 -0600
+To: "mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>" <mod-security-users at lists.sourceforge.net<mailto:mod-security-users at lists.sourceforge.net>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: OWASP Web Application Virtual Patching Survey
+
+As I know that most of you use ModSecurity for virtual patching of web vulnerabilities, I wanted to pass this on to you all.
+
+Does your organization use virtual patching? If so, please fill out the "OWASP Web Application Virtual Patching Survey" http://svy.mk/y7y2FE<http://www.linkedin.com/redirect?url=http%3A%2F%2Fsvy%2Emk%2Fy7y2FE&urlhash=LlFj&_t=tracking_anet>
+
+
+It is only 10 questions and that data will help us to develop both the Best Practices and Cheat Sheet documents. You could also win a free spot in the OWASP AppSecDC Virtual Patching Workshop -https://www.owasp.org/index.php/OWASP_AppSec_DC_2012/Training/Virtual_Patching_Workshop<http://www.linkedin.com/redirect?url=https%3A%2F%2Fwww%2Eowasp%2Eorg%2Findex%2Ephp%2FOWASP_AppSec_DC_2012%2FTraining%2FVirtual_Patching_Workshop&urlhash=kNRz&_t=tracking_anet>
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120227/27d8d6c1/attachment.html>
+
+From RBarnett at trustwave.com  Mon Feb 27 17:42:41 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 27 Feb 2012 11:42:41 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Summer Internship at Mozilla -
+	ModSecurity
+Message-ID: <CB712AC1.449A4%rbarnett@trustwave.com>
+
+If any students are interested, or if you know of any students, Mozilla is seeking a security engineer internship this summer - http://careers.mozilla.org/en-US/position/o7lWVfw3
+
+As part of this work, they are looking to install/configure ModSecurity within their infrastructure.  Sounds like a pretty cool gig.
+
+Pass it on.
+
+--
+Ryan Barnett
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120227/47749634/attachment.html>
+
+From godadada at yahoo.com  Tue Feb 28 18:24:16 2012
+From: godadada at yahoo.com (Chunde Shi)
+Date: Tue, 28 Feb 2012 10:24:16 -0800 (PST)
+Subject: [Owasp-modsecurity-core-rule-set] How Mature is CRS?
+Message-ID: <1330453456.18029.YahooMailClassic@web111718.mail.gq1.yahoo.com>
+
+Hello,
+?
+??? Thanks in advance for your input.
+???? I would like to have some confidence?in the maturity of CRS.
+???? I used it for one company 6 month ago. My impression was although the concept is great, potentially?could save a lot of money given expensive alternatives. but CRS had some way to go to become mature.
+?
+???? I am about to help another company implement CRS again, would like to know current state of CRS. Any references or document can tell?
+?
+Regards,
+Chunde
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120228/cc491e19/attachment.html>
+
+From matt at betweenbrain.com  Wed Feb 29 18:23:19 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Wed, 29 Feb 2012 13:23:19 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Creating Rule Exception
+Message-ID: <CAOXGsbLv05O6sW9QoHrX=_3kALOf_NSzjsW7ZL05sA42No9hkA@mail.gmail.com>
+
+Hi Everyone,
+
+I'm having a hard time creating an exception for a false positive and was
+hoping an expert eye might catch my mistake. I have a Joomla site that uses
+Ajax to register users. It is triggering a false positive for rule #981244
+in modsecurity_crs_41_sql_injection_attacks.conf
+
+The issue seems to be that the data for the email argument sometimes
+contains "between", which is explicitly defined in this rule as an
+injection. Is there a way to create an exception for an argument that
+contains certain data? Maybe !ARGS:email="^between$"
+
+http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+has
+a great example on how to do this for the email argument, but cloning rule
+#981244 to my modsecurity_crs_15_custom.conf and adding |!ARGS:email
+doesn't seem to be work due "between" explicitly being defined.
+
+This is with an Ubuntu 10.04 install, with ModSecurity 2.5.11-1
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120229/5a762161/attachment.html>
+
+From matt at betweenbrain.com  Wed Feb 29 18:28:56 2012
+From: matt at betweenbrain.com (Matt Thomas)
+Date: Wed, 29 Feb 2012 13:28:56 -0500
+Subject: [Owasp-modsecurity-core-rule-set] IP White-list Best Practice
+Message-ID: <CAOXGsbKN6ma-g-F2RgE8yPU1QuaSEDvwm+ZZ6976FULrTbCLdQ@mail.gmail.com>
+
+Hi Folks,
+
+I was wondering what the best method for white-listing an IP is? In this
+case, I need to allow PayPal's IPN to be exempt.
+
+At http://permalink.gmane.org/gmane.comp.apache.mod-security.user/8735 I
+see a couple of methods mentioned:
+
+SecRule REMOTE_ADDR "@streq 127.0.0.1" "phase:1,t:none,nolog,pass"
+> SecRule REMOTE_ADDE "@streq 192.168.10.1"
+> "phase:1,ctl:ruleEngine=Off,msg:'Turning off rule-engine for IP
+> %{REMOTE_ADDR}'"
+
+
+Is using "pass" better than "ctl:ruleEngine=Off". I also see "allow" being
+used at http://serversitters.com/mod-security-whitelist-ip.html
+
+Thanks!
+
+Best,
+
+Matt Thomas
+Founder betweenbrain <http://betweenbrain.com/>?
+Lead Developer Construct Template Development
+Framework<http://construct-framework.com/>
+Phone: 203.632.9322
+Twitter: @betweenbrain
+Github: https://github.com/betweenbrain
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120229/6c8aafde/attachment.html>
+

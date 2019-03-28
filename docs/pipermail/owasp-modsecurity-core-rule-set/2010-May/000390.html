@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] @within in crs_30 and similar	(restricted extensions)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%40within%20in%20crs_30%20and%20similar%0A%09%28restricted%20extensions%29&In-Reply-To=003b01cafc53%241c0364b0%24540a2e10%24%40com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000389.html">
+   <LINK REL="Next"  HREF="000391.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar	(restricted extensions)</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%40within%20in%20crs_30%20and%20similar%0A%09%28restricted%20extensions%29&In-Reply-To=003b01cafc53%241c0364b0%24540a2e10%24%40com"
+       TITLE="[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar	(restricted extensions)">ryan.barnett at breach.com
+       </A><BR>
+    <I>Tue May 25 18:20:12 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000389.html">[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar	(restricted extensions)
+</A></li>
+        <LI>Next message: <A HREF="000391.html">[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar (restricted extensions)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#390">[ date ]</a>
+              <a href="thread.html#390">[ thread ]</a>
+              <a href="subject.html#390">[ subject ]</a>
+              <a href="author.html#390">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tuesday 25 May 2010 17:41:55 <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">modsec at enosis.com</A> wrote:
+&gt;<i> James:
+</I>&gt;<i> 
+</I>&gt;<i> I suspect your problem is related to the earlier-reported
+</I>&gt;<i> REQUEST_HEADERS_NAMES problem in
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2010-Apr">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2010-Apr</A>
+</I>&gt;<i> il/000357.html&gt;
+</I>&gt;<i> 
+</I>&gt;<i> The @within operator is misnamed for modsec's semantics.
+</I>&gt;<i> Or the documentation could be clearer. Or both.
+</I>&gt;<i> 
+</I>&gt;<i> @within is (essentially) a simple linear string search:
+</I>&gt;<i> your argument &quot;.do&quot; was found in &quot;foo .dos bar&quot; IOW, the
+</I>&gt;<i> operation is what is more usually called &quot;string match&quot;.
+</I>&gt;<i> Perhaps it should be called &quot;@sm&quot;.
+</I>&gt;<i> 
+</I>Yeah, we had some internal debates about naming operators.  The thought was that the 
+average Mod user was not necessarily a developer/programmer so they might not understand 
+some of these terms.  That is why we tried to name them in an easier (albeit not quite as 
+accurate as you have pointed out) name.
+
+&gt;<i> Because modsec provides &quot;set&quot; semantics (&quot;Collections&quot;) and
+</I>&gt;<i> the appearance of tokenized input (such as your space-delimited
+</I>&gt;<i> %{tx.restricted.extensions} it's sensible for you (and by
+</I>&gt;<i> the evidence, the crs authors) to believe that @within will
+</I>&gt;<i> understand the context and magically switch between strings
+</I>&gt;<i> and tokens. Maybe it c/should in some cases.
+</I>&gt;<i> 
+</I>&gt;<i> An operator like @containsWord does match on locale alphanum_
+</I>&gt;<i> tokens, but on the reverse of match and target for the rule
+</I>&gt;<i> variable and operator argument.
+</I>&gt;<i> 
+</I>&gt;<i> @within is not, however, token based. So crs_30 rules like
+</I>&gt;<i> 960035 and 960038 will unexpectedly match even when the
+</I>&gt;<i> operation appears 'obviously' token-based. (e.g., on 960038,
+</I>&gt;<i> the ordinary and acceptable &quot;Connection&quot; header will be found
+</I>&gt;<i> @within &quot;Proxy-Connection ...&quot;).
+</I>&gt;<i> 
+</I>&gt;<i> One might think @pm would be a workable substitute for the
+</I>&gt;<i> rule 960038 case, but @pm apparently doesn't perform %{macro}
+</I>&gt;<i> substitution for its entire argument (@2.5.12). In the case
+</I>&gt;<i> of this rule, tho, the simple workaround is to use @pm and
+</I>&gt;<i> just put the restricted headers list directly into the rule.
+</I>&gt;<i> 
+</I>&gt;<i> But in your case, with the longer list for rule 960035, @pm is
+</I>&gt;<i> out. As a workaround, perhaps use @pmFromFile. Just move the
+</I>&gt;<i> list to a one-per-line file of your making.
+</I>
+I just updated the source templates for v2.0.7 and I opted to use boundary characters 
+(/.../) when specifying the TX variables and then including them when we do the checks 
+later.  It is a similar concept to what Brian documented for @pmFromFile and IP addresses 
+where you want to avoid partial matches - 
+<A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-</A>
+reference.html#N11D9B
+
+&gt;<i> 
+</I>&gt;<i> Let us know, please.
+</I>&gt;<i> 
+</I>&gt;<i> --Nick
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Date: Tue, 25 May 2010 11:25:47 -0400
+</I>&gt;<i> &gt; From: James Muse &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jfmtopnettlc at gmail.com</A>&gt;
+</I>&gt;<i> &gt; Subject: [Owasp-modsecurity-core-rule-set] restricted extensions
+</I>&gt;<i> &gt; To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Message-ID:
+</I>&gt;<i> &gt; 	&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">AANLkTinrJIIQl9xGXL9jlrdSbxvJZv693oshxbzS2n-r at mail.gmail.com</A>&gt;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Content-Type: text/plain; charset=&quot;iso-8859-1&quot;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Moderator,
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; I am having an issue with the restricted_extensions variable and core
+</I>&gt;<i> &gt; rule file modsecurity_crs_30_http_policy.conf line 87.  One of my
+</I>&gt;<i> &gt; applications uses the file extension .do and there appears to be a .dos
+</I>&gt;<i> &gt; in the restricted extensions list.. The audit log shows the extension as
+</I>&gt;<i> &gt; [data &quot;.do&quot;]  do is not in the restricted_extension list .dos is.  When
+</I>&gt;<i> &gt; I remove .dos from the restricted extensions I no longer have this
+</I>&gt;<i> &gt; issue.  May be I don't understand the within operator but do is no the
+</I>&gt;<i> &gt; same as dos.  Is there a bug here or am I doing something wrong?  I
+</I>&gt;<i> &gt; think I would like to keep dos and an extension I would like to block
+</I>&gt;<i> &gt; but it appears to be causing and issue with my application which uses
+</I>&gt;<i> &gt; .do
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; James
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100525/88e4e5b2/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100525/88e4e5b2/attachment-0001.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000389.html">[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar	(restricted extensions)
+</A></li>
+	<LI>Next message: <A HREF="000391.html">[Owasp-modsecurity-core-rule-set] @within in crs_30 and similar (restricted extensions)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#390">[ date ]</a>
+              <a href="thread.html#390">[ thread ]</a>
+              <a href="subject.html#390">[ subject ]</a>
+              <a href="author.html#390">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

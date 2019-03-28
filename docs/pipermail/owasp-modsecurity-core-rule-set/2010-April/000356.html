@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ModSec%20%2B%20Squid%20/%20SquidGuard&In-Reply-To=2A07B9DB-934D-4218-852E-49007D033A82%40jwall.org">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000355.html">
+   <LINK REL="Next"  HREF="000357.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard</H1>
+    <B>Arthur Dent</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20ModSec%20%2B%20Squid%20/%20SquidGuard&In-Reply-To=2A07B9DB-934D-4218-852E-49007D033A82%40jwall.org"
+       TITLE="[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard">misc.lists at blueyonder.co.uk
+       </A><BR>
+    <I>Wed Apr  7 10:28:32 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000355.html">[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+</A></li>
+        <LI>Next message: <A HREF="000357.html">[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#356">[ date ]</a>
+              <a href="thread.html#356">[ thread ]</a>
+              <a href="subject.html#356">[ subject ]</a>
+              <a href="author.html#356">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wed, 2010-04-07 at 15:32 +0200, Christian Bockermann wrote:
+&gt;<i> Am 07.04.2010 um 15:19 schrieb Arthur Dent:
+</I>&gt;<i> &gt;&gt; Given the scenario you mentioned above (and assuming your kids are &quot;normal&quot;
+</I>&gt;<i> &gt;&gt; kids in contrast to &quot;script-kiddies&quot; ;-)), the most simple way out would be
+</I>&gt;<i> &gt;&gt; to exclude the squidguard-cgi from ModSec:
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt;    SecRule REQUEST_URI &quot;^/cgi-bin/squidGuard.cgi&quot; &quot;phase:1,pass,nolog,ctl:ruleEngine=off,chain&quot;
+</I>&gt;<i> &gt;&gt;    SecRule REMOTE_ADDR &quot;^192\.168\.2\.\d+&quot;
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; This should completely switch off the ModSec rule-engine for requests to
+</I>&gt;<i> &gt;&gt; &quot;/cgi-bin/squidGuard.cgi&quot; for clients from the local network. (Not tested.)
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; Regards,
+</I>&gt;<i> &gt;&gt;   Chris
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Hi Chris, Thank (again!) for this.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; A couple of questions:
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 1) Where would be a good place to put this rule -
+</I>&gt;<i> &gt; in /etc/httpd/modsecurity.d/modsecurity_localrules.conf or
+</I>&gt;<i> &gt; in /etc/httpd/modsecurity.d/base_rules/modsecurity_crs_48_local_exceptions.conf ?
+</I>&gt;<i> 
+</I>&gt;<i> Depends on how you include the core-rules into your Apache config. The rules should
+</I>&gt;<i> be placed in front of all the other rules (but after the global config, to be safe).
+</I>&gt;<i> I'd create the rules in
+</I>&gt;<i> 
+</I>&gt;<i>     /etc/httpd/modsecurity.d/base_rules/modsecurity_crs_01_localrules.conf
+</I>&gt;<i> 
+</I>&gt;<i> This should be sufficient to have them included before all the others.
+</I>
+
+Thanks! - That seems to have done the trick! At least so far. I will
+keep monitoring and see what happens, but for now - Thank you!
+
+&gt;<i> 
+</I>&gt;<i> &gt; 2) 192.168.2.2 is the web server and the squid server on the network so
+</I>&gt;<i> &gt; is it OK to...
+</I>&gt;<i> &gt; Ahh no, wait, now I get it... So your rule says that if anything is
+</I>&gt;<i> &gt; asking for (starting with) cgi-bin/squidGuard.cgi AND comes from within
+</I>&gt;<i> &gt; 192.168.2.0/24 then allow it through and don't log it. Is that right?
+</I>&gt;<i> 
+</I>&gt;<i> Yes, that's at least the intention :-) 
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i>    Chris
+</I>-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 197 bytes
+Desc: This is a digitally signed message part
+Url : <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100407/b2d566fa/attachment.bin">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100407/b2d566fa/attachment.bin</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000355.html">[Owasp-modsecurity-core-rule-set] ModSec + Squid / SquidGuard
+</A></li>
+	<LI>Next message: <A HREF="000357.html">[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#356">[ date ]</a>
+              <a href="thread.html#356">[ thread ]</a>
+              <a href="subject.html#356">[ subject ]</a>
+              <a href="author.html#356">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

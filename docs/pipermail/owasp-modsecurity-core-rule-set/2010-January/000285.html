@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20RBL%20Lookup%20File%20-%20ip.pag%20help%21&In-Reply-To=201001251109.20347.ryan.barnett%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000284.html">
+   <LINK REL="Next"  HREF="000286.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!</H1>
+    <B>OSSEC junkie</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20RBL%20Lookup%20File%20-%20ip.pag%20help%21&In-Reply-To=201001251109.20347.ryan.barnett%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!">ossec.junkie at gmail.com
+       </A><BR>
+    <I>Mon Jan 25 11:14:30 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000284.html">[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+</A></li>
+        <LI>Next message: <A HREF="000286.html">[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#285">[ date ]</a>
+              <a href="thread.html#285">[ thread ]</a>
+              <a href="subject.html#285">[ subject ]</a>
+              <a href="author.html#285">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Here is the ruleset below:
+SecRule IP:PREVIOUS_RBL_CHECK &quot;@eq 1&quot;
+&quot;phase:1,t:none,pass,nolog,skipAfter:END_RBL_LOOKUP&quot;
+
+  SecRule REMOTE_ADDR &quot;@rbl sbl-xbl.spamhaus.org&quot;
+&quot;phase:1,t:none,log,auditlog,msg:'RBL Match for SPAM
+Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule
+.msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var},setvar:ip.s
+pammer=1,expirevar:ip.spammer=86400,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400,skipAfter:END_RBL_CHECK&quot;
+
+  SecAction &quot;phase:1.t:none,nolog,pass,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400&quot;
+
+SecMarker END_RBL_LOOKUP
+
+  SecRule IP:SPAMMER &quot;@eq 1&quot; &quot;phase:1,t:none,log,auditlog,msg:'Request
+from Known SPAM Source (Previous
+RBLMatch)',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{
+rule.msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}&quot;
+
+SecMarker END_RBL_CHECK
+
+
+On Mon, Jan 25, 2010 at 8:09 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at breach.com</A>&gt; wrote:
+&gt;<i> On Monday 25 January 2010 11:05:31 am OSSEC junkie wrote:
+</I>&gt;&gt;<i> All:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am using the RBL lookup and the ip.pag file is huge. &#160;I thought this
+</I>&gt;&gt;<i> would be recycled nightly but I guess not. &#160;Any ideas or insight on
+</I>&gt;&gt;<i> how to shrink would be great. &#160;I could script the file to be deleted
+</I>&gt;&gt;<i> nightly but just wanted to make sure there isn't something I need to
+</I>&gt;&gt;<i> be doing but am not..
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Please send the exact RBL rule(s) you are using. &#160;More than likely, you will need to use
+</I>&gt;<i> some expirevar actions to clear these out more frequently.
+</I>&gt;<i>
+</I>&gt;<i> -Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000284.html">[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+</A></li>
+	<LI>Next message: <A HREF="000286.html">[Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#285">[ date ]</a>
+              <a href="thread.html#285">[ thread ]</a>
+              <a href="subject.html#285">[ subject ]</a>
+              <a href="author.html#285">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

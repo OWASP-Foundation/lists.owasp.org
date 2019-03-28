@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-cheat-sheets] OWASP ReST Security Cheat Sheet
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20OWASP%20ReST%20Security%20Cheat%20Sheet&In-Reply-To=%3CCADFnxGfsKzzTf_sP-qRPDkcw0XzQDFYqraaysGKrTi86Zn%3Dv%2Bg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-cheat-sheets] OWASP ReST Security Cheat Sheet</H1>
+    <B>Johan Peeters</B> 
+    <A HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20OWASP%20ReST%20Security%20Cheat%20Sheet&In-Reply-To=%3CCADFnxGfsKzzTf_sP-qRPDkcw0XzQDFYqraaysGKrTi86Zn%3Dv%2Bg%40mail.gmail.com%3E"
+       TITLE="[OWASP-cheat-sheets] OWASP ReST Security Cheat Sheet">yo at johanpeeters.com
+       </A><BR>
+    <I>Wed May  2 09:42:50 UTC 2018</I>
+    <P><UL>
+        
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#165">[ date ]</a>
+              <a href="thread.html#165">[ thread ]</a>
+              <a href="subject.html#165">[ subject ]</a>
+              <a href="author.html#165">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As there seems consensus on Jan and Pablo's proposals, I have updated the
+cheat sheet accordingly.
+
+thanks for your contribution,
+
+Yo
+
+On 26 April 2018 at 16:41, Pablo Lalloni &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">plalloni at afip.gob.ar</A>&gt; wrote:
+
+&gt;<i> I'm sorry I forgot to add Jan's proposal of warning in the table:
+</I>&gt;<i>
+</I>&gt;<i> &quot;Be aware that the response should not reveal internal information that
+</I>&gt;<i> helps an attacker, e.g. detailed error messages or stack traces. &quot;
+</I>&gt;<i>
+</I>&gt;<i> I agree it should be added somewhere. It will help sec teams and dev teams
+</I>&gt;<i> to do the right things.
+</I>&gt;<i>
+</I>&gt;<i> El 26/04/18 a las 11:35, Pablo Lalloni escribi&#243;:
+</I>&gt;<i>
+</I>&gt;<i> Hello again, it's great to hear from you.
+</I>&gt;<i>
+</I>&gt;<i> Thanks to all for your atention on this issue!
+</I>&gt;<i> Let me update the situation a little: we made half a dozen different
+</I>&gt;<i> proposals to the security team for solving the issue, finally they are
+</I>&gt;<i> &quot;checking&quot; if they &quot;can&quot; allow responses with non-standard http code 555 to
+</I>&gt;<i> pass through unmodified. Which we don't prefer because it's not a standard
+</I>&gt;<i> status code and all apps will have to be modified as well as all clients,
+</I>&gt;<i> not to mention the possible problems we could find on how all http
+</I>&gt;<i> intermediaries will handle that responses.
+</I>&gt;<i>
+</I>&gt;<i> There's also the requirement of being able to pass some globally unique
+</I>&gt;<i> error id in the 5xx response body so clients can show it to the user who
+</I>&gt;<i> can then call helpdesk and provide that error id for diagnostics.
+</I>&gt;<i>
+</I>&gt;<i> A little better option we offered was to ask server apps to add a custom
+</I>&gt;<i> header like &quot;X-Error-Identifier: &lt;error-id&gt;&quot; to indicate to downstream http
+</I>&gt;<i> intermediaries the error is emitted in a secure &amp; controlled manner so WAF
+</I>&gt;<i> can let it pass through unmodified trusting the original server did the
+</I>&gt;<i> right thing. If you like this proposal, please consider recomending it on
+</I>&gt;<i> the wiki as a reasonable approach.
+</I>&gt;<i>
+</I>&gt;<i> Anyway, I believe we agree on that 5xx responses should be allowed to pass
+</I>&gt;<i> through unmodified for both REST services and for well-behaved ajax-based
+</I>&gt;<i> webapps. Maybe this can stated in the wiki so devs can demand security
+</I>&gt;<i> teams to have a specific profiles for this cases (for example, in F5 ASM,
+</I>&gt;<i> specific templates could be added for this cases instead of using the
+</I>&gt;<i> generic webapp template which behaves as described in my first email).
+</I>&gt;<i>
+</I>&gt;<i> Not including the above matters (still to be resolved), let me propose to
+</I>&gt;<i> modify the wiki page, with this changes:
+</I>&gt;<i>
+</I>&gt;<i> In the section &quot;HTTP Return Code&quot;, change the first two paragraphs to:
+</I>&gt;<i>
+</I>&gt;<i> HTTP defines status code [1]
+</I>&gt;<i> &lt;<A HREF="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">https://en.wikipedia.org/wiki/List_of_HTTP_status_codes</A>&gt;. When designing
+</I>&gt;<i> REST API, don't just use 200 for success or 404 for error. Use any
+</I>&gt;<i> semantically appropriate status code for the response.
+</I>&gt;<i>
+</I>&gt;<i> Here is a non-exhaustive selection of security related REST API status
+</I>&gt;<i> codes. Use it as a sample of the return codes you can use.
+</I>&gt;<i>
+</I>&gt;<i> In the same section, add the following rows to the table of recommended
+</I>&gt;<i> status codes:
+</I>&gt;<i> Status code Message Description
+</I>&gt;<i> 500 Internal server error
+</I>&gt;<i> An error has ocurred during REST service request processing
+</I>&gt;<i> It's used to inform about the problem in the response
+</I>&gt;<i> 501 Not implemented
+</I>&gt;<i> The REST service does not implement the requested operation yet
+</I>&gt;<i> 503
+</I>&gt;<i> Service unavailable
+</I>&gt;<i> The REST service is temporarily unable to process the request
+</I>&gt;<i> It's used to inform the client it should retry at a later time
+</I>&gt;<i>
+</I>&gt;<i> Please excuse me for this quite long answer.
+</I>&gt;<i>
+</I>&gt;<i> Thanks for your time.
+</I>&gt;<i>
+</I>&gt;<i> El 25/04/18 a las 13:02, Johan Peeters escribi&#243;:
+</I>&gt;<i>
+</I>&gt;<i> I agree with Jan&#8217;s proposal.
+</I>&gt;<i>
+</I>&gt;<i> On Wed, 25 Apr 2018 at 17:56 Erlend Oftedal &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">erlend.oftedal at owasp.org</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Looks good, Jan. Would this help you, Pablo?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Wed, 25 Apr 2018 at 17:53, Jan Wolff &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jan.wolff at owasp.org</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi Pablo, Hi Erlend, Hi Yo, Hi Rocco,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I agree with Erlend, and I believe his second approach to strip the body
+</I>&gt;&gt;&gt;<i> would be a good compromise for the scenario you described.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> A typical reason for filtering 500 responses in general is information
+</I>&gt;&gt;&gt;<i> leakage, e.g. error messages in HTML from the database that ease SQL
+</I>&gt;&gt;&gt;<i> injection. But a even a plain 500 status code indicates that some kind of
+</I>&gt;&gt;&gt;<i> error condition was triggered on the server side and can be used as an
+</I>&gt;&gt;&gt;<i> oracle in some attacks. In my opinion, changing the status code to 200 and
+</I>&gt;&gt;&gt;<i> a standard page does not really solve that problem since the error
+</I>&gt;&gt;&gt;<i> condition can still be detected by looking for the standard error page and
+</I>&gt;&gt;&gt;<i> probably by looking at the request timing.
+</I>&gt;&gt;&gt;<i> I believe, omitting the 500 status code in the table in the cheatsheet
+</I>&gt;&gt;&gt;<i> was not on purpose. The table was intended to list especially security
+</I>&gt;&gt;&gt;<i> related status codes, and it seems we did not discuss the 5xx codes.
+</I>&gt;&gt;&gt;<i> In some situations, a 500 code can indicate bugs that should be fixed by
+</I>&gt;&gt;&gt;<i> better input validation and a 4xx response. But there are valid reasons for
+</I>&gt;&gt;&gt;<i> 500 status codes, essentially the 5xx means: &quot;Your request was ok, but I
+</I>&gt;&gt;&gt;<i> can't handle it.&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I propose to add the following line to the table:
+</I>&gt;&gt;&gt;<i> &quot;500 | Internal Server Error | An unexpected condition prevented the
+</I>&gt;&gt;&gt;<i> server from fulfilling the request. Be aware that the response should not
+</I>&gt;&gt;&gt;<i> reveal internal information that helps an attacker, e.g. detailed error
+</I>&gt;&gt;&gt;<i> messages or stack traces. &quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> What do you think? Does that improve the cheat sheet? Does it reduce the
+</I>&gt;&gt;&gt;<i> risk of misinterpreting the table?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Best
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Jan
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Am 25.04.2018 um 15:56 schrieb Erlend Oftedal:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi Pablo,
+</I>&gt;&gt;&gt;<i> Sorry for not responding sooner. I think you should raise this in the
+</I>&gt;&gt;&gt;<i> OWASP Slack, possibly in the #cheatsheets channel or #appsec channel
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> To address your question: The normal approach for a WAF makes sense, as
+</I>&gt;&gt;&gt;<i> a lot of applications still issue stack traces etc. in their response.
+</I>&gt;&gt;&gt;<i> For a well written REST service this concern is likely not valid. I
+</I>&gt;&gt;&gt;<i> currently see three options:
+</I>&gt;&gt;&gt;<i> Allow 5xx codes with body
+</I>&gt;&gt;&gt;<i> Allow 5xx codes but scrub body
+</I>&gt;&gt;&gt;<i> Their current approach.
+</I>&gt;&gt;&gt;<i> Would they also appose to the second approach?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The OWASP wiki is open for everyone to edit, but I understand that it
+</I>&gt;&gt;&gt;<i> would look weird if you added this yourself and then went to the security
+</I>&gt;&gt;&gt;<i> team to request a change.
+</I>&gt;&gt;&gt;<i> If you want, you can suggest a text on email, then I can review it and
+</I>&gt;&gt;&gt;<i> add it to the page (as long as I agree with it of course).
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Best regards,
+</I>&gt;&gt;&gt;<i> Erlend
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On 25 April 2018 at 15:39, Pablo Lalloni &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">plalloni at afip.gob.ar</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Hello again,
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Can you please tell me where would be the right place to have this
+</I>&gt;&gt;&gt;&gt;<i> conversation?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Thanks.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> El 11/04/18 a las 20:17, Pablo Lalloni escribi&#243;:
+</I>&gt;&gt;&gt;&gt;<i> &gt; Hola,
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; How are you? I hope you are doing well.
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; My name is Pablo Lalloni and I write from the IT Architecture
+</I>&gt;&gt;&gt;&gt;<i> &gt; Department of AFIP (1).
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; I'm not sure if this is the right channel for having this
+</I>&gt;&gt;&gt;&gt;<i> conversation.
+</I>&gt;&gt;&gt;&gt;<i> &gt; If that's not the case please forgive me and point me to the right
+</I>&gt;&gt;&gt;&gt;<i> &gt; place. I'm writing directly to your email addresses just because we've
+</I>&gt;&gt;&gt;&gt;<i> &gt; found them on (2).
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; Now to the points:
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; We are currently having a discussion about HTTP response filtering at
+</I>&gt;&gt;&gt;&gt;<i> &gt; the WAF layer (traditionally has been in force across all
+</I>&gt;&gt;&gt;&gt;<i> organization's
+</I>&gt;&gt;&gt;&gt;<i> &gt; web applications) for ReST services and particularly for &quot;modern&quot; web
+</I>&gt;&gt;&gt;&gt;<i> &gt; applications which act both as web app and web service.
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; Currently WAF transforms all http responses with status code in the
+</I>&gt;&gt;&gt;&gt;<i> 500
+</I>&gt;&gt;&gt;&gt;<i> &gt; family, changing the status code to 200 and the content to some
+</I>&gt;&gt;&gt;&gt;<i> &gt; opinionated &quot;nothing&quot;. Of course the clients break miserably on this
+</I>&gt;&gt;&gt;&gt;<i> &gt; unexpected response, so we are asking the security team to allow such
+</I>&gt;&gt;&gt;&gt;<i> &gt; http status codes without tampering with the responses (of course
+</I>&gt;&gt;&gt;&gt;<i> &gt; service implementations should ensure no sensitive details are exposed
+</I>&gt;&gt;&gt;&gt;<i> &gt; in 5xx responses, but clients need to know there was a 500!).
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; At this point they refer us to some OWASP recommendations (about web
+</I>&gt;&gt;&gt;&gt;<i> &gt; applications in general) which say that webapps should avoid issuing
+</I>&gt;&gt;&gt;&gt;<i> &gt; http 5xx status codes completely. Then we cite &quot;OWASP ReST Security
+</I>&gt;&gt;&gt;&gt;<i> &gt; Cheat Sheet&quot; (2) which states that ReST services should use the
+</I>&gt;&gt;&gt;&gt;<i> &gt; semantically correct http status code (on which we agree completely),
+</I>&gt;&gt;&gt;&gt;<i> &gt; including the 5xx family. Then we found in that document (2) the table
+</I>&gt;&gt;&gt;&gt;<i> &gt; of example http status codes to be used fail to list any of the 5xx
+</I>&gt;&gt;&gt;&gt;<i> &gt; family, perhaps allowing the reader to interpret that such family
+</I>&gt;&gt;&gt;&gt;<i> &gt; should not be used.
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; So our specific questions are:
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; Is OWASP recommending to avoid http 5xx status codes in ReST
+</I>&gt;&gt;&gt;&gt;<i> responses?
+</I>&gt;&gt;&gt;&gt;<i> &gt; If that's not the case, then could OWASP consider being more explicit
+</I>&gt;&gt;&gt;&gt;<i> &gt; about that in (2) by listing as valid response status codes some of
+</I>&gt;&gt;&gt;&gt;<i> &gt; the 5xx family?
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; Saludos.
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt; Links
+</I>&gt;&gt;&gt;&gt;<i> &gt; 1) <A HREF="https://www.afip.gob.ar">https://www.afip.gob.ar</A>
+</I>&gt;&gt;&gt;&gt;<i> &gt; 2) <A HREF="https://www.owasp.org/index.php/REST_Security_Cheat_Sheet">https://www.owasp.org/index.php/REST_Security_Cheat_Sheet</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;<i> Johan Peeters
+</I>&gt;<i> <A HREF="https://www.johanpeeters.com">https://www.johanpeeters.com</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Johan Peeters
+<A HREF="https://www.johanpeeters.com">https://www.johanpeeters.com</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180502/3251e94c/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20180502/3251e94c/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#165">[ date ]</a>
+              <a href="thread.html#165">[ thread ]</a>
+              <a href="subject.html#165">[ subject ]</a>
+              <a href="author.html#165">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">More information about the OWASP-cheat-sheets
+mailing list</a><br>
+</body></html>

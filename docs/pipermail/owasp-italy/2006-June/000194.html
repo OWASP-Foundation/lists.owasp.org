@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-italy] Blind SQL Injection e falsi positivi
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20Blind%20SQL%20Injection%20e%20falsi%20positivi&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000193.html">
+   <LINK REL="Next"  HREF="000195.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-italy] Blind SQL Injection e falsi positivi</H1>
+    <B>Luca Terenziani</B> 
+    <A HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20Blind%20SQL%20Injection%20e%20falsi%20positivi&In-Reply-To="
+       TITLE="[Owasp-italy] Blind SQL Injection e falsi positivi">lterenz at gmail.com
+       </A><BR>
+    <I>Thu Jun 22 13:25:21 EDT 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000193.html">[Owasp-italy] Paper su SQL Injection and Inference on PHP/MySQL
+</A></li>
+        <LI>Next message: <A HREF="000195.html">[Owasp-italy] Blind SQL Injection e falsi positivi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#194">[ date ]</a>
+              <a href="thread.html#194">[ thread ]</a>
+              <a href="subject.html#194">[ subject ]</a>
+              <a href="author.html#194">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ciao a tutti,
+
+da un po` di tempo sto` &quot;programmando&quot; un tool per Blind SQL InjectionS.
+
+Ora la domanda che vi pongo e` la seguente:
+
+supponiamo che voglia testare la Blind SQL Inj. sulla seguente
+URL:
+<A HREF="http://acme?idcat=1">http://acme?idcat=1</A>
+
+Un primo approccio potrebbe essere:
+
+*) memorizzo il contenuto della pagina di partenza
+*) memorizzare il contenuto di una pagina contenente
+   &quot; AND 1=1&quot;
+*) memorizzare il contenuto di una pagina contenente
+   &quot; AND 1=9&quot;
+
+e dire che la Blind Injection e` andata a buon fine
+se e soltanto se:
+1) l'HTML di <A HREF="http://acme?idcat=1">http://acme?idcat=1</A> != <A HREF="http://acme?idcat=1">http://acme?idcat=1</A> AND 9=9
+2) l'HTML di <A HREF="http://acme?idcat=1">http://acme?idcat=1</A> == <A HREF="http://acme?idcat=1">http://acme?idcat=1</A> AND 1=1
+
+Ora la domanda che ci si puo` porre e` la seguente:
+&quot;Come viene effettuato il confronto tra gli HTML&quot; ?
+
+Un primo approccio potrebbe essere:confronto carattere per carattere.
+Questo approccio potrebbe essere &quot;attenuato&quot; da un modulo ISAPI/mod_*
+che inserisce all'interno del body delle HTTP RESPONSE:
+*) caratteri random
+*) TAG html che rendono il risultato della renderizzazione da parte
+   del browser intatto
+
+oppure potrei utilizzare una delle tante techiche di steganografia su
+HTML.. roba tipo:
+&lt;IMG SRC=&quot;picture.jpg&quot; ALT=&quot;A picture&quot;&gt; viene riscritta in:
+&lt;IMG ALT=&quot;A picture&quot; SRC=&quot;picture.jpg&quot;&gt;
+utilizzando un certo set di &quot;regole di riscrittura HTML&quot; che rendono
+intatta la renderizzazione dai browser .. potrei generare una miriade
+di pagine HTML differenti.
+
+
+Certo e` che se il mio tool di SQL Injection una volta memorizzate
+le pagine, strippa via tutti i tag HTML riesco ad evadere il meccanismo.
+
+Ma a questo punto, se voglio attenuare ulteriormente Blind SQL
+Injection, potrei steganografizzare il testo dell'HTML... al fine di
+generare pagina diverse anche nel testo, che portano verso lo stesso
+risultato.
+
+Ma anche questo tipo di hardening potrebbe essere facilmente
+&quot;spezzato&quot; facendo si che l'algoritmo di confronto per la Blind SQL
+Inj. strippi via pure ' ' e '\n'
+
+
+Ora, al di la` del lungo poema (aka; pippa mentale) la domanda che
+volevo porvi e` la seguente:
+*) Acunetix, Wikto, WebInspect,etc. etc. come effettuano il confronto
+   sui fault injection?
+*) Quali tecniche mi consentono di &quot;attenuare&quot; le SQL Injection lato
+   server (e non WEBAPP!!!!)
+
+
+Meditate gente, meditate
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000193.html">[Owasp-italy] Paper su SQL Injection and Inference on PHP/MySQL
+</A></li>
+	<LI>Next message: <A HREF="000195.html">[Owasp-italy] Blind SQL Injection e falsi positivi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#194">[ date ]</a>
+              <a href="thread.html#194">[ thread ]</a>
+              <a href="subject.html#194">[ subject ]</a>
+              <a href="author.html#194">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-italy">More information about the Owasp-italy
+mailing list</a><br>
+</body></html>

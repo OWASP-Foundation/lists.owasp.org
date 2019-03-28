@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] cpanel modsecurity add-rule	difficulty
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20cpanel%20modsecurity%20add-rule%0A%09difficulty&In-Reply-To=%3CCAN7RX0ZxO7M_wfC4xPY8Ts3Qe92hUOtHaQt8a1ty3Gb-WFCd6Q%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002295.html">
+   <LINK REL="Next"  HREF="002297.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] cpanel modsecurity add-rule	difficulty</H1>
+    <B>Russell Clemings</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20cpanel%20modsecurity%20add-rule%0A%09difficulty&In-Reply-To=%3CCAN7RX0ZxO7M_wfC4xPY8Ts3Qe92hUOtHaQt8a1ty3Gb-WFCd6Q%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] cpanel modsecurity add-rule	difficulty">rclemings at gmail.com
+       </A><BR>
+    <I>Sat Dec  3 16:07:22 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002295.html">[Owasp-modsecurity-core-rule-set] cpanel modsecurity add-rule	difficulty
+</A></li>
+        <LI>Next message: <A HREF="002297.html">[Owasp-modsecurity-core-rule-set] Missing Component Signature / Version Information in Blocking Rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2296">[ date ]</a>
+              <a href="thread.html#2296">[ thread ]</a>
+              <a href="subject.html#2296">[ subject ]</a>
+              <a href="author.html#2296">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Update:
+
+I finally persuaded my server vendor to ask cPanel about this and cPanel
+had this to say:
+
+-----
+
+I did confirm I am seeing the same issue when attempting to add the rules,
+which appear to be an issue noted here as well :
+
+<A HREF="https://github.com/SpiderLabs/ModSecurity/issues/89">https://github.com/SpiderLabs/ModSecurity/issues/89</A>
+
+This would entail that this requires the configurations be added manually
+in a separate configuration as you had suggested, which I added in the file
+the specific rule ID to be updated is present in at
+/etc/apache2/conf.d/modsec_vendor_configs/OWASP/rules/REQUEST-20-PROTOCOL-ENFORCEMENT.conf
+and confirmed that it did allow the directive to be added without issue.
+
+-----
+
+So I added my two SecRuleUpdateTargetById directives to a new file
+(/etc/apache2/conf.d/modsec_vendor_configs/OWASP/modsecurity_crs_20_customrules.conf)
+and restarted Apache.
+
+Everything works fine now.
+
+H/T to Christian Folini and Spork Schivago for some help offlist.
+
+
+On Thu, Dec 1, 2016 at 5:00 PM, Russell Clemings &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rclemings at gmail.com</A>&gt;
+wrote:
+
+&gt;<i> I'm having some trouble dealing with two false positives. This is cPanel's
+</I>&gt;<i> implementation of OWASP ver.3.0.0, as nearly as I can tell (from /etc
+</I>&gt;<i> &lt;<A HREF="https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc">https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc</A>&gt;
+</I>&gt;<i> /apache2
+</I>&gt;<i> &lt;<A HREF="https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2">https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2</A>&gt;
+</I>&gt;<i> /conf.d
+</I>&gt;<i> &lt;<A HREF="https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2/conf.d">https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2/conf.d</A>&gt;
+</I>&gt;<i> /modsec_vendor_configs
+</I>&gt;<i> &lt;<A HREF="https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2/conf.d/modsec_vendor_configs">https://nasw2.sciencewriters.us:2087/cpsess2553782837/cgi/configserver/cse.cgi?do=b&amp;p=/etc/apache2/conf.d/modsec_vendor_configs</A>&gt;
+</I>&gt;<i> /OWASP/modsecurity_crs_10_setup.conf). I've masked some possibly
+</I>&gt;<i> sensitive data.
+</I>&gt;<i>
+</I>&gt;<i> 523939:[Thu Dec 01 10:25:39.244073 2016] [:error] [pid 24880] [client
+</I>&gt;<i> xx.xx.xxx.xxx] ModSecurity: Access denied with redirection to
+</I>&gt;<i> <A HREF="http://www.example.com/">http://www.example.com/</A> using status 302 (phase 2). Pattern match
+</I>&gt;<i> &quot;\\\\%((?!$|\\\\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})&quot; at ARGS:returnUrl.
+</I>&gt;<i> [file &quot;/etc/apache2/conf.d/modsec_vendor_configs/OWASP/rules/
+</I>&gt;<i> REQUEST-20-PROTOCOL-ENFORCEMENT.conf&quot;] [line &quot;219&quot;] [id &quot;950109&quot;] [rev
+</I>&gt;<i> &quot;2&quot;] [msg &quot;Multiple URL Encoding Detected&quot;] [severity &quot;WARNING&quot;] [ver
+</I>&gt;<i> &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;6&quot;] [accuracy &quot;8&quot;] [tag &quot;Host:
+</I>&gt;<i> www.example.com&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag
+</I>&gt;<i> &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/PROTOCOL_VIOLATION/EVASION&quot;] [hostname &quot;www.example.com&quot;] [uri
+</I>&gt;<i> &quot;/xxx.php&quot;] [unique_id &quot;WEBA83cQjKbwhNpTYWkudQAAAAQ&quot;]
+</I>&gt;<i>
+</I>&gt;<i> 526747:[Thu Dec 01 10:41:28.958952 2016] [:error] [pid 26285] [client
+</I>&gt;<i> xx.xx.xxx.xxx] ModSecurity: Access denied with redirection to
+</I>&gt;<i> <A HREF="http://www.example.com/">http://www.example.com/</A> using status 302 (phase 2). Match of &quot;beginsWith
+</I>&gt;<i> %{request_headers.host}&quot; against &quot;TX:1&quot; required. [file
+</I>&gt;<i> &quot;/etc/apache2/conf.d/modsec_vendor_configs/OWASP/rules/
+</I>&gt;<i> REQUEST-31-APPLICATION-ATTACK-RFI.conf&quot;] [line &quot;30&quot;] [id &quot;950120&quot;] [rev
+</I>&gt;<i> &quot;3&quot;] [msg &quot;Possible Remote File Inclusion (RFI) Attack: Off-Domain
+</I>&gt;<i> Reference/Link&quot;] [data &quot;Matched Data: <A HREF="https://another.example.com/a/">https://another.example.com/a/</A>
+</I>&gt;<i> account/validatethirdpartycorporateauthresult?redirectUrl=http:%2F%
+</I>&gt;<i> 2Fanother.example.com%2Fa found within TX:1:
+</I>&gt;<i> another.example.com/a/account/validatethirdpartycorporateaut
+</I>&gt;<i> hresult?redirectUrl=http:%2F%2Fanother.example.com%2Fa&quot;] [severity
+</I>&gt;<i> &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag
+</I>&gt;<i> &quot;Host: www.example.com&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;]
+</I>&gt;<i> [tag &quot;platform-multi&quot;] [tag &quot;attack-remote file inclusion&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/WEB_ATTACK/RFI&quot;] [hostname &quot;www.example.com&quot;] [uri &quot;/xxx.php&quot;]
+</I>&gt;<i> [unique_id &quot;WEBEqF9us8Ws-b6n3kgKmAAAAAI&quot;]
+</I>&gt;<i>
+</I>&gt;<i> I've confirmed that those rules are the problem by temporarily disabling
+</I>&gt;<i> them, but I would like to create an exception instead. I am trying to use
+</I>&gt;<i> the &quot;add rule&quot; function in cPanel's WHM/Security
+</I>&gt;<i> Center/ModSecurity/Tools/Rules List. Here is what I'm trying to add (singly
+</I>&gt;<i> and both at once):
+</I>&gt;<i>
+</I>&gt;<i> SecRuleUpdateTargetById 950109 !ARGS:'another.example.com'
+</I>&gt;<i> SecRuleUpdateTargetByID 950120 !ARGS_NAMES:'another.example.com'
+</I>&gt;<i>
+</I>&gt;<i> When I try to save and deploy, here is what I get in the cPanel error log:
+</I>&gt;<i>
+</I>&gt;<i> [2016-12-01 16:09:21 -0500] warn [xml-api] The system failed to deploy the
+</I>&gt;<i> changes for &#8220;modsec/modsec2.user.conf&#8221;: The system could not validate the
+</I>&gt;<i> new Apache configuration because httpd exited with a nonzero value. Apache
+</I>&gt;<i> produced the following error: AH00526: Syntax error on line 1 of
+</I>&gt;<i> /etc/apache2/conf.d/modsec/modsec2.user.conf:
+</I>&gt;<i> Updating target by ID with no ruleset in this context
+</I>&gt;<i>
+</I>&gt;<i> I've tried various combinations of single quotes, double quotes, no
+</I>&gt;<i> quotes, but to no avail. It's up to the server vendor to file a ticket with
+</I>&gt;<i> cPanel and they say it's not appropriate to do that for a syntax error.
+</I>&gt;<i>
+</I>&gt;<i> Suggestions?
+</I>&gt;<i>
+</I>&gt;<i> I did file reports via cPanel earlier today and got auto-replies from
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">security at modsecurity.org</A> assigning ticket nos. 1332 and 1333, but nothing
+</I>&gt;<i> further.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+===============================================
+Russell Clemings
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">russell at clemings.com</A>&gt;
+===============================================
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20161203/c50dbb66/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20161203/c50dbb66/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002295.html">[Owasp-modsecurity-core-rule-set] cpanel modsecurity add-rule	difficulty
+</A></li>
+	<LI>Next message: <A HREF="002297.html">[Owasp-modsecurity-core-rule-set] Missing Component Signature / Version Information in Blocking Rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2296">[ date ]</a>
+              <a href="thread.html#2296">[ thread ]</a>
+              <a href="subject.html#2296">[ subject ]</a>
+              <a href="author.html#2296">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

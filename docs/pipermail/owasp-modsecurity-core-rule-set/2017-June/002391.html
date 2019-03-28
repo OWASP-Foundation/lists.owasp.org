@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] News from the Core Rule Set	(2017-06-11)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20News%20from%20the%20Core%20Rule%20Set%0A%09%282017-06-11%29&In-Reply-To=%3C20170611090712.zngnkmp2qf3dfawz%40leander%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002388.html">
+   <LINK REL="Next"  HREF="002394.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] News from the Core Rule Set	(2017-06-11)</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20News%20from%20the%20Core%20Rule%20Set%0A%09%282017-06-11%29&In-Reply-To=%3C20170611090712.zngnkmp2qf3dfawz%40leander%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] News from the Core Rule Set	(2017-06-11)">christian.folini at netnea.com
+       </A><BR>
+    <I>Sun Jun 11 09:07:12 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002388.html">[Owasp-modsecurity-core-rule-set] newbie - rule exception question
+</A></li>
+        <LI>Next message: <A HREF="002394.html">[Owasp-modsecurity-core-rule-set] Need more features	ModSecurity WAF
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2391">[ date ]</a>
+              <a href="thread.html#2391">[ thread ]</a>
+              <a href="subject.html#2391">[ subject ]</a>
+              <a href="author.html#2391">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear all,
+
+This is the CRS newsletter covering the period from Mai until today.
+
+What has happened during the last few weeks:
+
+- We held our 4th community chat last Monday. We have been eight people
+  again including surprise guest ModSecurity / CRS debian packager
+  Alberto Gonzalez Iniesta.
+  We talked mostly about project organisation and plans, less about
+  open issues. See below for details.
+  The next community chats will be held on the following dates:
+  - Jul 3, 2017, 20:30 CEST (14:30 EST, 19:30 GMT)
+  - Aug 7, 2017, 20:30 CEST
+  - Sep 4, 2017, 20:30 CEST
+  - Oct 2, 2017, 20:30 CEST
+  - Nov 6, 2017, 20:30 CET
+  - Dec 4, 2017, 20:30 CET
+
+- OWASP ModSecurity Core Rule Set 3.0.1 came out on May 10, 2017.
+  Unfortunately it was a botched release. Chaim had left a SecRule with
+  a debug message in a commit. I overlooked that one and - big mistake -
+  merge directly into master (do not know how this happened, but it was
+  certainly not my intention). Then Chaim tested the dev branch, merged
+  to master and released.
+  So 3.0.1 ended up with an alert for every request.
+  Needless to say our updated release procedure involves testing
+  _master_  before a release. And I am saving money for a git course.
+
+- OWASP ModSecurity Core Rule Set 3.0.1 came out on May 12, 2017.
+  This is identical to 3.0.1 minus the debug rule.
+  
+- 3.0.2 (3.0.1) is a bugfix release with a fix that we consider security
+  relevant. CRS is a security project, but there are issues that that
+  affect the security of CRS itself, or where CRS makes a mistake.
+  So 3.0.2 (3.0.1) brings a fix for a bad handling of the
+  X-Forwarded-For header.
+  Other fixes include improvements for many rules triggering false
+  positives, documentation etc. See the CHANGES file for details
+  <A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.0/master/CHANGES">https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.0/master/CHANGES</A>
+
+- 3.0.2 is the latest stable release in the stable tree of the CRS
+  project.
+  
+- We have created a v3.1/dev branch and are now picking up the
+  development towards version 3.1. However, it is likely, the 3.0
+  branch will see additional bugfix releases.
+
+- We are a bit in a deadlock situation with the release policy. We
+  stated that want to give people a smooth transition from one
+  point-release to the next point-release (-&gt; 3.0.0 -&gt; 3.0.1 -&gt; 3.0.2).
+  This includes the promise to keep new features and new sources of
+  false positives out, so you could update without too much hassle
+  and too much fear of interrupting business critical service.
+  It does not mean to keep new rules out of release
+  because fighting false positives can involve splitting a rule in two
+  and moving part of it into a new rule at a higher paranoia level.
+  (If you are really unlucky, you wrote a rule exclusion for a certain
+  rule, then a new release splits the rule and the false positives you
+  meant to tune away return at a higher PL with a new rule id.)
+  That policy is not perfect, but it looks like the best way to get rid 
+  of existing false positives in a stable release tree for everyone.
+  Especially at lower paranoia levels.
+  But the real problem are new evasions: false negatives; thus attacks
+  that bypass the rule set. You can always bypass a WAF if you are
+  clever, but once the bypasses become known, we want to close the
+  hole for stable releases. As we are learning now, there are
+  bypasses that can not easily be fought. It looks like we ought to
+  introduce new rules to fight some bypasses. New rules bring new
+  false positives and new problems.
+
+  We talked this through at the community chat last week and we came
+  to the conclusion we need to decide on a case by case base. Right
+  now we think we will allow new rules to close existing holes
+  in paranoia level 3 and 4 if we feel it is really needed.
+
+- A situation where this is really needed is a group of new bypasses
+  created by Ivan Novikov. See his initial blog post here: 
+  <A HREF="https://medium.com/@d0znpp/how-to-bypass-libinjection-in-many-waf-ngwaf-1e2513453c0f">https://medium.com/@d0znpp/how-to-bypass-libinjection-in-many-waf-ngwaf-1e2513453c0f</A>
+  Ivan continued this work and he managed to bypass CRS3 at paranoia
+  level 4 with an sql injection in only 7 characters and without
+  any whitespace. Kudos to that.
+  <A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/782">https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/782</A>
+  Nick Galbreath is actively working on libinjection to make these go
+  away, but he was fast to state that issue 782 is beyond the abilities
+  of libinjection if he wants to keep it clean from false positives,
+  what it currently is to a very wide extend. So we will need to come 
+  up with a special rule to handle this. As pointed out above, this is 
+  likely to come in the form of a new rule at PL3 and it is likely to 
+  bring false positives.
+
+  While we work on this, there is a known bypass in the wild that allows
+  to run through CRS3 at PL4 and exploit a MySql backend. This may sound
+  frightening, but we all know that smart attackers can bypass WAFs.
+  All we can do is making it as hard as possible for them - and we can
+  use CRS as what they are meant to be: A 1st line of defense and not
+  the ultimate security device that cures all issues.
+
+- The official modsecurity twitter account is outside our reach and
+  not very active. So we launched a twitter account for the
+  project itself: @coreruleset / <A HREF="https://twitter.com/coreruleset">https://twitter.com/coreruleset</A>
+  This is going to be activated soon and we invite you to start to
+  follow it now, so you do not miss the first tweets.
+
+- I delivered an introduction to the Core Rule Set 3.0 presentation
+  at the OWASP AppSec EU conference in Belfast in May. Here is the
+  video including the slides and an on-site of demo of the scoring
+  mechanism including a hacker with a hoodie and several laid back
+  defenders.
+  <A HREF="https://www.youtube.com/watch?v=eO9gBAmKS58">https://www.youtube.com/watch?v=eO9gBAmKS58</A>
+  There was very good feedback on the talk and multiple OWASP chapters
+  have invited me to give the presentation in one of their meetings.
+
+- The talk about the security scanner vs. CRS3 talk I gave in Zurich
+  was good fun. Unfortunately, there is no video of the presentation.
+
+- Umar Farook has published an article on ModSecurity / CRS rule writing
+  <A HREF="https://github.com/umarfarook882/WAF-Rule-Writing-part-3">https://github.com/umarfarook882/WAF-Rule-Writing-part-3</A>
+  This is part of a series that you can find via his github account.
+
+- We noticed that people are not aware that there are backported debian
+  packages for the CRS3 release for Debian Jessie:
+  <A HREF="https://packages.debian.org/jessie-backports/modsecurity-crs">https://packages.debian.org/jessie-backports/modsecurity-crs</A>
+  These packages are meant to work with Ubuntu and other members of the
+  Debian family too.
+
+Upcoming Stuff
+
+- We have been breeding over the idea of creating our own website since
+  last Autumn. In fact there is the OWASP project page, github and
+  also a subfolder on the official modsecurity.org website. But there
+  is no place that really feels home for our project.
+  There are many pros and cons to setting up a web site (the costs
+  of maintaining it is one of them) and that's why it took a long
+  time to come to a conclusion.
+  We finally decided to go for it an Walter Hop (lifeforms) is now
+  actively creating the site and we hope to fill it with content
+  soon.
+
+- Last month, I mentioned that Hugo Costa was working on a logo for
+  the project. We have meanwhile seen several drafts and while I do
+  not want to show it around just yet, I can assure you that Hugo is
+  doing a very good job. This will be out in the next couple of
+  weeks. Stay tuned.
+
+- Next CRS chat: July 3, 2017, 20:30 CEST on Freenode IRC, channel
+  #modsecurity (14:30 EST, 19:30 GMT)
+  We plan the main topic to be priorities for the 3.1 development. 
+  So if you have feature requests or issues you would like us to work 
+  on, then it would be a smart move to join said chat.
+
+
+Cheers,
+
+Christian
+
+-- 
+<A HREF="https://www.feistyduck.com/training/modsecurity-training-course">https://www.feistyduck.com/training/modsecurity-training-course</A>
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+twitter: @ChrFolini
+</PRE>
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002388.html">[Owasp-modsecurity-core-rule-set] newbie - rule exception question
+</A></li>
+	<LI>Next message: <A HREF="002394.html">[Owasp-modsecurity-core-rule-set] Need more features	ModSecurity WAF
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2391">[ date ]</a>
+              <a href="thread.html#2391">[ thread ]</a>
+              <a href="subject.html#2391">[ subject ]</a>
+              <a href="author.html#2391">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Suggestion about mixing rules	with configuration
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Suggestion%20about%20mixing%20rules%0A%09with%20configuration&In-Reply-To=200908192153.36509.rcbarnett%40gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000055.html">
+   <LINK REL="Next"  HREF="000061.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules	with configuration</H1>
+    <B>Ivan Ristic</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Suggestion%20about%20mixing%20rules%0A%09with%20configuration&In-Reply-To=200908192153.36509.rcbarnett%40gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules	with configuration">ivan.ristic at gmail.com
+       </A><BR>
+    <I>Thu Aug 20 04:00:24 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000055.html">[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules	with configuration
+</A></li>
+        <LI>Next message: <A HREF="000061.html">[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules with configuration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#58">[ date ]</a>
+              <a href="thread.html#58">[ thread ]</a>
+              <a href="subject.html#58">[ subject ]</a>
+              <a href="author.html#58">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Aug 20, 2009 at 2:53 AM, Ryan Barnett&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rcbarnett at gmail.com</A>&gt; wrote:
+&gt;<i> The intention that we had with splitting the 10 files into two separate ones
+</I>&gt;<i> was due to the fact that there are some Mod directives that can only be set
+</I>&gt;<i> once within the main Apache scope config (SecServerSignature,
+</I>&gt;<i> SecArgumentSeparator, etc...) while others may be included multiple times
+</I>&gt;<i> within different Vhost containers (SecRuleEngine, SecAuditEngine, etc...).
+</I>
+Interesting, I didn't realise SecArgumentSeparator can only be defined
+within the main scope. That seems to be a bug, because it forces one
+server to only use one type of separator for all virtual hosts, etc.
+That's unlikely to be useful.
+
+Similarly, I notice that SecComponentSignature too is main scope-only.
+That seems bad too. What if I want to use a rule set only in one
+virtual host?
+
+
+&gt;<i> By splitting these up, users can specify the
+</I>&gt;<i> modsecurity_crs_10_global_config.conf once within the main Apache config
+</I>&gt;<i> file and then include different/appropriate versions of the
+</I>&gt;<i> modsecurity_crs_10_config.conf file inside various Vhosts.
+</I>&gt;<i>
+</I>&gt;<i> We should try and merge this concept with your recommendations.
+</I>
+Well, I've omitted the global directives (SecServerSignature,
+SecChroot) from the current version anyway. I can create another file
+for them and everybody will be happy?
+
+
+&gt;<i> --
+</I>&gt;<i> Ryan C. Barnett
+</I>&gt;<i> WASC Distributed Open Proxy Honeypot Project Leader
+</I>&gt;<i> OWASP ModSecurity Core Rule Set Project Leader
+</I>&gt;<i> Tactical Web Application Security
+</I>&gt;<i> <A HREF="http://tacticalwebappsec.blogspot.com">http://tacticalwebappsec.blogspot.com</A>
+</I>&gt;<i>
+</I>&gt;<i> On Wednesday 19 August 2009 12:17:50 pm Ivan Ristic wrote:
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am attaching my proposal for the new default configuration:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - Start with the README file (the only file that is incomplete)
+</I>&gt;&gt;<i> - main.conf contains a solid default configuration in which every
+</I>&gt;&gt;<i> configuration directive is used
+</I>&gt;&gt;<i> - rules-init.conf sets the default policy, rules to handle parser
+</I>&gt;&gt;<i> failures, and whitelisting examples.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i> Ivan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Mon, Aug 17, 2009 at 8:09 PM, Ryan Barnett&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at breach.com</A>&gt;
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i> &gt; Ryan Barnett
+</I>&gt;&gt;<i> &gt; Director of Application Security Research
+</I>&gt;&gt;<i> &gt; Phone: (703) 794-2248
+</I>&gt;&gt;<i> &gt; Cell: (703) 269-8998
+</I>&gt;&gt;<i> &gt; Breach Security, Inc.
+</I>&gt;&gt;<i> &gt; 2141 Palomar Airport Road, Suite 200
+</I>&gt;&gt;<i> &gt; Carlsbad, CA 92011
+</I>&gt;&gt;<i> &gt; www.breach.com
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On Monday 17 August 2009 02:38:17 pm Brian Rectanus wrote:
+</I>&gt;&gt;<i> &gt;&gt; Ivan Ristic wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt; On Mon, Aug 17, 2009 at 4:46 PM, Brian
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; Rectanus&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Brian.Rectanus at breach.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; Ivan Ristic wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; On Fri, Aug 14, 2009 at 10:22 PM, Ryan
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; Barnett&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at breach.com</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt; On Friday 14 August 2009 04:18:21 pm Ivan Ristic wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; Hi,
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; I've noticed that the new Core Rules have configuration bits in
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; them -- just like the previous version -- but I don't think
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; that's
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; the right thing to do. I think most users will want to update
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; their rules
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; regularly, but if the configuration bits are there they will be
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;&gt; forced to do the whole thing manually every time.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;&gt; What exactly do you mean by &quot;configuration bits?&quot;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; I mean the contents of the modsecurity_crs_10_config.conf and
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; modsecurity_crs_10_global_config.conf. Those two belong to the main
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;&gt; ModSecurity distribution, rather than the rules.
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; We should probably deliver these as:
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; modsecurity_crs_10_config.conf.example
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; modsecurity_crs_10_global_config.conf.example
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; And have instructions to copy them to the correct name and change
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;&gt;<i> &gt;&gt; &gt;&gt; renamed versions.
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; I know the line (between ModSecurity itself and Core Rule Set) can be
+</I>&gt;&gt;<i> &gt;&gt; &gt; blurry, but why not keep the configuration in ModSecurity, so that
+</I>&gt;&gt;<i> &gt;&gt; &gt; the
+</I>&gt;&gt;<i> &gt;&gt; &gt; Core Rule Set could include only the rules.
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; Actually, I've been working on an improved default configuration for
+</I>&gt;&gt;<i> &gt;&gt; &gt; ModSecurity, which I would like to submit for inclusion in the
+</I>&gt;&gt;<i> &gt;&gt; &gt; distribution.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; True. Personally, I never use the 10 files :) But I think it is
+</I>&gt;&gt;<i> &gt;&gt; important to at least have a good example for how to install the CRS.
+</I>&gt;&gt;<i> &gt;&gt; There needs to be some bootstrap config for those that are installing
+</I>&gt;&gt;<i> &gt;&gt; from scratch. as well (and I think the 10 files do that nicely). Also,
+</I>&gt;&gt;<i> &gt;&gt; CRS still has some dependencies on the default action due to using
+</I>&gt;&gt;<i> &gt;&gt; &quot;block&quot;, so those need to be well documented.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I think we all agree that, for the average new Mod user, the 10 config
+</I>&gt;&gt;<i> &gt; files really help to get them up and running quickly in a semi-sane
+</I>&gt;&gt;<i> &gt; manner. The question is where does this config belong - in the Mod
+</I>&gt;&gt;<i> &gt; source
+</I>&gt;&gt;<i> &gt; archive or the CRS. I guess that Iagree with Ivan that it probably fits
+</I>&gt;&gt;<i> &gt; better with the Mod archive however there are some direct impacts to the
+</I>&gt;&gt;<i> &gt; CRS if some of these settings are change (most notable the SecRuleEngine
+</I>&gt;&gt;<i> &gt; and SecDefaultAction directives).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; One demarcation could be that only SecRule, SecAction and SecMarker
+</I>&gt;&gt;<i> &gt; directives should be contained within the CRS and all other directives
+</I>&gt;&gt;<i> &gt; should be stored within the main config files?
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;&gt; I am interested in your defaults, Ivan.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Also, it would be great to hear from some hard-core users as well as
+</I>&gt;&gt;<i> &gt;&gt; new
+</I>&gt;&gt;<i> &gt;&gt; users on what they want to see (or don't want to see).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Agreed. Ivan please send along your suggested config updates as I am
+</I>&gt;&gt;<i> &gt; sure
+</I>&gt;&gt;<i> &gt; things can be improved upon.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; -Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Ivan Ristic
+Security assessment of your SSL servers
+<A HREF="https://www.ssllabs.com/ssldb/">https://www.ssllabs.com/ssldb/</A>
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000055.html">[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules	with configuration
+</A></li>
+	<LI>Next message: <A HREF="000061.html">[Owasp-modsecurity-core-rule-set] Suggestion about mixing rules with configuration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#58">[ date ]</a>
+              <a href="thread.html#58">[ thread ]</a>
+              <a href="subject.html#58">[ subject ]</a>
+              <a href="author.html#58">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

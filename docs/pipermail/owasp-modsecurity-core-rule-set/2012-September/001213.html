@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Customise a rule to prevent false	positive for a Joomla extension
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Customise%20a%20rule%20to%20prevent%20false%0A%09positive%20for%20a%20Joomla%20extension&In-Reply-To=%3C1F13F4C925B73F48A73307A32424FB87014C15482D%40chemsur-ex-01.emlchem.local%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001212.html">
+   <LINK REL="Next"  HREF="001214.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Customise a rule to prevent false	positive for a Joomla extension</H1>
+    <B>Paul Freeman</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Customise%20a%20rule%20to%20prevent%20false%0A%09positive%20for%20a%20Joomla%20extension&In-Reply-To=%3C1F13F4C925B73F48A73307A32424FB87014C15482D%40chemsur-ex-01.emlchem.local%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Customise a rule to prevent false	positive for a Joomla extension">paul.freeman at emlchem.com.au
+       </A><BR>
+    <I>Sun Sep 23 23:17:33 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001212.html">[Owasp-modsecurity-core-rule-set] Is modsecurity for nginx avaiable
+</A></li>
+        <LI>Next message: <A HREF="001214.html">[Owasp-modsecurity-core-rule-set] ModSecurity: Loaded PCRE do not	match with compiled!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1213">[ date ]</a>
+              <a href="thread.html#1213">[ thread ]</a>
+              <a href="subject.html#1213">[ subject ]</a>
+              <a href="author.html#1213">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi
+I have recently installed mod-security2 (v 2.6.3-1ubuntu0.2) on Ubuntu 12.04 LTS and the OWASP core rule set (v 2.2.5) as part of securing a web server running Joomla 2.5.6.  I am using a Joomla template from Yootheme based on their Warp Theme framework v6.2 and their Widgetkit toolset v1.2.
+
+Mod-security2 is generating a false positive for the Widgetkit map component and I was wondering how to go about creating a custom local rule exception for this.  I have searched and come across some examples of custom rules but must admit I am a bit unsure about the how to create the rule in this case.
+
+The information from the modsec_audit.log is as follows:
+
+--4a562b4c-B--
+GET /component/widgetkit/?tmpl=raw&amp;id=5 HTTP/1.1
+Host: sur-static-31.xxxx.yyyy
+User-Agent: Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20100101 Firefox/15.0
+Accept: */*
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+X-Requested-With: XMLHttpRequest
+Referer: <A HREF="http://sur-static-31.xxxx.yyyy/about-us/contact-us/general-contact-information">http://sur-static-31.xxxx.yyyy/about-us/contact-us/general-contact-information</A>
+Cookie: 8d46d49916e124b333b939f5c4e13acd=pdem1o994m5e29vlsc1dhqhv35; 03698be3bfdfc6348389481d8d00062c=r1tmq1i1pkgboh6fhmr3tl7oo6; jpanesliders_panel-sliders=0; jpanesliders_position-icon=0; jpanesliders_content-sliders-26=0; jpanesliders_permissions-sliders-26=0; jpanesliders_permissions-sliderscom_content=0
+
+--4a562b4c-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 192
+Keep-Alive: timeout=5, max=99
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--4a562b4c-E--
+&lt;!DOCTYPE HTML PUBLIC &quot;-//IETF//DTD HTML 2.0//EN&quot;&gt;
+&lt;html&gt;&lt;head&gt;
+&lt;title&gt;403 Forbidden&lt;/title&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;h1&gt;Forbidden&lt;/h1&gt;
+&lt;p&gt;You don't have permission to access /component/widgetkit/
+on this server.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;
+
+--4a562b4c-H--
+Message: Access denied with code 403 (phase 2). Pattern match &quot;(?:\\b(?:(?:n(?:et(?:\\b\\W+?\\blocalgroup|\\.exe)|(?:map|c)\\.exe)|t(?:racer(?:oute|t)|elnet\\.exe|clsh8?|ftp)|(?:w(?:guest|sh)|rcmd|ftp)\\.exe|echo\\b\\W*?\\by+)\\b|c(?:md(?:(?:\\.exe|32)\\b|\\b\\W*?\\/c)|d(?:\\b\\W*?[\\/]|\\W*?\\.\\.)|hmod.{0,40}?\\ ...&quot; at ARGS_NAMES:amp;id. [file &quot;/etc/modsecurity/activated_rules/modsecurity_crs_40_generic_attacks.conf&quot;] [line &quot;197&quot;] [id &quot;950006&quot;] [rev &quot;2.2.5&quot;] [msg &quot;System Command Injection&quot;] [data &quot;;id&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/COMMAND_INJECTION&quot;] [tag &quot;WASCTC/WASC-31&quot;] [tag &quot;OWASP_TOP_10/A1&quot;] [tag &quot;PCI/6.5.2&quot;]
+Action: Intercepted (phase 2)
+Stopwatch: 1348215302952777 4630 (- - -)
+Stopwatch2: 1348215302952777 4630; combined=2688, p1=346, p2=2283, p3=0, p4=0, p5=59, sr=100, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.6.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); OWASP_CRS/2.2.5.
+Server: Apache
+
+--4a562b4c-Z--
+
+As I understand the log data, rule 950006 is actvated by the &quot;id&quot; variable in the url GET request GET /component/widgetkit/?tmpl=raw&amp;id=5 HTTP/1.1.
+
+The &quot;id&quot; variable is the unique identity of the particular map created in the Widgetkit Map component.
+
+I tried to create a rule in modsecurity_crs_48_local_exceptions.conf based on the information in the triggered rule using ARGS_NAMES and trying to match the suffix of the url as follows:
+
+SecRule ARGS_NAMES:amp;id &quot;@streq raw&amp;id=5&quot; \
+        &quot;phase:2,t:none,nolog,pass,setvar:tx.anomaly_score=-20&quot;
+
+This does not work and I am confident I am not getting the semantics correct.
+
+Also, I notice the url is being displayed in the error as ARGS_NAMES:amp;id whereas I thought it should be &amp;id.
+
+Could anyone provide some pointers or refer me to documentation for how to create the rule correctly (excluding the actual value 5 so as to make it more general) so accessing this component will not trigger this rule without completely disabling the rule.
+
+Thanks in advance.
+
+Regards
+
+Paul Freeman
+
+
+
+__________ Information from ESET Smart Security, version of virus signature database 7508 (20120923) __________
+
+The message was checked by ESET Smart Security.
+
+<A HREF="http://www.eset.com">http://www.eset.com</A>
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001212.html">[Owasp-modsecurity-core-rule-set] Is modsecurity for nginx avaiable
+</A></li>
+	<LI>Next message: <A HREF="001214.html">[Owasp-modsecurity-core-rule-set] ModSecurity: Loaded PCRE do not	match with compiled!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1213">[ date ]</a>
+              <a href="thread.html#1213">[ thread ]</a>
+              <a href="subject.html#1213">[ subject ]</a>
+              <a href="author.html#1213">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

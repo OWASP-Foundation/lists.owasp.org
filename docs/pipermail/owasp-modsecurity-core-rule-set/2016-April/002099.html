@@ -1,0 +1,381 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Is%20it%20possible%20to%20use%0A%20modsecurity%20rules%20to%20prevent%20logins%20by%20specific%20user%20accounts%3F&In-Reply-To=%3CDUB116-W7052501381697F87F83269829E0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002098.html">
+   <LINK REL="Next"  HREF="002100.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Is%20it%20possible%20to%20use%0A%20modsecurity%20rules%20to%20prevent%20logins%20by%20specific%20user%20accounts%3F&In-Reply-To=%3CDUB116-W7052501381697F87F83269829E0%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Tue Apr  5 10:29:13 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002098.html">[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</A></li>
+        <LI>Next message: <A HREF="002100.html">[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2099">[ date ]</a>
+              <a href="thread.html#2099">[ thread ]</a>
+              <a href="subject.html#2099">[ subject ]</a>
+              <a href="author.html#2099">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>One other thing I've just spotted:
+
+&#160; &#160; I entered the username grmawcadmin
+
+&#160; &#160;&#160;Executing operator &quot;contains&quot; with param &quot;admin:&quot; against REQUEST_HEADERS:Authorization.
+
+The username does not contain &quot;admin:&quot; with a colon.
+Do you need to remove the colon from your rule?
+
+Thanks,
+Barry
+
+
+----------------------------------------
+&gt;<i> Date: Tue, 5 Apr 2016 11:13:42 +0200
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>
+</I>&gt;<i> CC: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">gary.mansell at ricardo.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">csanders at trustwave.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;<i>
+</I>&gt;<i> Indeed, I missed this. Probably clicked it away.
+</I>&gt;<i>
+</I>&gt;<i> Thank you Barry.
+</I>&gt;<i>
+</I>&gt;<i> Ahoj,
+</I>&gt;<i>
+</I>&gt;<i> Christian
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Apr 05, 2016 at 09:46:58AM +0100, Barry Pollard wrote:
+</I>&gt;&gt;<i> Christian not sure if you missed this as Gary had replied?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Gary, the key issue is this:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Executing operator &quot;contains&quot; with param &quot;admin:&quot; against REQUEST_HEADERS:Authorization.
+</I>&gt;&gt;<i> &lt;snip&gt;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Rule returned 0.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So your rule is not matching for some reason. I would suggest you turn the audit engine on to capture all request:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecAuditEngine On
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> And then see if this Authorization header is included, with a value containing admin, by looking in the audit log.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Alternatively write another rule that matches always:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule &quot;REQUEST_URI&quot; &quot;.&quot; &quot;phase:2,id:2,t:base64Decode,log,auditlog,allow&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> And again check audit log to see if the Authorization header is included, with a value containing admin.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> By the way phase 2 (REQUEST_BODY) also includes phase 1 (REQUEST_HEADER) details. You could move your rule to phase 1 and it will execute earlier which might save you needlessly attempting other phase 2 rules if it fails, but this is not the reason for your failure here.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hope that helps.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks,
+</I>&gt;&gt;<i> Barry
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ----------------------------------------
+</I>&gt;&gt;&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Gary.Mansell at ricardo.com</A>
+</I>&gt;&gt;&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> Date: Mon, 4 Apr 2016 14:28:26 +0000
+</I>&gt;&gt;&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I have got some debug logs, but am not certain how what they are telling me - I wonder if anyone can advise me on this?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I have just the one rule in my config now:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> SecRule &quot;REQUEST_HEADERS:Authorization&quot; &quot;@contains admin:&quot; &quot;phase:2,log,auditlog,id:1,t:base64Decode,deny,status:403&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I started a fresh apache session with empty debug log, and accessed the web application from a fresh browser session (15:18:06) and was prompted to enter username and password. I entered the username grmawcadmin and the password and this shows at 15:18:07 in the log below.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> As far as I can see, it does not seem to run the rule in the REQUEST_HEADERS section, but rather at the REQUEST_BODY - is this what is the problem - ie it is checking for the admin string in the REQUEST_BODY rather than the REQUEST_HEADER
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I would gladly appreciate some help on this, as I am rather stuck.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Rgds
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Gary
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Initialising transaction (txid VwJ3nsCoAUcAABgZAbQAAACX).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][5] Adding request cookie: name &quot;__utma&quot;, value &quot;1.1672802757.1445242759.1445242759.1456313530.2&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][5] Adding request cookie: name &quot;__utmz&quot;, value &quot;1.1445242759.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Transaction context created (dcfg 1039140).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Starting phase REQUEST_HEADERS.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Second phase starting (dcfg 1039140).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Input filter: This request does not have a body.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Starting phase REQUEST_BODY.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] This phase consists of 1 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Recipe: Invoking rule 109b5e8; [file &quot;/opt/ptc/HTTPServer/conf/crs/ricardo.conf&quot;] [line &quot;11&quot;] [id &quot;1&quot;].
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][5] Rule 109b5e8: SecRule &quot;REQUEST_HEADERS:Authorization&quot; &quot;@contains admin:&quot; &quot;phase:2,log,auditlog,id:1,t:base64Decode,deny,status:403&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Rule returned 0.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] No match, not chained -&gt; mode NEXT_RULE.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Hook insert_filter: Adding output filter (r 7fc1ec0098b0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0098b0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Starting phase RESPONSE_HEADERS.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Content Injection: Not enabled.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 10 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0098b0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 624 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0098b0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 8 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] Output filter: Bucket type EOS contains 0 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Output filter: Completed receiving response body (buffered full - 642 bytes).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Starting phase RESPONSE_BODY.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Output filter: Output forwarding complete.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Initialising logging.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Starting phase LOGGING.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Recording persistent data took 0 microseconds.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:06 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0098b0][/Windchill/app/][4] Audit log: Not configured to run for this request.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Initialising transaction (txid VwJ3qcCoAUcAABgZAbUAAACX).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][5] Adding request cookie: name &quot;__utma&quot;, value &quot;1.1672802757.1445242759.1445242759.1456313530.2&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][5] Adding request cookie: name &quot;__utmz&quot;, value &quot;1.1445242759.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Transaction context created (dcfg 1039140).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Starting phase REQUEST_HEADERS.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Second phase starting (dcfg 1039140).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Input filter: This request does not have a body.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Starting phase REQUEST_BODY.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] This phase consists of 1 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Recipe: Invoking rule 109b5e8; [file &quot;/opt/ptc/HTTPServer/conf/crs/ricardo.conf&quot;] [line &quot;11&quot;] [id &quot;1&quot;].
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][5] Rule 109b5e8: SecRule &quot;REQUEST_HEADERS:Authorization&quot; &quot;@contains admin:&quot; &quot;phase:2,log,auditlog,id:1,t:base64Decode,deny,status:403&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] T (0) base64Decode: &quot;\x05\xab&quot;&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Transformation completed in 24 usec.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Executing operator &quot;contains&quot; with param &quot;admin:&quot; against REQUEST_HEADERS:Authorization.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Target value: &quot;\x05\xab&quot;&quot;
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Operator completed in 7 usec.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Rule returned 0.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] No match, not chained -&gt; mode NEXT_RULE.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Hook insert_filter: Adding output filter (r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Starting phase RESPONSE_HEADERS.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Content Injection: Not enabled.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 1591 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 1295 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type FLUSH contains 0 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 8184 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type TRANSIENT contains 129 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Receiving output (f 7fc1ec01d9e8, r 7fc1ec0340f0).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] Output filter: Bucket type EOS contains 0 bytes.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Output filter: Completed receiving response body (buffered full - 11199 bytes).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Starting phase RESPONSE_BODY.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Output filter: Output forwarding complete.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Initialising logging.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Starting phase LOGGING.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][9] This phase consists of 0 rule(s).
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Recording persistent data took 0 microseconds.
+</I>&gt;&gt;&gt;<i> [04/Apr/2016:15:18:17 +0100] [windchill-test.ricardo.com/sid#10af9e8][rid#7fc1ec0340f0][/Windchill/app/][4] Audit log: Not configured to run for this request.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;<i> From: Chaim Sanders [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>]
+</I>&gt;&gt;&gt;<i> Sent: 31 March 2016 17:33
+</I>&gt;&gt;&gt;<i> To: Mansell, Gary &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Gary.Mansell at ricardo.com</A>&gt;; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> Subject: RE: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hey Gary,
+</I>&gt;&gt;&gt;<i> While I'm not sure what's going wrong with your rule I suggest you check out the debug log... it will usually contain valuable information to help you debug your issues :). Maybe someone else will be able to spot the issue.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;<i> From: Mansell, Gary [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Gary.Mansell at ricardo.com</A>]
+</I>&gt;&gt;&gt;<i> Sent: Thursday, March 31, 2016 12:31 PM
+</I>&gt;&gt;&gt;<i> To: Chaim Sanders &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>&gt;; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Is there no one who can help me further on this, as it seems exactly the sort of thing that modsecurity should be able to do (but I am struggling with)?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> All of my Web Application admin accounts end in the string &quot;admin&quot;, and I would like to be able to use a modsecurity rule on the reverse proxy server in the DMZ to prevent any admin logins (as admins should only ever login directly via the internal apache server rather than the reverse proxy)?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> It is my understanding that even though this is a https request, as this application uses basic authentication, every request via the reverse apache server includes a base64 encoded username and password in the authorisation header - I can't understand why I can't block this with a simple modsecurity rule.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The rule suggestion that I was sent by Chaim seems to make sense to me, but I just can't get it to work - it seems to be looking to deny any request with authorization Header containing the string &quot;admin:&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> SecRule REQUEST_HEADERS:Authorization &quot;@contains admin:&quot; &quot;id:1,t:base64Decode,deny,status:403&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Can anyone help me on this - is there just a simple typo in the rule perhaps? Do I have to choose a unique ID value other than 1 (as I had the Owasp core rule set configured too)?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Rgds
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Gary
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I have had a good crack at trying to get this to work, but to no avail, unfortunately.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> SecRule REQUEST_HEADERS:Authorization &quot;@contains admin:&quot; &quot;id:1,t:base64Decode,deny,status:403&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I tried changing the contains string to various things that may be relevant, but still no joy.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Is it perhaps because both the reverse proxy and the internal apache server are configured for https?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> How do I tell whether my system is using base64 to encode the username in the header?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I have to say I am completely lost with this now, it seems like something that modsecurity should be able to do, but I don't know where to start with debugging, or testing this to get it to work?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Any ideas anyone?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Rgds
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Gary
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;<i> From: Chaim Sanders [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>]
+</I>&gt;&gt;&gt;<i> Sent: 14 March 2016 15:58
+</I>&gt;&gt;&gt;<i> To: Mansell, Gary &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Gary.Mansell at ricardo.com</A>&gt;; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> Subject: RE: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hey Gary,
+</I>&gt;&gt;&gt;<i> This Is actually a great question and should be very easily possible. Typically Basic Authentication uses base64. So you could do something similar to the following (untested) SecRule REQUEST_HEADERS:Authorization &quot;@contains admin:&quot; &quot;id:1, t:base64Decode,deny,status:403'
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A> [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On Behalf Of Mansell, Gary
+</I>&gt;&gt;&gt;<i> Sent: Monday, March 14, 2016 11:13 AM
+</I>&gt;&gt;&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I have an internal Web application that uses Apache Basic Authentication, checking user account logins against an internal LDAP Server for authentication.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I am now looking to present this Web Application to whitelisted IP's on the Internet, by means of a Reverse Proxy Apache Server in a DMZ with modsecurity enabled and one of the free rulesets to protect the application being abused. Both the Reverse Proxy and the Internal Apache server are configured for https only.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> It occurs to me that Administrative users should never be able to login to the Web Application from the via the Reverse Proxy Apache server - I hence wonder if it is possible to use modsecurity on the Reverse Apache server to prevent specific Admin user accounts from logging in to the Web Application?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> If so, please can someone point me in the direction of how I might achieve this?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Gary
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> This e-mail and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are addressed. If you have received this e-mail in error please notify the sender immediately and delete this e-mail from your system.
+</I>&gt;&gt;&gt;<i> Please note that any views or opinions presented in this e-mail are solely those of the author and do not necessarily represent those of Ricardo (save for reports and other documentation formally approved and signed for release to the intended recipient). Only Directors are authorised to enter into legally binding obligations on behalf of Ricardo. Ricardo may monitor outgoing and incoming e-mails and other telecommunications systems. By replying to this e-mail you give consent to such monitoring. The recipient should check e-mail and any attachments for the presence of viruses. Ricardo accepts no liability for any damage caused by any virus transmitted by this e-mail.
+</I>&gt;&gt;&gt;<i> &quot;Ricardo&quot; means Ricardo plc and its subsidiary companies.
+</I>&gt;&gt;&gt;<i> Ricardo plc is a public limited company registered in England with registered number 00222915.
+</I>&gt;&gt;&gt;<i> The registered office of Ricardo plc is Shoreham Technical Centre, Shoreham-by Sea, West Sussex, BN43 5FG.
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="http://scanmail.trustwave.com/?c=4062&amp;d=wND91tX1TZq0UB15loWcH4RfFlxJe-IvfXYgFS8s2g&amp;s=5&amp;u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set">http://scanmail.trustwave.com/?c=4062&amp;d=wND91tX1TZq0UB15loWcH4RfFlxJe-IvfXYgFS8s2g&amp;s=5&amp;u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ________________________________
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> This e-mail and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are addressed. If you have received this e-mail in error please notify the sender immediately and delete this e-mail from your system.
+</I>&gt;&gt;&gt;<i> Please note that any views or opinions presented in this e-mail are solely those of the author and do not necessarily represent those of Ricardo (save for reports and other documentation formally approved and signed for release to the intended recipient). Only Directors are authorised to enter into legally binding obligations on behalf of Ricardo. Ricardo may monitor outgoing and incoming e-mails and other telecommunications systems. By replying to this e-mail you give consent to such monitoring. The recipient should check e-mail and any attachments for the presence of viruses. Ricardo accepts no liability for any damage caused by any virus transmitted by this e-mail.
+</I>&gt;&gt;&gt;<i> &quot;Ricardo&quot; means Ricardo plc and its subsidiary companies.
+</I>&gt;&gt;&gt;<i> Ricardo plc is a public limited company registered in England with registered number 00222915.
+</I>&gt;&gt;&gt;<i> The registered office of Ricardo plc is Shoreham Technical Centre, Shoreham-by Sea, West Sussex, BN43 5FG.
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="http://scanmail.trustwave.com/?c=4062&amp;d=wND91tX1TZq0UB15loWcH4RfFlxJe-IvfXYgFS8s2g&amp;s=5&amp;u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set">http://scanmail.trustwave.com/?c=4062&amp;d=wND91tX1TZq0UB15loWcH4RfFlxJe-IvfXYgFS8s2g&amp;s=5&amp;u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> This e-mail and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are addressed. If you have received this e-mail in error please notify the sender immediately and delete this e-mail from your system.
+</I>&gt;&gt;&gt;<i> Please note that any views or opinions presented in this e-mail are solely those of the author and do not necessarily represent those of Ricardo (save for reports and other documentation formally approved and signed for release to the intended recipient). Only Directors are authorised to enter into legally binding obligations on behalf of Ricardo. Ricardo may monitor outgoing and incoming e-mails and other telecommunications systems. By replying to this e-mail you give consent to such monitoring. The recipient should check e-mail and any attachments for the presence of viruses. Ricardo accepts no liability for any damage caused by any virus transmitted by this e-mail.
+</I>&gt;&gt;&gt;<i> &quot;Ricardo&quot; means Ricardo plc and its subsidiary companies.
+</I>&gt;&gt;&gt;<i> Ricardo plc is a public limited company registered in England with registered number 00222915.
+</I>&gt;&gt;&gt;<i> The registered office of Ricardo plc is Shoreham Technical Centre, Shoreham-by Sea, West Sussex, BN43 5FG.
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ________________________________
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> This e-mail and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are
+</I>&gt;&gt;&gt;<i> addressed. If you have received this e-mail in error please notify the sender immediately and delete this e-mail from your system.
+</I>&gt;&gt;&gt;<i> Please note that any views or opinions presented in this e-mail are solely those of the author and do not necessarily represent those
+</I>&gt;&gt;&gt;<i> of Ricardo (save for reports and other documentation formally approved and signed for release to the intended recipient). Only Directors
+</I>&gt;&gt;&gt;<i> are authorised to enter into legally binding obligations on behalf of Ricardo. Ricardo may monitor outgoing and incoming e-mails and
+</I>&gt;&gt;&gt;<i> other telecommunications systems. By replying to this e-mail you give consent to such monitoring. The recipient should check e-mail and
+</I>&gt;&gt;&gt;<i> any attachments for the presence of viruses. Ricardo accepts no liability for any damage caused by any virus transmitted by this e-mail.
+</I>&gt;&gt;&gt;<i> &quot;Ricardo&quot; means Ricardo plc and its subsidiary companies.
+</I>&gt;&gt;&gt;<i> Ricardo plc is a public limited company registered in England with registered number 00222915.
+</I>&gt;&gt;&gt;<i> The registered office of Ricardo plc is Shoreham Technical Centre, Shoreham-by Sea, West Sussex, BN43 5FG.
+</I>&gt;&gt;&gt;<i> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+</I>&gt;<i> <A HREF="http://www.christian-folini.ch">http://www.christian-folini.ch</A>
+</I>&gt;<i> twitter: @ChrFolini
+</I> 		 	   		  
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002098.html">[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</A></li>
+	<LI>Next message: <A HREF="002100.html">[Owasp-modsecurity-core-rule-set] Is it possible to use modsecurity rules to prevent logins by specific user accounts?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2099">[ date ]</a>
+              <a href="thread.html#2099">[ thread ]</a>
+              <a href="subject.html#2099">[ subject ]</a>
+              <a href="author.html#2099">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

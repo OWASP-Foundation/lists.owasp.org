@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Why%20is%20rule%20981318%20triggering%3F&In-Reply-To=%3C5036A3E6.9060708%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001166.html">
+   <LINK REL="Next"  HREF="001167.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?</H1>
+    <B>Achim</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Why%20is%20rule%20981318%20triggering%3F&In-Reply-To=%3C5036A3E6.9060708%40owasp.org%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?">achim at owasp.org
+       </A><BR>
+    <I>Thu Aug 23 21:43:02 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001166.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+        <LI>Next message: <A HREF="001167.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1169">[ date ]</a>
+              <a href="thread.html#1169">[ thread ]</a>
+              <a href="subject.html#1169">[ subject ]</a>
+              <a href="author.html#1169">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Christian,
+
+Am 23.08.2012 20:04, schrieb Christian Klossek:
+&gt;<i> Ryan,
+</I>&gt;<i> 
+</I>&gt;<i> the Server and the page uses utf-8 encoding.
+</I>&gt;<i> When the form is being submitted the apache log looks like this:
+</I>&gt;<i> 
+</I>&gt;<i> &quot;GET /test.php?keywords=%C4%99 HTTP/1.0&quot; 403 375 &quot;-&quot; &quot;Mozilla/5.0 (X11;
+</I>&gt;<i> Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1&quot;
+</I>&gt;<i> 
+</I>&gt;<i> You can see the &quot;&#281;&quot; is correctly encoded using utf-8 as &quot;%C4%99&quot;.
+</I>
+&gt;<i> Why is
+</I>&gt;<i> modsecurity not decoding this in a proper way before doing it's tests?
+</I>&gt;<i> Or is it an apache configuration problem?
+</I>
+I'll answer the 2'nd part of the question first: no, it's not an apache
+configuration problem, and it's not an apache problem at all.
+
+Now the 1'st part: modsecurity *does* decode proper, cause it exactly decodes
+in the way you (I mean you, the human) configured it to do.
+
+No offense meant so far, I'll try to explain:
+it's difficult to qualify this as a &quot;problem&quot;, 'cause anything works as expected,
+it's just you (the human again) who expects a different behaviour.
+Why is this? 'cause the protocol (HTTP) is plain (old) 7-bit ASCII, which
+requires anything not 7-bit ASCII to be URL-encoded (except if specified as
+OCTET stream). And that's what your (and most likely all other) browser does:
+it URL-encodes as the protocol requires, i.e. &#281; as %C4%99.
+
+On the other side (think: the server side) this %C4%99 decodes simply to two
+bytes. If we look at these bytes, %C4 is &#196;, perfect, we're done (my opinion:),
+and %99, well I don't know.
+
+Before we dig deeper into the decoding jungle, lets look at HTTP:
+the request line (GET /something....) is the very first part of the complete
+request, it's neither the request header nor the request body, just the
+request line itself. At this point the receiving side has no information
+how the data should be decoded. It needs to rely on the core protocol
+definitions (HTTP here) which defines: 7-bit ASCII.
+And that's what apache (and every other web server too) gets, usually.
+
+Consequently no web server decodes anything here unless being told to do so.
+They even don't decode URL-encoding as this is the application's jobs (any
+CGI, or module or whatever is an application).
+
+Said this, it's time to look at devices/systems/whatever before the web server,
+I mean for example WAFs. modsecurity is a WAF (for simplicity I don't go into
+the details of an embedded WAF like modsecurity).
+Such a WAF (just like any IDS/IPS) inspects the traffic. And it also needs to
+rely on protocol specifications. But it has the advantage that it handles the
+request -the request line + request header + request body- as a unique object
+and hence is able to decode this complete object as specified by the object
+itself (i.e the request header). *BUT* it (the WAF) has to be configured to
+do so.
+
+In practice, espacialy in this example, the WAF has to be configured to decode
+anything to utf-8. One way to tweak modsecurity is using @validateUtf8Encoding.
+Then you need to adapt your rules accordingly (not a simple job).
+
+However, this again is not the behaviour you (the human) expects, unfortunately,
+i.e. try to decode %eb%b8%be%3e
+
+Have fun, I guess you end up in: somthing&gt;
+:<i>-))
+</I>
+
+This is not the answer you expect, probably, but it hopefully helps to
+understand the problem (it's a problem only if you expect malicious data:)
+
+BTW, there exist comercial WAFs which force you to configure the charset
+and encoding to be expected and used for each request. Heaven (or the 
+developers) know how this works relyable in practice (see my funny example
+above:).
+
+
+ 
+&gt;<i> Christian
+</I>&gt;<i> 
+</I>&gt;<i> On 08/23/2012 06:39 PM, Ryan Barnett wrote:
+</I>&gt;&gt;<i> Christian,
+</I>&gt;&gt;<i> Is this an application that you control?  It looks as though this is some
+</I>&gt;&gt;<i> type of search field where the user can type in text.  If this is the
+</I>&gt;&gt;<i> case, then I suggest that the application use proper Unicode encoding of
+</I>&gt;&gt;<i> the input data so that the param field would be - keywords=%u0119 rather
+</I>&gt;&gt;<i> than keywords=&#281;.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In addition, I would suggest that you add the following to your
+</I>&gt;&gt;<i> ModSecurity main config file -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecUnicodeCodePoint 20127
+</I>&gt;&gt;<i> SecUnicodeMapFile /path/to/unicode.mapping
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> You will need to adjust the first directive to suit your local code point.
+</I>&gt;&gt;<i>  20127 maps to US-ASCII.  The unicode.mapping file comes bundled with the
+</I>&gt;&gt;<i> ModSecurity source code.  By using these directives, any t:urlDecodeUni
+</I>&gt;&gt;<i> transformation functions will map the Unicode data to the mappings you
+</I>&gt;&gt;<i> specify.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 8/23/12 9:34 AM, &quot;Christian Klossek&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">c.klossek at apodiscounter.de</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Why is the rule 981318 triggering on a GET-param with a value of &quot;&#281;&quot;
+</I>&gt;&gt;&gt;<i> (Unicode U+0119)?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I get this in my debug log (debug level 9):
+</I>&gt;&gt;&gt;<i> -------------------------------------
+</I>&gt;&gt;&gt;<i> SecRule
+</I>&gt;&gt;&gt;<i> &quot;REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+</I>&gt;&gt;&gt;<i> L:/*&quot;
+</I>&gt;&gt;&gt;<i> &quot;@rx
+</I>&gt;&gt;&gt;<i> (^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x
+</I>&gt;&gt;&gt;<i> 80\x98;]+$)&quot;
+</I>&gt;&gt;&gt;<i> &quot;phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:
+</I>&gt;&gt;&gt;<i> 'SQL
+</I>&gt;&gt;&gt;<i> Injection Attack: Common Injection Testing
+</I>&gt;&gt;&gt;<i> Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTIO
+</I>&gt;&gt;&gt;<i> N,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/
+</I>&gt;&gt;&gt;<i> 6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critic
+</I>&gt;&gt;&gt;<i> al_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},se
+</I>&gt;&gt;&gt;<i> tvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Expanded
+</I>&gt;&gt;&gt;<i> &quot;REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+</I>&gt;&gt;&gt;<i> L:/*&quot;
+</I>&gt;&gt;&gt;<i> to &quot;REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords&quot;.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> T (0) urlDecodeUni: &quot;/test.php&quot;
+</I>&gt;&gt;&gt;<i> Transformation completed in 13 usec.
+</I>&gt;&gt;&gt;<i> Executing operator &quot;rx&quot; with param
+</I>&gt;&gt;&gt;<i> &quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;&gt;&gt;<i> x80\x98;]+$)&quot;
+</I>&gt;&gt;&gt;<i> against REQUEST_FILENAME.
+</I>&gt;&gt;&gt;<i> Target value: &quot;/test.php&quot;
+</I>&gt;&gt;&gt;<i> Operator completed in 9 usec.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> T (0) urlDecodeUni: &quot;keywords&quot;
+</I>&gt;&gt;&gt;<i> Transformation completed in 13 usec.
+</I>&gt;&gt;&gt;<i> Executing operator &quot;rx&quot; with param
+</I>&gt;&gt;&gt;<i> &quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;&gt;&gt;<i> x80\x98;]+$)&quot;
+</I>&gt;&gt;&gt;<i> against ARGS_NAMES:keywords.
+</I>&gt;&gt;&gt;<i> Target value: &quot;keywords&quot;
+</I>&gt;&gt;&gt;<i> Operator completed in 4 usec.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> T (0) urlDecodeUni: &quot;\xc4\x99&quot;
+</I>&gt;&gt;&gt;<i> Transformation completed in 14 usec.
+</I>&gt;&gt;&gt;<i> Executing operator &quot;rx&quot; with param
+</I>&gt;&gt;&gt;<i> &quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;&gt;&gt;<i> x80\x98;]+$)&quot;
+</I>&gt;&gt;&gt;<i> against ARGS:keywords.
+</I>&gt;&gt;&gt;<i> Target value: &quot;\xc4\x99&quot;
+</I>&gt;&gt;&gt;<i> Added regex subexpression to TX.0: \x99
+</I>&gt;&gt;&gt;<i> Added regex subexpression to TX.1: \x99
+</I>&gt;&gt;&gt;<i> Operator completed in 38 usec.
+</I>&gt;&gt;&gt;<i> Setting variable: tx.msg=%{rule.msg}
+</I>&gt;&gt;&gt;<i> Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+</I>&gt;&gt;&gt;<i> Testing Detected
+</I></PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001166.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+	<LI>Next message: <A HREF="001167.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1169">[ date ]</a>
+              <a href="thread.html#1169">[ thread ]</a>
+              <a href="subject.html#1169">[ subject ]</a>
+              <a href="author.html#1169">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

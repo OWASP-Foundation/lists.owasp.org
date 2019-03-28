@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-phoenix] [Owasp-dotnet] Application and Execution	Context Identities
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-phoenix%40lists.owasp.org?Subject=%5BOwasp-phoenix%5D%20%5BOwasp-dotnet%5D%20Application%20and%20Execution%0A%09Context%20Identities&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000000.html">
+   <LINK REL="Next"  HREF="000002.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-phoenix] [Owasp-dotnet] Application and Execution	Context Identities</H1>
+    <B>Eric Swanson</B> 
+    <A HREF="mailto:owasp-phoenix%40lists.owasp.org?Subject=%5BOwasp-phoenix%5D%20%5BOwasp-dotnet%5D%20Application%20and%20Execution%0A%09Context%20Identities&In-Reply-To="
+       TITLE="[Owasp-phoenix] [Owasp-dotnet] Application and Execution	Context Identities">email at iseric.com
+       </A><BR>
+    <I>Mon Aug  7 20:27:10 EDT 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000000.html">[Owasp-phoenix] Application and Execution Context Identities
+</A></li>
+        <LI>Next message: <A HREF="000002.html">[Owasp-phoenix] OWASP Autumn Of Code 2006
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+		All -  
+		Is it possible to locally install another
+domain's SSL certificate and effectively impersonate the domain without
+receiving certificate errors? 
+
+Mike,
+
+Storing an encryption key on the server in a hosted environment usually
+means that it is written to a file, which can be located within the
+web root itself (for many hosts).  Hosts may provide a separate, additional directory
+that is not relative to the website's root for storage.  However, this situation
+still allows your application to be copied with the appropriate key
+file and executed elsewhere.  For shared Windows-based hosting, access to the server's registry is rarely allowed.  The separate, private, and secure local directory is an excellent additional measure of securing keys. 
+
+*I am attempting to identify multiple solutions that might allow an application to reliably and securely identify itself and it's execution context.  I am attempting to identify as many solutions as possible between &quot;store a key somewhere, somehow&quot; and &quot;read the server's physical serial number&quot;.
+
+Eric Swanson
+<A HREF="http://www.ericis.com/">http://www.ericis.com/</A> 
+
+----------------------------------------
+
+				From: mikeiscool &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-phoenix">michaelslists at gmail.com</A>&gt;
+Sent: Monday, August 07, 2006 5:01 PM
+To: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-phoenix">email at iseric.com</A>
+Subject: SPAM-LOW:  Re: [Owasp-dotnet] Application and Execution Context Identities 
+
+On 8/8/06, Eric Swanson  wrote:
+&gt;<i>  I have been researching issues with validating application identity and
+</I>&gt;<i> execution context (environment) recently.
+</I>&gt;<i>
+</I>&gt;<i> What are your thoughts/comments/suggestions/etc?
+</I>&gt;<i> (interested in platform independant solutions as well as specific
+</I>&gt;<i> guidelines/toolkits/libraries/software/etc.)
+</I>&gt;<i>
+</I>&gt;<i> One of the most difficult scenarios I have brainstormed has been:
+</I>&gt;<i> A client has a Microsoft-based website hosted by a 3rd party.  The host
+</I>&gt;<i> exposes a SQL Server database so that the client can connect remotely.  The
+</I>&gt;<i> client's website stores a single encrypted connection string to communicate
+</I>&gt;<i> with the database.  Now, if an attacker were to obtain all of the website's
+</I>&gt;<i> files, they could execute the application from a completely different
+</I>&gt;<i> domain, including writing their own code to interface with the application.
+</I>&gt;<i>
+</I>&gt;<i> *This example can be extended to any publically exposed service that
+</I>&gt;<i> requires authentication parameters, but relies on the application to provide
+</I>&gt;<i> them without requiring user interaction (web services, XML-RPC, AJAX,
+</I>&gt;<i> remoting, etc.).
+</I>&gt;<i>
+</I>&gt;<i> I have identified a couple of ways to help protect an application from
+</I>&gt;<i> out-of-context execution, but none of them are fail-safe:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Store and communicate an application identifier somewhere other than the
+</I>&gt;<i> website file system that the website code can access.  This may not be
+</I>&gt;<i> possible in many hosted environments.  This also does not protect your
+</I>&gt;<i> application from someone with access to this &quot;secret&quot; location, or a
+</I>&gt;<i> compromised system.
+</I>&gt;<i>
+</I>&gt;<i> Store and communicate a list of trusted domains and IPs.  These can be
+</I>&gt;<i> spoofed.  Web farms and network communications can also introduce elements
+</I>&gt;<i> of complexity.
+</I>&gt;<i>  Additionally, many programmers do not take the time to secure execution of
+</I>&gt;<i> their code in a web environment (i.e. once someone obtains the website's
+</I>&gt;<i> code they often have &quot;free reign&quot; over the code's execution).  As you can
+</I>&gt;<i> see, the concern isn't simply the application-supplied authentication
+</I>&gt;<i> credentials (like a database connection string), but the direct manipulation
+</I>&gt;<i> of an application's code execution (like writing a custom class to
+</I>&gt;<i> initialize the website's data access layer and carry out a series of
+</I>&gt;<i> unsavory commands).
+</I>&gt;<i>
+</I>&gt;<i> Ideally, all of a website's support services (databases, application server
+</I>&gt;<i> APIs, etc.) would only be exposed on an internal network not available to
+</I>&gt;<i> the public so that communications inherently depend on internal execution
+</I>&gt;<i> context.  However, the reality is much different.
+</I>
+As usual the answer to how to secure a hardcoded file is to keep the
+password of the server. If your attack scenario is someone stealing
+the source code [i.e some file download attack, or stolen backup tapes
+or something], then it's trivial to protect it with a required 'server
+initialisation' phase.
+
+That is, until you have visit: <A HREF="https://foo/setKey.whatever">https://foo/setKey.whatever</A> and entered
+in the application key, the system cannot run.
+
+The app will then use the key, decrypt the connection string or
+whatever else, and then release the key. We can then narrow the attack
+scenario down to someone accessing a live running server and copying
+the runtime to disk, or finding the connection string in memory. Alot
+harder then simplying getting source files ...
+
+&gt;<i> Eric Swanson
+</I>&gt;<i> <A HREF="http://www.ericis.com/">http://www.ericis.com/</A>
+</I>
+-- mic
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/26ad901f/attachment.html">http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/26ad901f/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000000.html">[Owasp-phoenix] Application and Execution Context Identities
+</A></li>
+	<LI>Next message: <A HREF="000002.html">[Owasp-phoenix] OWASP Autumn Of Code 2006
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-phoenix">More information about the Owasp-phoenix
+mailing list</a><br>
+</body></html>

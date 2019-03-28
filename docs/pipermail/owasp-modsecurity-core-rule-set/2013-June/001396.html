@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Request content type is not	allowed by policy
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Request%20content%20type%20is%20not%0A%09allowed%20by%20policy&In-Reply-To=%3CCAMDu0FBnGS%3DiHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001395.html">
+   <LINK REL="Next"  HREF="001397.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Request content type is not	allowed by policy</H1>
+    <B>Aniyan Rajan</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Request%20content%20type%20is%20not%0A%09allowed%20by%20policy&In-Reply-To=%3CCAMDu0FBnGS%3DiHo7Ur_cPGyKZZjz6YRJLLwhnZAPSQMRZTdr1Jg%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Request content type is not	allowed by policy">aniyan.rajan6 at gmail.com
+       </A><BR>
+    <I>Wed Jun  5 06:19:52 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001395.html">[Owasp-modsecurity-core-rule-set] ModSecurity SVM Bypass Charity	Challenge
+</A></li>
+        <LI>Next message: <A HREF="001397.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1396">[ date ]</a>
+              <a href="thread.html#1396">[ thread ]</a>
+              <a href="subject.html#1396">[ subject ]</a>
+              <a href="author.html#1396">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello CRS Users,
+
+I have installed CRS Version 2.2.5 in my server. I am using Modsecurity
+2.5.12 from Debian/squeeze. I have iRedMail installed in my server.
+
+When I click the login button from the iRedAdmin webpage (
+www.mydomain.org/iredadmin), I am getting a Forbidden webpage with the
+following details:
+
+Forbidden
+&gt;<i> You don't have permission to access /iredadmin/login on this server.
+</I>&gt;<i> Apache Server at www.mydomain.org Port 443
+</I>&gt;<i>
+</I>
+I checked the modsecurity_audit.log and it shows the following. I found
+that if I remove the following 3 rules in
+base_rules/modsecurity_crs_30_http_policy.conf, the problem will be solved.
+But how can I allow (whitelist) the iredadmin webpage alone, without
+completely removing the following rules ? I feel that this will be a better
+fix. Thanks.
+
+# cat base_rules/modsecurity_crs_30_http_policy.conf
+SecRule REQUEST_METHOD &quot;!^(?:GET|HEAD|PROPFIND|OPTIONS)$&quot;
+&quot;phase:1,chain,t:none,block,msg:'Request conten\
+t type is not allowed by
+policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'\
+OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'4',logdata:'%{matched_var}'&quot;
+        SecRule REQUEST_HEADERS:Content-Type &quot;^([^;\s]+)&quot; &quot;chain,capture&quot;
+                SecRule TX:0 &quot;!^%{tx.allowed_request_content_type}$&quot;
+&quot;t:none,ctl:forceRequestBodyVariable\
+=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_sco\
+re=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id
+}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=\
+%{matched_var}&quot;
+
+
+
+# cat modsecurity_audit.log
+--99e3kk88-A--
+[05/Jun/2013:05:48:13 +0000] Ua7546EIEUORRHEB14AAAAA 193.234.545.213 38211
+177.133.23.32 443
+--99e3kk88-B--
+POST /iredadmin/login HTTP/1.1
+Host: www.mydomain.org
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:10.0.2) Gecko/20100101
+Firefox/10.0.2 Iceweasel/10.0.2
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Referer: <A HREF="https://www.mydomain.org/iredadmin">https://www.mydomain.org/iredadmin</A>
+Cookie: iRedAdmin=649aeu44fgyf567aoeu3454idhf77b4ef32710f
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 78
+
+--99e3kk88-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 235
+Keep-Alive: timeout=15, max=95
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--99e3kk88-H--
+Message: Access denied with code 403 (phase 1). Match of &quot;rx
+^%{tx.allowed_request_content_type}$&quot; against &quot;TX:0&quot; required. [file
+&quot;/etc/apache2/crs/activated_rules/modsecurity_crs_30_http_policy.conf&quot;]
+[line &quot;64&quot;] [id &quot;960010&quot;] [msg &quot;Request content type is not allowed by
+policy&quot;] [data &quot;application/x-www-form-urlencoded&quot;] [severity &quot;WARNING&quot;]
+[tag &quot;POLICY/ENCODING_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-20&quot;] [tag
+&quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/EE2&quot;] [tag &quot;PCI/12.1&quot;]
+Action: Intercepted (phase 1)
+Stopwatch: 1370476453521229 1278 (- - -)
+Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+OWASP_CRS/2.2.5.
+Server: Apache
+
+--99e3kk88-Z--
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/f155b6d1/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130605/f155b6d1/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001395.html">[Owasp-modsecurity-core-rule-set] ModSecurity SVM Bypass Charity	Challenge
+</A></li>
+	<LI>Next message: <A HREF="001397.html">[Owasp-modsecurity-core-rule-set] Request content type is not allowed by policy
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1396">[ date ]</a>
+              <a href="thread.html#1396">[ thread ]</a>
+              <a href="subject.html#1396">[ subject ]</a>
+              <a href="author.html#1396">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

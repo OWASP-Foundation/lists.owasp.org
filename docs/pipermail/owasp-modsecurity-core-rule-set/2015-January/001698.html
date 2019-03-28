@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Probl&#232;me with False Positives
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%3D%3Futf-8%3Fq%3FProbl%3DC3%3DA8me_with_Fa%3F%3D%0A%09%3D%3Futf-8%3Fq%3Flse_Positives%3F%3D&In-Reply-To=%3CCAMmziWde7-UOJOB7jvhUiKH%2BjMomTu1iXd%3DaAw8RMFB%3DQ0LK5w%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="001699.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Probl&#232;me with False Positives</H1>
+    <B>Ilyass Kaouam</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%3D%3Futf-8%3Fq%3FProbl%3DC3%3DA8me_with_Fa%3F%3D%0A%09%3D%3Futf-8%3Fq%3Flse_Positives%3F%3D&In-Reply-To=%3CCAMmziWde7-UOJOB7jvhUiKH%2BjMomTu1iXd%3DaAw8RMFB%3DQ0LK5w%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Probl&#232;me with False Positives">ilyassikai at gmail.com
+       </A><BR>
+    <I>Wed Jan 14 16:50:39 UTC 2015</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="001699.html">[Owasp-modsecurity-core-rule-set] Legitimate traffic being blocked
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1698">[ date ]</a>
+              <a href="thread.html#1698">[ thread ]</a>
+              <a href="subject.html#1698">[ subject ]</a>
+              <a href="author.html#1698">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi guys.
+
+I don't understand why modsecurity blocking a comment with the character
+'   in french.
+
+comment
+
+&quot;Bonjour,
+
+Nous sommes un cabinet sp&#233;cialise dans l'accompagnement des PME
+(chiffre d'affaires
+inf&#233;rieur &#224; 175 MDH) pour l'obtention de la prime &#224; l'investissement xxx
+(programme de l'xxxx). 100% des dossiers que nous avons r&#233;alis&#233;s dans les
+&#233;ditions pass&#233;es ont &#233;t&#233; retenus.*&quot;*
+
+&#8203;log :
+
+parentId=0&amp;entId=0&amp;typeMessage=2&amp;portee=1&amp;message=Bonjour%2c+%0d%0aNous+sommes+un+cabinet+sp%c3%a9cialise+dans+l%27accompagnement+des+PME+%28chiffre+d%27affaires+inf%c3%a9rieur+%c3%a0+175+MDH%29+pour+l%27obtention+de+la+prime+%c3%a0+l%27investissement+
+&#8203;xxxxx
++%28programme+de+l%27
+&#8203;xxxx
+%29%2e+100%25+des+dossiers+que+nous+avons+r%c3%a9alis%c3%a9s+dans+les+%c3%a9ditions+pass%c3%a9es+ont+%c3%a9t%c3%a9+retenus%2e%0d%0acontacter+nous+au+%3a+contact%40pertinum%2ecom%0d%0acordialement%2e
+
+--e95b6c45-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 234
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+--e95b6c45-E--
+
+
+--e95b6c45-H--
+
+Message: Access denied with code 403 (phase 2). Pattern match &quot;(?i:[\&quot;\\'][
+]*(([^a-z0-9~_:\\' ])|(in)).+?\\(.*?\\))&quot; at ARGS:message. [file
+&quot;/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_41_xss_attacks.conf&quot;]
+[line &quot;506&quot;] [id &quot;973335&quot;] [rev &quot;2&quot;] [msg &quot;IE XSS Filters - Attack
+Detected.&quot;] [data &quot;Matched Data: 'investissement
+&#8203;xxxx
+ (programme de l'ANPME) found within ARGS:message: Bonjour, Nous sommes un
+cabinet sp\xc3\xa9cialise dans l'accompagnement des PME (chiffre d'affaires
+inf\xc3\xa9rieur \xc3 175 MDH) pour l'obtention de la prime \xc3
+l'investissement IMTIAZ (programme de l'
+&#8203;xxxx
+). 100% des dossiers que nous avons r\xc3\xa9alis\xc3\xa9s dans les
+\xc3\xa9ditions pass\xc3\xa9es ont \xc3\xa9t\xc3\xa9 retenus. contacter
+nous au  cordialement.&quot;] [ver &quot;OWASP_CRS/2.2.9&quot;] [maturity &quot;8&quot;] [accuracy
+&quot;8&quot;] [tag &quot;OWASP_CRS/WEB_ATTACK/XSS&quot;] [tag &quot;WASCTC/WASC-8&quot;] [tag
+&quot;WASCTC/WASC-22&quot;] [tag &quot;OWASP_TOP_10/A2&quot;] [tag &quot;OWASP_AppSensor/IE1&quot;] [tag
+&quot;PCI/6.5.1&quot;]
+
+Action: Intercepted (phase 2)
+
+Apache-Handler: proxy-server
+
+Stopwatch: 1421251883487181 8586 (- - -)
+
+Stopwatch2: 1421251883487181 8586; combined=1693, p1=106, p2=1582, p3=0,
+p4=0, p5=5, sr=33, sw=0, l=0, gc=0
+
+Response-Body-Transformed: Dechunked
+
+Producer: ModSecurity for Apache/2.7.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+OWASP_CRS/2.2.9.
+
+Server: Apache
+Engine-Mode: &quot;ENABLED&quot;&#8203;
+
+
+
+Please can you give me solution
+Tank you
+
+--
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150114/70af17c1/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150114/70af17c1/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="001699.html">[Owasp-modsecurity-core-rule-set] Legitimate traffic being blocked
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1698">[ date ]</a>
+              <a href="thread.html#1698">[ thread ]</a>
+              <a href="subject.html#1698">[ subject ]</a>
+              <a href="author.html#1698">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

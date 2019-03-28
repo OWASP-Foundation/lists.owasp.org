@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-delhi] SQL Injection+XSS &lt; Input Sanitization
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=%5BOwasp-delhi%5D%20SQL%20Injection%2BXSS%20%3C%20Input%20Sanitization&In-Reply-To=20100427163800.28736.qmail%40f5mail-236-240.rediffmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000902.html">
+   <LINK REL="Next"  HREF="000903.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-delhi] SQL Injection+XSS &lt; Input Sanitization</H1>
+    <B>Sripathi Krishnan</B> 
+    <A HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=%5BOwasp-delhi%5D%20SQL%20Injection%2BXSS%20%3C%20Input%20Sanitization&In-Reply-To=20100427163800.28736.qmail%40f5mail-236-240.rediffmail.com"
+       TITLE="[Owasp-delhi] SQL Injection+XSS &lt; Input Sanitization">sripathi.krishnan at gmail.com
+       </A><BR>
+    <I>Wed Apr 28 01:29:30 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000902.html">[Owasp-delhi] SQL Injection+XSS &lt; Input Sanitization
+</A></li>
+        <LI>Next message: <A HREF="000903.html">[Owasp-delhi] Owasp-delhi Digest, Vol 33, Issue 6
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#904">[ date ]</a>
+              <a href="thread.html#904">[ thread ]</a>
+              <a href="subject.html#904">[ subject ]</a>
+              <a href="author.html#904">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i>
+</I>&gt;<i> Can input sanitization mitigate sql injection ? If yes how and if no why ?
+</I>&gt;<i>
+</I>
+No.
+Suppose you have a &quot;first name&quot; input field, and the user enters the text
+d'souza. Its a valid name, so input sanitization will pass. But if you take
+the name and directly create a query, you will get a SQL injection because
+of the extra single quote.
+
+In general, you may have inputs that are valid for your domain, but if you
+directly use them to create a query - they will cause injection. I
+
+To prevent SQL Injection, use parameterized queries (eg. PreparedStatement).
+Avoid dynamically created queries; but if you must, make sure you escape
+users input. The reference ESAPI library provides escape methods for popular
+databases.
+
+For resolving xss, why output sanitization is considered ? Why not input
+&gt;<i> sanitization ?
+</I>&gt;<i>
+</I>Because you don't know whether the data is going to end up in HTML or
+Javascript or CSS or in a PDF file. Each output format has a different
+escape function.
+
+Consider the subject of your email &quot;SQL Injection+XSS &lt; Input Sanitization&quot;.
+It contains the special characters &lt;.
+Now, you can approach this problem in several ways. I'll try to explain the
+problem with each of them.
+
+   1. Don't allow special characters - this is too restrictive, and not
+   always possible.
+   2. Encode &lt; as &amp;lt; and store in database - Problem is that &amp;lt; only
+   works in HTML. If you want to use the same string in Javascript or in your
+   javacode, you will have a problem (the text will be shown as &amp;lt;). In
+   general, you don't know where you are going to use the data, so you can't
+   encode it at input time.
+
+The solution is to always escape the data just before you rendering the
+output. If you are creating HTML, escape according to HTML rules. If its
+javascript, escape according to javascript rules. This page explains how
+output encoding works &lt;<A HREF="http://www.530geeks.com/encode.jsp">http://www.530geeks.com/encode.jsp</A>&gt;.
+
+--Sri
+
+
+
+On 27 April 2010 22:08, suresh tiwary &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">sureshtiwary at rediffmail.com</A>&gt; wrote:
+
+&gt;<i> hi owasp-delhi,
+</I>&gt;<i>
+</I>&gt;<i> Can input sanitization mitigate sql injection ? If yes how and if no why ?
+</I>&gt;<i>
+</I>&gt;<i> For resolving xss, why output sanitization is considered ? Why not input
+</I>&gt;<i> sanitization ?
+</I>&gt;<i>
+</I>&gt;<i> Thanks &amp; regards,
+</I>&gt;<i> suresh
+</I>&gt;<i>
+</I>&gt;<i> &lt;<A HREF="http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.com/signatureline.htm@Middle?">http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.com/signatureline.htm@Middle?</A>&gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-delhi mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">Owasp-delhi at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">https://lists.owasp.org/mailman/listinfo/owasp-delhi</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-delhi/attachments/20100428/21359930/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-delhi/attachments/20100428/21359930/attachment-0001.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000902.html">[Owasp-delhi] SQL Injection+XSS &lt; Input Sanitization
+</A></li>
+	<LI>Next message: <A HREF="000903.html">[Owasp-delhi] Owasp-delhi Digest, Vol 33, Issue 6
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#904">[ date ]</a>
+              <a href="thread.html#904">[ thread ]</a>
+              <a href="subject.html#904">[ subject ]</a>
+              <a href="author.html#904">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-delhi">More information about the Owasp-delhi
+mailing list</a><br>
+</body></html>

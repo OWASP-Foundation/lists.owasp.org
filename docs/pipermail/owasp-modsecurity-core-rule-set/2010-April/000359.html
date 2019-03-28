@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20REQUEST_HEADERS_NAMES%20Problem%3F&In-Reply-To=201004071653.17620.ryan.barnett%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000358.html">
+   <LINK REL="Next"  HREF="000360.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?</H1>
+    <B>Mark Lavi</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20REQUEST_HEADERS_NAMES%20Problem%3F&In-Reply-To=201004071653.17620.ryan.barnett%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?">mlavi at sgi.com
+       </A><BR>
+    <I>Wed Apr  7 18:56:31 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000358.html">[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?
+</A></li>
+        <LI>Next message: <A HREF="000360.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 has two 49 enforcement	files
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#359">[ date ]</a>
+              <a href="thread.html#359">[ thread ]</a>
+              <a href="subject.html#359">[ subject ]</a>
+              <a href="author.html#359">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan wrote:
+
+&gt;<i>So, we are going to need to revert this SecRule back to using the @rx
+</I>operator so that we can levarage anchoring for the payloads.
+&gt;<i>This will be fixed in CRS v2.0.7.
+</I>&gt;<i>In the meantime, I would use the older CRS version of this rule that
+</I>uses the regex op. 
+
+May I inquire, what is the ETA for 2.0.7? It'll help me decide whether
+or not to keep my patch in place or to revert or to wait!
+
+Thanks always,
+
+Mark Lavi
+Senior Web Producer
+
+sgi
+
+46600 Landing Parkway
+Fremont, CA 94538
+(510) 933-5234 direct
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mlavi at sgi.com</A> 
+www.sgi.com
+
+
+-----Original Message-----
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On
+Behalf Of Ryan Barnett
+Sent: Wednesday, April 07, 2010 1:53 PM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES
+Problem?
+
+On Wednesday 07 April 2010 16:46:59 Arthur Dent wrote:
+&gt;<i> OK, I am really digging into my ModSec implementation now, turning 
+</I>&gt;<i> over all sorts of stones, and finding all sorts of creepy-crawlies 
+</I>&gt;<i> coming out.
+</I>&gt;<i> 
+</I>&gt;<i> My website is just a small, largely static, low-traffic, family-only 
+</I>&gt;<i> affair, but now that I am looking more closely at the logs I find that
+</I>
+&gt;<i> EVERY access to the site causes a Level 3 (error) alert!
+</I>&gt;<i> 
+</I>
+Yeah, we just found this as well and it is a false positive that needs
+to be fixed.  What is happening is that we wanted to try and let the
+user configure which Request Headers they wanted to deny by allowing
+them to set this in the 10 config file in a TX variable.  Then, in the
+30 http policy file, the rule is using the @within operator.  This is
+causing the FP as the Connection request header is incorrectly matching
+the the Proxy-Connection string in the @within operator...
+
+
+-Ryan
+
+&gt;<i> --b0f40239-H--
+</I>&gt;<i> Message: String match within &quot;Proxy-Connection Lock-Token 
+</I>&gt;<i> Content-Range Translate via if&quot; at REQUEST_HEADERS_NAMES:Connection. 
+</I>&gt;<i> [file 
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_30_http_policy.co
+</I>&gt;<i> nf&quot;] [line &quot;99&quot;] [id &quot;960038&quot;] [msg &quot;HTTP header is restricted by 
+</I>&gt;<i> policy&quot;] [data &quot;Connection&quot;] [severity &quot;WARNING&quot;] [tag 
+</I>&gt;<i> &quot;POLICY/HEADER_RESTRICTED&quot;] [tag &quot;POLICY/FILES_NOT_ALLOWED&quot;] [tag 
+</I>&gt;<i> &quot;WASCTC/WASC-21&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;] [tag 
+</I>&gt;<i> &quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/12.1&quot;] Message: 
+</I>&gt;<i> Warning. Operator LT matched 20 at TX:inbound_anomaly_score. [file 
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.co
+</I>&gt;<i> nf&quot;] [line &quot;31&quot;] [msg &quot;Inbound Anomaly Score (Total Inbound Score: 10,
+</I>
+&gt;<i> SQLi=,
+</I>&gt;<i> XSS=): HTTP header is restricted by policy&quot;] Stopwatch: 
+</I>&gt;<i> 1270670982923327
+</I>&gt;<i> 265382 (127726 137588 -)
+</I>&gt;<i> Response-Body-Transformed: Dechunked
+</I>&gt;<i> Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>
+&gt;<i> core ruleset/2.0.6. Server: Apache/2.2.14 (Fedora)
+</I>&gt;<i> 
+</I>&gt;<i> Some background:
+</I>&gt;<i> My ISP cannot provide me with a static IP address (at least not at a 
+</I>&gt;<i> price I'm prepared to pay!) so I am forced to use a DynDNS address 
+</I>&gt;<i> which points to the dynamic (numeric) IP. My actual registered domain 
+</I>&gt;<i> name points to the DynDNS address. Is this what is triggering the
+</I>above rule?
+&gt;<i> 
+</I>&gt;<i> Note, it actually makes no difference whether I access the site using 
+</I>&gt;<i> the registered domain name, the DynDNS name, or the IP address 
+</I>&gt;<i> directly
+</I>&gt;<i> - any method triggers the rule...
+</I>&gt;<i> 
+</I>&gt;<i> Hav I borked something somewhere?
+</I>&gt;<i> 
+</I>&gt;<i> All help gratefully received...
+</I>&gt;<i> 
+</I>&gt;<i> Thanks!
+</I>&gt;<i> 
+</I>&gt;<i> Mark
+</I>_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000358.html">[Owasp-modsecurity-core-rule-set] REQUEST_HEADERS_NAMES Problem?
+</A></li>
+	<LI>Next message: <A HREF="000360.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 has two 49 enforcement	files
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#359">[ date ]</a>
+              <a href="thread.html#359">[ thread ]</a>
+              <a href="subject.html#359">[ subject ]</a>
+              <a href="author.html#359">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

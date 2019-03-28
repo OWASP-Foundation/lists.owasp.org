@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Successful Redirect Attack Scoring only 3 with Core Rules (any clue?)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Successful%20Redirect%20Attack%0A%20Scoring%20only%203%20with%20Core%20Rules%20%28any%20clue%3F%29&In-Reply-To=%3C54F56A23.7000701%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001717.html">
+   <LINK REL="Next"  HREF="001719.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Successful Redirect Attack Scoring only 3 with Core Rules (any clue?)</H1>
+    <B>Achim</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Successful%20Redirect%20Attack%0A%20Scoring%20only%203%20with%20Core%20Rules%20%28any%20clue%3F%29&In-Reply-To=%3C54F56A23.7000701%40owasp.org%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Successful Redirect Attack Scoring only 3 with Core Rules (any clue?)">achim at owasp.org
+       </A><BR>
+    <I>Tue Mar  3 08:00:35 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001717.html">[Owasp-modsecurity-core-rule-set] Successful Redirect Attack	Scoring only 3 with Core Rules (any clue?)
+</A></li>
+        <LI>Next message: <A HREF="001719.html">[Owasp-modsecurity-core-rule-set] ModSecurity cPanel Reporting	Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1718">[ date ]</a>
+              <a href="thread.html#1718">[ thread ]</a>
+              <a href="subject.html#1718">[ subject ]</a>
+              <a href="author.html#1718">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+this is a typical &quot;header injection&quot; attack. AFAIK CRS has no spezial
+rules for that. What best fits is the HTTP Response Splitting rule 950911,
+but it is far to specific to match in this case.
+
+I'd suggest to craft a new set of rules for header injections.
+
+Also a variant of your example would be the meta tag, if the aplication
+writes the paramter there.
+
+In OWASP Top 10 (2013) this is A1 and A10.
+
+Ciao
+Achim
+
+
+On 03.03.2015 06:23, Christian Folini wrote:
+&gt;<i> Hi there,
+</I>&gt;<i> 
+</I>&gt;<i> Lately, I have encountered a successful redirect attack on an
+</I>&gt;<i> application server protected by ModSec / CoreRules.
+</I>&gt;<i> 
+</I>&gt;<i> Here is the request against a vanilla ModSec Install 
+</I>&gt;<i> (2.9.0, latest core rules):
+</I>&gt;<i> $&gt; curl -v &quot;<A HREF="http://localhost/submit?file=foo.txt%0D%0ARefresh:%201;%20url=http:www.example.com">http://localhost/submit?file=foo.txt%0D%0ARefresh:%201;%20url=http:www.example.com</A>&quot;
+</I>&gt;<i> 
+</I>&gt;<i> Here is the only rule that triggers:
+</I>&gt;<i> 981173 Restricted SQL Character Anomaly Detection Alert - Total # ...
+</I>&gt;<i> 
+</I>&gt;<i> [Tue Mar 03 06:11:40.733143 2015] [:error] [pid 983:tid 139737876645632] [client 127.0.0.1] ModSecurity: Warning. Pattern match &quot;([\\\\~\\\\!\\\\@\\\\#\\\\$\\\\%\\\\^\\\\&amp;\\\\*\\\\(\\\\)\\\\-\\\\+\\\\=\\\\{\\\\}\\\\[\\\\]\\\\|\\\\:\\\\;\\&quot;\\\\'\\\\\\xc2\\xb4\\\\\\xe2\\x80\\x99\\\\\\xe2\\x80\\x98\\\\`\\\\&lt;\\\\&gt;].*?){4,}&quot; at ARGS:file. [file &quot;/core-rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;] [line &quot;159&quot;] [id &quot;981173&quot;] [rev &quot;2&quot;] [msg &quot;Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded&quot;] [data &quot;Matched Data: : found within ARGS:file: foo.txt\\x0d\\x0aRefresh: 1; url=http:www.example.com&quot;] [ver &quot;OWASP_CRS/2.2.8&quot;] [maturity &quot;9&quot;] [accuracy &quot;8&quot;] [tag &quot;Local Lab Service&quot;] [tag &quot;OWASP_CRS/WEB_ATTACK/SQL_INJECTION&quot;] [hostname &quot;localhost&quot;] [uri &quot;/submit&quot;] [unique_id &quot;VPVCjH8AAQEAAAPXe50AAAAH&quot;]
+</I>&gt;<i> 
+</I>&gt;<i> This brings a score of 3, which is really low and below a sane
+</I>&gt;<i> limit for the said legacy app, which had to be tuned in far too
+</I>&gt;<i> many aspects already.
+</I>&gt;<i> 
+</I>&gt;<i> Does anybody have a good idea on how to protect against this
+</I>&gt;<i> _class_ of attacks? Obviously, it's a weak spot for the core rules.
+</I>&gt;<i> Maybe an extension is due.
+</I>&gt;<i> 
+</I>&gt;<i> Ahoj,
+</I>&gt;<i> 
+</I>&gt;<i> Christian
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001717.html">[Owasp-modsecurity-core-rule-set] Successful Redirect Attack	Scoring only 3 with Core Rules (any clue?)
+</A></li>
+	<LI>Next message: <A HREF="001719.html">[Owasp-modsecurity-core-rule-set] ModSecurity cPanel Reporting	Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1718">[ date ]</a>
+              <a href="thread.html#1718">[ thread ]</a>
+              <a href="subject.html#1718">[ subject ]</a>
+              <a href="author.html#1718">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level	-	Only send critical events
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20inbound_anomaly_score_level%0A%09-%09Only%20send%20critical%20events&In-Reply-To=%3Cassp.1314ae7b79.012801cfc0b2%24b8cc6b70%242a654250%24%40otherdata.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001639.html">
+   <LINK REL="Next"  HREF="001643.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level	-	Only send critical events</H1>
+    <B>Wesley Render</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20inbound_anomaly_score_level%0A%09-%09Only%20send%20critical%20events&In-Reply-To=%3Cassp.1314ae7b79.012801cfc0b2%24b8cc6b70%242a654250%24%40otherdata.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level	-	Only send critical events">wrender at otherdata.com
+       </A><BR>
+    <I>Mon Aug 25 22:20:04 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001639.html">[Owasp-modsecurity-core-rule-set] How can I use directive SecRuleRemoveById on web.config
+</A></li>
+        <LI>Next message: <A HREF="001643.html">[Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level - Only send critical events
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1640">[ date ]</a>
+              <a href="thread.html#1640">[ thread ]</a>
+              <a href="subject.html#1640">[ subject ]</a>
+              <a href="author.html#1640">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I was just wanting to follow up.  Is anyone able to confirm the proper
+logging settings when using ModSecurity, and sending the logs out via mlogc
+to AuditConsole?  Should we have our modsecurity_crs_10_setup.conf
+SecDefaultAction lines set to the following?
+
+SecDefaultAction &quot;phase:1,pass,nolog&quot;
+SecDefaultAction &quot;phase:2,pass,nolog&quot;
+
+Thanks!
+
+
+Wesley Render, IT Consultant, RHCSA
+Phone: 1.403.228.1221 ext 201
+www.otherdata.com
+
+
+-----Original Message-----
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On Behalf
+Of Wesley Render
+Sent: August-20-14 11:30 AM
+To: 'OWASP Mod Security'
+Subject: Re: [Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level -
+Only send critical events
+
+When I set it to the following, I get a lot less logs coming in.  I am
+confused on how it should be set as well when sending logs to AuditConsole
+using mlogc.  Here is a summary of relevant settings I have right now
+(below).   I guess it seems as though the logging settings are not able to
+combine one correlated event into the audit log.  They can only combine one
+correlated event into the apache error_log?
+
+
+############  modsecurity_crs_10_setup.conf  Settings
+##########################
+
+# Collaborative Detection Mode
+SecDefaultAction &quot;phase:1,pass,nolog&quot;
+SecDefaultAction &quot;phase:2,pass,nolog&quot;
+
+
+# Collaborative Detection Blocking #
+SecAction \
+  &quot;id:'900004', \
+  phase:1, \
+  t:none, \
+  setvar:tx.anomaly_score_blocking=on, \
+  nolog, \
+  pass&quot;
+
+
+############ modsec2.user.conf  Settings
+######################################
+SecDataDir /usr/local/apache/conf/sec-data
+SecTmpDir /usr/local/apache/conf/sec-tmp
+
+SecRuleEngine On
+SecPcreMatchLimit 50000
+SecPcreMatchLimitRecursion 50000
+
+# With SecRequestBodyAccess turned on care needs to be taken with false
+positives
+SecRequestBodyAccess On
+SecRequestBodyLimit 134217728
+SecRequestBodyLimitAction ProcessPartial
+SecRequestBodyNoFilesLimit 131072
+SecRequestBodyInMemoryLimit 131072
+
+SecResponseBodyAccess On
+SecResponseBodyMimeType (null) text/html text/plain text/xml
+SecResponseBodyLimit 524228
+SecResponseBodyLimitAction ProcessPartial
+SecServerSignature Apache
+SecCookieFormat 0
+
+# Additional ModSecurity Logging Options for mlogc
+# Use ReleventOnly auditing
+SecAuditEngine RelevantOnly
+SecAuditLogRelevantStatus &quot;^(?:5|4(?!04))&quot;
+
+# Must use concurrent logging
+SecAuditLogType Concurrent
+
+# Send all audit log parts
+SecAuditLogParts ABDEFHIJKZ
+
+# Use the same /CollectorRoot/LogStorageDir as in mlogc.conf
+SecAuditLogStorageDir /var/log/mlogc/data
+
+# Pipe audit log to mlogc with your configuration
+SecAuditLog &quot;|/usr/local/modsecurity/bin/mlogc /etc/mlogc.conf&quot;
+
+# OWASP Rules
+Include conf/owasp-modsecurity-crs/modsecurity_crs_10_setup.conf
+Include conf/owasp-modsecurity-crs/activated_rules/*.conf
+
+# Trustwave Commercial Rules
+Include conf/slr_vuln_rules/owasp_crs_integration/attack_type/*.conf
+
+
+Wesley Render, IT Consultant, RHCSA
+Phone: 1.403.228.1221 ext 201
+www.otherdata.com
+
+
+-----Original Message-----
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On Behalf
+Of Earl Fogel
+Sent: August-20-14 9:59 AM
+To: OWASP Mod Security
+Subject: Re: [Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level -
+Only send critical events
+
+I have this problem as well.  I also have:
+
+SecDefaultAction &quot;phase:1,pass,nolog,auditlog&quot;
+SecDefaultAction &quot;phase:2,pass,nolog,auditlog&quot;
+SecAuditEngine RelevantOnly
+SecAuditLogRelevantStatus &quot;^(?:5|4(?!04))&quot;
+
+Could that be relevent?  How should these be set in collaborative detection
+mode?
+
+Earl
+-
+
+
+On Wed, 20 Aug 2014, Josh Amishav-Zlatin &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at owasp.org</A>&gt; wrote:
+
+&gt;<i>On Wed, Aug 20, 2014 at 6:56 AM, Wesley Render &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">wrender at otherdata.com</A>&gt;
+</I>wrote:
+&gt;<i>
+</I>&gt;<i>      Would anyone know if it would be possible to adjust the core rule set
+</I>&gt;<i>      configuration file so that only events that have a total inbound
+</I>score of
+&gt;<i>      5 or higher are sent to the audit log.&#160; (Running in Collaborative
+</I>&gt;<i>      Detection and Anomaly Scoring &amp; Blocking)&#160; Version:
+</I>SecComponentSignature
+&gt;<i>      &quot;OWASP_CRS/2.2.9&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>Hi Wesley,
+</I>&gt;<i>
+</I>&gt;<i>When the CRS is used in anomaly mode it should not create audit logs 
+</I>&gt;<i>unless the event passes the threshold set in the 10 file. Can you send 
+</I>&gt;<i>me privately an event from AuditConsole that does not have an anomaly 
+</I>&gt;<i>score level above 5? I'm specifically interested in sections H and K.
+</I>&gt;<i>
+</I>&gt;<i>- Josh
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001639.html">[Owasp-modsecurity-core-rule-set] How can I use directive SecRuleRemoveById on web.config
+</A></li>
+	<LI>Next message: <A HREF="001643.html">[Owasp-modsecurity-core-rule-set] inbound_anomaly_score_level - Only send critical events
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1640">[ date ]</a>
+              <a href="thread.html#1640">[ thread ]</a>
+              <a href="subject.html#1640">[ subject ]</a>
+              <a href="author.html#1640">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,186 @@
+From [REDACTED]  Mon Aug 10 20:48:33 2015
+From: [REDACTED]
+Date: Mon, 10 Aug 2015 20:48:33 +0000
+Subject: [Owasp-csrfguard] Getting csrfguard 3.1 to work with struts 1.1
+ fowards, has anyone gotten it to work?
+Message-ID: <CO1PR07MB1602E5A11DF8340100B41EA8F700@CO1PR07MB160.namprd07.prod.outlook.com>
+
+Hi Folks,
+I did some searching on all the archives for struts before posting, I will search for "forward" next
+We are trying to add csrfguard 3.1 to a very large, legacy (spaghetti) web app, (actually many, but focusing on 1 for now)
+We are using struts 1.1 , weblogic 12.1.3 etc
+I'm able to get happy path for a fairly complex CRUD flow with a combo of unprotected urls, as well as turning off token per page and token rotate properties
+, which is in essence, just another session token , OWASP_CSRFTOKEN, which is similar to JSESSIONID and struts token and can be forged is similar matter. We need a per page token or rotating token to
+After some careful analysis on (what looks like) the latest and greatest source https://github.com/aramrami/OWASP-CSRFGuard
+The problem is with the struts forward and flow is as follows:
+
+1.      Initial request using (wonky javascript) and csrfguard taglib
+openIwin("createSomeEntityForward.do?<csrf:token uri="createSomeEntityForward.do"/>", "Create Organization");
+
+2.      CSRFGuard Filter (using token per page ) validates/allows the the 1st request  uri createSomeEntityForward
+
+3.      But when Filter intercepts 2nd forwarded path "/WEB-INF/jsp/.../createEntity.jsp"/> The token in the request is not found in the csrfguard uri/token map so it checks against the session token which fails
+
+4.      I also tried turning off token per page and turned on token rotate, the session token got updated, but the orig request has the now, stale token
+
+5.      If there was some other normal (non csrf) validation, like a missing field, it would be forwarded to yet another page which would also break
+
+Re-writing the webapp is not an option at this time, nor is upgrading to more modern version of struts
+
+Proposed work-around:
+
+1.      We were thinking of writing our own filter to attached token to each outbound request (and using the csrfguard api), to inject (add NV pair to URL if GET or body if POST) and forgoing javascript injection or csrf taglib, since we have hundreds of complex pages).
+
+2.      When the csrfguard filter now picks up the inbound request, it validates each request, regardless if forward
+
+Another workaround:
+
+1.      Somehow get a handle to the orig request, the .do request, then change the CSRFGuard.verifyPageToken() method to check the URI/Token map for both the forwarded URI (.jsp) OR the orig URI (.do) for a match
+
+We are open to other ideas as well?
+
+Here's a snippet of struts-config.xml (names fudged a bit)
+             <action path="/createSomeEntityForward" input="/WEB-INF/jsp/.../index.jsp" scope="request" type="com.........portal.action.SecurityForwardAction" validate="false">
+                    <forward name="failure"              path="/WEB-INF/jsp/.../index.jsp"/>
+                    <forward name="success"              path="/WEB-INF/jsp/...createEntity.jsp"/>
+             </action>
+
+These are some of the the relevant session attributes
+org.apache.struts.action.TOKEN=d408fea028c0094dd0c8d8f978b3ed51
+OWASP_CSRFTOKEN=SDOB-M7W9-CSPP-BRHS-Q1L4-05AG-8XDZ-3KNB
+
+Thanks in advance for your time
+[REDACTED]
+
+This e-mail is intended solely for the person or entity to which it is addressed and may contain confidential and/or privileged information. Any review, dissemination, copying, printing or other use of this e-mail by persons or entities other than the addressee is prohibited. If you have received this e-mail in error, please contact the sender immediately and delete the material from any computer.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20150810/e4be0ac1/attachment.html>
+
+From jim.manico at owasp.org  Mon Aug 10 20:55:25 2015
+From: jim.manico at owasp.org (Jim Manico)
+Date: Mon, 10 Aug 2015 10:55:25 -1000
+Subject: [Owasp-csrfguard] Getting csrfguard 3.1 to work with struts 1.1
+ fowards, has anyone gotten it to work?
+In-Reply-To: <CO1PR07MB1602E5A11DF8340100B41EA8F700@CO1PR07MB160.namprd07.prod.outlook.com>
+References: <CO1PR07MB1602E5A11DF8340100B41EA8F700@CO1PR07MB160.namprd07.prod.outlook.com>
+Message-ID: <55C90FBD.7080906@owasp.org>
+
+Struts 1.1 is way past end of life and is no longer being supported in 
+any way. The final struts 1.1 release was in _*2008*_. I highly 
+recommend you move away from this framework. In a big way. Especially 
+when emailing public lists with your work email.
+
+- Jim
+
+On 8/10/15 10:48 AM, [REDACTED] wrote:
+>
+> Hi Folks,
+>
+> I did some searching on all the archives for struts before posting, I 
+> will search for ?forward? next
+>
+> We are trying to add csrfguard 3.1 to a very large, legacy (spaghetti) 
+> web app, (actually many, but focusing on 1 for now)
+>
+> We are using struts 1.1 , weblogic 12.1.3 etc
+>
+> I?m able to get happy path for a fairly complex CRUD flow with a combo 
+> of unprotected urls, as well as turning off token per page and token 
+> rotate properties
+>
+> , which is in essence, just another session token , OWASP_CSRFTOKEN, 
+> which is similar to JSESSIONID and struts token and can be forged is 
+> similar matter. We need a per page token or rotating token to
+>
+> After some careful analysis on (what looks like) the latest and 
+> greatest source https://github.com/aramrami/OWASP-CSRFGuard
+>
+> The problem is with the struts forward and flow is as follows:
+>
+> 1.Initial request using (wonky javascript) and csrfguard taglib
+> openIwin("createSomeEntityForward.do?<csrf:token 
+> uri="createSomeEntityForward.do"/>", "Create Organization");
+>
+> 2.CSRFGuard Filter (using token per page ) validates/allows the the 
+> 1^st request  uri /createSomeEntityForward/
+>
+> 3.But when Filter intercepts 2nd forwarded path 
+> ?//WEB-INF/jsp/?/createEntity.jsp"//> The token in the request is not 
+> found in the csrfguard uri/token map so it checks against the session 
+> token which fails
+>
+> 4.I also tried turning off token per page and turned on token rotate, 
+> the session token got updated, but the orig request has the now, stale 
+> token
+>
+> 5.If there was some other normal (non csrf) validation, like a missing 
+> field, it would be forwarded to yet another page which would also break
+>
+> Re-writing the webapp is not an option at this time, nor is upgrading 
+> to more modern version of struts
+>
+> Proposed work-around:
+>
+> 1.We were thinking of writing our own filter to attached token to each 
+> outbound request (and using the csrfguard api), to inject (add NV pair 
+> to URL if GET or body if POST) and forgoing javascript injection or 
+> csrf taglib, since we have hundreds of complex pages).
+>
+> 2.When the csrfguard filter now picks up the inbound request, it 
+> validates each request, regardless if forward
+>
+> Another workaround:
+>
+> 1.Somehow get a handle to the orig request, the .do request, then 
+> change the CSRFGuard.verifyPageToken() method to check the URI/Token 
+> map for both the forwarded URI (.jsp) OR the orig URI (.do) for a match
+>
+> We are open to other ideas as well?
+>
+> Here?s a snippet of struts-config.xml (names fudged a bit)
+>
+> <actionpath=/"/createSomeEntityForward"/ 
+> input=/"/WEB-INF/jsp/?/index.jsp"/ scope=/"request"/ 
+> type=/"com?.?..portal.action.SecurityForwardAction"/ validate=/"false"/>
+>
+> <forwardname=/"failure"/ path=/"/WEB-INF/jsp/?/index.jsp"//>
+>
+> <forwardname=/"success"/ path=/"/WEB-INF/jsp/?createEntity.jsp"//>
+>
+> </action>
+>
+> These are some of the the relevant session attributes
+>
+> org.apache.struts.action.TOKEN=d408fea028c0094dd0c8d8f978b3ed51
+>
+> OWASP_CSRFTOKEN=SDOB-M7W9-CSPP-BRHS-Q1L4-05AG-8XDZ-3KNB
+>
+> Thanks in advance for your time
+>
+> [REDACTED]
+>
+> This e-mail is intended solely for the person or entity to which it is 
+> addressed and may contain confidential and/or privileged information. 
+> Any review, dissemination, copying, printing or other use of this 
+> e-mail by persons or entities other than the addressee is prohibited. 
+> If you have received this e-mail in error, please contact the sender 
+> immediately and delete the material from any computer.
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-- 
+Jim Manico
+Global Board Member
+OWASP Foundation
+https://www.owasp.org
+Join me at AppSecUSA 2015!
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20150810/4b9d12c0/attachment-0001.html>
+

@@ -1,0 +1,138 @@
+From doconnor at kemptechnologies.com  Tue Aug  4 16:51:10 2015
+From: doconnor at kemptechnologies.com (David O'Connor)
+Date: Tue, 4 Aug 2015 16:51:10 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Running ModSecurity Rules on
+ KEMP	LoadMaster
+In-Reply-To: <CAMiuPXHKXCE5V6xUBjfQvjE2zv9JZ+3kRCqpMnR+eXS3_Xb9fg@mail.gmail.com>
+References: <CAMiuPXHKXCE5V6xUBjfQvjE2zv9JZ+3kRCqpMnR+eXS3_Xb9fg@mail.gmail.com>
+Message-ID: <SN1PR0401MB17737ECC78398371EAAC1588BC760@SN1PR0401MB1773.namprd04.prod.outlook.com>
+
+Hi Matt,
+
+I work for KEMP Technologies and should be able to assist you in working with the KEMP LoadBalancer and the ModSecurity rules. You can import the OWASP ModSecurity rule set into the KEMP LoadMaster and then use them as normal. I can work with you offline to try understand what you are looking to do and then we can post the results to the forum for everyone, if that is okay?
+
+Kind Regards,
+dave
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Matt VanCleve
+Sent: 31 July 2015 23:39
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Running ModSecurity Rules on KEMP LoadMaster
+
+Hi there everyone,
+
+We have been using the KEMP LoadMaster for SSL security and webserver load balancing. They recently added a Web Application Firewall feature with a few default rules but also had the option to run ModSecurity rules. Checking the web for information on implementing ModSecurity on KEMP, I have not found any information on tuning the standard ModSecurity rules on a KEMP LoadMaster.
+
+Loading the default ModSecurity rules under Block mode and turning off the KEMP options of Process Request Data and Process Responses, I was able to get 12 rules enabled and only had issues with 3 (30_http_policy, 40_generic_attacks, 41_sl_injection). I've started reading the audit logs from our initial tests but still trying to interpret the logs against the rule.
+
+I know that getting ModSecurity requires a fair amount of tuning to get working but wanted to know where a good place to start would be. Also, if anyone has been able to get ModSecurity working on KEMP please let me know.
+
+I'm going to read through the manual this weekend and see if any of that sinks in - https://github.com/spiderLabs/modsecurity/wiki/reference-manual
+
+Thanks, Matt
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150804/4a8be6c1/attachment.html>
+
+From jgreen at wikimedia.org  Mon Aug 17 23:26:12 2015
+From: jgreen at wikimedia.org (Jeff Green)
+Date: Mon, 17 Aug 2015 23:26:12 +0000 (UTC)
+Subject: [Owasp-modsecurity-core-rule-set] fixing
+ modsecurity_crs_41_sql_injection_attacks.conf - Id=981172 - PCRE limits
+ exceeded
+Message-ID: <alpine.LRH.2.11.1508172310500.2764@coyote.trouser.org>
+
+Dealing with false positives for 2.2.9 I came up with the following regex 
+improvement for rule Id=981172:
+
+Before:
+"([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>].*?){8,}"
+
+After:
+"([\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>][^\~\!\@\#\$\%\^\&\*\(\)\-\+\=\{\}\[\]\|\:\;\"\'\?\?\?\`\<\>]*){8}"
+
+I think the end result is the same without bumping up against recursion 
+limits. Does this look sane to others?
+
+jg
+
+From barry_pollard at hotmail.com  Fri Aug 21 09:31:08 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Fri, 21 Aug 2015 10:31:08 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Suggestion to improve
+	modsecurity_crs_10_ignore_static.conf
+Message-ID: <DUB116-W1387E4FA55981002980361B82650@phx.gbl>
+
+Should we add a "ctl:ruleEngine=On" to all the "allow" rules (900042, 900043, 999005 and 999006) in?modsecurity_crs_10_ignore_static.conf?
+
+The reason being that when running in DetectionOnly mode, these rules are effectively ignore and so performance is WORSE in detection only mode. DetectionOnly will also potentially flag rules that will never be hit when running in full On mode, as these rules will allow those requests.
+
+To me DetectionOnly mode should be the same as full On, except without blocking and currently it is not for these rules.
+
+A bigger question is whether "allow" should be considered disruptive in ModSecurity itself but I think improving the OWASP CRS is a smaller step than that.
+
+Thanks,
+Barry 		 	   		  
+
+From prakash.khadka at nepallink.net  Sun Aug 30 10:49:13 2015
+From: prakash.khadka at nepallink.net (Prakash Khadka)
+Date: Sun, 30 Aug 2015 16:34:13 +0545
+Subject: [Owasp-modsecurity-core-rule-set] About preventing brute force
+	attack
+Message-ID: <CACpVoZNoAcNvXToU-BpEyQPw8FLqCE1E4FpdHGtiC1tSFe+-tw@mail.gmail.com>
+
+Hello,
+
+I have used modsecurity rule list for cpanel and installed OWASP vendor
+through WHM. There are rules which we can turn OFF and ON. I have turned
+all rules ON. My question is how to turn ON brute force attack prevention
+mode because I do not see it in OWASP vendor rules for cpanel (
+https://documentation.cpanel.net/display/CKB/OWASP%20ModSecurity%20CRS)?
+
+Can anyone tell me if below is the correct method to prevent brute force
+attack in cpanel for WordPress and Joomla websites.
+
+1. Go to
+https://github.com/SpiderLabs/owasp-modsecurity-crs/tree/master/experimental_rules
+and copy modsecurity_crs_11_brute_force.conf
+<https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/experimental_rules/modsecurity_crs_11_brute_force.conf>
+to
+/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/
+2. load the file in /usr/local/apache/conf/modsec2.cpanel.conf
+3. open following file and edit
+# vi
+/usr/local/apache/conf/modsec_vendor_configs/OWASP/modsecurity_crs_10_setup.conf
+
+replace following
+
+SecAction "id:'900014', phase:request, nolog, pass, t:none,
+setvar:'tx.brute_force_protected_urls=#/login.jsp# #/partner_login.php#'',
+setvar:'tx.brute_force_burst_time_slice=60',
+setvar:'tx.brute_force_counter_threshold=10',
+setvar:'tx.brute_force_block_timeout=300'"
+
+with
+
+SecAction "id:'900014', phase:request, nolog, pass, t:none,
+setvar:'tx.brute_force_protected_urls=#/wp-login.php#
+#/administrator/index.php#'', setvar:'tx.brute_force_burst_time_slice=60',
+setvar:'tx.brute_force_counter_threshold=5',
+setvar:'tx.brute_force_block_timeout=300'"
+
+restart apache
+
+ADDITIONAL QUESTIONS:
+1. so in tx.brute_force_protected_urls=
+is ''#" used as separator?
+
+tx.brute_force_protected_urls=#login1.php# #login2.php# #login3.php#
+#login4.php#
+
+FYI: I have implemented as above but it didn't worked. :)
+
+waiting for reply....
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150830/d9184b1b/attachment.html>
+

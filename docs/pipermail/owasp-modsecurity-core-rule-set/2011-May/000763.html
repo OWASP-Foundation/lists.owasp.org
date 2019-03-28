@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Testing Custom Rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Testing%20Custom%20Rules&In-Reply-To=04848BF3-D915-465C-9423-D413EAF33D8E%40pumastudios.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000761.html">
+   <LINK REL="Next"  HREF="000760.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Testing Custom Rules</H1>
+    <B>Christian Bockermann</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Testing%20Custom%20Rules&In-Reply-To=04848BF3-D915-465C-9423-D413EAF33D8E%40pumastudios.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Testing Custom Rules">chris at jwall.org
+       </A><BR>
+    <I>Thu May  5 14:04:50 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000761.html">[Owasp-modsecurity-core-rule-set] Testing Custom Rules
+</A></li>
+        <LI>Next message: <A HREF="000760.html">[Owasp-modsecurity-core-rule-set] Testing Custom Rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#763">[ date ]</a>
+              <a href="thread.html#763">[ thread ]</a>
+              <a href="subject.html#763">[ subject ]</a>
+              <a href="author.html#763">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Am 05.05.2011 um 19:33 schrieb Ken Brucker:
+
+&gt;<i> If I'm understanding this tool the method of use is:
+</I>&gt;<i> 
+</I>&gt;<i> - turn on ModSecurity audit log on target website
+</I>&gt;<i> - Run traffic to the site, including break-in attempts, normal usage, etc.
+</I>&gt;<i> - turn off audit log
+</I>&gt;<i> 
+</I>&gt;<i> Update rules on the target website
+</I>&gt;<i> Test client will parse audit log and replay the web events to the target website.
+</I>&gt;<i> 
+</I>&gt;<i> Review logs, rinse, repeat...
+</I>&gt;<i> 
+</I>&gt;<i> Have I understood the scheme?
+</I>
+
+Basically, yes.
+The workflow I had in mind was like this:
+
+  * Use the AuditConsole to receive ModSecurity events from the target website
+
+  * Define specific test-Tags and associate a set of tests with each tag, for example
+
+       tag: 'test-ruleId-123'     =&gt;   RULE_IDS @contains 123
+       tag: 'test-forbidden-403'  =&gt;  RESPONSE_STATUS @eq 403 
+
+  * Now, tag the events you want to use for testing, i.e. by tagging an event
+    with &quot;test-forbidden-403&quot;, which means: In my regression-tests, make sure that
+    request will be tested against &quot;RESPONSE_STATUS @eq 403&quot;
+
+  * Download all events tagged as 'test*' from the AuditConsole, which will basically
+    create a serial-audit-log file with the tests attached to each event.
+    This can then be re-injected into any ModSecurity-enabled Apache server. Ideally,
+    this will be done on a special test-system.
+    Thus, you can easily flag events as &quot;test-false-positive&quot; and associate:
+
+        tag: 'test-false-positive'  =&gt;  RESPONSE_STATUS @rx (20|30).
+
+
+  * Run the TestClient, which reads the serial audit-log, send these to the Apache server
+    (test-server) and assures, whether the events have been blocked by the Apache/ModSec
+    as expected.    
+
+
+I did some stuff like that for testing different rule sets some time ago (Before I
+started implementing the AuditConsole):
+
+	<A HREF="https://secure.jwall.org/articles/eval_rules.jsp">https://secure.jwall.org/articles/eval_rules.jsp</A>
+
+
+Regards,
+    Chris
+
+
+
+&gt;<i> 
+</I>&gt;<i> On May 5, 2011, at 11:41 AM, Christian Bockermann wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Hi Ken,
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> your question is hitting the spot. Currently there is no such test engine available.
+</I>&gt;&gt;<i> I've done some work on that by implementing a TestClient in Java, which basically
+</I>&gt;&gt;<i> can re-inject all requests from a recorded ModSecurity audit-log.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I've had plans (and started some of that) to implement an &quot;X&quot;-Section which can be
+</I>&gt;&gt;<i> used to define &quot;expected behaviour&quot;. For example, you could add some tests like:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>    RESPONSE_STATUS @eq 404
+</I>&gt;&gt;<i>    RESPONSE_BODY &quot;@rx !MySQL Error&quot;
+</I>&gt;&gt;<i>    ...
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> However, since such a test-client can only check for expected results within the
+</I>&gt;&gt;<i> server response, this is somewhat limitted. An extension might be to connect to the
+</I>&gt;&gt;<i> AuditConsole and check the resulting &quot;newly created&quot; audit log events for the requests
+</I>&gt;&gt;<i> that are injected for testing.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> If that sounds interesting to you, just drop me a line. I'd be happy to include such
+</I>&gt;&gt;<i> a thing in the jwall-tools (open-source).
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Chris
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Am 05.05.2011 um 17:54 schrieb Ken Brucker:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Hi - I have some custom rules I'd like to create and I'm looking for a test engine to drive the rules and ensure I'm getting the expected results.  I checked the FAQ and found this question that directly relates:
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> How do I handle False Positives and creating Custom Rules?
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> It is inevitable; you will run into some False Positive hits when using web application firewalls. This is not something that is unique to ModSecurity. All web application firewalls will generate false positives from time to time. The following Blog post information will help to guide you through the process of identifying, fixing, implementing and testing new custom rules to address false positives.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> But...  the last sentence states &quot;The following blog post information ...&quot;  and there is no blog post information following.  Where do I find the referenced material?
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Does a test engine exist outside Apache to feed data through the rules to enable easy regression testing in addition to focused testing of new rules?
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Regards,
+</I>&gt;&gt;&gt;<i> Ken
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000761.html">[Owasp-modsecurity-core-rule-set] Testing Custom Rules
+</A></li>
+	<LI>Next message: <A HREF="000760.html">[Owasp-modsecurity-core-rule-set] Testing Custom Rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#763">[ date ]</a>
+              <a href="thread.html#763">[ thread ]</a>
+              <a href="subject.html#763">[ subject ]</a>
+              <a href="author.html#763">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

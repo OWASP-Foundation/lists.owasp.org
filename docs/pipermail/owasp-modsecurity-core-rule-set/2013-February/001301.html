@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] secRemoveTargetById
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20secRemoveTargetById&In-Reply-To=%3CCD31862C.8F69%25mmitchell%40backstopsolutions.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001299.html">
+   <LINK REL="Next"  HREF="001300.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] secRemoveTargetById</H1>
+    <B>Matt Mitchell</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20secRemoveTargetById&In-Reply-To=%3CCD31862C.8F69%25mmitchell%40backstopsolutions.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] secRemoveTargetById">mmitchell at backstopsolutions.com
+       </A><BR>
+    <I>Fri Feb  1 20:50:23 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001299.html">[Owasp-modsecurity-core-rule-set] secRemoveTargetById
+</A></li>
+        <LI>Next message: <A HREF="001300.html">[Owasp-modsecurity-core-rule-set] [PATCH] modsecurity_crs_47_common_exceptions.conf: drop apache User-Agent signature for dummy connection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1301">[ date ]</a>
+              <a href="thread.html#1301">[ thread ]</a>
+              <a href="subject.html#1301">[ subject ]</a>
+              <a href="author.html#1301">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan,
+
+I'm on 2.7.1. 
+
+By &quot;directive&quot; I assume you mean something like SecRuleUpdateTargetById?
+Along these lines?
+
+SecRuleUpdateTargetById 973333 !ARGS:/[Hh]tml/
+
+
+I'll give that a shot. Other ideas welcome.
+
+-m
+
+
+On 1/31/13 7:06 PM, &quot;Ryan Barnett&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+
+&gt;<i>Matt,
+</I>&gt;<i>What version of ModSecurity are you using?
+</I>&gt;<i>
+</I>&gt;<i>Since you don't need to do this conditionally based on request data, you
+</I>&gt;<i>could try just using the directive to remove it vs using the ctl action.
+</I>&gt;<i>Just make sure to our this in a custom Ruke file that is read AFTER the
+</I>&gt;<i>other rules.
+</I>&gt;<i>
+</I>&gt;<i>The ctl action should work but you might want to try the directive
+</I>&gt;<i>instead.
+</I>&gt;<i>
+</I>&gt;<i>--
+</I>&gt;<i>Ryan Barnett
+</I>&gt;<i>
+</I>&gt;<i>On Jan 31, 2013, at 7:27 PM, &quot;Matt Mitchell&quot;
+</I>&gt;<i>&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mmitchell at backstopsolutions.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hey gang,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I know this isn't a CRS issue per se, but I thought you might have some
+</I>&gt;&gt;<i>insight before I either dig through the mod_security code or ask them
+</I>&gt;&gt;<i>how I should do this.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Our application occasionally wants to accept stuff that looks scary,
+</I>&gt;&gt;<i>like HTML, from certain form submissions. After some thought, I figured
+</I>&gt;&gt;<i>the best way to do this was to make a small change to the application to
+</I>&gt;&gt;<i>put &quot;html&quot; in the parameter name, and then use ctl:secRemoveTargetById
+</I>&gt;&gt;<i>to whitelist those rules on the way through the CRS rule set.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Here's what I tried first, for one particular rule 973333:
+</I>&gt;&gt;<i> SecRule REQUEST_URI &quot;.&quot;
+</I>&gt;&gt;<i>id:1000200,phase:2,pass,ctl:ruleRemoveTargetById=973333;ARGS:/[Hh]tml/
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But it doesn't seem to work. Everything is being treated as normal.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I've used that REQUEST_URI-matching-anything idiom in other rules, so I
+</I>&gt;&gt;<i>don't think that is failing to match. My intention is to remove 973333
+</I>&gt;&gt;<i>for only those arguments that match the regex. Anyone have any
+</I>&gt;&gt;<i>suggestions for me, or attempt something similar? If I can get this rule
+</I>&gt;&gt;<i>working, I'd then expect to have additional rules removing other targets
+</I>&gt;&gt;<i>that look basically the same.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks in advance --
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -m
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>________________________________
+</I>&gt;<i>
+</I>&gt;<i>This transmission may contain information that is privileged,
+</I>&gt;<i>confidential, and/or exempt from disclosure under applicable law. If you
+</I>&gt;<i>are not the intended recipient, you are hereby notified that any
+</I>&gt;<i>disclosure, copying, distribution, or use of the information contained
+</I>&gt;<i>herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+</I>&gt;<i>received this transmission in error, please immediately contact the
+</I>&gt;<i>sender and destroy the material in its entirety, whether in electronic or
+</I>&gt;<i>hard copy format.
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001299.html">[Owasp-modsecurity-core-rule-set] secRemoveTargetById
+</A></li>
+	<LI>Next message: <A HREF="001300.html">[Owasp-modsecurity-core-rule-set] [PATCH] modsecurity_crs_47_common_exceptions.conf: drop apache User-Agent signature for dummy connection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1301">[ date ]</a>
+              <a href="thread.html#1301">[ thread ]</a>
+              <a href="subject.html#1301">[ subject ]</a>
+              <a href="author.html#1301">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

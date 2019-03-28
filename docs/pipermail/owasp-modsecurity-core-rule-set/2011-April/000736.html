@@ -1,0 +1,298 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%20behaving%20as%20expected&In-Reply-To=BANLkTimWkMgO93hKoiBQ8G5FCwzVGXr4oA%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000735.html">
+   <LINK REL="Next"  HREF="000737.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected</H1>
+    <B>Guillaume Bilodeau</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%20behaving%20as%20expected&In-Reply-To=BANLkTimWkMgO93hKoiBQ8G5FCwzVGXr4oA%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected">guillaume.bilodeau at gmail.com
+       </A><BR>
+    <I>Sat Apr 16 09:43:28 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000735.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+        <LI>Next message: <A HREF="000737.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#736">[ date ]</a>
+              <a href="thread.html#736">[ thread ]</a>
+              <a href="subject.html#736">[ subject ]</a>
+              <a href="author.html#736">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>A little more information on the 200 return code:
+
+It seems that mod_reqtimeout is not closing the connection after the
+20 seconds, but rather truncating the request and letting it go through.
+ So the request is actually processed, and since the URL is referring to
+an actual resource, a 200 code is returned.
+
+Surely there must be a problem with our configuration?  Or maybe our Apache
+build?
+
+Cheers,
+GB
+
+On Sat, Apr 16, 2011 at 12:55 AM, Brian Rectanus &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">brectanu at gmail.com</A>&gt; wrote:
+
+&gt;<i> Probably not &quot;disastrous&quot; :)  You have the overhead of the TCP 3-way
+</I>&gt;<i> handshake and also the shutdown, but the browsers should be using SSL
+</I>&gt;<i> session resumption, which is not connection based.  It uses cached SSL
+</I>&gt;<i> session IDs and should be reused on each connection up to the timeout
+</I>&gt;<i> - just make sure this is enabled in the Apache config.  Personally, I
+</I>&gt;<i> find that about 3 second timeouts w/low request limit works well for
+</I>&gt;<i> keepalives, so it may be enough to just limit the keepalive timeout
+</I>&gt;<i> and number of requests  (say 3 second timeout w/9 requests limit
+</I>&gt;<i> instead of completely disabling them).  It really depends on your
+</I>&gt;<i> latency requirements for your site.
+</I>&gt;<i>
+</I>&gt;<i> -B
+</I>&gt;<i>
+</I>&gt;<i> On Thu, Apr 14, 2011 at 2:37 PM, Guillaume Bilodeau
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt; We will try turning off connection keep-alive to see how Apache will
+</I>&gt;<i> react.
+</I>&gt;<i> &gt;  However, isn't turning this off going to have a disastrous impact on
+</I>&gt;<i> &gt; connection performance, especially since all traffic will be SSL?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Thu, Apr 14, 2011 at 3:19 PM, Ivan Ristic &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ivan.ristic at gmail.com</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Yes, it's probably because of keep-alives. Sounds like a bug in the
+</I>&gt;<i> &gt;&gt; reqtimeout module, because, if the connection stays open, the module
+</I>&gt;<i> &gt;&gt; isn't achieving much.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; IIRC, ModSecurity will turn off keep-alives on a connection on which it
+</I>&gt;<i> &gt;&gt; blocks.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; On Thu, Apr 14, 2011 at 8:11 PM, Guillaume Bilodeau
+</I>&gt;<i> &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt;&gt; &gt; Hi Ryan,
+</I>&gt;<i> &gt;&gt; &gt; We installed WireShark and started sniffing on all traffic.  It seems
+</I>&gt;<i> &gt;&gt; &gt; that
+</I>&gt;<i> &gt;&gt; &gt; Apache is returning a 200 status code instead of a 408 when the
+</I>&gt;<i> request
+</I>&gt;<i> &gt;&gt; &gt; reaches 30 seconds, so from what I understand ModSecurity can't do
+</I>&gt;<i> much
+</I>&gt;<i> &gt;&gt; &gt; about that.  The funny thing is, if we follow one of the TCP streams,
+</I>&gt;<i> we
+</I>&gt;<i> &gt;&gt; &gt; see
+</I>&gt;<i> &gt;&gt; &gt; that http_dos_cli keeps sending data even after receiving the 200
+</I>&gt;<i> code.
+</I>&gt;<i> &gt;&gt; &gt;  Maybe something to do with  keep-alive connections?
+</I>&gt;<i> &gt;&gt; &gt; Cheers,
+</I>&gt;<i> &gt;&gt; &gt; GB
+</I>&gt;<i> &gt;&gt; &gt; On Thu, Apr 14, 2011 at 2:12 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; &gt; wrote:
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; OK, if mod_reqtimeout is installed and that directive is working,
+</I>&gt;<i> then
+</I>&gt;<i> &gt;&gt; &gt;&gt; after 30 sec if Apache has not received the entire request body then
+</I>&gt;<i> it
+</I>&gt;<i> &gt;&gt; &gt;&gt; should terminate the request with a 408 status code.  The ModSecurity
+</I>&gt;<i> &gt;&gt; &gt;&gt; CRS
+</I>&gt;<i> &gt;&gt; &gt;&gt; rules are simply monitoring if/how many 408 alerts are generated by
+</I>&gt;<i> &gt;&gt; &gt;&gt; Apache
+</I>&gt;<i> &gt;&gt; &gt;&gt; per client.  After a certain amount, then ModSecurity will step in on
+</I>&gt;<i> &gt;&gt; &gt;&gt; subsequent requests in phase:1 and do drop actions.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; So, by monitoring your Apache error log while you are running your
+</I>&gt;<i> &gt;&gt; &gt;&gt; http_dos_cli tool, does Apache generate 408 alerts after 30 secs?  If
+</I>&gt;<i> &gt;&gt; &gt;&gt; not,
+</I>&gt;<i> &gt;&gt; &gt;&gt; then I don't think that the mod_reqtimeout module or directive is
+</I>&gt;<i> &gt;&gt; &gt;&gt; working.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; -Ryan
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; From: Guillaume Bilodeau
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Date: Thu, 14 Apr 2011 13:07:41 -0500
+</I>&gt;<i> &gt;&gt; &gt;&gt; To: Ryan Barnett
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Cc:
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Subject: Re: [Owasp-modsecurity-core-rule-set] Slow HTTP DOS
+</I>&gt;<i> protection
+</I>&gt;<i> &gt;&gt; &gt;&gt; not behaving as expected
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Hi Ryan,
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; I'm no Apache expert, but AFAICT the req_timeout module is installed.
+</I>&gt;<i> &gt;&gt; &gt;&gt;  A
+</I>&gt;<i> &gt;&gt; &gt;&gt; /server-info shows the req_timeout.c module with the
+</I>&gt;<i> RequestReadTimeout
+</I>&gt;<i> &gt;&gt; &gt;&gt; parameter.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Thanks,
+</I>&gt;<i> &gt;&gt; &gt;&gt; GB
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; On Thu, Apr 14, 2011 at 1:56 PM, Ryan Barnett
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt; wrote:
+</I>&gt;<i> &gt;&gt; &gt;&gt; Did you install the reqtimeout module?
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;<i> &gt;&gt; &gt;&gt; # Mitigate Slow HTTP POST attacks
+</I>&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;<i> &gt;&gt; &gt;&gt; # Must have the mod_reqtimeout module installed
+</I>&gt;<i> &gt;&gt; &gt;&gt; # You should adjust the RequestReadTimeout body directive setting to
+</I>&gt;<i> a
+</I>&gt;<i> &gt;&gt; &gt;&gt; limit
+</I>&gt;<i> &gt;&gt; &gt;&gt; # that will allow any legitimate slow clients or large file uplaods.
+</I>&gt;<i> &gt;&gt; &gt;&gt; #
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;IfModule reqtimeout_module&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; RequestReadTimeout body=30
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;/IfModule&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; -Ryan
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; From: Guillaume Bilodeau
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;<i> &gt;&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">guillaume.bilodeau at gmail.com</A>
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Date: Thu, 14 Apr 2011 12:33:52 -0500
+</I>&gt;<i> &gt;&gt; &gt;&gt; To:
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&quot;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Subject: [Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection
+</I>&gt;<i> not
+</I>&gt;<i> &gt;&gt; &gt;&gt; behaving as expected
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Hi all,
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; We are trying to setup the OWASP Core Rule Set to protect our
+</I>&gt;<i> &gt;&gt; &gt;&gt; application
+</I>&gt;<i> &gt;&gt; &gt;&gt; from Slow HTTP DOS attacks.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; We have setup ModSecurity 2.5.13 on our Apache 2.2.17 instance,
+</I>&gt;<i> loaded
+</I>&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;<i> &gt;&gt; &gt;&gt; module, and included all CRS base rules plus
+</I>&gt;<i> &gt;&gt; &gt;&gt; modsecurity_crs_11_slow_dos_protection.conf.  We didn't change the
+</I>&gt;<i> &gt;&gt; &gt;&gt; settings
+</I>&gt;<i> &gt;&gt; &gt;&gt; defined in the conf file, so SecReadStateLimit is set to 5 and
+</I>&gt;<i> &gt;&gt; &gt;&gt; RequestReadTimeout is set to body=30.  We are using the http_dos_cli
+</I>&gt;<i> &gt;&gt; &gt;&gt; command
+</I>&gt;<i> &gt;&gt; &gt;&gt; line tool to do our tests, with the connection parameter set to 500.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; When running the slow-headers test, ModSecurity seems to be
+</I>&gt;<i> protecting
+</I>&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;<i> &gt;&gt; &gt;&gt; application correctly, dropping most (all?) requests from the
+</I>&gt;<i> tester's
+</I>&gt;<i> &gt;&gt; &gt;&gt; IP
+</I>&gt;<i> &gt;&gt; &gt;&gt; and allowing requests from a different IP to be served.  However,
+</I>&gt;<i> when
+</I>&gt;<i> &gt;&gt; &gt;&gt; running the slow-post test, ModSecurity doesn't seem to be doing
+</I>&gt;<i> &gt;&gt; &gt;&gt; anything.
+</I>&gt;<i> &gt;&gt; &gt;&gt;  From what I understand, the test successfully creates the 500
+</I>&gt;<i> &gt;&gt; &gt;&gt; connections
+</I>&gt;<i> &gt;&gt; &gt;&gt; and keeps them open; none of them are dropped.  Requests coming from
+</I>&gt;<i> a
+</I>&gt;<i> &gt;&gt; &gt;&gt; different IP are not served and eventually time out.  A tail -f
+</I>&gt;<i> &gt;&gt; &gt;&gt; error_log
+</I>&gt;<i> &gt;&gt; &gt;&gt; shows nothing except the eventual message on MaxClients (set to 300
+</I>&gt;<i> &gt;&gt; &gt;&gt; now)
+</I>&gt;<i> &gt;&gt; &gt;&gt; being reached.  Interestingly, when we kill the http_dos_cli process,
+</I>&gt;<i> &gt;&gt; &gt;&gt; the
+</I>&gt;<i> &gt;&gt; &gt;&gt; error_log is then flooded with hundreds of entries such as this:
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; [Mon Nov 22 17:44:46 2010] [warn] ModSecurity: Access denied with
+</I>&gt;<i> code
+</I>&gt;<i> &gt;&gt; &gt;&gt; 400.
+</I>&gt;<i> &gt;&gt; &gt;&gt; Too many connections [6] of 5 allowed in READ state from
+</I>&gt;<i> 211.144.112.20
+</I>&gt;<i> &gt;&gt; &gt;&gt; -
+</I>&gt;<i> &gt;&gt; &gt;&gt; Possible DoS Consumption Attack [Rejected]
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; (this has been taken from the SpiderLabs blog entry, dates and IPs
+</I>&gt;<i> are
+</I>&gt;<i> &gt;&gt; &gt;&gt; obviously different)
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Any idea on why this isn't behaving like we're expecting it to be?
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Thanks!
+</I>&gt;<i> &gt;&gt; &gt;&gt; GB
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --
+</I>&gt;<i> &gt;&gt; Ivan Risti&#263;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110416/71271f4d/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110416/71271f4d/attachment-0001.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000735.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+	<LI>Next message: <A HREF="000737.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#736">[ date ]</a>
+              <a href="thread.html#736">[ thread ]</a>
+              <a href="subject.html#736">[ subject ]</a>
+              <a href="author.html#736">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20default%20action%20for%0A%20blocking%20rules%20only%3F&In-Reply-To=4BF4162E.2010305%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000385.html">
+   <LINK REL="Next"  HREF="000387.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?</H1>
+    <B>Mario Santana</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20default%20action%20for%0A%20blocking%20rules%20only%3F&In-Reply-To=4BF4162E.2010305%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?">msantana at terremark.com
+       </A><BR>
+    <I>Wed May 19 14:20:54 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000385.html">[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+</A></li>
+        <LI>Next message: <A HREF="000387.html">[Owasp-modsecurity-core-rule-set] restricted extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#386">[ date ]</a>
+              <a href="thread.html#386">[ thread ]</a>
+              <a href="subject.html#386">[ subject ]</a>
+              <a href="author.html#386">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+On May 19, 2010, at 12:47 PM, Brian Rectanus wrote:
+
+&gt;<i> What version of CRS?  If 2.x, then blocking is done via anomaly scoring.
+</I>&gt;<i> This setvar can be added to the rule checking the anomaly score.
+</I>
+I'm actually using the rules on the trunk, thought I'm only playing with the base_rules so far.  And you're right - there are only two rules that check the anomaly score.  I've added the setvar to them, but there are 19 other rules that don't specify a disruptive action (i.e., pass.)  Also, at least some of those rules don't seem to have id: actions.  (Many of these rules seem to be auto-generated from PHPIDS?)  No worries - I added the setvar to those rules directly, but I wonder if those rules could be better integrated into the whole anomaly-scoring scheme?
+
+I still have some finishing up to do, but all in all it was a lot less work than I thought it would be.  Mostly due to the elegance of the CRS - so thanks!  =)  Still, a generic solution would let me work with any rule set without modifying it...
+
+&gt;<i> You could probably write a script to
+</I>&gt;<i> maintain this :)
+</I>
+That's the next step, part of figuring out how to keep the rules updated once this goes into production.
+
+&gt;<i> But I think the easiest way is to use a phase:5 rule.  For example:
+</I>&gt;<i> 
+</I>&gt;<i> # Example blocking rule
+</I>&gt;<i> SecRule ARGS &quot;attack&quot; \
+</I>&gt;<i>  &quot;phase:2,log,auditlog,deny,status:403,id:12345&quot;
+</I>&gt;<i> 
+</I>&gt;<i> # In phase 5, then look for that 403 and set SESSION var
+</I>&gt;<i> SecRule RESPONSE_STATUS &quot;@eq 403&quot; \
+</I>&gt;<i>  &quot;phase:5,pass,nolog,setvar:SESSION.tagged=1&quot;
+</I>
+I played with this sort of scenario for most of a day.  The underlying problem is to identify whether a transaction has been blocked.  Using a status like your example (or TX variables, or whatever) only rearranges the problem, because (as far as I can tell) mod_security doesn't expose a flag to show whether the transaction is being blocked.
+
+I went so far as to browse the mod_security code to see how hard it would be to expose that information, perhaps by enhancing the RULE collection.  I quickly realized that it would take more than an idle afternoon to familiarize myself with the code enough to even begin thinking about that...
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000385.html">[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+</A></li>
+	<LI>Next message: <A HREF="000387.html">[Owasp-modsecurity-core-rule-set] restricted extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#386">[ date ]</a>
+              <a href="thread.html#386">[ thread ]</a>
+              <a href="subject.html#386">[ subject ]</a>
+              <a href="author.html#386">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

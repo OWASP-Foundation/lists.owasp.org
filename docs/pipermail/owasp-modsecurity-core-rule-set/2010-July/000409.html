@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] &quot;Too many arguments in	request in default CRS installation&quot; looks like bug in CRS
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%22Too%20many%20arguments%20in%0A%09request%20in%20default%20CRS%20installation%22%20looks%20like%20bug%20in%20CRS&In-Reply-To=4C34C87F.6020305%40oxdef.info">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000408.html">
+   <LINK REL="Next"  HREF="000419.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in	request in default CRS installation&quot; looks like bug in CRS</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%22Too%20many%20arguments%20in%0A%09request%20in%20default%20CRS%20installation%22%20looks%20like%20bug%20in%20CRS&In-Reply-To=4C34C87F.6020305%40oxdef.info"
+       TITLE="[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in	request in default CRS installation&quot; looks like bug in CRS">ryan.barnett at breach.com
+       </A><BR>
+    <I>Wed Jul  7 15:58:46 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000408.html">[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in request in default CRS installation&quot; looks like bug in CRS
+</A></li>
+        <LI>Next message: <A HREF="000419.html">[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in request in default CRS installation&quot; looks like bug in CRS
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#409">[ date ]</a>
+              <a href="thread.html#409">[ thread ]</a>
+              <a href="subject.html#409">[ subject ]</a>
+              <a href="author.html#409">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wednesday 07 July 2010 14:33:35 Taras wrote:
+&gt;<i> Hi, Ryan!
+</I>&gt;<i> 
+</I>&gt;<i> &gt; On Wednesday 07 July 2010 11:41:43 Taras wrote:
+</I>&gt;<i> &gt;&gt; Hi, all!
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; Debian 5.0 Lenny, ModSecurity Version: 2.5.11 installed from backports
+</I>&gt;<i> &gt;&gt; modsecurity-crs_2.0.7
+</I>&gt;<i> &gt;&gt; --------------
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; In default installation I have follow error in log when try to access
+</I>&gt;<i> &gt;&gt; /index.php?d=11&amp;dfgdfgdg=g
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; [Wed Jul 07 19:30:44 2010] [error] [client **.**.**.**] ModSecurity:
+</I>&gt;<i> &gt;&gt; Warning. Operator GE matched 0 at TX:inbound_anomaly_score. [file
+</I>&gt;<i> &gt;&gt; &quot;/etc/apache2/conf.d/modsecurity_crs/base_rules/modsecurity_crs_60_corre
+</I>&gt;<i> &gt;&gt; la tion.conf&quot;] [line &quot;35&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total
+</I>&gt;<i> &gt;&gt; Inbound Score: 5, SQLi=, XSS=): Too many arguments in request&quot;]
+</I>&gt;<i> &gt;&gt; [hostname &quot;******.*****.**&quot;] [uri &quot;/index.php&quot;] [unique_id
+</I>&gt;<i> &gt;&gt; &quot;TDSdpFf69wEAADdkAA4AAAAA&quot;]
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; After that I commented line
+</I>&gt;<i> &gt;&gt; SecAction &quot;phase:1,t:none,nolog,pass,setvar:tx.max_num_args=255&quot;
+</I>&gt;<i> &gt;&gt; in modsecurity_crs_10_config.conf and it is ok and there is no error in
+</I>&gt;<i> &gt;&gt; log.
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; How can I correctly limit number of arguments and is there bug in CRS?
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; First issue is to actually confirm that your application legitimately
+</I>&gt;<i> &gt; uses more then 255 arguments/parameters in a request.  If so, what you
+</I>&gt;<i> &gt; should do is to update the tx.max_num_args setting in that line to
+</I>&gt;<i> &gt; accommodate the appropriate number.
+</I>&gt;<i> 
+</I>&gt;<i> My webapp in this case is simple *empty* script /index.php.
+</I>&gt;<i> Problem is if such line is not commented there is error message in log
+</I>&gt;<i> when I try to get /index.php with *some* params.
+</I>
+I think I found a bug in the 23 file.  The 2nd rule in the chain should have the &amp; before 
+the variable as to count the total number of parameter names.  Update it to this -
+
+SecRule &amp;TX:ARG_NAME_LENGTH &quot;@eq 1&quot; 
+&quot;chain,phase:2,t:none,pass,nolog,auditlog,msg:'Argument name too 
+long',id:'960209',severity:'4',rev:'2.0.6'&quot;
+        SecRule &amp;ARGS_NAMES &quot;@gt %{tx.arg_name_length}&quot; 
+&quot;t:none,t:length,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_score=+%{tx.notice_anomaly_score},setvar:tx.
+%{rule.id}-POLICY/SIZE_LIMIT-%{matched_var_name}=%{matched_var}&quot;
+
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000408.html">[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in request in default CRS installation&quot; looks like bug in CRS
+</A></li>
+	<LI>Next message: <A HREF="000419.html">[Owasp-modsecurity-core-rule-set] &quot;Too many arguments in request in default CRS installation&quot; looks like bug in CRS
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#409">[ date ]</a>
+              <a href="thread.html#409">[ thread ]</a>
+              <a href="subject.html#409">[ subject ]</a>
+              <a href="author.html#409">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

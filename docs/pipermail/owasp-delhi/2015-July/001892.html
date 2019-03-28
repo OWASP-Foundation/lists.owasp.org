@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-Delhi] Anti-CSRF token in cookie and post form
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-Delhi%5D%20Anti-CSRF%20token%20in%20cookie%20and%20post%20form&In-Reply-To=%3CCAP-G%3DLXbSEUn_PNPZC7hp%2BM79DF6-J56nfz50VC8i%2B_wHy1NaA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001891.html">
+   <LINK REL="Next"  HREF="001893.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-Delhi] Anti-CSRF token in cookie and post form</H1>
+    <B>Dhruv Soi</B> 
+    <A HREF="mailto:owasp-delhi%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-Delhi%5D%20Anti-CSRF%20token%20in%20cookie%20and%20post%20form&In-Reply-To=%3CCAP-G%3DLXbSEUn_PNPZC7hp%2BM79DF6-J56nfz50VC8i%2B_wHy1NaA%40mail.gmail.com%3E"
+       TITLE="[OWASP-Delhi] Anti-CSRF token in cookie and post form">dhruv.soi at torridnetworks.com
+       </A><BR>
+    <I>Tue Jul  7 19:07:44 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001891.html">[OWASP-Delhi] Anti-CSRF token in cookie and post form
+</A></li>
+        <LI>Next message: <A HREF="001893.html">[OWASP-Delhi] Anti-CSRF token in cookie and post form
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1892">[ date ]</a>
+              <a href="thread.html#1892">[ thread ]</a>
+              <a href="subject.html#1892">[ subject ]</a>
+              <a href="author.html#1892">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Not sure, if I could understand it fully. Have written quick code for
+you to assess my understanding:
+
+==poc.html==
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;script&gt;
+      function myFunction() {
+        document.cookie = &quot;csrfToken=token123&quot;;
+        document.createElement('form').submit.call(document.getElementById('myForm'));
+      }
+    &lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body onload=&quot;myFunction()&quot;&gt;
+    &lt;form id=&quot;myForm&quot; name=&quot;myForm&quot; action=&quot;<A HREF="http://localhost/poc.php">http://localhost/poc.php</A>&quot;
+method=&quot;POST&quot;&gt;
+      &lt;input type=hidden name=&quot;username&quot; id=&quot;username&quot; value=&quot;someusername&quot;/&gt;
+      &lt;input type=hidden name=&quot;csrfToken&quot; id=&quot;val3&quot; value=&quot;token123&quot;/&gt;
+      &lt;input type=hidden name=&quot;submit&quot; id=&quot;submit&quot; value=&quot;Continue&quot;/&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+==poc.php==
+&lt;?php
+  var_dump($_POST);
+  var_dump($_COOKIE);
+?&gt;
+
+
+
+On Tue, Jul 7, 2015 at 9:03 PM, Vaibhav Gupta &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">vaibhav12jan at gmail.com</A>&gt; wrote:
+&gt;<i> Apologies for not being clear at first place. I'll give it another shot :-)
+</I>&gt;<i>
+</I>&gt;<i> The application has a Anti-CSRF token checking mechanism in which it is just
+</I>&gt;<i> checking if the Anti-CSRF token sent in POST request is the same as present
+</I>&gt;<i> in the cookie value being sent in the same POST request.
+</I>&gt;<i>
+</I>&gt;<i> Now, since the application is not checking if the Anti-CSRF token presented
+</I>&gt;<i> in the POST request is the same as what was set earlier, it is viewed as
+</I>&gt;<i> vulnerable.
+</I>&gt;<i>
+</I>&gt;<i> For creating a valid CSRF poc, I need to craft a POST request in which the
+</I>&gt;<i> form has a Anti-CSRF token (may be '123') and I need to send the same
+</I>&gt;<i> Anti-CSRF token in the cookie value.
+</I>&gt;<i>
+</I>&gt;<i> Problem with creating this CSRF poc is, that HTML/JS code can not send
+</I>&gt;<i> cookies to the server due to the restriction in JavaScript (they are just
+</I>&gt;<i> auto sent by browser itself).
+</I>&gt;<i>
+</I>&gt;<i> Any way to create a working exploit?
+</I>&gt;<i>
+</I>&gt;<i> On Sun, Jul 5, 2015 at 2:22 AM, Pankaj Upadhyay &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">mr.p.upadhyay at gmail.com</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> A lot of web applications keep session-cookie as secure and other cookies
+</I>&gt;&gt;<i> as it is. If that is the scenario, adversary will be able to sniff the
+</I>&gt;&gt;<i> cookie and get the CSRF Token.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;Now the problem is that we can not manipulate cookie value with
+</I>&gt;&gt;<i> Javascript &quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I didn't understand the above statement. Are you saying that this cookie
+</I>&gt;&gt;<i> has Httponly attribute set?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks
+</I>&gt;&gt;<i> Pankaj
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Saturday, July 4, 2015, Vaibhav Gupta &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">vaibhav12jan at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hello all,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I recently encountered an application which was having its random
+</I>&gt;&gt;&gt;<i> anti-csrf token in cookie and the same random token was sent in the POST
+</I>&gt;&gt;&gt;<i> form. If I tamper the cookie and the post form anti-CSRF token with the same
+</I>&gt;&gt;&gt;<i> value, server will validate my request.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Example:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> POST /account/delete
+</I>&gt;&gt;&gt;<i> HOST: XYZ
+</I>&gt;&gt;&gt;<i> Cookie: CSRF_Token=123456
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> account_id=10101&amp;CSRF_Token=123456
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Now the problem is that we can not manipulate cookie value with
+</I>&gt;&gt;&gt;<i> Javascript and hence cannot fiddle with the anti-csrf token present in
+</I>&gt;&gt;&gt;<i> cookie. Is there a way to create a working exploit?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Apologies if I am unable to clear the scenario.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks
+</I>&gt;&gt;&gt;<i> Vaibhav
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Sent from MI3
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> OWASP-Delhi mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">OWASP-Delhi at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-delhi">https://lists.owasp.org/mailman/listinfo/owasp-delhi</A>
+</I>&gt;<i> LinkedIn Group: <A HREF="https://www.linkedin.com/groups?gid=89270">https://www.linkedin.com/groups?gid=89270</A>
+</I>&gt;<i> Twitter: <A HREF="https://twitter.com/OWASPdelhi">https://twitter.com/OWASPdelhi</A>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001891.html">[OWASP-Delhi] Anti-CSRF token in cookie and post form
+</A></li>
+	<LI>Next message: <A HREF="001893.html">[OWASP-Delhi] Anti-CSRF token in cookie and post form
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1892">[ date ]</a>
+              <a href="thread.html#1892">[ thread ]</a>
+              <a href="subject.html#1892">[ subject ]</a>
+              <a href="author.html#1892">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-delhi">More information about the OWASP-Delhi
+mailing list</a><br>
+</body></html>

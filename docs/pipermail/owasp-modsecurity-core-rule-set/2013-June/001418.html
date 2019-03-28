@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 950901 - false positive
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20950901%20-%20false%20positive&In-Reply-To=%3C20130625121651.GA8003%40bobek.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001417.html">
+   <LINK REL="Next"  HREF="001419.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 950901 - false positive</H1>
+    <B>V&#225;clav Ovs&#237;k</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20950901%20-%20false%20positive&In-Reply-To=%3C20130625121651.GA8003%40bobek.localdomain%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] 950901 - false positive">vaclav.ovsik at i.cz
+       </A><BR>
+    <I>Tue Jun 25 12:16:51 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001417.html">[Owasp-modsecurity-core-rule-set] [Mod-security-emerging-attacks] Fwd: IRC BOTNET LEVERAGING UNPATCHED PLESK VULNERABILITY
+</A></li>
+        <LI>Next message: <A HREF="001419.html">[Owasp-modsecurity-core-rule-set] Request for Successful Reflected	XSS Audit Logs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1418">[ date ]</a>
+              <a href="thread.html#1418">[ thread ]</a>
+              <a href="subject.html#1418">[ subject ]</a>
+              <a href="author.html#1418">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+I've got false positive with 950901, because the regexp lacks word
+boundary marks. I have prepared a little test suite for this (files
+attached).
+
+pcre.orig   - contains an original regexp of 950901
+pcre	    - contains a fixed regexp of 950901
+data.*	    - some test data
+
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">zito at bobek</A>:~/pokusy/mod_security/bug-950901$ for x in *; do printf &quot;%10s: %s\n&quot; $x &quot;$(cat $x)&quot;; done
+data.fail1: SID=875708633+FID=20+OP=DISPLAY_FORM+HTMPL=role_main.htmpl+prop.role_menubar=menubar_sd.htmpl
+data.fail2: xxx1=1ffff
+data.fail3: 1=1ffff
+data.fail4: xxx1=1
+   data.ok: foo yes=yes bar
+      pcre: (?i:([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)\b([\d\w]++)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)(?:(?:=|&lt;=&gt;|r?like|sounds\s+like|regexp)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)\2\b|(?:!=|&lt;=|&gt;=|&lt;&gt;|&lt;|&gt;|\^|is\s+not|not\s+like|not\s+regexp)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)(?!\2)([\d\w]+)\b))
+ pcre.orig: (?i:([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)([\d\w]++)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)(?:(?:=|&lt;=&gt;|r?like|sounds\s+like|regexp)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)\2|(?:!=|&lt;=|&gt;=|&lt;&gt;|&lt;|&gt;|\^|is\s+not|not\s+like|not\s+regexp)([\s'\&quot;`&#180;&#8217;&#8216;\(\)]*?)(?!\2)([\d\w]+)))
+
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">zito at bobek</A>:~/pokusy/mod_security/bug-950901$ pcregrep --color -f pcre.orig data.*
+data.fail1:SID=875708633+FID=20+OP=DISPLAY_FORM+HTMPL=role_main.htmpl+prop.role_menubar=menubar_sd.htmpl
+data.fail2:xxx1=1ffff
+data.fail3:1=1ffff
+data.fail4:xxx1=1
+data.ok:foo yes=yes bar
+
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">zito at bobek</A>:~/pokusy/mod_security/bug-950901$ pcregrep --color -f pcre data.*
+data.ok:foo yes=yes bar
+
+My attempt to fix the problem on github and pull request:
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/48">https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/48</A>
+
+Cheers
+-- 
+Zito
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: bug-950901-tests.tar.bz2
+Type: application/octet-stream
+Size: 617 bytes
+Desc: not available
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130625/44f03362/attachment.obj">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130625/44f03362/attachment.obj</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001417.html">[Owasp-modsecurity-core-rule-set] [Mod-security-emerging-attacks] Fwd: IRC BOTNET LEVERAGING UNPATCHED PLESK VULNERABILITY
+</A></li>
+	<LI>Next message: <A HREF="001419.html">[Owasp-modsecurity-core-rule-set] Request for Successful Reflected	XSS Audit Logs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1418">[ date ]</a>
+              <a href="thread.html#1418">[ thread ]</a>
+              <a href="subject.html#1418">[ subject ]</a>
+              <a href="author.html#1418">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

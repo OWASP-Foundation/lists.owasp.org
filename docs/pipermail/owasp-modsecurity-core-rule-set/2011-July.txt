@@ -1,0 +1,2907 @@
+From biancalana at gmail.com  Sun Jul 10 11:20:37 2011
+From: biancalana at gmail.com (Alexandre Biancalana)
+Date: Sun, 10 Jul 2011 12:20:37 -0300
+Subject: [Owasp-modsecurity-core-rule-set] sql injection and xss bypassing
+	2.2.0 core-rule-set
+Message-ID: <CAGF-nS4jR48iz9jvFMVzLsm-r0qGxOdtKRu=22ffXyrxJSMtVQ@mail.gmail.com>
+
+Hi list,
+
+ I've configured mod_security 2.6.0 with modsecurity-crs_2.2.0 rules
+in paranoid mode.
+
+ Looking at apache logs I've perceived that some tries of sql
+injection and xss aren't blocked by mod_security even in paranoid
+mode.
+
+ Follow my mod_security_crs_10_config.conf:
+
+SecComponentSignature "core ruleset/2.2.0"
+SecRuleEngine On
+SecDefaultAction "phase:2,pass,log"
+SecAction "phase:1,id:'981206',t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on"
+SecAction "phase:1,id:'981207',t:none,nolog,pass, \
+setvar:tx.critical_anomaly_score=10, \
+setvar:tx.error_anomaly_score=4, \
+setvar:tx.warning_anomaly_score=3, \
+setvar:tx.notice_anomaly_score=2"
+SecAction "phase:1,id:'981208',t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5"
+SecAction "phase:1,id:'981209',t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4"
+SecAction "phase:1,id:'981210',t:none,nolog,pass,setvar:tx.paranoid_mode=1"
+SecAction "phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255"
+SecAction "phase:1,id:'981212',t:none,nolog,pass, \
+setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded
+multipart/form-data text/xml application/xml application/x-amf', \
+setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .ht
+r/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/
+.old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/
+.sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webin
+fo/ .xsd/ .xsx/', \
+setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+/Content-Range/ /Translate/ /via/ /if/'"
+SecRule REQUEST_HEADERS:Content-Type "text/xml" \
+        "chain,phase:1,id:'981053',t:none,t:lowercase,pass,nolog"
+        SecRule REQBODY_PROCESSOR "!@streq XML" "ctl:requestBodyProcessor=XML"
+SecRule REQUEST_HEADERS:User-Agent "^(.*)$"
+"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}"
+SecRule REQUEST_HEADERS:x-forwarded-for
+"^\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
+"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}"
+SecRule &TX:REAL_IP "!@eq 0"
+"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}"
+SecRule &TX:REAL_IP "@eq 0"
+"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}"
+
+
+  Here are some examples of request that aren't blocked:
+
+ /search.php?idS=c4ca4238a0b923820dcc509a6f75849b%27%20or%20%28sleep%284%29%2b1%29%20limit%201%20--
+%20
+
+/album.php?idalbum=35&idfoto=163&idsel=1%3C%00ScRiPt%20%0d%0a%3Eprompt%28973555%29%3C%2fScRiPt%3E
+
+/stats.php?idJ=%21%28%28%29%26%26%21%7c*%7c*%7c
+
+I added the word "sleep" to modsecurity_41_sql_injection_attacks.data
+and that starts to stop some requests, but not all.
+
+That is suppose to happen ?
+
+Best Regards,
+
+Alexandre
+
+From jamuse at gmail.com  Sun Jul 10 14:22:36 2011
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Sun, 10 Jul 2011 21:22:36 +0300
+Subject: [Owasp-modsecurity-core-rule-set] sql injection and xss
+ bypassing 2.2.0 core-rule-set
+In-Reply-To: <CAGF-nS4jR48iz9jvFMVzLsm-r0qGxOdtKRu=22ffXyrxJSMtVQ@mail.gmail.com>
+References: <CAGF-nS4jR48iz9jvFMVzLsm-r0qGxOdtKRu=22ffXyrxJSMtVQ@mail.gmail.com>
+Message-ID: <CANnPkinTSA4Tr9Sh9M-6qmx0YQ_TpHCZOWZX_5O4A6MnP3MSNQ@mail.gmail.com>
+
+On Sun, Jul 10, 2011 at 6:20 PM, Alexandre Biancalana
+<biancalana at gmail.com> wrote:
+> Hi list,
+>
+> ?I've configured mod_security 2.6.0 with modsecurity-crs_2.2.0 rules
+> in paranoid mode.
+>
+> ?Looking at apache logs I've perceived that some tries of sql
+> injection and xss aren't blocked by mod_security even in paranoid
+> mode.
+
+Hi,
+
+I tried your payloads out on the CRS demo page
+(http://www.modsecurity.org/demo/phpids) and they *are* identified
+properly. Perhaps you have a configuration error and the rules you
+think are applied are not. Can you increase your debug level to 9,
+send a request with one of your payloads that should be caught and
+send me a copy of the debug log?
+
+Thanks,
+
+--
+ - Josh
+
+>
+> ?Follow my mod_security_crs_10_config.conf:
+>
+> SecComponentSignature "core ruleset/2.2.0"
+> SecRuleEngine On
+> SecDefaultAction "phase:2,pass,log"
+> SecAction "phase:1,id:'981206',t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on"
+> SecAction "phase:1,id:'981207',t:none,nolog,pass, \
+> setvar:tx.critical_anomaly_score=10, \
+> setvar:tx.error_anomaly_score=4, \
+> setvar:tx.warning_anomaly_score=3, \
+> setvar:tx.notice_anomaly_score=2"
+> SecAction "phase:1,id:'981208',t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5"
+> SecAction "phase:1,id:'981209',t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4"
+> SecAction "phase:1,id:'981210',t:none,nolog,pass,setvar:tx.paranoid_mode=1"
+> SecAction "phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255"
+> SecAction "phase:1,id:'981212',t:none,nolog,pass, \
+> setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+> setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded
+> multipart/form-data text/xml application/xml application/x-amf', \
+> setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+> setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+> .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+> .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .ht
+> r/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/
+> .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/
+> .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webin
+> fo/ .xsd/ .xsx/', \
+> setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+> /Content-Range/ /Translate/ /via/ /if/'"
+> SecRule REQUEST_HEADERS:Content-Type "text/xml" \
+> ? ? ? ?"chain,phase:1,id:'981053',t:none,t:lowercase,pass,nolog"
+> ? ? ? ?SecRule REQBODY_PROCESSOR "!@streq XML" "ctl:requestBodyProcessor=XML"
+> SecRule REQUEST_HEADERS:User-Agent "^(.*)$"
+> "phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}"
+> SecRule REQUEST_HEADERS:x-forwarded-for
+> "^\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
+> "phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}"
+> SecRule &TX:REAL_IP "!@eq 0"
+> "phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}"
+> SecRule &TX:REAL_IP "@eq 0"
+> "phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}"
+>
+>
+> ?Here are some examples of request that aren't blocked:
+>
+> ?/search.php?idS=c4ca4238a0b923820dcc509a6f75849b%27%20or%20%28sleep%284%29%2b1%29%20limit%201%20--
+> %20
+>
+> /album.php?idalbum=35&idfoto=163&idsel=1%3C%00ScRiPt%20%0d%0a%3Eprompt%28973555%29%3C%2fScRiPt%3E
+>
+> /stats.php?idJ=%21%28%28%29%26%26%21%7c*%7c*%7c
+>
+> I added the word "sleep" to modsecurity_41_sql_injection_attacks.data
+> and that starts to stop some requests, but not all.
+>
+> That is suppose to happen ?
+>
+> Best Regards,
+>
+> Alexandre
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+From RBarnett at trustwave.com  Mon Jul 11 08:10:14 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 11 Jul 2011 07:10:14 -0500
+Subject: [Owasp-modsecurity-core-rule-set] sql injection and xss
+ bypassing 2.2.0 core-rule-set
+In-Reply-To: <CAGF-nS4jR48iz9jvFMVzLsm-r0qGxOdtKRu=22ffXyrxJSMtVQ@mail.gmail.com>
+Message-ID: <CA405FE3.2AFAC%rbarnett@trustwave.com>
+
+As Josh mentioned, if you test these payloads against the CRS demo
+(http://www.modsecurity.org/demo/crs-demo.html) you will see that these
+requests are flagged.  Some of the detection was done by generic detection
+rules that you may not have had activated (check the experimental
+directory).
+
+Additionally, as a result of the ModSecurity SQL Injection Challenge
+(http://www.modsecurity.org/demo/challenge.html) we are making significant
+updates to the SQL Injection detection rules within ModSecurity.
+
+We will be releasing a CRS updating this week.
+
+
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+
+On 7/10/11 11:20 AM, "Alexandre Biancalana" <biancalana at gmail.com> wrote:
+
+>Hi list,
+>
+> I've configured mod_security 2.6.0 with modsecurity-crs_2.2.0 rules
+>in paranoid mode.
+>
+> Looking at apache logs I've perceived that some tries of sql
+>injection and xss aren't blocked by mod_security even in paranoid
+>mode.
+>
+> Follow my mod_security_crs_10_config.conf:
+>
+>SecComponentSignature "core ruleset/2.2.0"
+>SecRuleEngine On
+>SecDefaultAction "phase:2,pass,log"
+>SecAction
+>"phase:1,id:'981206',t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on
+>"
+>SecAction "phase:1,id:'981207',t:none,nolog,pass, \
+>setvar:tx.critical_anomaly_score=10, \
+>setvar:tx.error_anomaly_score=4, \
+>setvar:tx.warning_anomaly_score=3, \
+>setvar:tx.notice_anomaly_score=2"
+>SecAction
+>"phase:1,id:'981208',t:none,nolog,pass,setvar:tx.inbound_anomaly_score_lev
+>el=5"
+>SecAction
+>"phase:1,id:'981209',t:none,nolog,pass,setvar:tx.outbound_anomaly_score_le
+>vel=4"
+>SecAction
+>"phase:1,id:'981210',t:none,nolog,pass,setvar:tx.paranoid_mode=1"
+>SecAction
+>"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=255"
+>SecAction "phase:1,id:'981212',t:none,nolog,pass, \
+>setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+>setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded
+>multipart/form-data text/xml application/xml application/x-amf', \
+>setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+>setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+>.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+>.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .ht
+>r/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/
+>.old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/
+>.sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webin
+>fo/ .xsd/ .xsx/', \
+>setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+>/Content-Range/ /Translate/ /via/ /if/'"
+>SecRule REQUEST_HEADERS:Content-Type "text/xml" \
+>        "chain,phase:1,id:'981053',t:none,t:lowercase,pass,nolog"
+>        SecRule REQBODY_PROCESSOR "!@streq XML"
+>"ctl:requestBodyProcessor=XML"
+>SecRule REQUEST_HEADERS:User-Agent "^(.*)$"
+>"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_has
+>h=%{matched_var}"
+>SecRule REQUEST_HEADERS:x-forwarded-for
+>"^\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
+>"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}"
+>SecRule &TX:REAL_IP "!@eq 0"
+>"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{
+>tx.real_ip}_%{tx.ua_hash}"
+>SecRule &TX:REAL_IP "@eq 0"
+>"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{
+>remote_addr}_%{tx.ua_hash}"
+>
+>
+>  Here are some examples of request that aren't blocked:
+>
+>
+>/search.php?idS=c4ca4238a0b923820dcc509a6f75849b%27%20or%20%28sleep%284%29
+>%2b1%29%20limit%201%20--
+>%20
+>
+>/album.php?idalbum=35&idfoto=163&idsel=1%3C%00ScRiPt%20%0d%0a%3Eprompt%289
+>73555%29%3C%2fScRiPt%3E
+>
+>/stats.php?idJ=%21%28%28%29%26%26%21%7c*%7c*%7c
+>
+>I added the word "sleep" to modsecurity_41_sql_injection_attacks.data
+>and that starts to stop some requests, but not all.
+>
+>That is suppose to happen ?
+>
+>Best Regards,
+>
+>Alexandre
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From michael.haas10 at gmail.com  Fri Jul 15 09:54:49 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Fri, 15 Jul 2011 15:54:49 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+	modsecurity_crs_16_session_hijacking.conf
+Message-ID: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+
+Hi,
+
+i'm trying to use the session hijacking protection but have some problems
+with it.
+
+The Rules 981057 and 981063 are never matching because they check a normal
+IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+collection.
+
+I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules
+are working.
+Is this the right approach to fix this or should this be fixed in another
+way?
+
+Thanks in Advance
+Michael
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110715/6e7251a4/attachment.html 
+
+From RBarnett at trustwave.com  Fri Jul 15 10:40:29 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 15 Jul 2011 09:40:29 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+ modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+Message-ID: <CA45C583.2BC0F%rbarnett@trustwave.com>
+
+
+From: Michael Haas <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+Date: Fri, 15 Jul 2011 08:54:49 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+
+Hi,
+
+i'm trying to use the session hijacking protection but have some problems with it.
+
+Are you using this file?
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+
+
+
+The Rules 981057 and 981063 are never matching because they check a normal IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the collection.
+
+You are misunderstanding the logic of these rules.  Let's start at the end of the file.
+
+
+#
+# This rule will identify the outbound Set-Cookie SessionID data and capture it in a setsid
+#
+SecRule RESPONSE_HEADERS:/Set-Cookie2?/ "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)" "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:tx.ua=%{request_headers.user-agent},setvar:session.valid=1"
+        SecRule SESSION:SESSIONID "(.*)" "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+SecRule TX:UA "(.*)" "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ua=%{tx.0}"
+
+These rules will identify if/when common SessionIDs are being sent out by the app in Set-Cookie response headers.  If these are found, then a few things happen -
+
+ 1.  Setsid is used to initialize the Session collection
+ 2.  The SessionID is marked as "valid" so that we can detect then bogus SessionIDs are sent (perhaps by brute force tools)
+ 3.  We then capture a hash of the network block of the client IP (first 3 octets).  We don't use full IP address as there a too many false positives where an IP will change, however the network block should not.
+ 4.  We then also capture a hash of the User-Agent string.
+
+Now that we have saved this data when the app sent out the Set-Cookie, we can now perform validation on subsequent requests.  If a client sends a SessionID cookie value, we can check the data we have saved.  Now onto the rules at the top of the rules file -
+
+
+#
+# This rule set will identify subsequent SessionIDs being submitted by clients in
+# Request Headers.  First we check that the SessionID submitted is a valid one
+#
+SecMarker BEGIN_SESSION_STARTUP
+
+SecRule REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+        SecRule SESSION:VALID "!@eq 1" "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+
+SecRule &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' "@eq 0" "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+
+The first rule checks to see if the client is submitting a SessionID from the named list.  If so, then we check the saved SessionID collection in ModSecurity to see if the "valid" variable exists.  If not, then it means that we did not see the application hand out this SessionID and thus we can flag is as bogus.
+
+The last SecRule checks to see if there are no SessionID cookies at all.  If the client didn't send one, then we can skip the other checks.  Sidenote ? from an optimization perspective, I guess we could switch these two rules around.
+
+Then we get to the set of rules you mentioned -
+
+SecAction "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:tx.ua=%{request_headers.user-agent}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+SecRule TX:UA "(.*)" "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+
+These rules are meant to capture the hash of the same data mentioned above but for the CURRENT transaction.  Once we have these hashes capture in TX variables, we can then compare them to the data we originally saved in the Session collection when the Set-Cookie was issued -
+
+
+SecRule TX:IP_HASH "!@streq %{SESSION.IP}" "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - IP Address Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:UA_HASH "!@streq %{SESSION.UA}" "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:STICKY_SESSION_ANOMALY "@eq 2" "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP Address and User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+
+These rules are simply check the current hashes with the saved hashes and they then increase an anomaly score.
+
+Hopefully this description helps to explain the logic of the Session Hijacking rules.
+
+-Ryan
+
+
+I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules are working.
+Is this the right approach to fix this or should this be fixed in another way?
+
+Thanks in Advance
+Michael
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From michael.haas10 at gmail.com  Fri Jul 15 11:38:31 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Fri, 15 Jul 2011 17:38:31 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+	modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CA45C583.2BC0F%rbarnett@trustwave.com>
+References: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+	<CA45C583.2BC0F%rbarnett@trustwave.com>
+Message-ID: <CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+
+Hi,
+
+Yes i'm using
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+.
+if i look at a debug log i see that the session.ip is not saved, i think it
+doesn't capture because it doesn't match.
+
+Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+"phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Operator completed in 2 usec.
+Rule returned 0.
+No match, not chained -> mode NEXT_RULE.
+
+If i use this Rule it captures because it matches.
+
+Rule 822cc8: SecRule "TX:IP" "@rx (.*)"
+"phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "(.*)" against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Added regex subexpression to TX.0: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Added regex subexpression to TX.1: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Operator completed in 25 usec.
+Setting variable: session.ip=%{tx.1}
+Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+Warning. Pattern match "(.*)" at TX:ip. [file
+"/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+Rule returned 1.
+Match -> mode NEXT_RULE.
+
+The Problem is that the Target Value is already transformed with
+"t:sha1,t:hexEncode"
+
+Michael
+
+
+2011/7/15 Ryan Barnett <RBarnett at trustwave.com>
+
+>
+> From: Michael Haas <michael.haas10 at gmail.com<mailto:
+> michael.haas10 at gmail.com>>
+> Date: Fri, 15 Jul 2011 08:54:49 -0500
+> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+> Subject: [Owasp-modsecurity-core-rule-set] Problem with
+> modsecurity_crs_16_session_hijacking.conf
+>
+> Hi,
+>
+> i'm trying to use the session hijacking protection but have some problems
+> with it.
+>
+> Are you using this file?
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>
+>
+>
+> The Rules 981057 and 981063 are never matching because they check a normal
+> IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+> collection.
+>
+> You are misunderstanding the logic of these rules.  Let's start at the end
+> of the file.
+>
+>
+> #
+> # This rule will identify the outbound Set-Cookie SessionID data and
+> capture it in a setsid
+> #
+> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)"
+> "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:
+> tx.ua=%{request_headers.user-agent},setvar:session.valid=1"
+>        SecRule SESSION:SESSIONID "(.*)"
+> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+>
+> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> SecRule TX:UA "(.*)"
+> "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:
+> session.ua=%{tx.0}"
+>
+> These rules will identify if/when common SessionIDs are being sent out by
+> the app in Set-Cookie response headers.  If these are found, then a few
+> things happen -
+>
+>  1.  Setsid is used to initialize the Session collection
+>  2.  The SessionID is marked as "valid" so that we can detect then bogus
+> SessionIDs are sent (perhaps by brute force tools)
+>  3.  We then capture a hash of the network block of the client IP (first 3
+> octets).  We don't use full IP address as there a too many false positives
+> where an IP will change, however the network block should not.
+>  4.  We then also capture a hash of the User-Agent string.
+>
+> Now that we have saved this data when the app sent out the Set-Cookie, we
+> can now perform validation on subsequent requests.  If a client sends a
+> SessionID cookie value, we can check the data we have saved.  Now onto the
+> rules at the top of the rules file -
+>
+>
+> #
+> # This rule set will identify subsequent SessionIDs being submitted by
+> clients in
+> # Request Headers.  First we check that the SessionID submitted is a valid
+> one
+> #
+> SecMarker BEGIN_SESSION_STARTUP
+>
+> SecRule
+> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+> ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+>        SecRule SESSION:VALID "!@eq 1"
+> "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+>
+> SecRule
+> &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+> "@eq 0"
+> "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+>
+> The first rule checks to see if the client is submitting a SessionID from
+> the named list.  If so, then we check the saved SessionID collection in
+> ModSecurity to see if the "valid" variable exists.  If not, then it means
+> that we did not see the application hand out this SessionID and thus we can
+> flag is as bogus.
+>
+> The last SecRule checks to see if there are no SessionID cookies at all.
+>  If the client didn't send one, then we can skip the other checks.  Sidenote
+> ? from an optimization perspective, I guess we could switch these two rules
+> around.
+>
+> Then we get to the set of rules you mentioned -
+>
+> SecAction
+> "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:
+> tx.ua=%{request_headers.user-agent}"
+>
+> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+> "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+> SecRule TX:UA "(.*)"
+> "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+>
+> These rules are meant to capture the hash of the same data mentioned above
+> but for the CURRENT transaction.  Once we have these hashes capture in TX
+> variables, we can then compare them to the data we originally saved in the
+> Session collection when the Set-Cookie was issued -
+>
+>
+> SecRule TX:IP_HASH "!@streq %{SESSION.IP}"
+> "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+> - Sticky SessionID Data Changed - IP Address
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+> SecRule TX:UA_HASH "!@streq %{SESSION.UA}"
+> "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+> - Sticky SessionID Data Changed - User-Agent
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+> SecRule TX:STICKY_SESSION_ANOMALY "@eq 2"
+> "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP
+> Address and User-Agent
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>
+> These rules are simply check the current hashes with the saved hashes and
+> they then increase an anomaly score.
+>
+> Hopefully this description helps to explain the logic of the Session
+> Hijacking rules.
+>
+> -Ryan
+>
+>
+> I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules
+> are working.
+> Is this the right approach to fix this or should this be fixed in another
+> way?
+>
+> Thanks in Advance
+> Michael
+>
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110715/30d1718f/attachment.html 
+
+From michael.haas10 at gmail.com  Sat Jul 16 14:24:30 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sat, 16 Jul 2011 20:24:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+	modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+References: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+	<CA45C583.2BC0F%rbarnett@trustwave.com>
+	<CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+Message-ID: <CAFW5hxCScsOTbtWnLD7sW0PHzn1kjvuYCwiJLKG+NzTK2A9t6Q@mail.gmail.com>
+
+Hi,
+
+i think the Rule should be changed to something like that
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+ "chain,phase:3,id:'981063',t:none,nolog,pass"
+        SecRule MATCHED_VARS "(.*)"
+"capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}"
+
+then it works too.
+
+Michael
+
+2011/7/15 Michael Haas <michael.haas10 at gmail.com>
+
+> Hi,
+>
+> Yes i'm using
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+> .
+> if i look at a debug log i see that the session.ip is not saved, i think it
+> doesn't capture because it doesn't match.
+>
+> Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Transformation completed in 24 usec.
+> Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+> against TX:ip.
+> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Operator completed in 2 usec.
+> Rule returned 0.
+> No match, not chained -> mode NEXT_RULE.
+>
+> If i use this Rule it captures because it matches.
+>
+> Rule 822cc8: SecRule "TX:IP" "@rx (.*)"
+> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Transformation completed in 24 usec.
+> Executing operator "rx" with param "(.*)" against TX:ip.
+> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Added regex subexpression to TX.0: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Added regex subexpression to TX.1: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Operator completed in 25 usec.
+> Setting variable: session.ip=%{tx.1}
+> Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+> Warning. Pattern match "(.*)" at TX:ip. [file
+> "/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+> Rule returned 1.
+> Match -> mode NEXT_RULE.
+>
+> The Problem is that the Target Value is already transformed with
+> "t:sha1,t:hexEncode"
+>
+> Michael
+>
+>
+> 2011/7/15 Ryan Barnett <RBarnett at trustwave.com>
+>
+>>
+>> From: Michael Haas <michael.haas10 at gmail.com<mailto:
+>> michael.haas10 at gmail.com>>
+>> Date: Fri, 15 Jul 2011 08:54:49 -0500
+>> To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>" <
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>>
+>> Subject: [Owasp-modsecurity-core-rule-set] Problem with
+>> modsecurity_crs_16_session_hijacking.conf
+>>
+>> Hi,
+>>
+>> i'm trying to use the session hijacking protection but have some problems
+>> with it.
+>>
+>> Are you using this file?
+>>
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>>
+>>
+>>
+>> The Rules 981057 and 981063 are never matching because they check a normal
+>> IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+>> collection.
+>>
+>> You are misunderstanding the logic of these rules.  Let's start at the end
+>> of the file.
+>>
+>>
+>> #
+>> # This rule will identify the outbound Set-Cookie SessionID data and
+>> capture it in a setsid
+>> #
+>> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+>> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)"
+>> "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:
+>> tx.ua=%{request_headers.user-agent},setvar:session.valid=1"
+>>        SecRule SESSION:SESSIONID "(.*)"
+>> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+>>
+>> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>>  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+>> SecRule TX:UA "(.*)"
+>> "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:
+>> session.ua=%{tx.0}"
+>>
+>> These rules will identify if/when common SessionIDs are being sent out by
+>> the app in Set-Cookie response headers.  If these are found, then a few
+>> things happen -
+>>
+>>  1.  Setsid is used to initialize the Session collection
+>>  2.  The SessionID is marked as "valid" so that we can detect then bogus
+>> SessionIDs are sent (perhaps by brute force tools)
+>>  3.  We then capture a hash of the network block of the client IP (first 3
+>> octets).  We don't use full IP address as there a too many false positives
+>> where an IP will change, however the network block should not.
+>>  4.  We then also capture a hash of the User-Agent string.
+>>
+>> Now that we have saved this data when the app sent out the Set-Cookie, we
+>> can now perform validation on subsequent requests.  If a client sends a
+>> SessionID cookie value, we can check the data we have saved.  Now onto the
+>> rules at the top of the rules file -
+>>
+>>
+>> #
+>> # This rule set will identify subsequent SessionIDs being submitted by
+>> clients in
+>> # Request Headers.  First we check that the SessionID submitted is a valid
+>> one
+>> #
+>> SecMarker BEGIN_SESSION_STARTUP
+>>
+>> SecRule
+>> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+>> ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+>> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+>>        SecRule SESSION:VALID "!@eq 1"
+>> "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+>> rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+>>
+>> SecRule
+>> &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+>> "@eq 0"
+>> "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+>>
+>> The first rule checks to see if the client is submitting a SessionID from
+>> the named list.  If so, then we check the saved SessionID collection in
+>> ModSecurity to see if the "valid" variable exists.  If not, then it means
+>> that we did not see the application hand out this SessionID and thus we can
+>> flag is as bogus.
+>>
+>> The last SecRule checks to see if there are no SessionID cookies at all.
+>>  If the client didn't send one, then we can skip the other checks.  Sidenote
+>> ? from an optimization perspective, I guess we could switch these two rules
+>> around.
+>>
+>> Then we get to the set of rules you mentioned -
+>>
+>> SecAction
+>> "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:
+>> tx.ua=%{request_headers.user-agent}"
+>>
+>> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>> "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+>> SecRule TX:UA "(.*)"
+>> "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+>>
+>> These rules are meant to capture the hash of the same data mentioned above
+>> but for the CURRENT transaction.  Once we have these hashes capture in TX
+>> variables, we can then compare them to the data we originally saved in the
+>> Session collection when the Set-Cookie was issued -
+>>
+>>
+>> SecRule TX:IP_HASH "!@streq %{SESSION.IP}"
+>> "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+>> - Sticky SessionID Data Changed - IP Address
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+>> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>> SecRule TX:UA_HASH "!@streq %{SESSION.UA}"
+>> "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+>> - Sticky SessionID Data Changed - User-Agent
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+>> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>> SecRule TX:STICKY_SESSION_ANOMALY "@eq 2"
+>> "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP
+>> Address and User-Agent
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+>> rule.id}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>>
+>> These rules are simply check the current hashes with the saved hashes and
+>> they then increase an anomaly score.
+>>
+>> Hopefully this description helps to explain the logic of the Session
+>> Hijacking rules.
+>>
+>> -Ryan
+>>
+>>
+>> I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules
+>> are working.
+>> Is this the right approach to fix this or should this be fixed in another
+>> way?
+>>
+>> Thanks in Advance
+>> Michael
+>>
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you are
+>> not the intended recipient, you are hereby notified that any disclosure,
+>> copying, distribution, or use of the information contained herein (including
+>> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+>> transmission in error, please immediately contact the sender and destroy the
+>> material in its entirety, whether in electronic or hard copy format.
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110716/255bfe69/attachment.html 
+
+From RBarnett at trustwave.com  Sat Jul 16 15:26:39 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 16 Jul 2011 14:26:39 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problem
+	with	modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CAFW5hxCScsOTbtWnLD7sW0PHzn1kjvuYCwiJLKG+NzTK2A9t6Q@mail.gmail.com>
+References: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+	<CA45C583.2BC0F%rbarnett@trustwave.com>
+	<CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+	<CAFW5hxCScsOTbtWnLD7sW0PHzn1kjvuYCwiJLKG+NzTK2A9t6Q@mail.gmail.com>
+Message-ID: <79AFF7AB-0315-46F4-8D9D-CF420BCD1E5F@trustwave.com>
+
+Agreed - these need to be fixed. We can simplify the IP capturing ones by not using the hashed. We were using hashs initially for the User-Agent field as their length could get pretty long.  We would not need that for IP addresses.
+
+I will fix these and push to the CRS SVN repo on Monday.
+
+Thanks.
+Ryan
+
+On Jul 16, 2011, at 2:24 PM, "Michael Haas" <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>> wrote:
+
+Hi,
+
+i think the Rule should be changed to something like that
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"  "chain,phase:3,id:'981063',t:none,nolog,pass"
+        SecRule MATCHED_VARS "(.*)" "capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}"
+
+then it works too.
+
+Michael
+
+2011/7/15 Michael Haas <<mailto:michael.haas10 at gmail.com>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+Hi,
+
+Yes i'm using <http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf.
+if i look at a debug log i see that the session.ip is not saved, i think it doesn't capture because it doesn't match.
+
+Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)" "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)" against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Operator completed in 2 usec.
+Rule returned 0.
+No match, not chained -> mode NEXT_RULE.
+
+If i use this Rule it captures because it matches.
+
+Rule 822cc8: SecRule "TX:IP" "@rx (.*)" "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "(.*)" against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Added regex subexpression to TX.0: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Added regex subexpression to TX.1: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Operator completed in 25 usec.
+Setting variable: session.ip=%{tx.1}
+Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+Warning. Pattern match "(.*)" at TX:ip. [file "/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+Rule returned 1.
+Match -> mode NEXT_RULE.
+
+The Problem is that the Target Value is already transformed with "t:sha1,t:hexEncode"
+
+Michael
+
+
+2011/7/15 Ryan Barnett <<mailto:RBarnett at trustwave.com>RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+
+From: Michael Haas <<mailto:michael.haas10 at gmail.com>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:<mailto:michael.haas10 at gmail.com>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>>
+Date: Fri, 15 Jul 2011 08:54:49 -0500
+To: "<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>" <<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>>
+Subject: [Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+
+Hi,
+
+i'm trying to use the session hijacking protection but have some problems with it.
+
+Are you using this file?
+<http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf>http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+
+
+
+The Rules 981057 and 981063 are never matching because they check a normal IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the collection.
+
+You are misunderstanding the logic of these rules.  Let's start at the end of the file.
+
+
+#
+# This rule will identify the outbound Set-Cookie SessionID data and capture it in a setsid
+#
+SecRule RESPONSE_HEADERS:/Set-Cookie2?/ "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)" "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:<http://tx.ua>tx.ua<http://tx.ua>=%{request_headers.user-agent},setvar:session.valid=1"
+       SecRule SESSION:SESSIONID "(.*)" "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+SecRule TX:UA "(.*)" "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:<http://session.ua>session.ua<http://session.ua>=%{tx.0}"
+
+These rules will identify if/when common SessionIDs are being sent out by the app in Set-Cookie response headers.  If these are found, then a few things happen -
+
+ 1.  Setsid is used to initialize the Session collection
+ 2.  The SessionID is marked as "valid" so that we can detect then bogus SessionIDs are sent (perhaps by brute force tools)
+ 3.  We then capture a hash of the network block of the client IP (first 3 octets).  We don't use full IP address as there a too many false positives where an IP will change, however the network block should not.
+ 4.  We then also capture a hash of the User-Agent string.
+
+Now that we have saved this data when the app sent out the Set-Cookie, we can now perform validation on subsequent requests.  If a client sends a SessionID cookie value, we can check the data we have saved.  Now onto the rules at the top of the rules file -
+
+
+#
+# This rule set will identify subsequent SessionIDs being submitted by clients in
+# Request Headers.  First we check that the SessionID submitted is a valid one
+#
+SecMarker BEGIN_SESSION_STARTUP
+
+SecRule REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+       SecRule SESSION:VALID "!@eq 1" "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id<http://rule.id>}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+
+SecRule &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' "@eq 0" "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+
+The first rule checks to see if the client is submitting a SessionID from the named list.  If so, then we check the saved SessionID collection in ModSecurity to see if the "valid" variable exists.  If not, then it means that we did not see the application hand out this SessionID and thus we can flag is as bogus.
+
+The last SecRule checks to see if there are no SessionID cookies at all.  If the client didn't send one, then we can skip the other checks.  Sidenote ? from an optimization perspective, I guess we could switch these two rules around.
+
+Then we get to the set of rules you mentioned -
+
+SecAction "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:<http://tx.ua>tx.ua<http://tx.ua>=%{request_headers.user-agent}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+SecRule TX:UA "(.*)" "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+
+These rules are meant to capture the hash of the same data mentioned above but for the CURRENT transaction.  Once we have these hashes capture in TX variables, we can then compare them to the data we originally saved in the Session collection when the Set-Cookie was issued -
+
+
+SecRule TX:IP_HASH "!@streq %{SESSION.IP}" "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - IP Address Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id<http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:UA_HASH "!@streq %{SESSION.UA<http://SESSION.UA>}" "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id<http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:STICKY_SESSION_ANOMALY "@eq 2" "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP Address and User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id<http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+
+These rules are simply check the current hashes with the saved hashes and they then increase an anomaly score.
+
+Hopefully this description helps to explain the logic of the Session Hijacking rules.
+
+-Ryan
+
+
+I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules are working.
+Is this the right approach to fix this or should this be fixed in another way?
+
+Thanks in Advance
+Michael
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From michael.haas10 at gmail.com  Sat Jul 16 21:23:05 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sun, 17 Jul 2011 03:23:05 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+	modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <79AFF7AB-0315-46F4-8D9D-CF420BCD1E5F@trustwave.com>
+References: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+	<CA45C583.2BC0F%rbarnett@trustwave.com>
+	<CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+	<CAFW5hxCScsOTbtWnLD7sW0PHzn1kjvuYCwiJLKG+NzTK2A9t6Q@mail.gmail.com>
+	<79AFF7AB-0315-46F4-8D9D-CF420BCD1E5F@trustwave.com>
+Message-ID: <CAFW5hxCaiUi0Jw+nR+a1OCORgJVjxagtmBXQA1OZdsfjxVTYug@mail.gmail.com>
+
+Hi,
+i have another problem with the rules in this file.
+The Rules are working as expected if i change the IP or the UA but if i
+change the sessionid to another value it's not working as expected.
+I Think the following Rule is not working if the session id is changed to an
+unknown value, because the ! operator does not work with non existent
+variables(don't know if its a bug or not).
+SecRule
+REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+        SecRule SESSION:VALID "!@eq 1"
+"t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+SESSION:VALID does not match if the SESSION.VALID Variable doesn't exist.
+
+I have verfied this with the following test.
+
+ SecAction "phase:1,id:'2000',t:none,nolog,pass,setvar:tx.test=1"
+SecRule TX:TEST "@eq 1" "phase:1,t:none,id:'2001'"
+SecRule TX:TEST "!@eq 0" "phase:1,t:none,id:'2002'"
+SecRule TX:TEST "!@eq 1" "phase:1,t:none,id:'2003'"
+TEST1 doesn't exist.
+SecRule TX:TEST1 "@eq 1" "phase:1,t:none,id:'2004'"
+SecRule TX:TEST1 "!@eq 1" "phase:1,t:none,id:'2005'"     Thats the Problem,
+it should match because TEST1 is not equal to 1 but it does not match.
+
+Debug Log for the test.
+
+Rule 801648: SecAction
+"phase:1,auditlog,id:2000,t:none,nolog,pass,setvar:tx.test=1"
+ Setting variable: tx.test=1
+ Set variable "tx.test" to "1".
+ Rule returned 1.
+ Match -> mode NEXT_RULE.
+ Rule 809ed0: SecRule "TX:TEST" "@eq 1"
+"phase:1,pass,nolog,auditlog,t:none,id:2001"
+ Executing operator "eq" with param "1" against TX:test.
+ Target value: "1"
+ Rule returned 1.
+ Rule 80a588: SecRule "TX:TEST" "!@eq 0"
+"phase:1,pass,nolog,auditlog,t:none,id:2002"
+ Executing operator "!eq" with param "0" against TX:test.
+ Target value: "1"
+ Rule returned 1.
+ Rule 80ac50: SecRule "TX:TEST" "!@eq 1"
+"phase:1,pass,nolog,auditlog,t:none,id:2003"
+ Executing operator "!eq" with param "1" against TX:test.
+ Target value: "1"
+ Rule returned 0.
+ Rule 80b318: SecRule "TX:TEST1" "@eq 1"
+"phase:1,pass,nolog,auditlog,t:none,id:2004"
+ Rule returned 0.
+ Rule 80dbd0: SecRule "TX:TEST1" "!@eq 1"
+"phase:1,pass,nolog,auditlog,t:none,id:2005"
+ Rule returned 0.
+
+If i change the Rule to only check if the Variable exists
+&SESSION:VALID "!@eq 1"  it's working.
+
+Michael
+
+2011/7/16 Ryan Barnett <RBarnett at trustwave.com>
+
+> Agreed - these need to be fixed. We can simplify the IP capturing ones by
+> not using the hashed. We were using hashs initially for the User-Agent field
+> as their length could get pretty long.  We would not need that for IP
+> addresses.
+>
+> I will fix these and push to the CRS SVN repo on Monday.
+>
+> Thanks.
+> Ryan
+>
+> On Jul 16, 2011, at 2:24 PM, "Michael Haas" <michael.haas10 at gmail.com
+> <mailto:michael.haas10 at gmail.com>> wrote:
+>
+> Hi,
+>
+> i think the Rule should be changed to something like that
+>
+> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>  "chain,phase:3,id:'981063',t:none,nolog,pass"
+>        SecRule MATCHED_VARS "(.*)"
+> "capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}"
+>
+> then it works too.
+>
+> Michael
+>
+> 2011/7/15 Michael Haas <<mailto:michael.haas10 at gmail.com>
+> michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+> Hi,
+>
+> Yes i'm using <
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf>
+>
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+> .
+> if i look at a debug log i see that the session.ip is not saved, i think it
+> doesn't capture because it doesn't match.
+>
+> Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Transformation completed in 24 usec.
+> Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+> against TX:ip.
+> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Operator completed in 2 usec.
+> Rule returned 0.
+> No match, not chained -> mode NEXT_RULE.
+>
+> If i use this Rule it captures because it matches.
+>
+> Rule 822cc8: SecRule "TX:IP" "@rx (.*)"
+> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Transformation completed in 24 usec.
+> Executing operator "rx" with param "(.*)" against TX:ip.
+> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+> Added regex subexpression to TX.0: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Added regex subexpression to TX.1: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Operator completed in 25 usec.
+> Setting variable: session.ip=%{tx.1}
+> Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+> Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+> Warning. Pattern match "(.*)" at TX:ip. [file
+> "/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+> Rule returned 1.
+> Match -> mode NEXT_RULE.
+>
+> The Problem is that the Target Value is already transformed with
+> "t:sha1,t:hexEncode"
+>
+> Michael
+>
+>
+> 2011/7/15 Ryan Barnett <<mailto:RBarnett at trustwave.com>
+> RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+>
+> From: Michael Haas <<mailto:michael.haas10 at gmail.com>
+> michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:<mailto:
+> michael.haas10 at gmail.com>michael.haas10 at gmail.com<mailto:
+> michael.haas10 at gmail.com>>>
+> Date: Fri, 15 Jul 2011 08:54:49 -0500
+> To: "<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>" <<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>
+> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>>>
+> Subject: [Owasp-modsecurity-core-rule-set] Problem with
+> modsecurity_crs_16_session_hijacking.conf
+>
+> Hi,
+>
+> i'm trying to use the session hijacking protection but have some problems
+> with it.
+>
+> Are you using this file?
+> <
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+> >
+> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>
+>
+>
+> The Rules 981057 and 981063 are never matching because they check a normal
+> IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+> collection.
+>
+> You are misunderstanding the logic of these rules.  Let's start at the end
+> of the file.
+>
+>
+> #
+> # This rule will identify the outbound Set-Cookie SessionID data and
+> capture it in a setsid
+> #
+> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)"
+> "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:<
+> http://tx.ua>tx.ua<http://tx.ua
+> >=%{request_headers.user-agent},setvar:session.valid=1"
+>        SecRule SESSION:SESSIONID "(.*)"
+> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+>
+> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+> SecRule TX:UA "(.*)"
+> "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:<
+> http://session.ua>session.ua<http://session.ua>=%{tx.0}"
+>
+> These rules will identify if/when common SessionIDs are being sent out by
+> the app in Set-Cookie response headers.  If these are found, then a few
+> things happen -
+>
+>  1.  Setsid is used to initialize the Session collection
+>  2.  The SessionID is marked as "valid" so that we can detect then bogus
+> SessionIDs are sent (perhaps by brute force tools)
+>  3.  We then capture a hash of the network block of the client IP (first 3
+> octets).  We don't use full IP address as there a too many false positives
+> where an IP will change, however the network block should not.
+>  4.  We then also capture a hash of the User-Agent string.
+>
+> Now that we have saved this data when the app sent out the Set-Cookie, we
+> can now perform validation on subsequent requests.  If a client sends a
+> SessionID cookie value, we can check the data we have saved.  Now onto the
+> rules at the top of the rules file -
+>
+>
+> #
+> # This rule set will identify subsequent SessionIDs being submitted by
+> clients in
+> # Request Headers.  First we check that the SessionID submitted is a valid
+> one
+> #
+> SecMarker BEGIN_SESSION_STARTUP
+>
+> SecRule
+> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+> ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+>        SecRule SESSION:VALID "!@eq 1"
+> "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id<http://rule.id
+> >}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+>
+> SecRule
+> &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+> "@eq 0"
+> "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+>
+> The first rule checks to see if the client is submitting a SessionID from
+> the named list.  If so, then we check the saved SessionID collection in
+> ModSecurity to see if the "valid" variable exists.  If not, then it means
+> that we did not see the application hand out this SessionID and thus we can
+> flag is as bogus.
+>
+> The last SecRule checks to see if there are no SessionID cookies at all.
+>  If the client didn't send one, then we can skip the other checks.  Sidenote
+> ? from an optimization perspective, I guess we could switch these two rules
+> around.
+>
+> Then we get to the set of rules you mentioned -
+>
+> SecAction
+> "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:<
+> http://tx.ua>tx.ua<http://tx.ua>=%{request_headers.user-agent}"
+>
+> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+> "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+> SecRule TX:UA "(.*)"
+> "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+>
+> These rules are meant to capture the hash of the same data mentioned above
+> but for the CURRENT transaction.  Once we have these hashes capture in TX
+> variables, we can then compare them to the data we originally saved in the
+> Session collection when the Set-Cookie was issued -
+>
+>
+> SecRule TX:IP_HASH "!@streq %{SESSION.IP}"
+> "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+> - Sticky SessionID Data Changed - IP Address
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+> rule.id<http://rule.id
+> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+> SecRule TX:UA_HASH "!@streq %{SESSION.UA<http://SESSION.UA>}"
+> "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+> - Sticky SessionID Data Changed - User-Agent
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+> rule.id<http://rule.id
+> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+> SecRule TX:STICKY_SESSION_ANOMALY "@eq 2"
+> "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP
+> Address and User-Agent
+> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id<http://rule.id
+> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>
+> These rules are simply check the current hashes with the saved hashes and
+> they then increase an anomaly score.
+>
+> Hopefully this description helps to explain the logic of the Session
+> Hijacking rules.
+>
+> -Ryan
+>
+>
+> I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules
+> are working.
+> Is this the right approach to fix this or should this be fixed in another
+> way?
+>
+> Thanks in Advance
+> Michael
+>
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> Owasp-modsecurity-core-rule-set at lists.owasp.org>
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/f32eff7c/attachment-0001.html 
+
+From michael.haas10 at gmail.com  Sat Jul 16 22:23:21 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sun, 17 Jul 2011 04:23:21 +0200
+Subject: [Owasp-modsecurity-core-rule-set] redirect with Apache
+Message-ID: <CAFW5hxB=SsAQi_9geFAkn42+unEiu+jfix8CqK6AEF-Ow88-cg@mail.gmail.com>
+
+Hi,
+
+is it normal that if a redirect is configured in apache that mod_security is
+not blocking according to it's rules? It logs the request but the Client is
+redirected.
+
+GET /..%5c../ HTTP/1.1
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg,
+application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,
+application/x-shockwave-flash, application/security-layer,
+application/security-capsule, application/x-ms-application,
+application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml,
+*/*
+Accept-Language: de-at,en-us;q=0.5
+User-Agent: Mozilla/4.0 (compatible; MSIE......)
+Accept-Encoding: gzip, deflate
+Host: XXX.xxxx
+Connection: Keep-Alive
+
+--ac9b0025-F--
+HTTP/1.1 302 Found
+Location: https://XXX.xxxx/
+Content-Length: 208
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--ac9b0025-H--
+Message: Pattern match
+"(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+at REQUEST_FILENAME. [file
+"/test/modsecurity_crs/modsecurity_crs_15_exception.conf"] [line "19"] [id
+"1000"] [rev "2.1.2"] [msg "Path Traversal Attack"] [severity "CRITICAL"]
+Stopwatch: 1310867782439547 587 (- - -)
+Producer: ModSecurity for Apache/2.5.13 (http://www.modsecurity.org/); core
+ruleset/2.1.2.
+Server: Apache
+
+
+If i do this without redirect the Rule blocks with 403.
+
+Thats the Rule
+
+SecRule TX:PARANOID_MODE "@eq 1"
+"chain,phase:1,rev:'2.1.2',t:none,ctl:auditLogParts=+E,block,msg:'Path
+Traversal Attack',id:'1000',severity:'2'"
+        SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+"(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+\
+
+"t:none,t:lowercase,capture,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{
+rule.id}-WEB_ATTACK/DIR_TRAVERSAL-%{matched_var_name}=%{matched_var}'"
+
+Thanks in Advance
+Michael
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/eaf165cc/attachment.html 
+
+From michael.haas10 at gmail.com  Sun Jul 17 10:07:57 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sun, 17 Jul 2011 16:07:57 +0200
+Subject: [Owasp-modsecurity-core-rule-set] redirect with Apache
+In-Reply-To: <CANnPkikhaF80HMZS_d7Ftau=ynabp+PugMD7HQ+b4BT=Ygv1Bw@mail.gmail.com>
+References: <CAFW5hxB=SsAQi_9geFAkn42+unEiu+jfix8CqK6AEF-Ow88-cg@mail.gmail.com>
+	<CANnPkikhaF80HMZS_d7Ftau=ynabp+PugMD7HQ+b4BT=Ygv1Bw@mail.gmail.com>
+Message-ID: <CAFW5hxCtwdJp8t9Z6wZ+Vx0=mt911nnDcxUVm3o2+dV_Co9bZw@mail.gmail.com>
+
+Hi Josh,
+
+it's a redirect from port 80 to 443.
+
+    RewriteEngine On
+    RewriteRule ^/(.*) https://XXX.xxx/
+
+Michael
+
+2011/7/17 Josh Amishav-Zlatin <jamuse at gmail.com>
+
+> Hi Michael,
+>
+> How is the redirect configured in Apache?
+>
+> --
+>  - Josh
+>
+> On Sun, Jul 17, 2011 at 5:23 AM, Michael Haas <michael.haas10 at gmail.com>wrote:
+>
+>> Hi,
+>>
+>> is it normal that if a redirect is configured in apache that mod_security
+>> is not blocking according to it's rules? It logs the request but the Client
+>> is redirected.
+>>
+>> GET /..%5c../ HTTP/1.1
+>> Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg,
+>> application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,
+>> application/x-shockwave-flash, application/security-layer,
+>> application/security-capsule, application/x-ms-application,
+>> application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml,
+>> */*
+>> Accept-Language: de-at,en-us;q=0.5
+>> User-Agent: Mozilla/4.0 (compatible; MSIE......)
+>> Accept-Encoding: gzip, deflate
+>> Host: XXX.xxxx
+>> Connection: Keep-Alive
+>>
+>> --ac9b0025-F--
+>> HTTP/1.1 302 Found
+>> Location: https://XXX.xxxx/
+>> Content-Length: 208
+>> Keep-Alive: timeout=5, max=100
+>> Connection: Keep-Alive
+>> Content-Type: text/html; charset=iso-8859-1
+>>
+>> --ac9b0025-H--
+>> Message: Pattern match
+>> "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+>> at REQUEST_FILENAME. [file
+>> "/test/modsecurity_crs/modsecurity_crs_15_exception.conf"] [line "19"] [id
+>> "1000"] [rev "2.1.2"] [msg "Path Traversal Attack"] [severity "CRITICAL"]
+>> Stopwatch: 1310867782439547 587 (- - -)
+>> Producer: ModSecurity for Apache/2.5.13 (http://www.modsecurity.org/);
+>> core ruleset/2.1.2.
+>> Server: Apache
+>>
+>>
+>> If i do this without redirect the Rule blocks with 403.
+>>
+>> Thats the Rule
+>>
+>> SecRule TX:PARANOID_MODE "@eq 1"
+>> "chain,phase:1,rev:'2.1.2',t:none,ctl:auditLogParts=+E,block,msg:'Path
+>> Traversal Attack',id:'1000',severity:'2'"
+>>         SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+>> "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+>> \
+>>
+>> "t:none,t:lowercase,capture,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{
+>> rule.id}-WEB_ATTACK/DIR_TRAVERSAL-%{matched_var_name}=%{matched_var}'"
+>>
+>> Thanks in Advance
+>> Michael
+>>
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/c2aaef31/attachment.html 
+
+From RBarnett at trustwave.com  Sun Jul 17 10:22:41 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sun, 17 Jul 2011 09:22:41 -0500
+Subject: [Owasp-modsecurity-core-rule-set] redirect with Apache
+In-Reply-To: <CAFW5hxB=SsAQi_9geFAkn42+unEiu+jfix8CqK6AEF-Ow88-cg@mail.gmail.com>
+References: <CAFW5hxB=SsAQi_9geFAkn42+unEiu+jfix8CqK6AEF-Ow88-cg@mail.gmail.com>
+Message-ID: <B2E7C5D6-6F18-4E2D-AE21-8CDBCD901EDA@trustwave.com>
+
+You might want to try using a mod_rewrite rule for your redirect instead as ModSecurity rules can run before them.
+
+Ryan
+
+On Jul 16, 2011, at 10:23 PM, "Michael Haas" <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>> wrote:
+
+Hi,
+
+is it normal that if a redirect is configured in apache that mod_security is not blocking according to it's rules? It logs the request but the Client is redirected.
+
+GET /..%5c../ HTTP/1.1
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, application/x-shockwave-flash, application/security-layer, application/security-capsule, application/x-ms-application, application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml, */*
+Accept-Language: de-at,en-us;q=0.5
+User-Agent: Mozilla/4.0 (compatible; MSIE......)
+Accept-Encoding: gzip, deflate
+Host: XXX.xxxx
+Connection: Keep-Alive
+
+--ac9b0025-F--
+HTTP/1.1 302 Found
+Location: <https://XXX.xxxx/> https://XXX.xxxx/
+Content-Length: 208
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--ac9b0025-H--
+Message: Pattern match "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))" at REQUEST_FILENAME. [file "/test/modsecurity_crs/modsecurity_crs_15_exception.conf"] [line "19"] [id "1000"] [rev "2.1.2"] [msg "Path Traversal Attack"] [severity "CRITICAL"]
+Stopwatch: 1310867782439547 587 (- - -)
+Producer: ModSecurity for Apache/2.5.13 (<http://www.modsecurity.org/>http://www.modsecurity.org/); core ruleset/2.1.2.<http://2.1.2.>
+Server: Apache
+
+
+If i do this without redirect the Rule blocks with 403.
+
+Thats the Rule
+
+SecRule TX:PARANOID_MODE "@eq 1" "chain,phase:1,rev:'2.1.2',t:none,ctl:auditLogParts=+E,block,msg:'Path Traversal Attack',id:'1000',severity:'2'"
+        SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/* "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))" \
+                "t:none,t:lowercase,capture,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{rule.id<http://rule.id>}-WEB_ATTACK/DIR_TRAVERSAL-%{matched_var_name}=%{matched_var}'"
+
+Thanks in Advance
+Michael
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From michael.haas10 at gmail.com  Sun Jul 17 10:28:03 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sun, 17 Jul 2011 16:28:03 +0200
+Subject: [Owasp-modsecurity-core-rule-set] redirect with Apache
+In-Reply-To: <B2E7C5D6-6F18-4E2D-AE21-8CDBCD901EDA@trustwave.com>
+References: <CAFW5hxB=SsAQi_9geFAkn42+unEiu+jfix8CqK6AEF-Ow88-cg@mail.gmail.com>
+	<B2E7C5D6-6F18-4E2D-AE21-8CDBCD901EDA@trustwave.com>
+Message-ID: <CAFW5hxCvM=pbQQ36XBC6cNL5Vxf+V4v3AHpLrGAYmZbWgEbscQ@mail.gmail.com>
+
+Hi Ryan,
+
+sorry i didn't mention it before i use this configuration to redirect from
+port 80 to 443.
+ RewriteEngine On
+ RewriteRule ^/(.*) https://XXX.xxx/ <https://xxx.xxx/>
+
+Michael
+
+2011/7/17 Ryan Barnett <RBarnett at trustwave.com>
+
+> You might want to try using a mod_rewrite rule for your redirect instead as
+> ModSecurity rules can run before them.
+>
+> Ryan
+>
+> On Jul 16, 2011, at 10:23 PM, "Michael Haas" <michael.haas10 at gmail.com
+> <mailto:michael.haas10 at gmail.com>> wrote:
+>
+> Hi,
+>
+> is it normal that if a redirect is configured in apache that mod_security
+> is not blocking according to it's rules? It logs the request but the Client
+> is redirected.
+>
+> GET /..%5c../ HTTP/1.1
+> Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg,
+> application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,
+> application/x-shockwave-flash, application/security-layer,
+> application/security-capsule, application/x-ms-application,
+> application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml,
+> */*
+> Accept-Language: de-at,en-us;q=0.5
+> User-Agent: Mozilla/4.0 (compatible; MSIE......)
+> Accept-Encoding: gzip, deflate
+> Host: XXX.xxxx
+> Connection: Keep-Alive
+>
+> --ac9b0025-F--
+> HTTP/1.1 302 Found
+> Location: <https://XXX.xxxx/> https://XXX.xxxx/
+> Content-Length: 208
+> Keep-Alive: timeout=5, max=100
+> Connection: Keep-Alive
+> Content-Type: text/html; charset=iso-8859-1
+>
+> --ac9b0025-H--
+> Message: Pattern match
+> "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+> at REQUEST_FILENAME. [file
+> "/test/modsecurity_crs/modsecurity_crs_15_exception.conf"] [line "19"] [id
+> "1000"] [rev "2.1.2"] [msg "Path Traversal Attack"] [severity "CRITICAL"]
+> Stopwatch: 1310867782439547 587 (- - -)
+> Producer: ModSecurity for Apache/2.5.13 (<http://www.modsecurity.org/>
+> http://www.modsecurity.org/); core ruleset/2.1.2.<http://2.1.2.>
+> Server: Apache
+>
+>
+> If i do this without redirect the Rule blocks with 403.
+>
+> Thats the Rule
+>
+> SecRule TX:PARANOID_MODE "@eq 1"
+> "chain,phase:1,rev:'2.1.2',t:none,ctl:auditLogParts=+E,block,msg:'Path
+> Traversal Attack',id:'1000',severity:'2'"
+>        SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+> "(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))(?:%(?:u2024|2e)|\.){2}(?:\x5c|(?:%(?:c(?:0%(?:9v|af)|1%1c)|2(?:5(?:2f|5c)|f)|u221[56]|1u|5c)|\/))"
+> \
+>
+>  "t:none,t:lowercase,capture,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{
+> rule.id<http://rule.id
+> >}-WEB_ATTACK/DIR_TRAVERSAL-%{matched_var_name}=%{matched_var}'"
+>
+> Thanks in Advance
+> Michael
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+> Owasp-modsecurity-core-rule-set at lists.owasp.org>
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> ________________________________
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110717/9a687456/attachment-0001.html 
+
+From RBarnett at trustwave.com  Tue Jul 19 16:11:02 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 19 Jul 2011 15:11:02 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New Blog Post: Advanced Topic of
+ the Week: (Updated) Real-time Blacklist Lookups
+Message-ID: <CA4B5D16.2BFC3%rbarnett@trustwave.com>
+
+Includes some updated RBL functionality -
+http://blog.spiderlabs.com/2011/07/advanced-topic-of-the-week-updated-real-time-blacklist-lookups.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From rbarnett at trustwave.com  Tue Jul 19 16:54:05 2011
+From: rbarnett at trustwave.com (Ryan Barnett (JIRA))
+Date: Tue, 19 Jul 2011 15:54:05 -0500 (CDT)
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Closed: (CORERULES-71) CRS
+	and json
+Message-ID: <1003517234.183.1311108845947.JavaMail.root@modsec-apps.modsecurity.org>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-71?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Ryan Barnett closed CORERULES-71.
+---------------------------------
+
+
+> CRS and json
+> ------------
+>
+>                 Key: CORERULES-71
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-71
+>             Project: Core Rules
+>          Issue Type: Bug
+>      Security Level: Normal
+>          Components: False positive
+>            Reporter: kuba
+>            Assignee: Ryan Barnett
+>
+> Hi,
+> I'm a modsecurity/crs newbie. I like both projects very much!
+> I have one question though: How to cope with json in POST requests to 
+> the server, e.g.
+> {"requiredMessages":[{"contactID":"86","lastInGot":null,"lastOutGot":null},{"contactID":"85","lastInGot":null,"lastOutGot":null},{"contactID":"90","lastInGot":null,"lastOutGot":null}],"readMessages":[],"userEvents":[{"eventID":"2","eventName":"openTab","eventParam":86},{"eventID":"3","eventName":"openTab","eventParam":85},{"eventID":"4","eventName":"openTab","eventParam":90}]}
+> I tried the request here:
+> http://www.modsecurity.org/demo/
+> http://demo.php-ids.org/
+> Modsecurity always blocks the request - due to rules imported from 
+> php-ids. But when trying on php-ids website with checked json checkbox 
+> the request is considered ok.
+> Is it possible to detect json requests in modsecurity/crs automatically? 
+> Or should I mark them somehow, e.g. add request header, use only special 
+> variable name jsondata?
+> When the json request is detected is it possible to process it the same 
+> way as php-ids would do it?
+> Looking in the source code of php-ids, I think that when it detects json 
+> data (using variable name) it first decodes it and then it's processed 
+> by rules. Would it be possible to do the same in modsecurity?
+> Thanks,
+> Kuba
+
+--
+This message is automatically generated by JIRA.
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+
+From rbarnett at trustwave.com  Wed Jul 20 10:12:08 2011
+From: rbarnett at trustwave.com (Ryan Barnett (JIRA))
+Date: Wed, 20 Jul 2011 09:12:08 -0500 (CDT)
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Closed: (CORERULES-69)
+ mod-security and paypal IPN is blocked by core rules 960009
+Message-ID: <26986654.239.1311171128859.JavaMail.root@modsec-apps.modsecurity.org>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-69?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Ryan Barnett closed CORERULES-69.
+---------------------------------
+
+
+> mod-security and paypal IPN is blocked by core rules 960009
+> -----------------------------------------------------------
+>
+>                 Key: CORERULES-69
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-69
+>             Project: Core Rules
+>          Issue Type: Improvement
+>      Security Level: Normal
+>          Components: False positive
+>    Affects Versions: 2.0.6
+>         Environment: Centos 5, apache 2.2, php 5.2.17, modsec 2, core rules 2.1.2
+>            Reporter: StrikeHawk eCommerce, Inc.
+>            Assignee: Ryan Barnett
+>            Priority: Urgent
+>         Attachments: paypal-ipn.txt
+>
+>
+> Missing user agent and others for paypal IPN. I'm sure others with more experience will expand upon this issue
+
+--
+This message is automatically generated by JIRA.
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+
+From rbarnett at trustwave.com  Wed Jul 20 10:12:08 2011
+From: rbarnett at trustwave.com (Ryan Barnett (JIRA))
+Date: Wed, 20 Jul 2011 09:12:08 -0500 (CDT)
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-69)
+ mod-security and paypal IPN is blocked by core rules 960009
+Message-ID: <1406939028.236.1311171128603.JavaMail.root@modsec-apps.modsecurity.org>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-69?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Ryan Barnett resolved CORERULES-69.
+-----------------------------------
+
+    Resolution: Won't Fix
+
+Provided an exception ruleset for IPN transactions.
+
+> mod-security and paypal IPN is blocked by core rules 960009
+> -----------------------------------------------------------
+>
+>                 Key: CORERULES-69
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-69
+>             Project: Core Rules
+>          Issue Type: Improvement
+>      Security Level: Normal
+>          Components: False positive
+>    Affects Versions: 2.0.6
+>         Environment: Centos 5, apache 2.2, php 5.2.17, modsec 2, core rules 2.1.2
+>            Reporter: StrikeHawk eCommerce, Inc.
+>            Assignee: Ryan Barnett
+>            Priority: Urgent
+>         Attachments: paypal-ipn.txt
+>
+>
+> Missing user agent and others for paypal IPN. I'm sure others with more experience will expand upon this issue
+
+--
+This message is automatically generated by JIRA.
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+
+From rbarnett at trustwave.com  Wed Jul 20 10:42:05 2011
+From: rbarnett at trustwave.com (Ryan Barnett (JIRA))
+Date: Wed, 20 Jul 2011 09:42:05 -0500 (CDT)
+Subject: [Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-70)
+ Phrase "Via" in 35_bad_robots matches Google translated requests
+Message-ID: <15105840.268.1311172925501.JavaMail.root@modsec-apps.modsecurity.org>
+
+
+     [ https://www.modsecurity.org/tracker/browse/CORERULES-70?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel ]
+
+Ryan Barnett resolved CORERULES-70.
+-----------------------------------
+
+    Resolution: Fixed
+
+I updated the rule logic in the 36 bad robots conf file.  Previously, the regexs only had an @pm rule run which did not have the proper regex logic for some of the checks.  I now created a chained rule for rule ID 990012 where a regex SecRule runs if the @pm check matches.  This should reduce the false positives.
+
+This will be available in CRS v2.2.1.
+
+> Phrase "Via" in 35_bad_robots matches Google translated requests
+> ----------------------------------------------------------------
+>
+>                 Key: CORERULES-70
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-70
+>             Project: Core Rules
+>          Issue Type: Improvement
+>      Security Level: Normal
+>          Components: False positive
+>    Affects Versions: 2.1.3
+>            Reporter: Thomas
+>            Assignee: Ryan Barnett
+>
+> Requests coming from Google translate have the phrase "(via translate.google.com)" appended to user agent string which is caught by crs_35_bad_robots.conf, 990012. An example is as follows:
+> GET / HTTP/1.1
+> Accept: text/html, text/plain, application/pdf, application/msword, */*
+> Accept-Charset: utf-8,*
+> Host: ...
+> Referer: http://translate.googleusercontent.com/translate_c?hl=es&langpair=en%7Ces&u=http://.../&rurl=translate.google.com.mx&usg=...
+> User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; GTB6.3; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; MDDR; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; MS-RTC LM 8),gzip(gfe) (via translate.google.com)
+> Via: 1.0 translate.google.com TWSFE/0.9
+> X-Forwarded-For: ...
+> Accept-Encoding: gzip
+
+--
+This message is automatically generated by JIRA.
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+
+From RBarnett at trustwave.com  Wed Jul 20 13:07:00 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 20 Jul 2011 12:07:00 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Announcing Release of OWASP
+	ModSecurity Core Rule Set (CRS) v.2.2.1
+Message-ID: <CA4C8374.2C199%rbarnett@trustwave.com>
+
+I am pleased to announce the release of the OWASP CRS v2.2.1.
+
+This is a significant update with regards to SQL Injection protections.  Trustwave's SpiderLabs Team conducted an analysis/review of the SQL Injection Challenge Level II evasions - http://www.modsecurity.org/demo/challenge.html and made many updates to now detect the evasion techniques used during the challenge.  SpiderLabs will soon be releasing a blog post providing details about the successful SQLi evasions used against the OWASP CRS >v.2.2.1 during the SQLi Challenge.  Keeping responsible disclosure in mind, we have delayed public release of this blog post until we had an updated CRS for the community to install that detected these evasions.
+
+*** It is highly recommended that you update your CRS installs ASAP to gain the improved SQL Injection protections. ***
+
+===========
+CHANGELOG
+===========
+--------------------------
+Version 2.2.1 - 07/20/2011
+--------------------------
+
+Improvements:
+- Extensive SQL Injection signature updates as a result of the SQLi Challenge
+  http://www.modsecurity.org/demo/challenge.html
+- Updated the SQL Error message detection in reponse bodies
+- Updated SQL Injection signatures to include more DB functions
+- Updated the WEAK SQL Injection signatures
+- Added tag AppSensor/RE8 to rule ID 960018
+
+Bug Fixes:
+- Fixed Bad Robot logic for rule ID 990012 to further qualify User-Agent matches
+  https://www.modsecurity.org/tracker/browse/CORERULES-70
+- Fixed Session Hijacking rules to properly capture IP address network hashes.
+- Added the multiMatch action to the SQLi rules
+- Fixed a false negative logic flaw within the advanced_filter_converter.lua script
+- Fixed missing : in id action in DoS ruleset.
+- Updated rule ID 971150 signature to remove ;
+
+--------------------------
+DOWNLOADING
+--------------------------
+Manual Downloading:
+You can always download the latest CRS version here -
+https://sourceforge.net/projects/mod-security/files/modsecurity-crs/0-CURRENT/
+
+Automated Downloading:
+Use the rules-updater.pl script in the CRS /util directory
+
+# Get a list of what the repository contains:
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -l
+
+Repository: http://www.modsecurity.org/autoupdate/repository
+
+modsecurity-crs {
+          2.0.0: modsecurity-crs_2.0.0.zip
+          2.0.1: modsecurity-crs_2.0.1.zip
+          2.0.2: modsecurity-crs_2.0.2.zip
+          2.0.3: modsecurity-crs_2.0.3.zip
+          2.0.4: modsecurity-crs_2.0.4.zip
+          2.0.5: modsecurity-crs_2.0.5.zip
+          2.0.6: modsecurity-crs_2.0.6.zip
+          2.0.7: modsecurity-crs_2.0.7.zip
+          2.0.8: modsecurity-crs_2.0.8.zip
+          2.0.9: modsecurity-crs_2.0.9.zip
+          2.0.9: modsecurity-crs_2.0.10.zip
+          2.1.0: modsecurity-crs_2.1.0.zip
+          2.1.1: modsecurity-crs_2.1.1.zip
+          2.1.2: modsecurity-crs_2.1.2.zip
+  2.2.0: modsecurity-crs_2.2.0.zip
+          2.2.1: modsecurity-crs_2.2.1.zip
+}
+
+# Get the latest stable version of "modsecurity-crs":
+$ ./rules-updater.pl -rhttp://www.modsecurity.org/autoupdate/repository/ -prules -Smodsecurity-crs
+Fetching: modsecurity-crs/modsecurity-crs_2.2.1.zip ...
+$ ls -R rules
+modsecurity-crs
+
+rules/modsecurity-crs:
+modsecurity-crs_2.2.1.zip    modsecurity-crs_2.2.1.zip.sig
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From michael.haas10 at gmail.com  Thu Jul 21 04:18:42 2011
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Thu, 21 Jul 2011 10:18:42 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+	modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CAFW5hxCaiUi0Jw+nR+a1OCORgJVjxagtmBXQA1OZdsfjxVTYug@mail.gmail.com>
+References: <CAFW5hxApMyteo22KSNMcLBf+BAd_=r5f0gOLHZCPTDWEciXw-w@mail.gmail.com>
+	<CA45C583.2BC0F%rbarnett@trustwave.com>
+	<CAFW5hxB2WGzDWj3pCfyHPUxxVdo4y-bYwnJq-wHmZuEwA8afkg@mail.gmail.com>
+	<CAFW5hxCScsOTbtWnLD7sW0PHzn1kjvuYCwiJLKG+NzTK2A9t6Q@mail.gmail.com>
+	<79AFF7AB-0315-46F4-8D9D-CF420BCD1E5F@trustwave.com>
+	<CAFW5hxCaiUi0Jw+nR+a1OCORgJVjxagtmBXQA1OZdsfjxVTYug@mail.gmail.com>
+Message-ID: <CAFW5hxB0dpgxQaiK=vufyP9NmHZS0vwN+tRYx1zbmrs9aqNP0A@mail.gmail.com>
+
+Hello,
+
+in crs 2.2.1 there is a oversight in Rule 981063. It should save session.ip
+but it saves tx.ip_hash.
+And if the hash value should be saved then the "capture" is missing in the
+chained rule. Now only the 3 octets are saved so the naming of the variables
+is a little bit misunderstanding (tx.ip_hash).
+
+So the Rules should look like this.
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+"chain,phase:1,id:'981057',capture,t:none,nolog,pass"
+        SecRule TX:1 ".*"
+"capture,t:sha1,t:hexEncode,setvar:tx.ip_hash=%{tx.0}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+"chain,phase:3,id:'981063',capture,t:none,nolog,pass"
+        SecRule TX:1 ".*"
+"capture,t:sha1,t:hexEncode,setvar:session.ip=%{tx.0}"
+
+Michael
+
+
+2011/7/17 Michael Haas <michael.haas10 at gmail.com>
+
+> Hi,
+> i have another problem with the rules in this file.
+> The Rules are working as expected if i change the IP or the UA but if i
+> change the sessionid to another value it's not working as expected.
+> I Think the following Rule is not working if the session id is changed to
+> an unknown value, because the ! operator does not work with non existent
+> variables(don't know if its a bug or not).
+> SecRule
+> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+> ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+>         SecRule SESSION:VALID "!@eq 1"
+> "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+> SESSION:VALID does not match if the SESSION.VALID Variable doesn't exist.
+>
+> I have verfied this with the following test.
+>
+>  SecAction "phase:1,id:'2000',t:none,nolog,pass,setvar:tx.test=1"
+> SecRule TX:TEST "@eq 1" "phase:1,t:none,id:'2001'"
+> SecRule TX:TEST "!@eq 0" "phase:1,t:none,id:'2002'"
+> SecRule TX:TEST "!@eq 1" "phase:1,t:none,id:'2003'"
+> TEST1 doesn't exist.
+> SecRule TX:TEST1 "@eq 1" "phase:1,t:none,id:'2004'"
+> SecRule TX:TEST1 "!@eq 1" "phase:1,t:none,id:'2005'"     Thats the Problem,
+> it should match because TEST1 is not equal to 1 but it does not match.
+>
+> Debug Log for the test.
+>
+> Rule 801648: SecAction
+> "phase:1,auditlog,id:2000,t:none,nolog,pass,setvar:tx.test=1"
+>  Setting variable: tx.test=1
+>  Set variable "tx.test" to "1".
+>  Rule returned 1.
+>  Match -> mode NEXT_RULE.
+>  Rule 809ed0: SecRule "TX:TEST" "@eq 1"
+> "phase:1,pass,nolog,auditlog,t:none,id:2001"
+>  Executing operator "eq" with param "1" against TX:test.
+>  Target value: "1"
+>  Rule returned 1.
+>  Rule 80a588: SecRule "TX:TEST" "!@eq 0"
+> "phase:1,pass,nolog,auditlog,t:none,id:2002"
+>  Executing operator "!eq" with param "0" against TX:test.
+>  Target value: "1"
+>  Rule returned 1.
+>  Rule 80ac50: SecRule "TX:TEST" "!@eq 1"
+> "phase:1,pass,nolog,auditlog,t:none,id:2003"
+>  Executing operator "!eq" with param "1" against TX:test.
+>  Target value: "1"
+>  Rule returned 0.
+>  Rule 80b318: SecRule "TX:TEST1" "@eq 1"
+> "phase:1,pass,nolog,auditlog,t:none,id:2004"
+>  Rule returned 0.
+>  Rule 80dbd0: SecRule "TX:TEST1" "!@eq 1"
+> "phase:1,pass,nolog,auditlog,t:none,id:2005"
+>  Rule returned 0.
+>
+> If i change the Rule to only check if the Variable exists
+> &SESSION:VALID "!@eq 1"  it's working.
+>
+> Michael
+>
+> 2011/7/16 Ryan Barnett <RBarnett at trustwave.com>
+>
+>> Agreed - these need to be fixed. We can simplify the IP capturing ones by
+>> not using the hashed. We were using hashs initially for the User-Agent field
+>> as their length could get pretty long.  We would not need that for IP
+>> addresses.
+>>
+>> I will fix these and push to the CRS SVN repo on Monday.
+>>
+>> Thanks.
+>> Ryan
+>>
+>> On Jul 16, 2011, at 2:24 PM, "Michael Haas" <michael.haas10 at gmail.com
+>> <mailto:michael.haas10 at gmail.com>> wrote:
+>>
+>> Hi,
+>>
+>> i think the Rule should be changed to something like that
+>>
+>> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>>  "chain,phase:3,id:'981063',t:none,nolog,pass"
+>>        SecRule MATCHED_VARS "(.*)"
+>> "capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}"
+>>
+>> then it works too.
+>>
+>> Michael
+>>
+>> 2011/7/15 Michael Haas <<mailto:michael.haas10 at gmail.com>
+>> michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+>> Hi,
+>>
+>> Yes i'm using <
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf>
+>>
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>> .
+>> if i look at a debug log i see that the session.ip is not saved, i think
+>> it doesn't capture because it doesn't match.
+>>
+>> Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+>> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+>> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+>> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+>> Transformation completed in 24 usec.
+>> Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)"
+>> against TX:ip.
+>> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+>> Operator completed in 2 usec.
+>> Rule returned 0.
+>> No match, not chained -> mode NEXT_RULE.
+>>
+>> If i use this Rule it captures because it matches.
+>>
+>> Rule 822cc8: SecRule "TX:IP" "@rx (.*)"
+>> "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+>> T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+>> T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+>> Transformation completed in 24 usec.
+>> Executing operator "rx" with param "(.*)" against TX:ip.
+>> Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+>> Added regex subexpression to TX.0:
+>> b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+>> Added regex subexpression to TX.1:
+>> b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+>> Operator completed in 25 usec.
+>> Setting variable: session.ip=%{tx.1}
+>> Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+>> Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+>> Warning. Pattern match "(.*)" at TX:ip. [file
+>> "/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+>> Rule returned 1.
+>> Match -> mode NEXT_RULE.
+>>
+>> The Problem is that the Target Value is already transformed with
+>> "t:sha1,t:hexEncode"
+>>
+>> Michael
+>>
+>>
+>> 2011/7/15 Ryan Barnett <<mailto:RBarnett at trustwave.com>
+>> RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+>>
+>> From: Michael Haas <<mailto:michael.haas10 at gmail.com>
+>> michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:<mailto:
+>> michael.haas10 at gmail.com>michael.haas10 at gmail.com<mailto:
+>> michael.haas10 at gmail.com>>>
+>> Date: Fri, 15 Jul 2011 08:54:49 -0500
+>> To: "<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>>" <<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>>>
+>> Subject: [Owasp-modsecurity-core-rule-set] Problem with
+>> modsecurity_crs_16_session_hijacking.conf
+>>
+>> Hi,
+>>
+>> i'm trying to use the session hijacking protection but have some problems
+>> with it.
+>>
+>> Are you using this file?
+>> <
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>> >
+>> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+>>
+>>
+>>
+>> The Rules 981057 and 981063 are never matching because they check a normal
+>> IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the
+>> collection.
+>>
+>> You are misunderstanding the logic of these rules.  Let's start at the end
+>> of the file.
+>>
+>>
+>> #
+>> # This rule will identify the outbound Set-Cookie SessionID data and
+>> capture it in a setsid
+>> #
+>> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+>> "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)"
+>> "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:<
+>> http://tx.ua>tx.ua<http://tx.ua
+>> >=%{request_headers.user-agent},setvar:session.valid=1"
+>>        SecRule SESSION:SESSIONID "(.*)"
+>> "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+>>
+>> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>>  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+>> SecRule TX:UA "(.*)"
+>> "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:<
+>> http://session.ua>session.ua<http://session.ua>=%{tx.0}"
+>>
+>> These rules will identify if/when common SessionIDs are being sent out by
+>> the app in Set-Cookie response headers.  If these are found, then a few
+>> things happen -
+>>
+>>  1.  Setsid is used to initialize the Session collection
+>>  2.  The SessionID is marked as "valid" so that we can detect then bogus
+>> SessionIDs are sent (perhaps by brute force tools)
+>>  3.  We then capture a hash of the network block of the client IP (first 3
+>> octets).  We don't use full IP address as there a too many false positives
+>> where an IP will change, however the network block should not.
+>>  4.  We then also capture a hash of the User-Agent string.
+>>
+>> Now that we have saved this data when the app sent out the Set-Cookie, we
+>> can now perform validation on subsequent requests.  If a client sends a
+>> SessionID cookie value, we can check the data we have saved.  Now onto the
+>> rules at the top of the rules file -
+>>
+>>
+>> #
+>> # This rule set will identify subsequent SessionIDs being submitted by
+>> clients in
+>> # Request Headers.  First we check that the SessionID submitted is a valid
+>> one
+>> #
+>> SecMarker BEGIN_SESSION_STARTUP
+>>
+>> SecRule
+>> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+>> ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID
+>> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+>>        SecRule SESSION:VALID "!@eq 1"
+>> "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+>> rule.id<http://rule.id
+>> >}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+>>
+>> SecRule
+>> &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/'
+>> "@eq 0"
+>> "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+>>
+>> The first rule checks to see if the client is submitting a SessionID from
+>> the named list.  If so, then we check the saved SessionID collection in
+>> ModSecurity to see if the "valid" variable exists.  If not, then it means
+>> that we did not see the application hand out this SessionID and thus we can
+>> flag is as bogus.
+>>
+>> The last SecRule checks to see if there are no SessionID cookies at all.
+>>  If the client didn't send one, then we can skip the other checks.  Sidenote
+>> ? from an optimization perspective, I guess we could switch these two rules
+>> around.
+>>
+>> Then we get to the set of rules you mentioned -
+>>
+>> SecAction
+>> "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:<
+>> http://tx.ua>tx.ua<http://tx.ua>=%{request_headers.user-agent}"
+>>
+>> SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"
+>> "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+>> SecRule TX:UA "(.*)"
+>> "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+>>
+>> These rules are meant to capture the hash of the same data mentioned above
+>> but for the CURRENT transaction.  Once we have these hashes capture in TX
+>> variables, we can then compare them to the data we originally saved in the
+>> Session collection when the Set-Cookie was issued -
+>>
+>>
+>> SecRule TX:IP_HASH "!@streq %{SESSION.IP}"
+>> "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+>> - Sticky SessionID Data Changed - IP Address
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+>> rule.id<http://rule.id
+>> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>> SecRule TX:UA_HASH "!@streq %{SESSION.UA<http://SESSION.UA>}"
+>> "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning
+>> - Sticky SessionID Data Changed - User-Agent
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{
+>> rule.id<http://rule.id
+>> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>> SecRule TX:STICKY_SESSION_ANOMALY "@eq 2"
+>> "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP
+>> Address and User-Agent
+>> Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+>> rule.id<http://rule.id
+>> >}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+>>
+>> These rules are simply check the current hashes with the saved hashes and
+>> they then increase an anomaly score.
+>>
+>> Hopefully this description helps to explain the logic of the Session
+>> Hijacking rules.
+>>
+>> -Ryan
+>>
+>>
+>> I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules
+>> are working.
+>> Is this the right approach to fix this or should this be fixed in another
+>> way?
+>>
+>> Thanks in Advance
+>> Michael
+>>
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you are
+>> not the intended recipient, you are hereby notified that any disclosure,
+>> copying, distribution, or use of the information contained herein (including
+>> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+>> transmission in error, please immediately contact the sender and destroy the
+>> material in its entirety, whether in electronic or hard copy format.
+>>
+>>
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>> ________________________________
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you are
+>> not the intended recipient, you are hereby notified that any disclosure,
+>> copying, distribution, or use of the information contained herein (including
+>> any reliance thereon) is STRICTLY PROHIBITED. If you received this
+>> transmission in error, please immediately contact the sender and destroy the
+>> material in its entirety, whether in electronic or hard copy format.
+>>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110721/bad5a5d6/attachment-0001.html 
+
+From RBarnett at trustwave.com  Thu Jul 21 08:01:56 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 21 Jul 2011 07:01:56 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Problem with
+ modsecurity_crs_16_session_hijacking.conf
+In-Reply-To: <CAFW5hxB0dpgxQaiK=vufyP9NmHZS0vwN+tRYx1zbmrs9aqNP0A@mail.gmail.com>
+Message-ID: <CA4D8D09.2CF9D%rbarnett@trustwave.com>
+
+Good catch Michael.
+
+I updated the Session Hijacking rules in SVN trunk -
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf?revision=1820
+
+-Ryan
+
+From: Michael Haas <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+Date: Thu, 21 Jul 2011 03:18:42 -0500
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+
+Hello,
+
+in crs 2.2.1 there is a oversight in Rule 981063. It should save session.ip but it saves tx.ip_hash.
+And if the hash value should be saved then the "capture" is missing in the chained rule. Now only the 3 octets are saved so the naming of the variables is a little bit misunderstanding (tx.ip_hash).
+
+So the Rules should look like this.
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" "chain,phase:1,id:'981057',capture,t:none,nolog,pass"
+        SecRule TX:1 ".*" "capture,t:sha1,t:hexEncode,setvar:tx.ip_hash=%{tx.0}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" "chain,phase:3,id:'981063',capture,t:none,nolog,pass"
+        SecRule TX:1 ".*" "capture,t:sha1,t:hexEncode,setvar:session.ip=%{tx.0}"
+
+Michael
+
+
+2011/7/17 Michael Haas <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>
+Hi,
+i have another problem with the rules in this file.
+The Rules are working as expected if i change the IP or the UA but if i change the sessionid to another value it's not working as expected.
+I Think the following Rule is not working if the session id is changed to an unknown value, because the ! operator does not work with non existent variables(don't know if its a bug or not).
+SecRule REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+        SecRule SESSION:VALID "!@eq 1" "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id<http://rule.id>}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+SESSION:VALID does not match if the SESSION.VALID Variable doesn't exist.
+
+I have verfied this with the following test.
+
+ SecAction "phase:1,id:'2000',t:none,nolog,pass,setvar:tx.test=1"
+SecRule TX:TEST "@eq 1" "phase:1,t:none,id:'2001'"
+SecRule TX:TEST "!@eq 0" "phase:1,t:none,id:'2002'"
+SecRule TX:TEST "!@eq 1" "phase:1,t:none,id:'2003'"
+TEST1 doesn't exist.
+SecRule TX:TEST1 "@eq 1" "phase:1,t:none,id:'2004'"
+SecRule TX:TEST1 "!@eq 1" "phase:1,t:none,id:'2005'"     Thats the Problem, it should match because TEST1 is not equal to 1 but it does not match.
+
+Debug Log for the test.
+
+Rule 801648: SecAction "phase:1,auditlog,id:2000,t:none,nolog,pass,setvar:tx.test=1"
+ Setting variable: tx.test=1
+ Set variable "tx.test" to "1".
+ Rule returned 1.
+ Match -> mode NEXT_RULE.
+ Rule 809ed0: SecRule "TX:TEST" "@eq 1" "phase:1,pass,nolog,auditlog,t:none,id:2001"
+ Executing operator "eq" with param "1" against TX:test.
+ Target value: "1"
+ Rule returned 1.
+ Rule 80a588: SecRule "TX:TEST" "!@eq 0" "phase:1,pass,nolog,auditlog,t:none,id:2002"
+ Executing operator "!eq" with param "0" against TX:test.
+ Target value: "1"
+ Rule returned 1.
+ Rule 80ac50: SecRule "TX:TEST" "!@eq 1" "phase:1,pass,nolog,auditlog,t:none,id:2003"
+ Executing operator "!eq" with param "1" against TX:test.
+ Target value: "1"
+ Rule returned 0.
+ Rule 80b318: SecRule "TX:TEST1" "@eq 1" "phase:1,pass,nolog,auditlog,t:none,id:2004"
+ Rule returned 0.
+ Rule 80dbd0: SecRule "TX:TEST1" "!@eq 1" "phase:1,pass,nolog,auditlog,t:none,id:2005"
+ Rule returned 0.
+
+If i change the Rule to only check if the Variable exists &SESSION:VALID "!@eq 1"  it's working.
+
+Michael
+
+2011/7/16 Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Agreed - these need to be fixed. We can simplify the IP capturing ones by not using the hashed. We were using hashs initially for the User-Agent field as their length could get pretty long.  We would not need that for IP addresses.
+
+I will fix these and push to the CRS SVN repo on Monday.
+
+Thanks.
+Ryan
+
+On Jul 16, 2011, at 2:24 PM, "Michael Haas" <michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>> wrote:
+
+Hi,
+
+i think the Rule should be changed to something like that
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"  "chain,phase:3,id:'981063',t:none,nolog,pass"
+       SecRule MATCHED_VARS "(.*)" "capture,t:none,t:sha1,t:hexEncode,nolog,setvar:session.ip=%{tx.1}"
+
+then it works too.
+
+Michael
+
+2011/7/15 Michael Haas <<mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>>
+Hi,
+
+Yes i'm using <http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf> http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf.
+if i look at a debug log i see that the session.ip is not saved, i think it doesn't capture because it doesn't match.
+
+Rule 822ce0: SecRule "TX:IP" "@rx ^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)" "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.)" against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Operator completed in 2 usec.
+Rule returned 0.
+No match, not chained -> mode NEXT_RULE.
+
+If i use this Rule it captures because it matches.
+
+Rule 822cc8: SecRule "TX:IP" "@rx (.*)" "phase:3,auditlog,id:981063,capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+T (0) sha1: "\xb5O`\x10\x1bj\xed\xdf\x81J\x8f\xfb\x11\x98^K\xfc{t4"
+T (0) hexEncode: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Transformation completed in 24 usec.
+Executing operator "rx" with param "(.*)" against TX:ip.
+Target value: "b54f60101b6aeddf814a8ffb11985e4bfc7b7434"
+Added regex subexpression to TX.0: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Added regex subexpression to TX.1: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Operator completed in 25 usec.
+Setting variable: session.ip=%{tx.1}
+Resolved macro %{tx.1} to: b54f60101b6aeddf814a8ffb11985e4bfc7b7434
+Set variable "session.ip" to "b54f60101b6aeddf814a8ffb11985e4bfc7b7434".
+Warning. Pattern match "(.*)" at TX:ip. [file "/xxx/modsecurity_crs_16_session_hijacking.conf"] [line "46"] [id "981063"]
+Rule returned 1.
+Match -> mode NEXT_RULE.
+
+The Problem is that the Target Value is already transformed with "t:sha1,t:hexEncode"
+
+Michael
+
+
+2011/7/15 Ryan Barnett <<mailto:RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>RBarnett at trustwave.com<mailto:RBarnett at trustwave.com><mailto:RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>>
+
+From: Michael Haas <<mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>><mailto:<mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com><mailto:michael.haas10 at gmail.com<mailto:michael.haas10 at gmail.com>>>>
+Date: Fri, 15 Jul 2011 08:54:49 -0500
+To: "<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>><mailto:<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>>" <<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>><mailto:<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>>>
+Subject: [Owasp-modsecurity-core-rule-set] Problem with modsecurity_crs_16_session_hijacking.conf
+
+Hi,
+
+i'm trying to use the session hijacking protection but have some problems with it.
+
+Are you using this file?
+<http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf>http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+
+
+
+The Rules 981057 and 981063 are never matching because they check a normal IP with a encoded IP (t:sha1,t:hexEncode) so the ip is never saved in the collection.
+
+You are misunderstanding the logic of these rules.  Let's start at the end of the file.
+
+
+#
+# This rule will identify the outbound Set-Cookie SessionID data and capture it in a setsid
+#
+SecRule RESPONSE_HEADERS:/Set-Cookie2?/ "(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)=([^\s]+)\;\s?)" "chain,phase:3,id:'981062',t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.sessionid=%{TX.6},setvar:tx.ip=%{remote_addr},setvar:<http://tx.ua>tx.ua<http://tx.ua><http://tx.ua>=%{request_headers.user-agent},setvar:session.valid=1"
+      SecRule SESSION:SESSIONID "(.*)" "t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)"  "phase:3,id:'981063',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:session.ip=%{tx.1}"
+SecRule TX:UA "(.*)" "phase:3,id:'981064',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:<http://session.ua>session.ua<http://session.ua><http://session.ua>=%{tx.0}"
+
+These rules will identify if/when common SessionIDs are being sent out by the app in Set-Cookie response headers.  If these are found, then a few things happen -
+
+ 1.  Setsid is used to initialize the Session collection
+ 2.  The SessionID is marked as "valid" so that we can detect then bogus SessionIDs are sent (perhaps by brute force tools)
+ 3.  We then capture a hash of the network block of the client IP (first 3 octets).  We don't use full IP address as there a too many false positives where an IP will change, however the network block should not.
+ 4.  We then also capture a hash of the User-Agent string.
+
+Now that we have saved this data when the app sent out the Set-Cookie, we can now perform validation on subsequent requests.  If a client sends a SessionID cookie value, we can check the data we have saved.  Now onto the rules at the top of the rules file -
+
+
+#
+# This rule set will identify subsequent SessionIDs being submitted by clients in
+# Request Headers.  First we check that the SessionID submitted is a valid one
+#
+SecMarker BEGIN_SESSION_STARTUP
+
+SecRule REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' ".*" "chain,phase:1,id:'981054',t:none,block,log,msg:'Invalid SessionID Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter:END_SESSION_STARTUP"
+      SecRule SESSION:VALID "!@eq 1" "t:none,setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id<http://rule.id><http://rule.id>}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+
+SecRule &REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|sid)/' "@eq 0" "phase:1,id:'981055',t:none,nolog,pass,skipAfter:END_SESSION_STARTUP"
+
+The first rule checks to see if the client is submitting a SessionID from the named list.  If so, then we check the saved SessionID collection in ModSecurity to see if the "valid" variable exists.  If not, then it means that we did not see the application hand out this SessionID and thus we can flag is as bogus.
+
+The last SecRule checks to see if there are no SessionID cookies at all.  If the client didn't send one, then we can skip the other checks.  Sidenote ? from an optimization perspective, I guess we could switch these two rules around.
+
+Then we get to the set of rules you mentioned -
+
+SecAction "phase:1,id:'981056',t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid=%{tx.sessionid},setvar:tx.ip=%{remote_addr},setvar:<http://tx.ua>tx.ua<http://tx.ua><http://tx.ua>=%{request_headers.user-agent}"
+
+SecRule TX:IP "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" "phase:1,id:'981057',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ip_hash=%{tx.0}"
+SecRule TX:UA "(.*)" "phase:1,id:'981058',capture,t:none,t:sha1,t:hexEncode,nolog,pass,setvar:tx.ua_hash=%{tx.0}"
+
+These rules are meant to capture the hash of the same data mentioned above but for the CURRENT transaction.  Once we have these hashes capture in TX variables, we can then compare them to the data we originally saved in the Session collection when the Set-Cookie was issued -
+
+
+SecRule TX:IP_HASH "!@streq %{SESSION.IP}" "phase:1,id:'981059',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - IP Address Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id<http://rule.id><http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:UA_HASH "!@streq %{SESSION.UA<http://SESSION.UA><http://SESSION.UA>}" "phase:1,id:'981060',t:none,block,setvar:tx.sticky_session_anomaly=+1,msg:'Warning - Sticky SessionID Data Changed - User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id<http://rule.id><http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+SecRule TX:STICKY_SESSION_ANOMALY "@eq 2" "phase:1,id:'981061',t:none,block,msg:'Possible Session Hijacking - IP Address and User-Agent Mismatch.',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id<http://rule.id><http://rule.id>}-WEB_ATTACK/SESSION_HIJACK-%{matched_var_name}=%{tx.0}"
+
+These rules are simply check the current hashes with the saved hashes and they then increase an anomaly score.
+
+Hopefully this description helps to explain the logic of the Session Hijacking rules.
+
+-Ryan
+
+
+I changed "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)" to "(.*)" after that the Rules are working.
+Is this the right approach to fix this or should this be fixed in another way?
+
+Thanks in Advance
+Michael
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org><mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From jczucco at gmail.com  Thu Jul 21 13:52:15 2011
+From: jczucco at gmail.com (Jeronimo Zucco)
+Date: Thu, 21 Jul 2011 14:52:15 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Issues with CRS 2.2.1
+Message-ID: <CAPNehxqK0_y3UrOzxXvnTF518zZ7Wh3QP-VRO0QqLQ6Ot2QGNg@mail.gmail.com>
+
+  Hi, I'm having some false positives with the new CRS 2.2.1. Here are some
+logs:
+
+
+
+GET /reqmateriais/ HTTP/1.1
+Host: XXXXX
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR; rv:1.9.2.18)
+Gecko/20110614 Firefox/3.6.18
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-br,pt;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Cookie: __utma=215133587.906900060.1258122835.1305748093.1306927020.10;
+__utma=180012320.689559656.1270058189.1309899918.1309951864.43;
+__utmz=215133587.1306927020.10.4.utmcsr=host.example.org|utmccn=(referral)|utmcmd=referral|utmcct=/;
+__utmz=180012320.1302032343.35.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);
+ys-ext-gen6-layout-state=o%3Anorth%3Do%253Asize%253Dn%25253A52%5Esouth%3Do%253A%253Ds%25253Aundefined%5Eeast%3Do%253A%253Ds%25253Aundefined%5Ewest%3Do%253A%253Ds%25253Aundefined;
+csrftoken=3beb5b824cd173465e11c2af83a57a30;
+sessionid=6f57dc8eb71f6dca873c6cc93dcd9ff2;
+__acXXX=ZW1zYXJ0b3I6ZW1zYXJ0b3I%3D
+Via: 1.1 host.example.org (squid)
+X-Forwarded-For: X.X.X.X
+Cache-Control: max-age=259200
+Connection: keep-alive
+
+--7782a473-F--
+HTTP/1.1 403 Forbidden
+Vary: accept-language,accept-charset,Accept-Encoding
+Accept-Ranges: bytes
+Content-Encoding: gzip
+Content-Length: 743
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+Content-Language: pt-br
+
+--7782a473-H--
+Message: Rule 1fb5e18 [id "950901"][file
+"/conf/modsecurity/crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+"59"] - Execution error - *PCRE limits exceeded* (-8): (null).
+Message: Access denied with code 403 (phase 2). Pattern match
+"(?i:([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*)?([\\d\\w]+)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*)?(?:=|<=>|r?like|sounds\\s+like|regexp)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*)?\\2|([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\
+..." at REQUEST_COOKIES:ys-ext-gen6-layout-state. [file
+"/conf/modsecurity/crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+[line "59"] [id "950901"] [rev "2.2.1"] [msg "SQL Injection Attack"] [*data
+"253A52^south*"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQL_INJECTION"] [tag
+"WASCTC/WASC-19"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/CIE1"] [tag
+"PCI/6.5.2"]
+Action: Intercepted (phase 2)
+Apache-Handler: type-map
+Stopwatch: 1311269736484515 8520 (- - -)
+Stopwatch2: 1311269736484515 8520; combined=6960, p1=347, p2=6586, p3=0,
+p4=0, p5=26, sr=93, sw=1, l=0, gc=0
+Producer: ModSecurity for Apache/2.6.1-rc1 (http://www.modsecurity.org/);
+core ruleset/2.2.0; core ruleset/2.2.0.
+Server: Apache/2.2.18 (Unix) mod_ssl/2.2.18 OpenSSL/0.9.8e-fips-rhel5
+
+
+-- 
+Jeronimo Zucco
+http://jczucco.blogspot.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110721/69c5b817/attachment.html 
+
+From RBarnett at trustwave.com  Thu Jul 21 16:21:44 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 21 Jul 2011 15:21:44 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Fwd: SF.net SVN:
+	mod-security:[1820] crs/trunk
+References: <E1Qjrv1-0000vQ-IL@sfp-svn-2.v30.ch3.sourceforge.com>
+Message-ID: <2ABF3007-06F1-461B-86CB-7EBD8F99C1F9@trustwave.com>
+
+
+
+Begin forwarded message:
+
+From: "rcbarnett at users.sourceforge.net<mailto:rcbarnett at users.sourceforge.net>" <rcbarnett at users.sourceforge.net<mailto:rcbarnett at users.sourceforge.net>>
+Date: July 21, 2011 7:59:55 AM EDT
+To: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Subject: SF.net<http://SF.net> SVN: mod-security:[1820] crs/trunk
+
+Revision: 1820
+         <http://mod-security.svn.sourceforge.net/mod-security/?rev=1820&view=rev> http://mod-security.svn.sourceforge.net/mod-security/?rev=1820&view=rev
+Author:   rcbarnett
+Date:     2011-07-21 11:59:54 +0000 (Thu, 21 Jul 2011)
+
+Log Message:
+-----------
+Improvements:
+- Updated the SQLi Character Anomaly Detection Rules
+
+Bug Fixes:
+- Fixed Session Hijacking IP/UA hash captures
+
+Modified Paths:
+--------------
+   crs/trunk/CHANGELOG
+   crs/trunk/base_rules/modsecurity_crs_20_protocol_violations.conf
+   crs/trunk/base_rules/modsecurity_crs_21_protocol_anomalies.conf
+   crs/trunk/base_rules/modsecurity_crs_23_request_limits.conf
+   crs/trunk/base_rules/modsecurity_crs_30_http_policy.conf
+   crs/trunk/base_rules/modsecurity_crs_35_bad_robots.conf
+   crs/trunk/base_rules/modsecurity_crs_40_generic_attacks.conf
+   crs/trunk/base_rules/modsecurity_crs_41_sql_injection_attacks.conf
+   crs/trunk/base_rules/modsecurity_crs_41_xss_attacks.conf
+   crs/trunk/base_rules/modsecurity_crs_42_tight_security.conf
+   crs/trunk/base_rules/modsecurity_crs_45_trojans.conf
+   crs/trunk/base_rules/modsecurity_crs_47_common_exceptions.conf
+   crs/trunk/base_rules/modsecurity_crs_48_local_exceptions.conf.example
+   crs/trunk/base_rules/modsecurity_crs_49_inbound_blocking.conf
+   crs/trunk/base_rules/modsecurity_crs_50_outbound.conf
+   crs/trunk/base_rules/modsecurity_crs_59_outbound_blocking.conf
+   crs/trunk/base_rules/modsecurity_crs_60_correlation.conf
+   crs/trunk/experimental_rules/modsecurity_crs_11_brute_force.conf
+   crs/trunk/experimental_rules/modsecurity_crs_11_proxy_abuse.conf
+   crs/trunk/experimental_rules/modsecurity_crs_11_slow_dos_protection.conf
+   crs/trunk/experimental_rules/modsecurity_crs_25_cc_track_pan.conf
+   crs/trunk/experimental_rules/modsecurity_crs_40_appsensor_detection_point_2.0_setup.conf
+   crs/trunk/experimental_rules/modsecurity_crs_40_appsensor_detection_point_2.1_request_exception.conf
+   crs/trunk/experimental_rules/modsecurity_crs_40_appsensor_detection_point_2.9_honeytrap.conf
+   crs/trunk/experimental_rules/modsecurity_crs_40_appsensor_detection_point_3.0_end.conf
+   crs/trunk/experimental_rules/modsecurity_crs_40_http_parameter_pollution.conf
+   crs/trunk/experimental_rules/modsecurity_crs_41_advanced_filters.conf
+   crs/trunk/experimental_rules/modsecurity_crs_42_csp_enforcement.conf
+   crs/trunk/experimental_rules/modsecurity_crs_45_char_anomaly.conf
+   crs/trunk/experimental_rules/modsecurity_crs_55_response_profiling.conf
+   crs/trunk/experimental_rules/modsecurity_crs_56_pvs_checks.conf
+   crs/trunk/experimental_rules/modsecurity_crs_61_ip_forensics.conf
+   crs/trunk/modsecurity_crs_10_config.conf.example
+   crs/trunk/optional_rules/modsecurity_crs_10_ignore_static.conf
+   crs/trunk/optional_rules/modsecurity_crs_11_avs_traffic.conf
+   crs/trunk/optional_rules/modsecurity_crs_13_xml_enabler.conf
+   crs/trunk/optional_rules/modsecurity_crs_16_authentication_tracking.conf
+   crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+   crs/trunk/optional_rules/modsecurity_crs_16_username_tracking.conf
+   crs/trunk/optional_rules/modsecurity_crs_25_cc_known.conf
+   crs/trunk/optional_rules/modsecurity_crs_42_comment_spam.conf
+   crs/trunk/optional_rules/modsecurity_crs_43_csrf_protection.conf
+   crs/trunk/optional_rules/modsecurity_crs_46_av_scanning.conf
+   crs/trunk/optional_rules/modsecurity_crs_47_skip_outbound_checks.conf
+   crs/trunk/optional_rules/modsecurity_crs_49_header_tagging.conf
+   crs/trunk/optional_rules/modsecurity_crs_55_application_defects.conf
+   crs/trunk/optional_rules/modsecurity_crs_55_marketing.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_joomla_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_lfi_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_phpbb_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_rfi_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_sqli_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_wordpress_attacks.conf
+   crs/trunk/slr_rules/modsecurity_crs_46_slr_et_xss_attacks.conf
+
+
+This was sent by the SourceForge.net<http://SourceForge.net> collaborative development platform, the world's largest Open Source development site.
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From RBarnett at trustwave.com  Thu Jul 21 16:22:16 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 21 Jul 2011 15:22:16 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Fwd: SF.net SVN:
+ mod-security:[1821] crs/trunk/optional_rules/
+ modsecurity_crs_16_session_hijacking.conf
+References: <E1QjttV-00063k-6B@sfp-svn-6.v30.ch3.sourceforge.com>
+Message-ID: <C45B4A46-C8F8-4897-B7B2-99EEDDFD6434@trustwave.com>
+
+
+Begin forwarded message:
+
+From: "rcbarnett at users.sourceforge.net<mailto:rcbarnett at users.sourceforge.net>" <rcbarnett at users.sourceforge.net<mailto:rcbarnett at users.sourceforge.net>>
+Date: July 21, 2011 10:06:29 AM EDT
+To: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Subject: SF.net<http://SF.net> SVN: mod-security:[1821] crs/trunk/optional_rules/ modsecurity_crs_16_session_hijacking.conf
+
+Revision: 1821
+         <http://mod-security.svn.sourceforge.net/mod-security/?rev=1821&view=rev> http://mod-security.svn.sourceforge.net/mod-security/?rev=1821&view=rev
+Author:   rcbarnett
+Date:     2011-07-21 14:06:28 +0000 (Thu, 21 Jul 2011)
+
+Log Message:
+-----------
+- Fixed missing chain action in Session Hijacking rule
+
+Modified Paths:
+--------------
+   crs/trunk/optional_rules/modsecurity_crs_16_session_hijacking.conf
+
+
+This was sent by the SourceForge.net<http://SourceForge.net> collaborative development platform, the world's largest Open Source development site.
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From RBarnett at trustwave.com  Tue Jul 26 12:49:10 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 26 Jul 2011 11:49:10 -0500
+Subject: [Owasp-modsecurity-core-rule-set] New Blog Post: ModSecurity SQL
+	Injection Challenge: Lessons Learned
+Message-ID: <CA546846.2D835%rbarnett@trustwave.com>
+
+Details about the SQL Injection evasions, why they worked and what we did to fix them in the CRS v.2.2.1 -
+
+http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html
+
+Also includes some interesting Time-to-Hack metrics at the end.
+
+Cheers.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From RBarnett at trustwave.com  Wed Jul 27 09:59:55 2011
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 27 Jul 2011 08:59:55 -0500
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Roadmap Review
+Message-ID: <CA55921B.2D9AD%rbarnett@trustwave.com>
+
+We will be reviewing the ModSecurity Roadmap (http://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Roadmap) next week at our yearly SpiderLabs team meetings in Las Vegas.  With this in mind, we want to encourage the community to also review the current high-level Roadmap items and also the "New Feature" requests tickets in JIRA - https://www.modsecurity.org/tracker/.
+
+If ModSecurity is missing a feature that you really need, this is the time to speak up!
+
+I just reviewed the following "ModSecurity User Survey from 2010" response to this question -
+10. How can we make ModSecurity better? What functionality do you feel is missing?
+
+Here are two capabilities and their corresponding JIRA tickets -
+
+ 1.  Add in URL/Link Encryption - https://www.modsecurity.org/tracker/browse/MODSEC-200
+ 2.  Learning Mode/Positive Security Model - https://www.modsecurity.org/tracker/browse/MODSEC-193
+
+Please add new JIRA tickets for missing features and/or vote for current tickets.  We need this feedback so we can properly prioritize the Roadmap items.
+
+Thanks.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+

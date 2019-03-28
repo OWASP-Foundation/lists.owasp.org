@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] A Recommended Base	Configuration - PCRE Recursion Limits
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20A%20Recommended%20Base%0A%09Configuration%20-%20PCRE%20Recursion%20Limits&In-Reply-To=C9C4AA2E.1DF28%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000688.html">
+   <LINK REL="Next"  HREF="000691.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] A Recommended Base	Configuration - PCRE Recursion Limits</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20A%20Recommended%20Base%0A%09Configuration%20-%20PCRE%20Recursion%20Limits&In-Reply-To=C9C4AA2E.1DF28%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] A Recommended Base	Configuration - PCRE Recursion Limits">RBarnett at trustwave.com
+       </A><BR>
+    <I>Fri Apr  8 12:11:25 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000688.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration	- MULTIPART_UNMATCHED_BOUNDARY
+</A></li>
+        <LI>Next message: <A HREF="000691.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration	- SecResponseBodyAccess
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#689">[ date ]</a>
+              <a href="thread.html#689">[ thread ]</a>
+              <a href="subject.html#689">[ subject ]</a>
+              <a href="author.html#689">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Reference Manual:
+<A HREF="https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecPcreMatchLimit">https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecPcreMatchLimit</A>
+<A HREF="https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecPcreMatchLimitRecursion">https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecPcreMatchLimitRecursion</A>
+
+Current setting:
+# PCRE Tuning
+# We want to avoid a potential RegEx DoS condition
+#
+SecPcreMatchLimit 1000
+SecPcreMatchLimitRecursion 1000
+
+# Some internal errors will set flags in TX and we will need to look for these.
+# All of these are prefixed with &quot;MSC_&quot;.  The following flags currently exist:
+#
+# MSC_PCRE_LIMITS_EXCEEDED: PCRE match limits were exceeded.
+#
+SecRule TX:/^MSC_/ &quot;!@streq 0&quot; \
+        &quot;phase:2,t:none,deny,msg:'ModSecurity internal error flagged: %{MATCHED_VAR_NAME}'&quot;
+
+Rationale:
+These rules help to prevent Regular Expression DoS attacks.
+<A HREF="https://www.owasp.org/images/3/38/20091210_VAC-REGEX_DOS-Adar_Weidman.pdf">https://www.owasp.org/images/3/38/20091210_VAC-REGEX_DOS-Adar_Weidman.pdf</A>
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000688.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration	- MULTIPART_UNMATCHED_BOUNDARY
+</A></li>
+	<LI>Next message: <A HREF="000691.html">[Owasp-modsecurity-core-rule-set] A Recommended Base Configuration	- SecResponseBodyAccess
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#689">[ date ]</a>
+              <a href="thread.html#689">[ thread ]</a>
+              <a href="subject.html#689">[ subject ]</a>
+              <a href="author.html#689">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

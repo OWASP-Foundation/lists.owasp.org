@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CAPrE0SZm%2BwnxGBrVtRFbUrjy1w0qG1T-nU_V0N%2Bpn_Aw59vbBA%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000850.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CAPrE0SZm%2BwnxGBrVtRFbUrjy1w0qG1T-nU_V0N%2Bpn_Aw59vbBA%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Tue Apr  6 00:25:51 EDT 2004</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000850.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#849">[ date ]</a>
+              <a href="thread.html#849">[ thread ]</a>
+              <a href="subject.html#849">[ subject ]</a>
+              <a href="author.html#849">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+
+On 8/19/11 2:05 AM, &quot;Paul McGarry&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">paul at paulmcgarry.com</A>&gt; wrote:
+
+&gt;<i>On Thu, Aug 18, 2011 at 11:40 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;<i>wrote:
+</I>&gt;<i>
+</I>&gt;&gt;&gt;<i>I think previously I have ended up disabling many the PHP-IDS based
+</I>&gt;&gt;&gt;<i>rules because of the false positives.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>Is there some difference between how PHP-IDS executes the rules and
+</I>&gt;&gt;&gt;<i>how modsecurity treats them?
+</I>&gt;<i>
+</I>&gt;&gt;&gt;<i>Similarly
+</I>&gt;&gt;&gt;<i>3 Orchard Street
+</I>&gt;&gt;&gt;<i>on the PHP_IDS demo is fine and
+</I>&gt;&gt;&gt;<i><A HREF="http://testing/index.php?street=3+Orchard+Street">http://testing/index.php?street=3+Orchard+Street</A>
+</I>&gt;&gt;&gt;<i>gives me warnings (981248 on &quot;3 Or&quot; and 981242 on &quot;3 Orc&quot;)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The rule that triggered is not a converted PHPIDS rule but rather one
+</I>&gt;&gt;<i>that
+</I>&gt;&gt;<i> we developed as part of the SQL Injection Challenge analysis.  This
+</I>&gt;&gt;<i> particular rule is trying to identify common SQL Operators.  Examples
+</I>&gt;&gt;<i>here
+</I>&gt;<i>
+</I>&gt;<i>Sorry, I probably didn't help there by jumping to a different rule ID
+</I>&gt;<i>for my first example.
+</I>&gt;<i>The second example (quoted above) did also use PHP IDS related rules
+</I>&gt;<i>which trigger in modsec but not on the PHP IDS demo site I think, I'll
+</I>&gt;<i>constrain discussion to the 981242 rule for now, which in the current
+</I>&gt;<i>release version is:
+</I>&gt;<i>
+</I>&gt;<i>======
+</I>&gt;<i>SecRule
+</I>&gt;<i>REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML
+</I>&gt;:<i>/*
+</I>&gt;<i>&quot;(?i:(?:(\&quot;|'|`|&#180;|&#185;|&#338;)\s*x?or|div|like|between|and\s*(\&quot;|'|`|&#180;|&#185;|&#338;)?\d)|(?
+</I>&gt;:<i>\\\\x(?:23|27|3d))|(?:^.?(\&quot;|'|`|&#180;|&#185;|&#338;)$)|(?:(?:^[(\&quot;|'|`|&#180;|&#185;|&#338;)\\\\]*(?:
+</I>&gt;<i>[\d(\&quot;|'|`|&#180;|&#185;|&#338;)]+|[^(\&quot;|'|`|&#180;|&#185;|&#338;)]+(\&quot;|'|`|&#180;|&#185;|&#338;)))+\s*(?:n?and|x?x?or|
+</I>&gt;<i>div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\&quot;|'|`|&#180;|&#185;|&#338;)[+&amp;!@(),.-])|(?:[^\
+</I>&gt;<i>w\s]\w+\s*[|-]\s*(\&quot;|'|`|&#180;|&#185;|&#338;)\s*\w)|(?:@\w+\s+(and|x?or|div|like|between
+</I>&gt;|<i>and)\s*[(\&quot;|'|`|&#180;|&#185;|&#338;)\d]+)|(?:@[\w-]+\s(and|x?or|div|like|between|and)\s
+</I>&gt;<i>*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\&quot;|'|`|&#180;|&#185;|&#338;).)|(?:\Winformation_s
+</I>&gt;<i>chema|table_name\W))&quot;
+</I>&gt;<i>&quot;phase:2,capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,block,
+</I>&gt;<i>msg:'Detects
+</I>&gt;<i>classic SQL injection probings
+</I>&gt;<i>1/2',id:'981242',tag:'WEB_ATTACK/SQLI',tag:'WEB_ATTACK/ID',tag:'WEB_ATTACK
+</I>&gt;<i>/LFI',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.id}-%{rule.msg}
+</I>&gt;<i>',setvar:tx.anomaly_score=+6,setvar:'tx.%{tx.msg}-WEB_ATTACK/SQLI-%{matche
+</I>&gt;<i>d_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/ID-%{matched_var_name
+</I>&gt;<i>}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/LFI-%{matched_var_name}=%{tx.0}
+</I>&gt;<i>'&quot;
+</I>&gt;<i>======
+</I>&gt;<i>
+</I>&gt;<i>If I understand the rule correctly it is really 8 separate,
+</I>&gt;<i>independent tests in one rule.
+</I>&gt;<i>Effectively:
+</I>&gt;<i>
+</I>&gt;<i>(?i:(\&quot;|'|`|&#180;|&#185;|&#338;)\s*x?or|div|like|between|and\s*(\&quot;|'|`|&#180;|&#185;|&#338;)?\d)
+</I>&gt;<i>(?i:\\\\x(?:23|27|3d))
+</I>&gt;<i>(?i:^.?(\&quot;|'|`|&#180;|&#185;|&#338;)$)
+</I>&gt;<i>(?:(?:^[(\&quot;|'|`|&#180;|&#185;|&#338;)\\\\]*(?:[\d(\&quot;|'|`|&#180;|&#185;|&#338;)]+|[^(\&quot;|'|`|&#180;|&#185;|&#338;)]+(\&quot;|'
+</I>&gt;|<i>`|&#180;|&#185;|&#338;)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\
+</I>&gt;<i>&quot;|'|`|&#180;|&#185;|&#338;)[+&amp;!@(),.-])
+</I>&gt;<i>(?i:[^\w\s]\w+\s*[|-]\s*(\&quot;|'|`|&#180;|&#185;|&#338;)\s*\w)
+</I>&gt;<i>(?i:@\w+\s+(and|x?or|div|like|between|and)\s*[(\&quot;|'|`|&#180;|&#185;|&#338;)\d]+)
+</I>&gt;<i>(?i:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W
+</I>&gt;<i>+[^\w\s]\s*(\&quot;|'|`|&#180;|&#185;|&#338;).)
+</I>&gt;<i>(?i:\Winformation_schema|table_name\W)
+</I>&gt;<i>
+</I>&gt;<i>are all evaluated independently.
+</I>&gt;<i>
+</I>&gt;<i>What are the advantages to combining these into one rule?
+</I>&gt;<i>
+</I>&gt;<i>From my perspective there are some obvious downsides eg:
+</I>&gt;<i>1) Makes the rule more opaque when trying to understand it.
+</I>&gt;<i>2) Makes determining exactly what a particular exception is caused by
+</I>&gt;<i>more difficult.
+</I>&gt;<i>3) Makes rule removal more risky, ie if I need remove the rule
+</I>&gt;<i>(perhaps to allow &quot;3 Orchard&quot; which the 4th regex picks up) then I
+</I>&gt;<i>forgo a bunch of other checks that may still be useful.
+</I>&gt;<i>It would seem to me that the simpler the rules can be the more
+</I>&gt;<i>oversight of the rules there will be from people interested in the
+</I>&gt;<i>area. A lot of the posts to the list seem to be of the &quot;how do I
+</I>&gt;<i>disable X&quot; sort, perhaps because they take one look at the rule and
+</I>&gt;<i>put it in the too hard basket. They might be more inclined to try and
+</I>&gt;<i>improve them if they are more readily understandable.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>Specifically for the 4th regex which is one I have butted up against:
+</I>&gt;<i>
+</I>&gt;<i>(?:(?:^[(\&quot;|'|`|&#180;|&#185;|&#338;)\\\\]*(?:[\d(\&quot;|'|`|&#180;|&#185;|&#338;)]+|[^(\&quot;|'|`|&#180;|&#185;|&#338;)]+(\&quot;|'
+</I>&gt;|<i>`|&#180;|&#185;|&#338;)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&amp;\&amp;)\s*[\w(\
+</I>&gt;<i>&quot;|'|`|&#180;|&#185;|&#338;)[+&amp;!@(),.-])
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>1) Some of the () grouping in the regex seems to obfuscate rather than
+</I>&gt;<i>assist understanding, ie are the following the same (I am certainly
+</I>&gt;<i>not a regex expert):
+</I>&gt;<i>^[(\&quot;|'|`|&#180;|&#185;|&#338;)\\\\]*
+</I>&gt;<i>^[\&quot;'`&#180;&#185;&#338;\\\\]*
+</I>&gt;<i>
+</I>&gt;<i>2) What are the four \ in the same class, doesn't it just produce two
+</I>&gt;<i>literal \ in the class the second one being redundant?
+</I>&gt;<i>
+</I>&gt;<i>3) Is the &quot;x?x?&quot; intentional? If so why and should other areas only
+</I>&gt;<i>checking for xor also check for xxor?
+</I>&gt;<i>
+</I>&gt;<i>4) Is it wise to try and handle word operators (or, and, not) in the
+</I>&gt;<i>same rule code as symbol operators || and &amp;&amp;?
+</I>&gt;<i>I think this might be the underlying root of my false positive as SQL
+</I>&gt;<i>parsers will likely deal with them differently.
+</I>&gt;<i>Ie no SQL parser (I hope) is going to see &quot;3 Orchard&quot; and interpret
+</I>&gt;<i>the c as the start of a new word, whereas &quot;3 ||chard&quot; likely would and
+</I>&gt;<i>could lead to exploitation (perhaps &quot;3 Ortrue&quot; and &quot;3 ||true&quot; is a
+</I>&gt;<i>clearer example).
+</I>&gt;<i>It seems that tighter regexs with less false positives could be
+</I>&gt;<i>written if lexically different operators were treated separately.
+</I>
+Paul,
+You bring up some good points.  We will go back and review those SQLi
+rules.  The main issue that we have is that we wanted to try and have a
+phpids default_filter.xml translation to ModSecurity rules that did NOT
+using Lua.  We had originally translated the phpids Converter.php code
+(which does the normalizations) to Lua and then we were able to use the
+exact same regexs from phpids.  We found two issues with this approach -
+
+1) During the SQLi Challenge, we found that some payloads were causing the
+Lua script to abort.  We obviously need to QA the script better...
+2) Most ModSecurity users don't want to run Lua.
+
+So, we opted to try and adjust the phpids regexes to account for the
+normalization of Converter.php.  This was a crude approach and there are
+some bugs we need to fix.
+
+As for combining these regexes into 1 - this was done by phpids to group
+filters that targeted similar attacks.  We could see about breaking them
+out but the downside for us is management as we want to update our filters
+whenever phpids updates theirs.
+
+We will see what we can do to make these easier to read though.
+
+-Ryan
+
+&gt;<i>
+</I>&gt;<i>Paul
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000850.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#849">[ date ]</a>
+              <a href="thread.html#849">[ thread ]</a>
+              <a href="subject.html#849">[ subject ]</a>
+              <a href="author.html#849">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

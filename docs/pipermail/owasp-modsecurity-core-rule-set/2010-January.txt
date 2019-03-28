@@ -1,0 +1,4164 @@
+From misc.lists at blueyonder.co.uk  Wed Jan  6 04:57:03 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 06 Jan 2010 09:57:03 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+Message-ID: <1262771823.3700.20.camel@localhost>
+
+Hello all,
+
+Following a previous thread in which I described some denials related to
+my squirrelmail web mail implementation (which were partially solved by
+an upgrade to CRS 2.0.4) I still have some outstanding issues...
+
+Firstly, accessing squirrelmail is fine, but trying to read an
+individual email causes the following:
+
+--501b5102-H--
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "62"] [id "phpids-18"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "293"] [id "phpids-1"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 8): Detects JavaScript array properties and methods"]
+Apache-Handler: php5-script
+Stopwatch: 1261498951073512 929285 (5949 35341 892372)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+Server: Apache/2.2.13 (Fedora)
+
+Secondly, attempting to add a new identity to my user within SM is
+outright blocked and gives the following:
+
+--f71bbe54-H--
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 36): Detects common XSS concatenation patterns 1/2"]
+Action: Intercepted (phase 2)
+Apache-Handler: php5-script
+Stopwatch: 1262715119800440 148552 (17244* 143302 -)
+Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+Server: Apache/2.2.13 (Fedora)
+
+I notice that they are similar, but not identical.
+
+What steps should I take to get this application working properly?
+
+Thanks in advance for any help / guidance...
+
+Mark
+ 
+
+
+
+From mjs at clemson.edu  Fri Jan  8 20:26:35 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Fri, 08 Jan 2010 20:26:35 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to create
+	temporary file
+Message-ID: <1263000395.3227.13.camel@valkyrie.localdomain>
+
+Hello, I hope I'm in the right place--I'm a complete newbie at this and
+it's not my day job.
+
+Could someone please explain to me what's going on with the following:
+
+        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity: Input fi
+        lter: Failed to create temporary file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+        F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri "/Csdp/att
+        achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity: Input fi
+        lter: Failed to delete temporary file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+        F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri "/Csdp/att
+        achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+
+I have a pristine installation of mod_security-2.5.9-1.el5 from the EPEL
+repository on a Red Hat Enterprise 5 system.  The problem is from a
+trac-0.11.5-1.el5.rf project page.
+
+If you need more info to help, I'm glad to provide whatever I can, or if
+I should be asking elsewhere, please let me know.  TIA for your kind
+assistance.
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From x.torello at bpa.ad  Mon Jan 11 05:01:08 2010
+From: x.torello at bpa.ad (x.torello at bpa.ad)
+Date: Mon, 11 Jan 2010 11:01:08 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+	create	temporary file
+In-Reply-To: <1263000395.3227.13.camel@valkyrie.localdomain>
+Message-ID: <OFCFCC1ACC.945B2C88-ONC12576A8.0036E210-C12576A8.00370AF4@bpa.ad>
+
+Hi Matthew,
+
+have you checked the permissions for this file (
+/tmp/httpd/20100108-130745-EHX6ekKtxHEAACF9asQAAAAB-request_body-RFm2a5) 
+and the umask value?
+
+Regards,
+--
+Xavier Torell? i Ferr?n
+BPA TIC
+?rea de Sistemes i Comunicacions
+Tel. +376 891 322
+Fax +376 891 301
+x.torello at bpa.ad
+www.bpa.ad 
+
+
+
+
+Matthew Saltzman <mjs at clemson.edu> 
+Enviado por: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+09/01/2010 02:27
+
+Para
+owasp-modsecurity-core-rule-set at lists.owasp.org
+cc
+
+Asunto
+[Owasp-modsecurity-core-rule-set] Input filter: failed to create temporary 
+file
+
+
+
+
+
+
+Hello, I hope I'm in the right place--I'm a complete newbie at this and
+it's not my day job.
+
+Could someone please explain to me what's going on with the following:
+
+        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192] 
+ModSecurity: Input fi
+        lter: Failed to create temporary file: 
+/tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+        F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] 
+[uri "/Csdp/att
+        achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192] 
+ModSecurity: Input fi
+        lter: Failed to delete temporary file: 
+/tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+        F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] 
+[uri "/Csdp/att
+        achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+
+I have a pristine installation of mod_security-2.5.9-1.el5 from the EPEL
+repository on a Red Hat Enterprise 5 system.  The problem is from a
+trac-0.11.5-1.el5.rf project page.
+
+If you need more info to help, I'm glad to provide whatever I can, or if
+I should be asking elsewhere, please let me know.  TIA for your kind
+assistance.
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100111/b3309611/attachment.html 
+
+From mjs at clemson.edu  Mon Jan 11 07:33:54 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Mon, 11 Jan 2010 07:33:54 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <OFCFCC1ACC.945B2C88-ONC12576A8.0036E210-C12576A8.00370AF4@bpa.ad>
+References: <OFCFCC1ACC.945B2C88-ONC12576A8.0036E210-C12576A8.00370AF4@bpa.ad>
+Message-ID: <1263213234.4070.25.camel@valkyrie.localdomain>
+
+On Mon, 2010-01-11 at 11:01 +0100, x.torello at bpa.ad wrote:
+> 
+> Hi Matthew, 
+> 
+> have you checked the permissions for this file
+> (/tmp/httpd/20100108-130745-EHX6ekKtxHEAACF9asQAAAAB-request_body-RFm2a5) and the umask value?
+
+There is no such file, and in fact, no http directory in /tmp.  /tmp
+itself is drwxrwxrwt, which is standard AFAIK.
+
+Thanks for the suggestion.
+
+> 
+> Regards,
+> -- 
+> Xavier Torell? i Ferr?n
+> BPA TIC
+> ?rea de Sistemes i Comunicacions
+> Tel. +376 891 322
+> Fax +376 891 301
+> x.torello at bpa.ad
+> www.bpa.ad 
+> 
+> 
+> 
+> Matthew Saltzman <mjs at clemson.edu> 
+> Enviado por:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org 
+> 
+> 09/01/2010 02:27 
+> 
+> 
+> 
+>              Para
+> owasp-modsecurity-core-rule-set at lists.owasp.org 
+>                cc
+> 
+> 
+>            Asunto
+> [Owasp-modsecurity-core-rule-set] Input filter: failed to create        temporary file
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> Hello, I hope I'm in the right place--I'm a complete newbie at this
+> and
+> it's not my day job.
+> 
+> Could someone please explain to me what's going on with the following:
+> 
+>        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> ModSecurity: Input fi
+>        lter: Failed to create temporary
+> file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>        F9asQAAAAB-request_body-RFm2a5 [hostname
+> "projects.coin-or.org"] [uri "/Csdp/att
+>        achment/wiki/WikiStart/"] [unique_id
+> "EHX6ekKtxHEAACF9asQAAAAB"]
+>        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> ModSecurity: Input fi
+>        lter: Failed to delete temporary
+> file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>        F9asQAAAAB-request_body-RFm2a5 [hostname
+> "projects.coin-or.org"] [uri "/Csdp/att
+>        achment/wiki/WikiStart/"] [unique_id
+> "EHX6ekKtxHEAACF9asQAAAAB"]
+> 
+> I have a pristine installation of mod_security-2.5.9-1.el5 from the
+> EPEL
+> repository on a Red Hat Enterprise 5 system.  The problem is from a
+> trac-0.11.5-1.el5.rf project page.
+> 
+> If you need more info to help, I'm glad to provide whatever I can, or
+> if
+> I should be asking elsewhere, please let me know.  TIA for your kind
+> assistance.
+> -- 
+>                Matthew Saltzman
+> 
+> Clemson University Math Sciences
+> mjs AT clemson DOT edu
+> http://www.math.clemson.edu/~mjs
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From x.torello at bpa.ad  Mon Jan 11 08:45:52 2010
+From: x.torello at bpa.ad (x.torello at bpa.ad)
+Date: Mon, 11 Jan 2010 14:45:52 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <1263213234.4070.25.camel@valkyrie.localdomain>
+Message-ID: <OF0205EEB7.15F2A526-ONC12576A8.00474254-C12576A8.004B9E48@bpa.ad>
+
+Hi again,
+
+i'm not sure about this actions solves your problem, but I would follow 
+creating the /tmp/httpd directory and change the owner/grp for the httpd 
+user/grp.
+
+If this doesn't work i would edit the config for this rule, changing the 
+default path for the tmp files.
+
+Regards,
+--
+Xavier Torell? i Ferr?n
+BPA TIC
+?rea de Sistemes i Comunicacions
+Tel. +376 891 322
+Fax +376 891 301
+x.torello at bpa.ad
+www.bpa.ad 
+
+
+
+
+Matthew Saltzman <mjs at clemson.edu> 
+11/01/2010 13:34
+
+Para
+x.torello at bpa.ad
+cc
+owasp-modsecurity-core-rule-set at lists.owasp.org
+Asunto
+Re: [Owasp-modsecurity-core-rule-set] Input filter: failed to create 
+temporary file
+
+
+
+
+
+
+On Mon, 2010-01-11 at 11:01 +0100, x.torello at bpa.ad wrote:
+> 
+> Hi Matthew, 
+> 
+> have you checked the permissions for this file
+> 
+(/tmp/httpd/20100108-130745-EHX6ekKtxHEAACF9asQAAAAB-request_body-RFm2a5) 
+and the umask value?
+
+There is no such file, and in fact, no http directory in /tmp.  /tmp
+itself is drwxrwxrwt, which is standard AFAIK.
+
+Thanks for the suggestion.
+
+> 
+> Regards,
+> -- 
+> Xavier Torell? i Ferr?n
+> BPA TIC
+> ?rea de Sistemes i Comunicacions
+> Tel. +376 891 322
+> Fax +376 891 301
+> x.torello at bpa.ad
+> www.bpa.ad 
+> 
+> 
+> 
+> Matthew Saltzman <mjs at clemson.edu> 
+> Enviado por:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org 
+> 
+> 09/01/2010 02:27 
+> 
+> 
+> 
+>              Para
+> owasp-modsecurity-core-rule-set at lists.owasp.org 
+>                cc
+> 
+> 
+>            Asunto
+> [Owasp-modsecurity-core-rule-set] Input filter: failed to create 
+temporary file
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> Hello, I hope I'm in the right place--I'm a complete newbie at this
+> and
+> it's not my day job.
+> 
+> Could someone please explain to me what's going on with the following:
+> 
+>        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> ModSecurity: Input fi
+>        lter: Failed to create temporary
+> file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>        F9asQAAAAB-request_body-RFm2a5 [hostname
+> "projects.coin-or.org"] [uri "/Csdp/att
+>        achment/wiki/WikiStart/"] [unique_id
+> "EHX6ekKtxHEAACF9asQAAAAB"]
+>        [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> ModSecurity: Input fi
+>        lter: Failed to delete temporary
+> file: /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>        F9asQAAAAB-request_body-RFm2a5 [hostname
+> "projects.coin-or.org"] [uri "/Csdp/att
+>        achment/wiki/WikiStart/"] [unique_id
+> "EHX6ekKtxHEAACF9asQAAAAB"]
+> 
+> I have a pristine installation of mod_security-2.5.9-1.el5 from the
+> EPEL
+> repository on a Red Hat Enterprise 5 system.  The problem is from a
+> trac-0.11.5-1.el5.rf project page.
+> 
+> If you need more info to help, I'm glad to provide whatever I can, or
+> if
+> I should be asking elsewhere, please let me know.  TIA for your kind
+> assistance.
+> -- 
+>                Matthew Saltzman
+> 
+> Clemson University Math Sciences
+> mjs AT clemson DOT edu
+> http://www.math.clemson.edu/~mjs
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100111/2c20157d/attachment.html 
+
+From ryan.barnett at breach.com  Mon Jan 11 11:57:45 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Mon, 11 Jan 2010 11:57:45 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+	create temporary file
+In-Reply-To: <1263000395.3227.13.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+Message-ID: <201001111157.45331.ryan.barnett@breach.com>
+
+On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+> Hello, I hope I'm in the right place--I'm a complete newbie at this and
+> it's not my day job.
+> 
+> Could someone please explain to me what's going on with the following:
+> 
+>         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+>  ModSecurity: Input fi lter: Failed to create temporary file:
+>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+>  [hostname "projects.coin-or.org"] [uri "/Csdp/att
+>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri Jan
+>  08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity: Input fi
+>  lter: Failed to delete temporary file:
+>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+>  [hostname "projects.coin-or.org"] [uri "/Csdp/att
+>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+> 
+> I have a pristine installation of mod_security-2.5.9-1.el5 from the EPEL
+> repository on a Red Hat Enterprise 5 system.  The problem is from a
+> trac-0.11.5-1.el5.rf project page.
+> 
+> If you need more info to help, I'm glad to provide whatever I can, or if
+> I should be asking elsewhere, please let me know.  TIA for your kind
+> assistance.
+> 
+
+Matt,
+Looking at the error message and the temporary path/filename ModSecurity is attempting to 
+create, this looks like it is related to either the SecTmpDir or SecUploadDir directives - 
+
+http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsecurity2-apache-
+reference.html#N10C18
+
+Check your mod configs and see where you have specified /tmp/httpd in those directives.  You 
+will need to follow the ownership/perms requirements for these directives related to the 
+Apache user.
+
+-Ryan
+
+From dsyuoul at gmail.com  Mon Jan 11 12:42:31 2010
+From: dsyuoul at gmail.com (Dimitri Syuoul)
+Date: Mon, 11 Jan 2010 11:42:31 -0600
+Subject: [Owasp-modsecurity-core-rule-set] modsecurity 2.0.4.. tweaking the
+	defaults? necessary?
+Message-ID: <2a63fac1001110942q2fd46b70xccee1e52f12b3003@mail.gmail.com>
+
+Greetings,
+
+We have been running the DetectionOnly mode for 2.0.4 under 2.5.11 for
+some time now and we now feel comfortable. Could anybody please
+orientate us if it is advised to tweak in any way either the score
+(which i dont know how to) or uncomment some rules which come
+commented for me to make a more tightened scenario? If so exactly
+which ones? (i dont know how to read rules so they dont make much
+sense to me)
+
+Any feedback is appreciated.
+Thank you
+
+
+Regards,
+Dimitri
+
+From mjs at clemson.edu  Mon Jan 11 12:50:00 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Mon, 11 Jan 2010 12:50:00 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <201001111157.45331.ryan.barnett@breach.com>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+Message-ID: <1263232200.4070.114.camel@valkyrie.localdomain>
+
+On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote: 
+> On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+> > Hello, I hope I'm in the right place--I'm a complete newbie at this and
+> > it's not my day job.
+> > 
+> > Could someone please explain to me what's going on with the following:
+> > 
+> >         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> >  ModSecurity: Input fi lter: Failed to create temporary file:
+> >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+> >  [hostname "projects.coin-or.org"] [uri "/Csdp/att
+> >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri Jan
+> >  08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity: Input fi
+> >  lter: Failed to delete temporary file:
+> >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+> >  [hostname "projects.coin-or.org"] [uri "/Csdp/att
+> >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+> > 
+> > I have a pristine installation of mod_security-2.5.9-1.el5 from the EPEL
+> > repository on a Red Hat Enterprise 5 system.  The problem is from a
+> > trac-0.11.5-1.el5.rf project page.
+> > 
+> > If you need more info to help, I'm glad to provide whatever I can, or if
+> > I should be asking elsewhere, please let me know.  TIA for your kind
+> > assistance.
+> > 
+> 
+> Matt,
+> Looking at the error message and the temporary path/filename ModSecurity is attempting to 
+> create, this looks like it is related to either the SecTmpDir or SecUploadDir directives - 
+> 
+> http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsecurity2-apache-
+> reference.html#N10C18
+> 
+> Check your mod configs and see where you have specified /tmp/httpd in those directives.  You 
+> will need to follow the ownership/perms requirements for these directives related to the 
+> Apache user.
+
+Both of these directives in modsecurity_crs_10_config.conf are set
+to /tmp.
+
+$ ls -ld /tmp
+drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+
+Actually,
+
+$ ls -ldZ /tmp
+drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+
+Could this be an SELinux issue?
+
+> 
+> -Ryan
+> 
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From ryan.barnett at breach.com  Mon Jan 11 12:57:45 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Mon, 11 Jan 2010 12:57:45 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+	create temporary file
+In-Reply-To: <1263232200.4070.114.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+	<1263232200.4070.114.camel@valkyrie.localdomain>
+Message-ID: <201001111257.45582.ryan.barnett@breach.com>
+
+On Monday 11 January 2010 12:50:00 pm Matthew Saltzman wrote:
+> On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote:
+> > On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+> > > Hello, I hope I'm in the right place--I'm a complete newbie at this and
+> > > it's not my day job.
+> > >
+> > > Could someone please explain to me what's going on with the following:
+> > >
+> > >         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> > >  ModSecurity: Input fi lter: Failed to create temporary file:
+> > >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> > > F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> > > "/Csdp/att
+> > >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri
+> > > Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity:
+> > > Input fi lter: Failed to delete temporary file:
+> > >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> > > F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> > > "/Csdp/att
+> > >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+> > >
+> > > I have a pristine installation of mod_security-2.5.9-1.el5 from the
+> > > EPEL repository on a Red Hat Enterprise 5 system.  The problem is from
+> > > a trac-0.11.5-1.el5.rf project page.
+> > >
+> > > If you need more info to help, I'm glad to provide whatever I can, or
+> > > if I should be asking elsewhere, please let me know.  TIA for your kind
+> > > assistance.
+> >
+> > Matt,
+> > Looking at the error message and the temporary path/filename ModSecurity
+> > is attempting to create, this looks like it is related to either the
+> > SecTmpDir or SecUploadDir directives -
+> >
+> > http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsec
+> >urity2-apache- reference.html#N10C18
+> >
+> > Check your mod configs and see where you have specified /tmp/httpd in
+> > those directives.  You will need to follow the ownership/perms
+> > requirements for these directives related to the Apache user.
+> 
+> Both of these directives in modsecurity_crs_10_config.conf are set
+> to /tmp.
+> 
+> $ ls -ld /tmp
+> drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+> 
+> Actually,
+> 
+> $ ls -ldZ /tmp
+> drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+> 
+> Could this be an SELinux issue?
+> 
+
+Good question.  Anyone else running SELinux run into similar perm issues?
+
+I will also check with Brian Rectanus (Lead Mod Developer).
+
+-Ryan
+
+From d3taveras38d3 at gmail.com  Mon Jan 11 14:44:44 2010
+From: d3taveras38d3 at gmail.com (David Taveras)
+Date: Mon, 11 Jan 2010 13:44:44 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Help with false positives for
+	Window Objuscation JavaScript.
+Message-ID: <ed3aec3e1001111144j3a895842ofeeea3a59c2392b3@mail.gmail.com>
+
+Hello,
+
+First of all, iam resending this post to the CRS mailing list. I
+apologize the confusion.
+
+Iam using the CRS 2.0.4 . What is the best way I have so that rules
+dont match this as something wrong?
+
+There seems to be a vast number of rules (Section K) that triggered
+this, these so far have been my only false positives.
+
+--c391310c-A--
+[05/Jan/2010:10:37:49 --0600] S0Nq3NBXIpEAAFcl7VAAAAAW 1.1.1.1.1 65308
+2.2.2.2 443
+--c391310c-B--
+POST /login.php HTTP/1.1
+Host: secure.domain.com
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; es-ES;
+rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: es-es,es;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Referer: https://secure.domain.com/login.php
+Cookie: PHPSESSID=mekfjfh54qu5vfbv8ct27c1d37;
+DDCart[cartID]=mekfjfh54qu5vfbv8ct27c1d37; DDCart[country]=232
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 134
+
+--c391310c-C--
+name=testuser%40test.com&password=12345&referer=https%3A%2F%2Fsecure.domain.com%2Fmy_account.php&submit.x=71&submit.y=8&submit=Submit
+--c391310c-F--
+HTTP/1.1 200 OK
+X-Powered-By: PHP/5.2.11
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Set-Cookie: DDCart[cartID]=mekfjfh54qu5vfbv8ct27c1d37; expires=Wed,
+06-Jan-2010 16:37:48 GMT; path=/; domain=.domain.com
+Set-Cookie: DDCart[country]=232; expires=Wed, 06-Jan-2010 16:37:48
+GMT; path=/; domain=.domain.com
+Content-Length: 3294
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html
+
+
+--c391310c-H--
+Message: Operator GE matched 20 at TX:anomaly_score. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_49_enforcement.conf"]
+[line "25"] [msg "Anomaly Score Exceeded (score 23): Detects
+JavaScript location/document property access and window access
+obfuscation"]
+Message: Operator GE matched 15 at TX:anomaly_score. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "24"] [msg "Anomaly Score Exceeded (score 23): Detects
+JavaScript location/document property access and window access
+obfuscation"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "104"] [id "phpids-61"] [msg "Detects url injections and RFE
+attempts"] [data "Matched Location: REQUEST_BODY and Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "279"] [id "phpids-2"] [msg "Detects JavaScript
+location/document property access and window access obfuscation"]
+[data "Matched Location: REQUEST_BODY and Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "286"] [id "phpids-17"] [msg "Detects JavaScript object
+properties and methods"] [data "Matched Location: REQUEST_BODY and
+Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "293"] [id "phpids-1"] [msg "Detects JavaScript object
+properties and methods"] [data "Matched Location: REQUEST_BODY and
+Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "391"] [id "phpids-23"] [msg "Detects JavaScript
+location/document property access and window access obfuscation"]
+[data "Matched Location: REQUEST_BODY and Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "405"] [id "phpids-6"] [msg "Detects url injections and RFE
+attempts"] [data "Matched Location: REQUEST_BODY and Matched Payload:
+name=testuser at test.com&password=12345&referer=https://secure.domain.com/my_account.php&submit.x=71&submit.y=8&submit=submit"]
+[severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "46"] [msg "Transactional Anomaly Score (score 23): Detects
+JavaScript location/document property access and window access
+obfuscation"]
+Apache-Handler: application/x-httpd-php
+Stopwatch: 1262709468633074 583271 (844* 31090 581461)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/).
+Server: Apache
+
+--c391310c-K--
+SecRule "REQUEST_METHOD" "@rx ^POST$"
+"phase:2,chain,t:none,block,nolog,auditlog,status:400,msg:'POST
+request must have a Content-Length
+header',id:960012,tag:PROTOCOL_VIOLATION/EVASION,severity:4"
+SecRule "REQUEST_HEADERS:Content-Type" "@rx
+^application\\/x-www-form-urlencoded(?:;(?:\\s?charset\\s?=\\s?[\\w\\d\\-]{1,18})?)??$"
+"phase:2,chain,t:none,block,nolog,auditlog,status:400,msg:'URL
+Encoding Abuse Attack
+Attempt',id:950108,tag:PROTOCOL_VIOLATION/EVASION,severity:5"
+SecRule "REQUEST_METHOD" "!@rx ^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+"phase:2,chain,t:none,block,nolog,auditlog,status:501,msg:'Request
+content type is not allowed by
+policy',id:960010,tag:POLICY/ENCODING_NOT_ALLOWED,severity:4"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+(?:\\w+]?(?<!href)(?<!src)(?<!longdesc)(?<!returnurl)=(?:https?|ftp):)|(?:\\{\\s*\\$\\s*\\{)"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+url injections and RFE
+attempts',id:phpids-61,tag:WEB_ATTACK/ID,tag:WEB_ATTACK/RFE,tag:WEB_ATTACK/LFI,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+5,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+([^*:\\s\\w,.\\/?+-]\\s*)?(?<![a-z]\\s)(?<![a-z\\/_@>\\|])(\\s*return\\s*)?(?:hash|name|href|navigateandfind|source|pathname|close|constructor|port|protocol|assign|replace|back|forward|document|ownerdocument|window|self|parent|frames|_?content|date|cookie|innerhtml|innertext|csstext+?|outerhtml|print|moveby|resizeto|createstylesheet|stylesheets)(?(1)[^\\w%\"]|(?:\\s*[^@\\/\\s\\w%,.+\\-]))"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript object properties and
+methods',id:phpids-17,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,tag:WEB_ATTACK/ID,tag:WEB_ATTACK/RFE,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+4,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+([^*:\\s\\w,.\\/?+-]\\s*)?(?<![a-z]\\s)(?<![a-z\\/_@>\\|])(\\s*return\\s*)?(?:hash|name|href|navigateandfind|source|pathname|close|constructor|port|protocol|assign|replace|back|forward|document|ownerdocument|window|self|parent|frames|_?content|date|cookie|innerhtml|innertext|csstext+?|outerhtml|print|moveby|resizeto|createstylesheet|stylesheets)(?(1)[^\\w%\"]|(?:\\s*[^@\\/\\s\\w%,.+\\-]))"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript object properties and
+methods',id:phpids-17,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,tag:WEB_ATTACK/ID,tag:WEB_ATTACK/RFE,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+4,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\w{2,}\\s*=\\s*\\d+[^&\\w]\\w+)|(?:\\]\\s*\\(\\s*\\w+)"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript location/document property access and window access
+obfuscation',id:phpids-23,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+5,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\w{2,}\\s*=\\s*\\d+[^&\\w]\\w+)|(?:\\]\\s*\\(\\s*\\w+)"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript location/document property access and window access
+obfuscation',id:phpids-23,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+5,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "&TX:/SQL_INJECTION/" "@eq 0"
+"phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pm jscript onsubmit copyparentfolder javascript meta onchange onmove
+onkeydown onkeyup activexobject onerror onmouseup ecmascript
+bexpression onmouseover vbscript: <![cdata[ http: .innerhtml
+settimeout shell: onabort asfunction: onkeypress onmousedown onclick
+.fromcharcode background-image: .cookie x-javascript ondragdrop onblur
+mocha: javascript: onfocus lowsrc getparentfolder onresize @import
+alert script onselect onmouseout application onmousemove background
+.execscript livescript: vbscript getspecialfolder .addimport iframe
+onunload createtextrange <input onload"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,skip:1,setvar:tx.pm_xss_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pm jscript onsubmit copyparentfolder javascript meta onchange onmove
+onkeydown onkeyup activexobject onerror onmouseup ecmascript
+bexpression onmouseover vbscript: <![cdata[ http: .innerhtml
+settimeout shell: onabort asfunction: onkeypress onmousedown onclick
+.fromcharcode background-image: .cookie x-javascript ondragdrop onblur
+mocha: javascript: onfocus lowsrc getparentfolder onresize @import
+alert script onselect onmouseout application onmousemove background
+.execscript livescript: vbscript getspecialfolder .addimport iframe
+onunload createtextrange <input onload"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,skip:1,setvar:tx.pm_xss_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\/login\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,ctl:auditLogParts=+E,nolog,auditlog,logdata:%{TX.0},id:sid2006496,rev:4,msg:'ET
+WEB_SPECIFIC Jasmine CMS SQL Injection Attempt -- login.php
+login_username ',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB_SQL_INJECTION/WEB_Jasmine_CMS"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003156,rev:3,msg:'ET
+WEB Crewbox Proxy
+Scan',tag:attempted-recon,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Apache_Open_Proxy"
+SecRule "QUERY_STRING|REQUEST_BODY" "@contains ="
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2001090,rev:7,msg:'ET
+WEB-MISC cross site scripting stealth attempt to execute Javascript
+code',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Misc_CSS"
+SecRule "QUERY_STRING|REQUEST_BODY" "@contains ="
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2001091,rev:7,msg:'ET
+WEB-MISC cross site scripting stealth attempt to execute VBScript
+code',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Misc_CSS"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2002997,rev:4,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+http)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003098,rev:4,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+ftp)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003935,rev:3,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+php)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009152,rev:4,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(HTTPS)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009153,rev:4,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(FTP)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009155,rev:5,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(FTPS)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "TX:ANOMALY_SCORE" "@ge 20"
+"phase:2,t:none,nolog,auditlog,deny,msg:'Anomaly Score Exceeded (score
+%{TX.ANOMALY_SCORE}): %{tx.msg}',setvar:tx.inbound_tx_msg=%{tx.msg}"
+SecRule "RESPONSE_BODY" "!@pmFromFile modsecurity_50_outbound.data"
+"phase:4,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,nolog,allow"
+SecRule "TX:ANOMALY_SCORE" "@ge 15"
+"phase:4,t:none,nolog,auditlog,deny,msg:'Anomaly Score Exceeded (score
+%{TX.ANOMALY_SCORE}): %{tx.msg}'"
+SecRule "TX:/^PHPIDS-61/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-61,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-2/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-2,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-17/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-17,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-1/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-1,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-23/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-23,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-6/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-6,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:ANOMALY_SCORE" "@ge 5"
+"phase:5,t:none,log,noauditlog,pass,msg:'Transactional Anomaly Score
+(score %{TX.ANOMALY_SCORE}): %{tx.msg}'"
+
+--c391310c-Z--
+
+_________________________________________________________________________________________________________________________________-
+
+
+--54901d14-A--
+[05/Jan/2010:14:01:56 --0600] S0OatNBXIpEAAHtCLOEAAAAS 1.1.1.1.1 64837
+2.2.2.2 443
+--54901d14-B--
+GET /scripts/Action.php?ticket=0&act=switchTickets&sid=0.5598969757684985
+HTTP/1.1
+Host: secure.domain.com
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.0; es-ES;
+rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: es-es,es;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Referer: https://secure.domain.com/my_account.php
+
+--54901d14-F--
+HTTP/1.1 200 OK
+X-Powered-By: PHP/5.2.11
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Content-Length: 1540
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html
+
+
+
+
+--54901d14-H--
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "279"] [id "phpids-2"] [msg "Detects JavaScript
+location/document property access and window access obfuscation"]
+[data "Matched Location: REQUEST_URI_RAW and Matched Payload:
+/scripts/dashaction.php?ticket=0&act=switchtickets&sid=0.5598969757684985"]
+[severity "CRITICAL"]
+Message: Pattern match
+"^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+MATCHED_VAR_NAME. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_41_phpids_filters.conf"]
+[line "391"] [id "phpids-23"] [msg "Detects JavaScript
+location/document property access and window access obfuscation"]
+[data "Matched Location: REQUEST_URI_RAW and Matched Payload:
+/scripts/dashaction.php?ticket=0&act=switchtickets&sid=0.5598969757684985"]
+[severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "46"] [msg "Transactional Anomaly Score (score 10): Detects
+JavaScript location/document property access and window access
+obfuscation"]
+Apache-Error: [file
+"/usr/ports/obj/php5-core-5.2.11/php-5.2.11/sapi/apache2handler/sapi_apache2.c"]
+[line 291] [level 3] PHP Notice:  Use of undefined constant NONE -
+assumed 'NONE' in /domain.com/secure/includes/dashboard.php on line 3,
+referer: https://secure.domain.com/myccount.php
+Apache-Handler: application/x-httpd-php
+Stopwatch: 1262721716289823 325701 (753 17216 324539)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.11 (http://www.modsecurity.org/).
+Server: Apache
+
+--54901d14-K--
+SecRule "REQUEST_METHOD" "@rx ^(?:GET|HEAD)$"
+"phase:2,chain,t:none,block,nolog,auditlog,status:400,msg:'GET or HEAD
+requests with bodies',severity:2,id:960011,tag:PROTOCOL_VIOLATION/EVASION"
+SecRule "&REQUEST_HEADERS:Content-Type" "@eq 0"
+"phase:2,pass,chain,t:none,nolog,auditlog,msg:'Request Containing
+Content, but Missing Content-Type header',id:960904,severity:5"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,chain,t:none,nolog,auditlog,pass,capture,id:hpp-1,setvar:tx.arg_name_%{tx.0}=+1,msg:'Possible
+HTTP Parameter Pollution Attack: Multiple Parameters with the same
+Name.'"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile modsecurity_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\w{2,}\\s*=\\s*\\d+[^&\\w]\\w+)|(?:\\]\\s*\\(\\s*\\w+)"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript location/document property access and window access
+obfuscation',id:phpids-23,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+5,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_BODY|REQUEST_URI_RAW" "@rx
+(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\w{2,}\\s*=\\s*\\d+[^&\\w]\\w+)|(?:\\]\\s*\\(\\s*\\w+)"
+"phase:2,auditlog,capture,multiMatch,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,block,nolog,msg:'Detects
+JavaScript location/document property access and window access
+obfuscation',id:phpids-23,tag:WEB_ATTACK/XSS,tag:WEB_ATTACK/CSRF,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+5,setvar:tx.%{rule.id}-WEB_ATTACK/INJECTION-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+SecRule "&TX:/SQL_INJECTION/" "@eq 0"
+"phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pm jscript onsubmit copyparentfolder javascript meta onchange onmove
+onkeydown onkeyup activexobject onerror onmouseup ecmascript
+bexpression onmouseover vbscript: <![cdata[ http: .innerhtml
+settimeout shell: onabort asfunction: onkeypress onmousedown onclick
+.fromcharcode background-image: .cookie x-javascript ondragdrop onblur
+mocha: javascript: onfocus lowsrc getparentfolder onresize @import
+alert script onselect onmouseout application onmousemove background
+.execscript livescript: vbscript getspecialfolder .addimport iframe
+onunload createtextrange <input onload"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,skip:1,setvar:tx.pm_xss_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pm jscript onsubmit copyparentfolder javascript meta onchange onmove
+onkeydown onkeyup activexobject onerror onmouseup ecmascript
+bexpression onmouseover vbscript: <![cdata[ http: .innerhtml
+settimeout shell: onabort asfunction: onkeypress onmousedown onclick
+.fromcharcode background-image: .cookie x-javascript ondragdrop onblur
+mocha: javascript: onfocus lowsrc getparentfolder onresize @import
+alert script onselect onmouseout application onmousemove background
+.execscript livescript: vbscript getspecialfolder .addimport iframe
+onunload createtextrange <input onload"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,skip:1,setvar:tx.pm_xss_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_FILENAME" "!@pmFromFile
+modsecurity_46_et_sql_injection.data"
+"phase:2,auditlog,nolog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,skipAfter:END_ET_SQLI_RULES"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003156,rev:3,msg:'ET
+WEB Crewbox Proxy
+Scan',tag:attempted-recon,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Apache_Open_Proxy"
+SecRule "QUERY_STRING|REQUEST_BODY" "@contains ="
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2001090,rev:7,msg:'ET
+WEB-MISC cross site scripting stealth attempt to execute Javascript
+code',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Misc_CSS"
+SecRule "QUERY_STRING|REQUEST_BODY" "@contains ="
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2001091,rev:7,msg:'ET
+WEB-MISC cross site scripting stealth attempt to execute VBScript
+code',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_Misc_CSS"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2002997,rev:4,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+http)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003098,rev:4,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+ftp)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2003935,rev:3,msg:'ET
+WEB PHP Remote File Inclusion (monster list
+php)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_PHP"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009152,rev:4,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(HTTPS)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009153,rev:4,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(FTP)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "REQUEST_URI_RAW" "@rx (?i:\\.php)"
+"phase:2,chain,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:%{TX.0},id:sid2009155,rev:5,msg:'ET
+WEB PHP Generic Remote File Include Attempt
+(FTPS)',tag:web-application-attack,tag:url,www.emergingthreats.net/cgi-bin/cvsweb.cgi/sigs/WEB/WEB_RFI_Generic"
+SecRule "RESPONSE_BODY" "!@pmFromFile modsecurity_50_outbound.data"
+"phase:4,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,nolog,allow"
+SecRule "TX:/^PHPIDS-2/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-2,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:/^PHPIDS-23/" "@rx ."
+"phase:5,chain,t:none,pass,nolog,auditlog,id:phpids-23,severity:2,setvar:tx.phpids_matched_payload=%{matched_var},msg:%{tx.3},logdata:'Matched
+Location: %{tx.4} and Matched Payload: %{tx.phpids_matched_payload}'"
+SecRule "MATCHED_VAR_NAME" "@rx
+^TX:phpids-(\\d{1,2})-WEB_ATTACK/INJECTION-(\\d)-(.*?)-(.*)$"
+"capture"
+SecRule "TX:ANOMALY_SCORE" "@ge 5"
+"phase:5,t:none,log,noauditlog,pass,msg:'Transactional Anomaly Score
+(score %{TX.ANOMALY_SCORE}): %{tx.msg}'"
+
+--54901d14-Z--
+
+
+
+Actually i just found out that the mod_debug_log actually shows ALL of
+the false positives similar to this:
+
+[04/Jan/2010:13:57:20 --0600]
+[www.domain.com/sid#7f1dc200][rid#86a94050][/scripts/cartAction.php][2]
+Warning. Operator GE matched 5 at TX:ano
+maly_score. [file
+"/etc/apache2/crs-2.0.4/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "46"] [msg "Transactional Anomaly Score (score 10
+): Detects JavaScript location/document property access and window
+access obfuscation"]
+
+
+Feedback is much appreciated.
+
+Regards,
+David
+
+From turgut at kalfaoglu.com  Mon Jan 11 15:24:31 2010
+From: turgut at kalfaoglu.com (=?UTF-8?B?dHVyZ3V0IGthbGZhb8SfbHU=?=)
+Date: Mon, 11 Jan 2010 22:24:31 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Lots of troubles with rules and
+	shared hosting
+Message-ID: <4B4B88FF.9000204@kalfaoglu.com>
+
+I recently upgraded the modsecurity 2.something to the latest version.
+
+But these two rulesets are giving me much headache:
+
+modsecurity_crs_41_phpids_converter.conf
+modsecurity_crs_41_phpids_filters.conf
+
+For example, a plain HTML web site, but the JPG files are oddly named:
+http://www.learningpracticalturkish.com/yasemin-unlu--movie-cover--koylu-kizi150x147.jpg 
+
+
+Dumps over a page of "Messages:" in the audit file, talking about 
+probably a dozen rules or so that are broken.
+
+The following dynamic site, is likewise:
+http://noroloji.biz/index.php?option=com_content&view=article&id=46&Itemid=97 
+
+... belches pages and pages of code, even at debug level 3.
+
+The web server has over 300 hostings - Joomla, PhpNuke, Wordpress, 
+homebrew, and plain HTML.
+
+I spent two whole days editing out the core rules, but finally had to 
+give up on the "phpids" rulesets altogether.
+
+Was there a better way?
+
+Thanks!
+  -turgut
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100111/08f4c9e3/attachment.html 
+
+From turgut at kalfaoglu.com  Mon Jan 11 15:31:45 2010
+From: turgut at kalfaoglu.com (=?UTF-8?B?dHVyZ3V0IGthbGZhb8SfbHU=?=)
+Date: Mon, 11 Jan 2010 22:31:45 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Lots of troubles with rules
+ and	shared hosting
+In-Reply-To: <4B4B88FF.9000204@kalfaoglu.com>
+References: <4B4B88FF.9000204@kalfaoglu.com>
+Message-ID: <4B4B8AB1.3070301@kalfaoglu.com>
+
+Sorry I should have mentioned that "I downloaded the latest rules, and 
+applied only the base rules, not the optional ones.."
+Regards, -turgut
+
+
+On 01/11/2010 10:24 PM, turgut kalfao?lu wrote:
+> I recently upgraded the modsecurity 2.something to the latest version.
+>
+> But these two rulesets are giving me much headache:
+>
+> modsecurity_crs_41_phpids_converter.conf
+> modsecurity_crs_41_phpids_filters.conf
+>
+> For example, a plain HTML web site, but the JPG files are oddly named:
+> http://www.learningpracticalturkish.com/yasemin-unlu--movie-cover--koylu-kizi150x147.jpg 
+>
+>
+> Dumps over a page of "Messages:" in the audit file, talking about 
+> probably a dozen rules or so that are broken.
+>
+> The following dynamic site, is likewise:
+> http://noroloji.biz/index.php?option=com_content&view=article&id=46&Itemid=97 
+>
+> ... belches pages and pages of code, even at debug level 3.
+>
+> The web server has over 300 hostings - Joomla, PhpNuke, Wordpress, 
+> homebrew, and plain HTML.
+>
+> I spent two whole days editing out the core rules, but finally had to 
+> give up on the "phpids" rulesets altogether.
+>
+> Was there a better way?
+>
+> Thanks!
+>  -turgut
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>    
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100111/592b6cac/attachment.html 
+
+From mjs at clemson.edu  Mon Jan 11 15:41:09 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Mon, 11 Jan 2010 15:41:09 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <201001111257.45582.ryan.barnett@breach.com>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+	<1263232200.4070.114.camel@valkyrie.localdomain>
+	<201001111257.45582.ryan.barnett@breach.com>
+Message-ID: <1263242469.10090.18.camel@valkyrie.localdomain>
+
+On Mon, 2010-01-11 at 12:57 -0500, Ryan Barnett wrote: 
+> On Monday 11 January 2010 12:50:00 pm Matthew Saltzman wrote:
+> > On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote:
+> > > On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+> > > > Hello, I hope I'm in the right place--I'm a complete newbie at this and
+> > > > it's not my day job.
+> > > >
+> > > > Could someone please explain to me what's going on with the following:
+> > > >
+> > > >         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> > > >  ModSecurity: Input fi lter: Failed to create temporary file:
+> > > >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> > > > F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> > > > "/Csdp/att
+> > > >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri
+> > > > Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity:
+> > > > Input fi lter: Failed to delete temporary file:
+> > > >  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> > > > F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> > > > "/Csdp/att
+> > > >  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+> > > >
+> > > > I have a pristine installation of mod_security-2.5.9-1.el5 from the
+> > > > EPEL repository on a Red Hat Enterprise 5 system.  The problem is from
+> > > > a trac-0.11.5-1.el5.rf project page.
+> > > >
+> > > > If you need more info to help, I'm glad to provide whatever I can, or
+> > > > if I should be asking elsewhere, please let me know.  TIA for your kind
+> > > > assistance.
+> > >
+> > > Matt,
+> > > Looking at the error message and the temporary path/filename ModSecurity
+> > > is attempting to create, this looks like it is related to either the
+> > > SecTmpDir or SecUploadDir directives -
+> > >
+> > > http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsec
+> > >urity2-apache- reference.html#N10C18
+> > >
+> > > Check your mod configs and see where you have specified /tmp/httpd in
+> > > those directives.  You will need to follow the ownership/perms
+> > > requirements for these directives related to the Apache user.
+> > 
+> > Both of these directives in modsecurity_crs_10_config.conf are set
+> > to /tmp.
+> > 
+> > $ ls -ld /tmp
+> > drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+> > 
+> > Actually,
+> > 
+> > $ ls -ldZ /tmp
+> > drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+> > 
+> > Could this be an SELinux issue?
+> > 
+> 
+> Good question.  Anyone else running SELinux run into similar perm issues?
+> 
+> I will also check with Brian Rectanus (Lead Mod Developer).
+
+Answering my own question, no changing to permissive mode doesn't affect
+the error.
+
+> 
+> -Ryan
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From Brian.Rectanus at breach.com  Mon Jan 11 15:46:07 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Mon, 11 Jan 2010 12:46:07 -0800
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <1263242469.10090.18.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>	<201001111157.45331.ryan.barnett@breach.com>	<1263232200.4070.114.camel@valkyrie.localdomain>	<201001111257.45582.ryan.barnett@breach.com>
+	<1263242469.10090.18.camel@valkyrie.localdomain>
+Message-ID: <4B4B8E0F.90703@breach.com>
+
+Matthew Saltzman wrote:
+> On Mon, 2010-01-11 at 12:57 -0500, Ryan Barnett wrote: 
+>> On Monday 11 January 2010 12:50:00 pm Matthew Saltzman wrote:
+>>> On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote:
+>>>> On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+>>>>> Hello, I hope I'm in the right place--I'm a complete newbie at this and
+>>>>> it's not my day job.
+>>>>>
+>>>>> Could someone please explain to me what's going on with the following:
+>>>>>
+>>>>>         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+>>>>>  ModSecurity: Input fi lter: Failed to create temporary file:
+>>>>>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>>>>> F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+>>>>> "/Csdp/att
+>>>>>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri
+>>>>> Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity:
+>>>>> Input fi lter: Failed to delete temporary file:
+>>>>>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+>>>>> F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+>>>>> "/Csdp/att
+>>>>>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+>>>>>
+>>>>> I have a pristine installation of mod_security-2.5.9-1.el5 from the
+>>>>> EPEL repository on a Red Hat Enterprise 5 system.  The problem is from
+>>>>> a trac-0.11.5-1.el5.rf project page.
+>>>>>
+>>>>> If you need more info to help, I'm glad to provide whatever I can, or
+>>>>> if I should be asking elsewhere, please let me know.  TIA for your kind
+>>>>> assistance.
+>>>> Matt,
+>>>> Looking at the error message and the temporary path/filename ModSecurity
+>>>> is attempting to create, this looks like it is related to either the
+>>>> SecTmpDir or SecUploadDir directives -
+>>>>
+>>>> http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsec
+>>>> urity2-apache- reference.html#N10C18
+>>>>
+>>>> Check your mod configs and see where you have specified /tmp/httpd in
+>>>> those directives.  You will need to follow the ownership/perms
+>>>> requirements for these directives related to the Apache user.
+>>> Both of these directives in modsecurity_crs_10_config.conf are set
+>>> to /tmp.
+>>>
+>>> $ ls -ld /tmp
+>>> drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+>>>
+>>> Actually,
+>>>
+>>> $ ls -ldZ /tmp
+>>> drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+>>>
+>>> Could this be an SELinux issue?
+>>>
+>> Good question.  Anyone else running SELinux run into similar perm issues?
+>>
+>> I will also check with Brian Rectanus (Lead Mod Developer).
+> 
+> Answering my own question, no changing to permissive mode doesn't affect
+> the error.
+
+I don't think temp files will create the directory structure (working
+from memory here).  Verify that it does not happen after creating
+/tmp/httpd with mode 1777.  I would not create it there, though.  Better
+in something like /var/httpd/modsec/tmp and used only for modsec.
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From ivan.ristic at gmail.com  Mon Jan 11 16:44:10 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Mon, 11 Jan 2010 21:44:10 +0000
+Subject: [Owasp-modsecurity-core-rule-set] CRS 2.0.4 feedback
+Message-ID: <1f9222b71001111344h58fc8f3bye730ff9333766285@mail.gmail.com>
+
+I investigated a couple of CRS false positives today, and I have the
+following feedback for the group:
+
+- CRS generates great many messages, and it's very difficult to figure
+out what is relevant and what isn't.
+
+- Log suppression, used by CRS to hide the alerts initially, makes it
+very difficult to understand what rules do. The crucial piece of
+information (logdata) is missing. The emulation of messages is a poor
+substitute for the original messages and does not contain the original
+information. It also slows things down. I had to resort to running
+replicas of original requests against a modified version of CRS with
+nolog converted to log, in order to understand why certain rules
+matched.
+
+- The PHPIDS rules matched against some trivial stuff, for example "name=".
+
+- The use of non-numerical rule IDs, which is against the
+specification, makes exceptions impossible. I've reported this problem
+as:
+
+  https://www.modsecurity.org/tracker/browse/MODSEC-114
+  https://www.modsecurity.org/tracker/browse/CORERULES-28
+
+- Because I couldn't use exceptions, I had to comment some rules out,
+but that's not easy because there is sometimes more than one rule with
+the same ID. I've found that to be a tad confusing.
+
+- Overall, it hasn't been a fun experience.
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From dsyuoul at gmail.com  Mon Jan 11 16:45:34 2010
+From: dsyuoul at gmail.com (Dimitri Syuoul)
+Date: Mon, 11 Jan 2010 15:45:34 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Practical ways to disable a rule
+	aside from commenting it.
+Message-ID: <2a63fac1001111345o15c7812dtd494a16b7f0523a5@mail.gmail.com>
+
+Hello,
+
+Due to the nature of the HTML forms indeed there is legitimate
+parameters of the same name in the form that users POST to, and
+modsecurity is blocking this with a forbidden page.
+
+My question is, aside from simply commenting the rule in question in
+modsecurity_crs_40_generic_attacks.conf  is there a more practical way
+to disable this rule?
+
+Thanks.
+
+Dimitri
+
+From ryan.barnett at breach.com  Mon Jan 11 17:14:17 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Mon, 11 Jan 2010 17:14:17 -0500
+Subject: [Owasp-modsecurity-core-rule-set] CRS 2.0.4 feedback
+In-Reply-To: <1f9222b71001111344h58fc8f3bye730ff9333766285@mail.gmail.com>
+References: <1f9222b71001111344h58fc8f3bye730ff9333766285@mail.gmail.com>
+Message-ID: <201001111714.17627.ryan.barnett@breach.com>
+
+On Monday 11 January 2010 04:44:10 pm Ivan Ristic wrote:
+> I investigated a couple of CRS false positives today, and I have the
+> following feedback for the group:
+> 
+> - CRS generates great many messages, and it's very difficult to figure
+> out what is relevant and what isn't.
+> 
+They are all relevant.
+
+There are basically 4 phases to the CRS - 
+
+1) Inbound rules - in this case *all* rules inspect the request data and may contributed 
+to the anomaly score and set TX variables holding the critical request meta-data.
+
+2) Implementing exceptions - after all of the default inbound signatures run, it is then 
+possible to implement exceptions by inspecting the captured TX variable data.  If certain 
+criteria is met, then you can adjust the anomaly score and, in the case of the phpids 
+rules, actually remove a TX variable altogether.  This is because these rules have not yet 
+logged to either the error or audit logs.
+
+3) Checking the inbound anomaly score - this happens in the 49 enforcement file and allows 
+the user to decide what and when to block.  They can go by the overall anomaly score or 
+any combination of event categories.
+
+4) Correlation - this is done in the 60 file and it allows the user to both inspect the 
+outbound response for blocking purposed and to also correlate the inbound with the 
+outbound to increase an event severity level to 1 or 0 when you have inbound attacks that 
+result in infoleaks.
+
+> - Log suppression, used by CRS to hide the alerts initially, makes it
+> very difficult to understand what rules do. The crucial piece of
+> information (logdata) is missing. 
+This is a good point.  I was already considering adding in the matched data (%{TX.0}) to 
+the saved TX variable info.
+
+> The emulation of messages is a poor
+> substitute for the original messages and does not contain the original
+> information. 
+It can include as much as you need.  See the phpids examples.
+
+> It also slows things down. I had to resort to running
+> replicas of original requests against a modified version of CRS with
+> nolog converted to log, in order to understand why certain rules
+> matched.
+> 
+It is true that there is a performance hit for this, however, it was decided that using 
+the TX data for collaboration and exceptions was a greater value.
+
+
+> - The PHPIDS rules matched against some trivial stuff, for example "name=".
+> 
+This is an interesting challenge when using the PHPIDS payloads as we have to balance 
+false positives and false negatives.  We are trying to address this by conditionally 
+applying the regexs to specific variable locations.  Ideally, we would apply them to parsed 
+fields such as ARGS, however there were some evasion issues.  If you go the other way and 
+apply them to REQUEST_BODY, etc... - you run into more FPs...  So, we opted to first check 
+ARGS and then only apply it to REQUEST_BODY if there is no match in ARGS.  We still need 
+to work on that logic a bit more though.
+
+I was thinking of the ideas of possibly having the user set some sort of config option 
+related to their desired level of paranoia to possibly help choose which rules to run and 
+where to apply them.
+
+> - The use of non-numerical rule IDs, which is against the
+> specification, makes exceptions impossible. I've reported this problem
+> as:
+> 
+>   https://www.modsecurity.org/tracker/browse/MODSEC-114
+>   https://www.modsecurity.org/tracker/browse/CORERULES-28
+> 
+Rule IDs are used for two reasons - exceptions and for identify which rule actually caused 
+the alert.  When using them for exceptions with SecRuleRemoveById or the equivalent ctl 
+action - it still works find using non-digit rule IDs.  The only issue is if you wanted to 
+remove a range of rule IDs.
+
+Another point - making rule exceptions more flexible was a driver for the new CRS and using 
+TX variables.  The rule ID is not as critical for exceptions.
+
+> - Because I couldn't use exceptions, I had to comment some rules out,
+> but that's not easy because there is sometimes more than one rule with
+> the same ID. I've found that to be a tad confusing.
+> 
+> - Overall, it hasn't been a fun experience.
+> 
+Not a ringing endorsement coming from the ModSecurity creator :(  Ultimately, I think that 
+we are making some important strides is rule flexibility and management however we need to 
+do more testing and received feedback.  I believe that creating proper CRS documentation 
+on the OWASP project site is key as well.  
+
+I was waiting for your OWASP CRS project review data in order to update the sites.  Is 
+this it or are you sending something different?  What do you say we take this offline and 
+come up with a gameplan?
+
+-Ryan
+
+From misc.lists at blueyonder.co.uk  Mon Jan 11 17:22:21 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Mon, 11 Jan 2010 22:22:21 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1262771823.3700.20.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+Message-ID: <1263248541.4825.1.camel@localhost>
+
+On Wed, 2010-01-06 at 09:57 +0000, Arthur Dent wrote:
+> Hello all,
+> 
+> Following a previous thread in which I described some denials related to
+> my squirrelmail web mail implementation (which were partially solved by
+> an upgrade to CRS 2.0.4) I still have some outstanding issues...
+> 
+> Firstly, accessing squirrelmail is fine, but trying to read an
+> individual email causes the following:
+> 
+> --501b5102-H--
+> Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "62"] [id "phpids-18"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+> Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "293"] [id "phpids-1"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+> Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 8): Detects JavaScript array properties and methods"]
+> Apache-Handler: php5-script
+> Stopwatch: 1261498951073512 929285 (5949 35341 892372)
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+> Server: Apache/2.2.13 (Fedora)
+> 
+> Secondly, attempting to add a new identity to my user within SM is
+> outright blocked and gives the following:
+> 
+> --f71bbe54-H--
+> Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+> Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+> Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 36): Detects common XSS concatenation patterns 1/2"]
+> Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1262715119800440 148552 (17244* 143302 -)
+> Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+> Server: Apache/2.2.13 (Fedora)
+> 
+> I notice that they are similar, but not identical.
+> 
+> What steps should I take to get this application working properly?
+> 
+> Thanks in advance for any help / guidance...
+> 
+> Mark
+
+I am still no nearer solving this. Any ideas? (gentle bump!)
+
+Mark
+
+
+
+
+From ivan.ristic at gmail.com  Mon Jan 11 17:50:12 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Mon, 11 Jan 2010 22:50:12 +0000
+Subject: [Owasp-modsecurity-core-rule-set] CRS 2.0.4 feedback
+In-Reply-To: <201001111714.17627.ryan.barnett@breach.com>
+References: <1f9222b71001111344h58fc8f3bye730ff9333766285@mail.gmail.com>
+	<201001111714.17627.ryan.barnett@breach.com>
+Message-ID: <1f9222b71001111450jfb836dg46cb90b4ff6dd697@mail.gmail.com>
+
+On Mon, Jan 11, 2010 at 10:14 PM, Ryan Barnett <ryan.barnett at breach.com> wrote:
+> On Monday 11 January 2010 04:44:10 pm Ivan Ristic wrote:
+>> I investigated a couple of CRS false positives today, and I have the
+>> following feedback for the group:
+>>
+>> - CRS generates great many messages, and it's very difficult to figure
+>> out what is relevant and what isn't.
+>>
+> They are all relevant.
+
+They may be, but my point is that I don't understand what purpose they
+serve. Evaluating a false positive takes ages.
+
+For example, your alert-substitute rules put messages into the data
+fragment, which is the wrong place. It breaks the GUI tools (we don't
+have many of them, but still).
+
+>
+>> The emulation of messages is a poor
+>> substitute for the original messages and does not contain the original
+>> information.
+> It can include as much as you need. ?See the phpids examples.
+
+I am sorry, which phpids examples do you mean?
+
+
+>> - The use of non-numerical rule IDs, which is against the
+>> specification, makes exceptions impossible. I've reported this problem
+>> as:
+>>
+>> ? https://www.modsecurity.org/tracker/browse/MODSEC-114
+>> ? https://www.modsecurity.org/tracker/browse/CORERULES-28
+>>
+> Rule IDs are used for two reasons - exceptions and for identify which rule actually caused
+> the alert. ?When using them for exceptions with SecRuleRemoveById or the equivalent ctl
+> action - it still works find using non-digit rule IDs. ?The only issue is if you wanted to
+> remove a range of rule IDs.
+
+Yes, that too, but that was an obvious problem. If you try to use
+SecRuleRemoveById with CRS, a single removal of a non-numerical ID
+will remove all rules with non-numerical IDs.
+
+
+> Another point - making rule exceptions more flexible was a driver for the new CRS and using
+> TX variables. ?The rule ID is not as critical for exceptions.
+
+I do not agree with that. ModSecurity already has an exception system,
+which users already know how to use, but the CRS breaks it (by using
+non-numerical IDs). If you want to build a better exception system, go
+ahead, but I think you should at least stay compatible with what's
+already there. If you insist on having your own exception system,
+however, please tell us how to use it! :)
+
+
+> I was waiting for your OWASP CRS project review data in order to update the sites. ?Is
+> this it or are you sending something different?
+
+I sent my review a month ago:
+
+https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/2009-December/000173.html
+
+You responded to my email so you can't claim that you had not seen it :)
+
+
+> ?What do you say we take this offline and
+> come up with a gameplan?
+
+That's a good try, but enjoy being just a user :)
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From mjs at clemson.edu  Mon Jan 11 22:04:28 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Mon, 11 Jan 2010 22:04:28 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <4B4B8E0F.90703@breach.com>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+	<1263232200.4070.114.camel@valkyrie.localdomain>
+	<201001111257.45582.ryan.barnett@breach.com>
+	<1263242469.10090.18.camel@valkyrie.localdomain>
+	<4B4B8E0F.90703@breach.com>
+Message-ID: <1263265468.12322.187.camel@valkyrie.localdomain>
+
+On Mon, 2010-01-11 at 12:46 -0800, Brian Rectanus wrote: 
+> Matthew Saltzman wrote:
+> > On Mon, 2010-01-11 at 12:57 -0500, Ryan Barnett wrote: 
+> >> On Monday 11 January 2010 12:50:00 pm Matthew Saltzman wrote:
+> >>> On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote:
+> >>>> On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+> >>>>> Hello, I hope I'm in the right place--I'm a complete newbie at this and
+> >>>>> it's not my day job.
+> >>>>>
+> >>>>> Could someone please explain to me what's going on with the following:
+> >>>>>
+> >>>>>         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+> >>>>>  ModSecurity: Input fi lter: Failed to create temporary file:
+> >>>>>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> >>>>> F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> >>>>> "/Csdp/att
+> >>>>>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"] [Fri
+> >>>>> Jan 08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity:
+> >>>>> Input fi lter: Failed to delete temporary file:
+> >>>>>  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC
+> >>>>> F9asQAAAAB-request_body-RFm2a5 [hostname "projects.coin-or.org"] [uri
+> >>>>> "/Csdp/att
+> >>>>>  achment/wiki/WikiStart/"] [unique_id "EHX6ekKtxHEAACF9asQAAAAB"]
+> >>>>>
+> >>>>> I have a pristine installation of mod_security-2.5.9-1.el5 from the
+> >>>>> EPEL repository on a Red Hat Enterprise 5 system.  The problem is from
+> >>>>> a trac-0.11.5-1.el5.rf project page.
+> >>>>>
+> >>>>> If you need more info to help, I'm glad to provide whatever I can, or
+> >>>>> if I should be asking elsewhere, please let me know.  TIA for your kind
+> >>>>> assistance.
+> >>>> Matt,
+> >>>> Looking at the error message and the temporary path/filename ModSecurity
+> >>>> is attempting to create, this looks like it is related to either the
+> >>>> SecTmpDir or SecUploadDir directives -
+> >>>>
+> >>>> http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsec
+> >>>> urity2-apache- reference.html#N10C18
+> >>>>
+> >>>> Check your mod configs and see where you have specified /tmp/httpd in
+> >>>> those directives.  You will need to follow the ownership/perms
+> >>>> requirements for these directives related to the Apache user.
+> >>> Both of these directives in modsecurity_crs_10_config.conf are set
+> >>> to /tmp.
+> >>>
+> >>> $ ls -ld /tmp
+> >>> drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+> >>>
+> >>> Actually,
+> >>>
+> >>> $ ls -ldZ /tmp
+> >>> drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+> >>>
+> >>> Could this be an SELinux issue?
+> >>>
+> >> Good question.  Anyone else running SELinux run into similar perm issues?
+> >>
+> >> I will also check with Brian Rectanus (Lead Mod Developer).
+> > 
+> > Answering my own question, no changing to permissive mode doesn't affect
+> > the error.
+> 
+> I don't think temp files will create the directory structure (working
+> from memory here).  Verify that it does not happen after creating
+> /tmp/httpd with mode 1777.  I would not create it there, though.  Better
+> in something like /var/httpd/modsec/tmp and used only for modsec.
+
+Interesting:
+
+      * Making /tmp/httpd, mode 1777, owner apache:apache solves the
+        problem.
+
+This seems like a bug--you can't count on the directory to exist
+(particularly if it lives in /tmp), so you have to check and either not
+use it or create it.
+
+      * Changing /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf
+        to point to a different directory for SecUploadDir, SecDataDir,
+        and SecTmpDir and either reloading or restarting httpd doesn't
+        change where the file is created--it's still in /tmp. 
+      * Moving the directives to modsecurity_localrules.conf has the
+        same lack of effect on the location where the file is written.
+
+So either I'm doing something wrong here, or my directives are being
+ignored for some reason.  More hints welcome.
+
+Thanks for your help so far.
+
+> 
+> -B
+> 
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From s.bhatia at qut.edu.au  Tue Jan 12 04:21:27 2010
+From: s.bhatia at qut.edu.au (SAJAL BHATIA)
+Date: Tue, 12 Jan 2010 19:21:27 +1000
+Subject: [Owasp-modsecurity-core-rule-set] Regarding core rule set of Mod
+	Security
+Message-ID: <EF5541F04426FD40ACD8600636961B470F3641E8CD@QUTEXMBX02.qut.edu.au>
+
+Hi, 
+
+I have a few  questions related to core rule set of Mod Security
+
+1. How does it performs the searching of IPs which it is required to allow or block? 
+2. Can we give externally a list of IPs to the core rule set for it to block or allow access?
+3. Is it possible to make Mod Security refresh its white list or black list of IPs in real time?
+4. How can we update our customized rule set dynamically? Does it require the apache server to restart? 
+
+Regards
+----
+Sajal Bhatia
+Research Masters Student
+QUT, Brisbane
+AUSTRALIA
+
+From Brian.Rectanus at breach.com  Tue Jan 12 11:34:26 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Tue, 12 Jan 2010 08:34:26 -0800
+Subject: [Owasp-modsecurity-core-rule-set] Regarding core rule set of
+ Mod	Security
+In-Reply-To: <EF5541F04426FD40ACD8600636961B470F3641E8CD@QUTEXMBX02.qut.edu.au>
+References: <EF5541F04426FD40ACD8600636961B470F3641E8CD@QUTEXMBX02.qut.edu.au>
+Message-ID: <4B4CA492.7010809@breach.com>
+
+SAJAL BHATIA wrote:
+> Hi, 
+> 
+> I have a few  questions related to core rule set of Mod Security
+> 
+> 1. How does it performs the searching of IPs which it is required to allow or block? 
+
+Not sure what you mean here.  You want to pass it a list of IPs to
+block?  If so probably regex is the only way:
+
+SecRule REMOTE_ADDR "^(?:1\.2\.3\.4|5\.6\.7\.8)$" \
+                    "phase:1,deny"
+
+But you could be smater about the regex for IPs in the same subnet:
+
+SecRule REMOTE_ADDR "^(?:1\.2\.3\.(?:4|5|6)|5\.6\.7\.(?:8|9|10))$" \
+                    "phase:1,deny"
+
+@pm and @pmFromFile will not work as the match is not bounded, so
+"1.2.3.4" will match for "101.2.3.4", etc.
+
+On the list of features to build is an @ip operator to do this better,
+but really it is faster to do this from an external firewall.
+
+Another option is @rbl.
+
+And yet another option if you are a developer is to build your own
+custom operator with the API.
+
+> 2. Can we give externally a list of IPs to the core rule set for it to block or allow access?
+> 3. Is it possible to make Mod Security refresh its white list or black list of IPs in real time?
+
+You can is you build your own RBL and use the @rbl operator.
+
+> 4. How can we update our customized rule set dynamically? Does it require the apache server to restart? 
+
+It requires a reload (ie "graceful") as it is part of the Apache config.
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From ryan.barnett at breach.com  Tue Jan 12 11:43:59 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Tue, 12 Jan 2010 11:43:59 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+ =?iso-8859-1?q?Regarding_core_r?=
+ =?iso-8859-1?q?ule_set_of_Mod=09Security?=
+In-Reply-To: <4B4CA492.7010809@breach.com>
+References: <EF5541F04426FD40ACD8600636961B470F3641E8CD@QUTEXMBX02.qut.edu.au>
+	<4B4CA492.7010809@breach.com>
+Message-ID: <201001121144.00074.ryan.barnett@breach.com>
+
+Couldn't you use @pmFromFile for a list of IPs as it will keep whitespace.  So, the user 
+would need to make sure that they have leading/trailing spaces around each IP on each line 
+in the file though.
+
+Would that not work?
+
+Ryan Barnett
+Director of Application Security Research
+Phone: (703) 794-2248
+Cell: (703) 269-8998
+Breach Security, Inc.
+2141 Palomar Airport Road, Suite 200
+Carlsbad, CA 92011
+www.breach.com
+
+On Tuesday 12 January 2010 11:34:26 am Brian Rectanus wrote:
+> SAJAL BHATIA wrote:
+> > Hi,
+> >
+> > I have a few  questions related to core rule set of Mod Security
+> >
+> > 1. How does it performs the searching of IPs which it is required to
+> > allow or block?
+> 
+> Not sure what you mean here.  You want to pass it a list of IPs to
+> block?  If so probably regex is the only way:
+> 
+> SecRule REMOTE_ADDR "^(?:1\.2\.3\.4|5\.6\.7\.8)$" \
+>                     "phase:1,deny"
+> 
+> But you could be smater about the regex for IPs in the same subnet:
+> 
+> SecRule REMOTE_ADDR "^(?:1\.2\.3\.(?:4|5|6)|5\.6\.7\.(?:8|9|10))$" \
+>                     "phase:1,deny"
+> 
+> @pm and @pmFromFile will not work as the match is not bounded, so
+> "1.2.3.4" will match for "101.2.3.4", etc.
+> 
+> On the list of features to build is an @ip operator to do this better,
+> but really it is faster to do this from an external firewall.
+> 
+> Another option is @rbl.
+> 
+> And yet another option if you are a developer is to build your own
+> custom operator with the API.
+> 
+> > 2. Can we give externally a list of IPs to the core rule set for it to
+> > block or allow access? 3. Is it possible to make Mod Security refresh its
+> > white list or black list of IPs in real time?
+> 
+> You can is you build your own RBL and use the @rbl operator.
+> 
+> > 4. How can we update our customized rule set dynamically? Does it require
+> > the apache server to restart?
+> 
+> It requires a reload (ie "graceful") as it is part of the Apache config.
+> 
+> -B
+> 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100112/95824e38/attachment.html 
+
+From dsyuoul at gmail.com  Tue Jan 12 17:43:40 2010
+From: dsyuoul at gmail.com (Dimitri Syuoul)
+Date: Tue, 12 Jan 2010 16:43:40 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Range: field exists and begins
+	with 0 - what does it mean?
+Message-ID: <2a63fac1001121443s2155c597vca09822fbdd00573@mail.gmail.com>
+
+Hello,
+
+Ive noticed that Ive gotten some triggers over rule ID 958291... I
+tried googling for an explanation of this rule but I could not find
+it. Anybody knwo what importance does this field exists and begins
+with 0 is?
+
+crs-2.0.4/base_rules/modsecurity_crs_20_protocol_violations.conf:SecRule
+REQUEST_HEADERS:Range "@contains =0-"
+"phase:2,t:none,block,nolog,auditlog,msg:'Range: field exists and
+begins with 0.',severity:'5',id:'958291',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+5,setvar:tx.protocol_violation_score=+1,setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}"
+crs-2.0.4/CHANGELOG:- Rule 958291 - Range: field exists and begins with 0.
+
+
+Thanks
+
+Dimitri
+
+From misc.lists at blueyonder.co.uk  Wed Jan 13 07:10:55 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 13 Jan 2010 12:10:55 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263248541.4825.1.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<1263248541.4825.1.camel@localhost>
+Message-ID: <1263384655.5661.12.camel@localhost>
+
+On Mon, 2010-01-11 at 22:22 +0000, Arthur Dent wrote:
+> On Wed, 2010-01-06 at 09:57 +0000, Arthur Dent wrote:
+> > Hello all,
+> > 
+> > Following a previous thread in which I described some denials related to
+> > my squirrelmail web mail implementation (which were partially solved by
+> > an upgrade to CRS 2.0.4) I still have some outstanding issues...
+> > 
+> > Firstly, accessing squirrelmail is fine, but trying to read an
+> > individual email causes the following:
+> > 
+> > --501b5102-H--
+> > Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "62"] [id "phpids-18"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+> > Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "293"] [id "phpids-1"] [msg "Detects JavaScript array properties and methods"] [data "Matched Location: REQUEST_URI_RAW and Matched Payload: /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/flr"] [severity "CRITICAL"]
+> > Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 8): Detects JavaScript array properties and methods"]
+> > Apache-Handler: php5-script
+> > Stopwatch: 1261498951073512 929285 (5949 35341 892372)
+> > Response-Body-Transformed: Dechunked
+> > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+> > Server: Apache/2.2.13 (Fedora)
+> > 
+> > Secondly, attempting to add a new identity to my user within SM is
+> > outright blocked and gives the following:
+> > 
+> > --f71bbe54-H--
+> > Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+> > Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+> > Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 36): Detects common XSS concatenation patterns 1/2"]
+> > Action: Intercepted (phase 2)
+> > Apache-Handler: php5-script
+> > Stopwatch: 1262715119800440 148552 (17244* 143302 -)
+> > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+> > Server: Apache/2.2.13 (Fedora)
+> > 
+> > I notice that they are similar, but not identical.
+> > 
+> > What steps should I take to get this application working properly?
+> > 
+> > Thanks in advance for any help / guidance...
+> > 
+> > Mark
+> 
+> I am still no nearer solving this. Any ideas? (gentle bump!)
+> 
+> Mark
+
+Am I asking this question in the wrong way, or have I not provided
+sufficient information?
+
+Hoping for some guidance...
+
+Mark
+
+
+
+
+From ryan.barnett at breach.com  Wed Jan 13 10:54:22 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 13 Jan 2010 10:54:22 -0500
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263384655.5661.12.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<1263248541.4825.1.camel@localhost>
+	<1263384655.5661.12.camel@localhost>
+Message-ID: <201001131054.22632.ryan.barnett@breach.com>
+
+On Wednesday 13 January 2010 07:10:55 am Arthur Dent wrote:
+> On Mon, 2010-01-11 at 22:22 +0000, Arthur Dent wrote:
+> > On Wed, 2010-01-06 at 09:57 +0000, Arthur Dent wrote:
+> > > Hello all,
+> > >
+> > > Following a previous thread in which I described some denials related
+> > > to my squirrelmail web mail implementation (which were partially solved
+> > > by an upgrade to CRS 2.0.4) I still have some outstanding issues...
+> > >
+> > > Firstly, accessing squirrelmail is fine, but trying to read an
+> > > individual email causes the following:
+> > >
+> > > --501b5102-H--
+> > > Message: Pattern match
+> > > "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > > MATCHED_VAR_NAME. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >conf"] [line "62"] [id "phpids-18"] [msg "Detects JavaScript array
+> > > properties and methods"] [data "Matched Location: REQUEST_URI_RAW and
+> > > Matched Payload:
+> > > /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/
+> > >flr"] [severity "CRITICAL"] Message: Pattern match
+> > > "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > > MATCHED_VAR_NAME. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >conf"] [line "293"] [id "phpids-1"] [msg "Detects JavaScript array
+> > > properties and methods"] [data "Matched Location: REQUEST_URI_RAW and
+> > > Matched Payload:
+> > > /mywm/src/right_main.php?pg_showall=0&sort=0&startmessage=1&mailbox=fd/
+> > >flr"] [severity "CRITICAL"] Message: Warning. Operator GE matched 5 at
+> > > TX:anomaly_score. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.con
+> > >f"] [line "46"] [msg "Transactional Anomaly Score (score 8): Detects
+> > > JavaScript array properties and methods"] Apache-Handler: php5-script
+> > > Stopwatch: 1261498951073512 929285 (5949 35341 892372)
+> > > Response-Body-Transformed: Dechunked
+> > > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/);
+> > > core ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> > >
+> > > Secondly, attempting to add a new identity to my user within SM is
+> > > outright blocked and gives the following:
+> > >
+> > > --f71bbe54-H--
+> > > Message: Pattern match
+> > > "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > > MATCHED_VAR_NAME. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS
+> > > concatenation patterns 1/2"] [data "Matched Location:
+> > > ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"]
+> > > [severity "CRITICAL"] Message: Pattern match
+> > > "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > > MATCHED_VAR_NAME. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS
+> > > concatenation patterns 1/2"] [data "Matched Location:
+> > > ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"]
+> > > [severity "CRITICAL"] Message: Warning. Operator GE matched 5 at
+> > > TX:anomaly_score. [file
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.con
+> > >f"] [line "46"] [msg "Transactional Anomaly Score (score 36): Detects
+> > > common XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> > > Apache-Handler: php5-script
+> > > Stopwatch: 1262715119800440 148552 (17244* 143302 -)
+> > > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/);
+> > > core ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> > >
+> > > I notice that they are similar, but not identical.
+> > >
+> > > What steps should I take to get this application working properly?
+> > >
+> > > Thanks in advance for any help / guidance...
+> > >
+> > > Mark
+> >
+> > I am still no nearer solving this. Any ideas? (gentle bump!)
+> >
+> > Mark
+> 
+> Am I asking this question in the wrong way, or have I not provided
+> sufficient information?
+> 
+> Hoping for some guidance...
+> 
+
+Hey Mark,
+Sorry for the delay.  
+
+There is always a delicate balance between false negatives and false positives with 
+developing these rules :(    If you look in the CHANGES file for the 2.0.2/2.0.3 updates, 
+we were addressing false negative/bypass issues that were reported to us.  We chose to 
+become a bit more aggressive in our detection.  While our updates helped to address those 
+issues, they result in a higher false positive rate.  The main issue here is when we are 
+applying these negative security regexs to an unparsed variable such as REQUEST_URI_RAW or 
+REQUEST_BODY.  This data is essentially a blob of text and includes the = character for 
+separating the parameter name from the parameter payload.  This results in a higher number 
+of matches.  We are going to keep on tweaking these rules however as I am sure we do 
+better.
+
+Now, for your specific issue, what you want to do is to add some exceptions to the 48 local 
+exceptions file.  Take a look at some of the examples in the file.  What you want to do is 
+to create rules that will inspect the saved TX variable data from these PHPIDS rules that 
+triggered.  If these exact matches occur, then you want to remove them and adjust the 
+anomaly score.  Looks like there are 4 different phpids rule matches -
+phpids-18
+phpids-1
+phpids-30
+phpids-3
+
+I tested your payloads with my current (newer) phpids filter file and only the phpids-18 and 
+phpids-30 rules matched.  I believe that the other two matches will be fixed with the 
+updated phpids filter in CRS 2.0.5.
+
+Here are some examples (untested) based on the error_log snippets you showed above for 
+phpids-18 and phpids-30 matches -
+
+SecRule TX:'/PHPIDS-18-(.*)REQUEST_URI_RAW/' "@contains &sort=" 
+"chain,phase:2,t:none,nolog,pass"
+       SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-4"
+
+SecRule "TX:PHPIDS-30-WEB_ATTACK/INJECTION-2-Detects common XSS concatenation patterns 
+1/2-ARGS_NAMES:smaction[save][1]" "@contains ][" "chain,phase:2,t:none,nolog,pass"
+       SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-4"
+
+
+Let me know if these help.
+Ryan
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100113/33713524/attachment-0001.html 
+
+From misc.lists at blueyonder.co.uk  Wed Jan 13 13:17:35 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 13 Jan 2010 18:17:35 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <201001131054.22632.ryan.barnett@breach.com>
+References: <1262771823.3700.20.camel@localhost>
+	<1263248541.4825.1.camel@localhost>
+	<1263384655.5661.12.camel@localhost>
+	<201001131054.22632.ryan.barnett@breach.com>
+Message-ID: <1263406655.5661.38.camel@localhost>
+
+On Wed, 2010-01-13 at 10:54 -0500, Ryan Barnett wrote:
+> On Wednesday 13 January 2010 07:10:55 am Arthur Dent wrote:
+> 
+> > On Mon, 2010-01-11 at 22:22 +0000, Arthur Dent wrote:
+> 
+> > > On Wed, 2010-01-06 at 09:57 +0000, Arthur Dent wrote:
+
+> Hey Mark,
+> 
+> Sorry for the delay. 
+> 
+> There is always a delicate balance between false negatives and false
+> positives with 
+> 
+> developing these rules :( If you look in the CHANGES file for the
+> 2.0.2/2.0.3 updates, 
+> 
+> we were addressing false negative/bypass issues that were reported to
+> us. We chose to 
+> 
+> become a bit more aggressive in our detection. While our updates
+> helped to address those 
+> 
+> issues, they result in a higher false positive rate. The main issue
+> here is when we are 
+> 
+> applying these negative security regexs to an unparsed variable such
+> as REQUEST_URI_RAW or 
+> 
+> REQUEST_BODY. This data is essentially a blob of text and includes the
+> = character for 
+> 
+> separating the parameter name from the parameter payload. This results
+> in a higher number 
+> 
+> of matches. We are going to keep on tweaking these rules however as I
+> am sure we do better.
+> 
+> Now, for your specific issue, what you want to do is to add some
+> exceptions to the 48 local exceptions file. Take a look at some of the
+> examples in the file. What you want to do is to create rules that will
+> inspect the saved TX variable data from these PHPIDS rules that
+> triggered. If these exact matches occur, then you want to remove them
+> and adjust the anomaly score. Looks like there are 4 different phpids
+> rule matches -
+> 
+> phpids-18
+> 
+> phpids-1
+> 
+> phpids-30
+> 
+> phpids-3
+> 
+> I tested your payloads with my current (newer) phpids filter file and
+> only the phpids-18 and phpids-30 rules matched. I believe that the
+> other two matches will be fixed with the updated phpids filter in CRS
+> 2.0.5.
+> 
+> Here are some examples (untested) based on the error_log snippets you
+> showed above for phpids-18 and phpids-30 matches -
+> 
+> SecRule TX:'/PHPIDS-18-(.*)REQUEST_URI_RAW/' "@contains &sort="
+> "chain,phase:2,t:none,nolog,pass"
+> 
+> SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!
+> tx.%{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> SecRule "TX:PHPIDS-30-WEB_ATTACK/INJECTION-2-Detects common XSS
+> concatenation patterns 1/2-ARGS_NAMES:smaction[save][1]"
+> "@contains ][" "chain,phase:2,t:none,nolog,pass"
+> 
+> SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!
+> tx.%{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> Let me know if these help.
+> 
+> Ryan
+
+Hi Ryan,
+
+Many thanks for this. I wish I understood better how the CRS works, but
+I'm afraid I don't. This means that I am at a bit of a loss to know what
+to do when Apache reports a syntax error in your rules... Sorry...
+
+# service httpd restart
+Stopping httpd:                                            [  OK  ]
+Starting httpd: Syntax error on line 65 of /etc/httpd/modsecurity.d/base_rules/modsecurity_crs_48_local_exceptions.conf:
+Error creating rule: Unexpected character at position 51: TX:PHPIDS-30-WEB_ATTACK/INJECTION-2-Detects common XSS concatenation patterns 1/2-ARGS_NAMES:smaction[save][1]
+                                                           [FAILED]
+
+I do appreciate your help with this. Thanks.
+
+Mark
+
+p.s.
+When is CRS 2.0.5 coming out?
+
+
+
+
+
+From ryan.barnett at breach.com  Wed Jan 13 13:31:47 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 13 Jan 2010 13:31:47 -0500
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263406655.5661.38.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131054.22632.ryan.barnett@breach.com>
+	<1263406655.5661.38.camel@localhost>
+Message-ID: <201001131331.47130.ryan.barnett@breach.com>
+
+On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+
+> Hi Ryan,
+> 
+> Many thanks for this. I wish I understood better how the CRS works, but
+> I'm afraid I don't. This means that I am at a bit of a loss to know what
+> to do when Apache reports a syntax error in your rules... Sorry...
+> 
+> # service httpd restart
+> Stopping httpd:                                            [  OK  ]
+> Starting httpd: Syntax error on line 65 of
+>  /etc/httpd/modsecurity.d/base_rules/modsecurity_crs_48_local_exceptions.co
+> nf: Error creating rule: Unexpected character at position 51:
+>  TX:PHPIDS-30-WEB_ATTACK/INJECTION-2-Detects common XSS concatenation
+>  patterns 1/2-ARGS_NAMES:smaction[save][1] [FAILED]
+> 
+
+Try this one instead -
+
+SecRule TX:'/PHPIDS-30-(.*)-ARGS_NAMES:smaction[save][1]/' "@contains ][" 
+"chain,phase:2,t:none,nolog,pass"
+       SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-4"
+
+
+> I do appreciate your help with this. Thanks.
+> 
+> Mark
+> 
+> p.s.
+> When is CRS 2.0.5 coming out?
+> 
+Not sure - We are trying to make a bunch of updates including the comments by Ivan Ristic.
+
+We will send out a note to the list when it is released.
+
+-Ryan
+
+From misc.lists at blueyonder.co.uk  Wed Jan 13 13:44:27 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 13 Jan 2010 18:44:27 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <201001131331.47130.ryan.barnett@breach.com>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131054.22632.ryan.barnett@breach.com>
+	<1263406655.5661.38.camel@localhost>
+	<201001131331.47130.ryan.barnett@breach.com>
+Message-ID: <1263408267.5661.44.camel@localhost>
+
+On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+
+> Try this one instead -
+> 
+> SecRule TX:'/PHPIDS-30-(.*)-ARGS_NAMES:smaction[save][1]/' "@contains ][" 
+> "chain,phase:2,t:none,nolog,pass"
+>        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> %{tx.1},setvar:tx.anomaly_score=-4"
+
+Thanks Ryan,
+
+Httpd restarted without choking on that line, but unfortunately it still
+denies the action:
+
+--2a0ca71f-H--
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and Matched Payload: smaction[save][1]"] [severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 36): Detects common XSS concatenation patterns 1/2"]
+Action: Intercepted (phase 2)
+Apache-Handler: php5-script
+Stopwatch: 1263407908264221 197197 (11462* 136221 -)
+Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+Server: Apache/2.2.13 (Fedora)
+
+The line-wrap in the above rule should have one space after the
+"@contains ][" and before the "chain... right?
+
+Thanks again...
+
+Mark
+
+
+
+From ryan.barnett at breach.com  Wed Jan 13 14:06:35 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 13 Jan 2010 14:06:35 -0500
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263408267.5661.44.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131331.47130.ryan.barnett@breach.com>
+	<1263408267.5661.44.camel@localhost>
+Message-ID: <201001131406.35603.ryan.barnett@breach.com>
+
+On Wednesday 13 January 2010 01:44:27 pm Arthur Dent wrote:
+> On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> > On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+> >
+> > Try this one instead -
+> >
+> > SecRule TX:'/PHPIDS-30-(.*)-ARGS_NAMES:smaction[save][1]/' "@contains ]["
+> > "chain,phase:2,t:none,nolog,pass"
+> >        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> > %{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> Thanks Ryan,
+> 
+> Httpd restarted without choking on that line, but unfortunately it still
+> denies the action:
+> 
+> --2a0ca71f-H--
+> Message: Pattern match
+>  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+>  MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and
+>  Matched Payload: smaction[save][1]"] [severity "CRITICAL"] Message:
+>  Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$"
+>  at MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location: ARGS_NAMES:smaction[save][1] and
+>  Matched Payload: smaction[save][1]"] [severity "CRITICAL"] Message:
+>  Warning. Operator GE matched 5 at TX:anomaly_score. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"]
+>  [line "46"] [msg "Transactional Anomaly Score (score 36): Detects common
+>  XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1263407908264221 197197 (11462* 136221 -)
+> Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core
+>  ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> 
+> The line-wrap in the above rule should have one space after the
+> "@contains ][" and before the "chain... right?
+> 
+
+Try this -
+
+SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES:smaction/' "@contains ][" 
+"chain,phase:2,t:none,nolog,pass"
+       SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-4"
+
+> Thanks again...
+> 
+> Mark
+> 
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+From misc.lists at blueyonder.co.uk  Wed Jan 13 14:18:26 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 13 Jan 2010 19:18:26 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <201001131406.35603.ryan.barnett@breach.com>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131331.47130.ryan.barnett@breach.com>
+	<1263408267.5661.44.camel@localhost>
+	<201001131406.35603.ryan.barnett@breach.com>
+Message-ID: <1263410306.5661.47.camel@localhost>
+
+On Wed, 2010-01-13 at 14:06 -0500, Ryan Barnett wrote:
+> On Wednesday 13 January 2010 01:44:27 pm Arthur Dent wrote:
+> > On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> > > On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+> 
+> Try this -
+> 
+> SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES:smaction/' "@contains ][" 
+> "chain,phase:2,t:none,nolog,pass"
+>        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> %{tx.1},setvar:tx.anomaly_score=-4"
+> 
+
+Sorry Ryan...
+
+
+--e104d910-H--
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:newidentities[1][signature] and Matched Payload: newidentities[1][signature]"] [severity "CRITICAL"]
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:newidentities[1][signature] and Matched Payload: newidentities[1][signature]"] [severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 32): Detects common XSS concatenation patterns 1/2"]
+Action: Intercepted (phase 2)
+Apache-Handler: php5-script
+Stopwatch: 1263410126373598 161946 (11302* 146799 -)
+Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+Server: Apache/2.2.13 (Fedora)
+
+I wish I knew how to do this myself but...
+
+Thanks for your help so far...
+
+Mark
+
+
+
+From ryan.barnett at breach.com  Wed Jan 13 14:20:50 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 13 Jan 2010 14:20:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263410306.5661.47.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131406.35603.ryan.barnett@breach.com>
+	<1263410306.5661.47.camel@localhost>
+Message-ID: <201001131420.50164.ryan.barnett@breach.com>
+
+On Wednesday 13 January 2010 02:18:26 pm Arthur Dent wrote:
+> On Wed, 2010-01-13 at 14:06 -0500, Ryan Barnett wrote:
+> > On Wednesday 13 January 2010 01:44:27 pm Arthur Dent wrote:
+> > > On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> > > > On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+> >
+> > Try this -
+> >
+> > SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES:smaction/' "@contains ]["
+> > "chain,phase:2,t:none,nolog,pass"
+> >        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> > %{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> Sorry Ryan...
+> 
+> 
+> --e104d910-H--
+> Message: Pattern match
+>  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+>  MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location:
+>  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+>  newidentities[1][signature]"] [severity "CRITICAL"] Message: Pattern match
+>  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+>  MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location:
+>  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+>  newidentities[1][signature]"] [severity "CRITICAL"] Message: Warning.
+>  Operator GE matched 5 at TX:anomaly_score. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"]
+>  [line "46"] [msg "Transactional Anomaly Score (score 32): Detects common
+>  XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1263410126373598 161946 (11302* 146799 -)
+> Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core
+>  ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> 
+> I wish I knew how to do this myself but...
+> 
+> Thanks for your help so far...
+> 
+
+Try this -
+
+SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES/' "@contains ][" 
+"chain,phase:2,t:none,nolog,pass"
+       SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+%{tx.1},setvar:tx.anomaly_score=-4"
+
+> Mark
+> 
+> 
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+From misc.lists at blueyonder.co.uk  Wed Jan 13 14:31:05 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Wed, 13 Jan 2010 19:31:05 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <201001131420.50164.ryan.barnett@breach.com>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131406.35603.ryan.barnett@breach.com>
+	<1263410306.5661.47.camel@localhost>
+	<201001131420.50164.ryan.barnett@breach.com>
+Message-ID: <1263411065.5661.49.camel@localhost>
+
+On Wed, 2010-01-13 at 14:20 -0500, Ryan Barnett wrote:
+> On Wednesday 13 January 2010 02:18:26 pm Arthur Dent wrote:
+> > On Wed, 2010-01-13 at 14:06 -0500, Ryan Barnett wrote:
+> > > On Wednesday 13 January 2010 01:44:27 pm Arthur Dent wrote:
+> > > > On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> > > > > On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+> > >
+> > > Try this -
+> > >
+> > > SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES:smaction/' "@contains ]["
+> > > "chain,phase:2,t:none,nolog,pass"
+> > >        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> > > %{tx.1},setvar:tx.anomaly_score=-4"
+> > 
+> > Sorry Ryan...
+> > 
+> > 
+> > --e104d910-H--
+> > Message: Pattern match
+> >  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> >  MATCHED_VAR_NAME. [file
+> >  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> > f"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation
+> >  patterns 1/2"] [data "Matched Location:
+> >  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+> >  newidentities[1][signature]"] [severity "CRITICAL"] Message: Pattern match
+> >  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> >  MATCHED_VAR_NAME. [file
+> >  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> > f"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation
+> >  patterns 1/2"] [data "Matched Location:
+> >  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+> >  newidentities[1][signature]"] [severity "CRITICAL"] Message: Warning.
+> >  Operator GE matched 5 at TX:anomaly_score. [file
+> >  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"]
+> >  [line "46"] [msg "Transactional Anomaly Score (score 32): Detects common
+> >  XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> > Apache-Handler: php5-script
+> > Stopwatch: 1263410126373598 161946 (11302* 146799 -)
+> > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core
+> >  ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> > 
+> > I wish I knew how to do this myself but...
+> > 
+> > Thanks for your help so far...
+> > 
+> 
+> Try this -
+> 
+> SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES/' "@contains ][" 
+> "chain,phase:2,t:none,nolog,pass"
+>        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> %{tx.1},setvar:tx.anomaly_score=-4"
+
+Still no joy I'm afraid...
+
+--a5791e36-H--
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:newidentities[1][signature] and Matched Payload: newidentities[1][signature]"] [severity "CRITICAL"]
+Message: Pattern match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at MATCHED_VAR_NAME. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation patterns 1/2"] [data "Matched Location: ARGS_NAMES:newidentities[1][signature] and Matched Payload: newidentities[1][signature]"] [severity "CRITICAL"]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"] [line "46"] [msg "Transactional Anomaly Score (score 32): Detects common XSS concatenation patterns 1/2"]
+Action: Intercepted (phase 2)
+Apache-Handler: php5-script
+Stopwatch: 1263410955616417 131367 (5935* 126523 -)
+Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core ruleset/2.0.4.
+Server: Apache/2.2.13 (Fedora)
+
+Sorry to put you to all this trouble ryan...
+
+Mark
+
+
+
+
+From ryan.barnett at breach.com  Wed Jan 13 15:31:34 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 13 Jan 2010 15:31:34 -0500
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <1263411065.5661.49.camel@localhost>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131420.50164.ryan.barnett@breach.com>
+	<1263411065.5661.49.camel@localhost>
+Message-ID: <201001131531.34318.ryan.barnett@breach.com>
+
+On Wednesday 13 January 2010 02:31:05 pm Arthur Dent wrote:
+> On Wed, 2010-01-13 at 14:20 -0500, Ryan Barnett wrote:
+> > On Wednesday 13 January 2010 02:18:26 pm Arthur Dent wrote:
+> > > On Wed, 2010-01-13 at 14:06 -0500, Ryan Barnett wrote:
+> > > > On Wednesday 13 January 2010 01:44:27 pm Arthur Dent wrote:
+> > > > > On Wed, 2010-01-13 at 13:31 -0500, Ryan Barnett wrote:
+> > > > > > On Wednesday 13 January 2010 01:17:35 pm Arthur Dent wrote:
+> > > >
+> > > > Try this -
+> > > >
+> > > > SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES:smaction/' "@contains ]["
+> > > > "chain,phase:2,t:none,nolog,pass"
+> > > >        SecRule MATCHED_VAR_NAME "TX\:(.*)"
+> > > > "capture,t:none,setvar:!tx. %{tx.1},setvar:tx.anomaly_score=-4"
+> > >
+> > > Sorry Ryan...
+> > >
+> > >
+> > > --e104d910-H--
+> > > Message: Pattern match
+> > >  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > >  MATCHED_VAR_NAME. [file
+> > > 
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >con f"] [line "300"] [id "phpids-30"] [msg "Detects common XSS
+> > > concatenation patterns 1/2"] [data "Matched Location:
+> > >  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+> > >  newidentities[1][signature]"] [severity "CRITICAL"] Message: Pattern
+> > > match "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+> > > MATCHED_VAR_NAME. [file
+> > > 
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.
+> > >con f"] [line "412"] [id "phpids-3"] [msg "Detects common XSS
+> > > concatenation patterns 1/2"] [data "Matched Location:
+> > >  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+> > >  newidentities[1][signature]"] [severity "CRITICAL"] Message: Warning.
+> > >  Operator GE matched 5 at TX:anomaly_score. [file
+> > > 
+> > > "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.con
+> > >f"] [line "46"] [msg "Transactional Anomaly Score (score 32): Detects
+> > > common XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> > > Apache-Handler: php5-script
+> > > Stopwatch: 1263410126373598 161946 (11302* 146799 -)
+> > > Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/);
+> > > core ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> > >
+> > > I wish I knew how to do this myself but...
+> > >
+> > > Thanks for your help so far...
+> >
+> > Try this -
+> >
+> > SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES/' "@contains ]["
+> > "chain,phase:2,t:none,nolog,pass"
+> >        SecRule MATCHED_VAR_NAME "TX\:(.*)" "capture,t:none,setvar:!tx.
+> > %{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> Still no joy I'm afraid...
+> 
+> --a5791e36-H--
+> Message: Pattern match
+>  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+>  MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "300"] [id "phpids-30"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location:
+>  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+>  newidentities[1][signature]"] [severity "CRITICAL"] Message: Pattern match
+>  "^TX:phpids-(\d{1,2})-WEB_ATTACK/INJECTION-(\d)-(.*?)-(.*)$" at
+>  MATCHED_VAR_NAME. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.con
+> f"] [line "412"] [id "phpids-3"] [msg "Detects common XSS concatenation
+>  patterns 1/2"] [data "Matched Location:
+>  ARGS_NAMES:newidentities[1][signature] and Matched Payload:
+>  newidentities[1][signature]"] [severity "CRITICAL"] Message: Warning.
+>  Operator GE matched 5 at TX:anomaly_score. [file
+>  "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf"]
+>  [line "46"] [msg "Transactional Anomaly Score (score 32): Detects common
+>  XSS concatenation patterns 1/2"] Action: Intercepted (phase 2)
+> Apache-Handler: php5-script
+> Stopwatch: 1263410955616417 131367 (5935* 126523 -)
+> Producer: ModSecurity for Apache/2.5.10 (http://www.modsecurity.org/); core
+>  ruleset/2.0.4. Server: Apache/2.2.13 (Fedora)
+> 
+> Sorry to put you to all this trouble ryan...
+> 
+
+
+This works on my install.  You would need to create a modsecurity debug log and send it to 
+me.  If you don't have much live production traffic/lots of users, then just update the 
+SecDebugLogLevel to 9 and then restart and send the same request.  Send me the debug log.
+
+-Ryan
+
+From tomzamir at gmail.com  Thu Jan 14 00:11:20 2010
+From: tomzamir at gmail.com (Tom)
+Date: Wed, 13 Jan 2010 22:11:20 -0700
+Subject: [Owasp-modsecurity-core-rule-set] disable core set rules for a
+	specific php file / finding out a rule number?
+Message-ID: <3b2c196e1001132111o786d6360r1c57bc08cf4b15b5@mail.gmail.com>
+
+Hello
+
+I know this has been asked before, but I am unable to accomplish this task
+without breaking apache.
+
+I am using mod_sec v1.9.5 and owasp 2.0.4.
+
+So I do not mind turning mod_sec all together for a specific file in the
+site, or just the problematic rule, but I am not even sure how to find out
+the rule number, i can't see it in the logs.
+
+What I do see is the false positive:
+
+message: Warning. Operator GE matched 5 at TX:anomaly_score. [file
+"/usr/local/apache/conf/modsecurity/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "46"] [msg "Transactional Anomaly Score (score 175): IE XSS Filters -
+Attack Detected"]
+
+get:/';alert(String.fromCharCode(88,83,83))///';alert(String.fromCharCode(88,83,83))//%22;alert(String.fromCharCode(88,83,83))///%22;alert(String.fromCharCode(88,83,83))//--%3E%3C/SCRIPT%3E%22%3E'%3E%3CSCRIPT%3Ealert(String.fromCharCode(88,83,83))%3C/SCRIPT%3E
+HTTP/1.1
+
+Please help, I have tried everything and searched google for hours!
+
+Thanks in advance
+
+Tom
+-- 
+The mind apprehends reality
+and hearkens to the call of the senses
+but does not shine with its own light. - Patanjali (via A. Villodo)
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100113/5180489c/attachment.html 
+
+From mjs at clemson.edu  Thu Jan 14 12:36:38 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Thu, 14 Jan 2010 12:36:38 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <1263265468.12322.187.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+	<1263232200.4070.114.camel@valkyrie.localdomain>
+	<201001111257.45582.ryan.barnett@breach.com>
+	<1263242469.10090.18.camel@valkyrie.localdomain>
+	<4B4B8E0F.90703@breach.com>
+	<1263265468.12322.187.camel@valkyrie.localdomain>
+Message-ID: <1263490598.3554.12.camel@valkyrie.localdomain>
+
+On Mon, 2010-01-11 at 22:04 -0500, Matthew Saltzman wrote: 
+> On Mon, 2010-01-11 at 12:46 -0800, Brian Rectanus wrote: 
+> > 
+> > I don't think temp files will create the directory structure (working
+> > from memory here).  Verify that it does not happen after creating
+> > /tmp/httpd with mode 1777.  I would not create it there, though.  Better
+> > in something like /var/httpd/modsec/tmp and used only for modsec.
+> 
+> Interesting:
+> 
+>       * Making /tmp/httpd, mode 1777, owner apache:apache solves the
+>         problem.
+> 
+> This seems like a bug--you can't count on the directory to exist
+> (particularly if it lives in /tmp), so you have to check and either not
+> use it or create it.
+> 
+>       * Changing /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf
+>         to point to a different directory for SecUploadDir, SecDataDir,
+>         and SecTmpDir and either reloading or restarting httpd doesn't
+>         change where the file is created--it's still in /tmp. 
+>       * Moving the directives to modsecurity_localrules.conf has the
+>         same lack of effect on the location where the file is written.
+> 
+> So either I'm doing something wrong here, or my directives are being
+> ignored for some reason.  More hints welcome.
+> 
+> Thanks for your help so far.
+
+Any suggestions how I should follow this up?  Can anyone confirm that
+it's a bug or explain how to work around it?  Or should I be taking it
+to a different list?
+
+Thanks.
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From listas at sapao.net  Thu Jan 14 13:01:24 2010
+From: listas at sapao.net (Lucas Ferreira)
+Date: Thu, 14 Jan 2010 16:01:24 -0200
+Subject: [Owasp-modsecurity-core-rule-set] How to identify the rule that
+	triggered
+Message-ID: <245770851001141001n2054ea81h330e8f653056dbe5@mail.gmail.com>
+
+Hello,
+
+I am getting some false positives like this one:
+
+Jan 14 07:07:14 xxx httpd[7270]: [error] [client xxx] ModSecurity:
+[file "/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_49_enforcement.conf"]
+[line "40"] [msg "XSS Detected (score 20): IE XSS Filters - Attack
+Detected"] Access denied with code 403 (phase 2). Match of "eq 0"
+against "TX:xss_score" required. [hostname "xxx"] [uri "xxx"]
+[unique_id "No5ZTX8AAAEAABxmmuAAAABR"]
+
+How can I identify which of the "IE XSS Filters - Attack Detected"
+rules triggered?
+
+I am using:
+Producer: ModSecurity for Apache/2.5.9 (http://www.modsecurity.org/);
+core ruleset/2.0.1; core ruleset/2.0.1.
+Server: Apache/2.2.3 (CentOS)
+
+Thanks,
+
+Lucas
+
+-- 
+Homo sapiens non urinat in ventum.
+
+From Brian.Rectanus at breach.com  Thu Jan 14 16:22:56 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Thu, 14 Jan 2010 13:22:56 -0800
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <1263490598.3554.12.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>	<201001111157.45331.ryan.barnett@breach.com>	<1263232200.4070.114.camel@valkyrie.localdomain>	<201001111257.45582.ryan.barnett@breach.com>	<1263242469.10090.18.camel@valkyrie.localdomain>	<4B4B8E0F.90703@breach.com>	<1263265468.12322.187.camel@valkyrie.localdomain>
+	<1263490598.3554.12.camel@valkyrie.localdomain>
+Message-ID: <4B4F8B30.8050801@breach.com>
+
+Matthew Saltzman wrote:
+> On Mon, 2010-01-11 at 22:04 -0500, Matthew Saltzman wrote: 
+>> On Mon, 2010-01-11 at 12:46 -0800, Brian Rectanus wrote: 
+>>> I don't think temp files will create the directory structure (working
+>>> from memory here).  Verify that it does not happen after creating
+>>> /tmp/httpd with mode 1777.  I would not create it there, though.  Better
+>>> in something like /var/httpd/modsec/tmp and used only for modsec.
+>> Interesting:
+>>
+>>       * Making /tmp/httpd, mode 1777, owner apache:apache solves the
+>>         problem.
+>>
+>> This seems like a bug--you can't count on the directory to exist
+>> (particularly if it lives in /tmp), so you have to check and either not
+>> use it or create it.
+>>
+>>       * Changing /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf
+>>         to point to a different directory for SecUploadDir, SecDataDir,
+>>         and SecTmpDir and either reloading or restarting httpd doesn't
+>>         change where the file is created--it's still in /tmp. 
+>>       * Moving the directives to modsecurity_localrules.conf has the
+>>         same lack of effect on the location where the file is written.
+>>
+>> So either I'm doing something wrong here, or my directives are being
+>> ignored for some reason.  More hints welcome.
+>>
+>> Thanks for your help so far.
+> 
+> Any suggestions how I should follow this up?  Can anyone confirm that
+> it's a bug or explain how to work around it?  Or should I be taking it
+> to a different list?
+> 
+> Thanks.
+
+If the directives are not changing it, then maybe they are set later on
+in the config somewhere (ie overwriting your change)?  I suggest you
+grep for where SecTmpDir may be set in another location.
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From mjs at clemson.edu  Thu Jan 14 19:03:14 2010
+From: mjs at clemson.edu (Matthew Saltzman)
+Date: Thu, 14 Jan 2010 19:03:14 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <4B4F8B30.8050801@breach.com>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>
+	<201001111157.45331.ryan.barnett@breach.com>
+	<1263232200.4070.114.camel@valkyrie.localdomain>
+	<201001111257.45582.ryan.barnett@breach.com>
+	<1263242469.10090.18.camel@valkyrie.localdomain>
+	<4B4B8E0F.90703@breach.com>
+	<1263265468.12322.187.camel@valkyrie.localdomain>
+	<1263490598.3554.12.camel@valkyrie.localdomain>
+	<4B4F8B30.8050801@breach.com>
+Message-ID: <1263513794.7210.4.camel@valkyrie.localdomain>
+
+On Thu, 2010-01-14 at 13:22 -0800, Brian Rectanus wrote: 
+> Matthew Saltzman wrote:
+> > On Mon, 2010-01-11 at 22:04 -0500, Matthew Saltzman wrote: 
+> >> On Mon, 2010-01-11 at 12:46 -0800, Brian Rectanus wrote: 
+> >>> I don't think temp files will create the directory structure (working
+> >>> from memory here).  Verify that it does not happen after creating
+> >>> /tmp/httpd with mode 1777.  I would not create it there, though.  Better
+> >>> in something like /var/httpd/modsec/tmp and used only for modsec.
+> >> Interesting:
+> >>
+> >>       * Making /tmp/httpd, mode 1777, owner apache:apache solves the
+> >>         problem.
+> >>
+> >> This seems like a bug--you can't count on the directory to exist
+> >> (particularly if it lives in /tmp), so you have to check and either not
+> >> use it or create it.
+> >>
+> >>       * Changing /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf
+> >>         to point to a different directory for SecUploadDir, SecDataDir,
+> >>         and SecTmpDir and either reloading or restarting httpd doesn't
+> >>         change where the file is created--it's still in /tmp. 
+> >>       * Moving the directives to modsecurity_localrules.conf has the
+> >>         same lack of effect on the location where the file is written.
+> >>
+> >> So either I'm doing something wrong here, or my directives are being
+> >> ignored for some reason.  More hints welcome.
+> >>
+> >> Thanks for your help so far.
+> > 
+> > Any suggestions how I should follow this up?  Can anyone confirm that
+> > it's a bug or explain how to work around it?  Or should I be taking it
+> > to a different list?
+> > 
+> > Thanks.
+> 
+> If the directives are not changing it, then maybe they are set later on
+> in the config somewhere (ie overwriting your change)?  I suggest you
+> grep for where SecTmpDir may be set in another location.
+
+The only occurrences I can find are
+in /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf and 
+/etc/httpd/modsecurity.d/modsecurity_localrules.conf.  The former came
+with the installation, the latter are my changes, which AIUI will
+override the ones in the file that sorts earlier.  There is one instance
+of each directive in each of the files.  Also, changing the ones in
+modsecurity_crs_10_config.conf didn't seem to help either.
+
+> 
+> -B
+> 
+
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+http://www.math.clemson.edu/~mjs
+
+From Brian.Rectanus at breach.com  Thu Jan 14 20:00:46 2010
+From: Brian.Rectanus at breach.com (Brian Rectanus)
+Date: Thu, 14 Jan 2010 17:00:46 -0800
+Subject: [Owasp-modsecurity-core-rule-set] Input filter: failed to
+ create temporary file
+In-Reply-To: <1263513794.7210.4.camel@valkyrie.localdomain>
+References: <1263000395.3227.13.camel@valkyrie.localdomain>	
+	<201001111157.45331.ryan.barnett@breach.com>	
+	<1263232200.4070.114.camel@valkyrie.localdomain>	
+	<201001111257.45582.ryan.barnett@breach.com>	
+	<1263242469.10090.18.camel@valkyrie.localdomain>	
+	<4B4B8E0F.90703@breach.com>	
+	<1263265468.12322.187.camel@valkyrie.localdomain>	
+	<1263490598.3554.12.camel@valkyrie.localdomain>	
+	<4B4F8B30.8050801@breach.com>
+	<1263513794.7210.4.camel@valkyrie.localdomain>
+Message-ID: <4B4FBE3E.9020100@breach.com>
+
+Matthew Saltzman wrote:
+> On Thu, 2010-01-14 at 13:22 -0800, Brian Rectanus wrote: 
+>> Matthew Saltzman wrote:
+>>> On Mon, 2010-01-11 at 22:04 -0500, Matthew Saltzman wrote: 
+>>>> On Mon, 2010-01-11 at 12:46 -0800, Brian Rectanus wrote: 
+>>>>> I don't think temp files will create the directory structure (working
+>>>>> from memory here).  Verify that it does not happen after creating
+>>>>> /tmp/httpd with mode 1777.  I would not create it there, though.  Better
+>>>>> in something like /var/httpd/modsec/tmp and used only for modsec.
+>>>> Interesting:
+>>>>
+>>>>       * Making /tmp/httpd, mode 1777, owner apache:apache solves the
+>>>>         problem.
+>>>>
+>>>> This seems like a bug--you can't count on the directory to exist
+>>>> (particularly if it lives in /tmp), so you have to check and either not
+>>>> use it or create it.
+>>>>
+>>>>       * Changing /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf
+>>>>         to point to a different directory for SecUploadDir, SecDataDir,
+>>>>         and SecTmpDir and either reloading or restarting httpd doesn't
+>>>>         change where the file is created--it's still in /tmp. 
+>>>>       * Moving the directives to modsecurity_localrules.conf has the
+>>>>         same lack of effect on the location where the file is written.
+>>>>
+>>>> So either I'm doing something wrong here, or my directives are being
+>>>> ignored for some reason.  More hints welcome.
+>>>>
+>>>> Thanks for your help so far.
+>>> Any suggestions how I should follow this up?  Can anyone confirm that
+>>> it's a bug or explain how to work around it?  Or should I be taking it
+>>> to a different list?
+>>>
+>>> Thanks.
+>> If the directives are not changing it, then maybe they are set later on
+>> in the config somewhere (ie overwriting your change)?  I suggest you
+>> grep for where SecTmpDir may be set in another location.
+> 
+> The only occurrences I can find are
+> in /etc/httpd/modsecurity.d/modsecurity_crs_10_config.conf and 
+> /etc/httpd/modsecurity.d/modsecurity_localrules.conf.  The former came
+> with the installation, the latter are my changes, which AIUI will
+> override the ones in the file that sorts earlier.  There is one instance
+> of each directive in each of the files.  Also, changing the ones in
+> modsecurity_crs_10_config.conf didn't seem to help either.
+> 
+>> -B
+>>
+> 
+
+Then I'll take a look when I get a chance and verify it is working for me.
+
+thanks,
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+
+From ryan.barnett at breach.com  Fri Jan 15 09:49:08 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Fri, 15 Jan 2010 09:49:08 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Range: field exists and
+	begins with 0 - what does it mean?
+In-Reply-To: <2a63fac1001121443s2155c597vca09822fbdd00573@mail.gmail.com>
+References: <2a63fac1001121443s2155c597vca09822fbdd00573@mail.gmail.com>
+Message-ID: <201001150949.08525.ryan.barnett@breach.com>
+
+On Tuesday 12 January 2010 05:43:40 pm Dimitri Syuoul wrote:
+> Hello,
+> 
+> Ive noticed that Ive gotten some triggers over rule ID 958291... I
+> tried googling for an explanation of this rule but I could not find
+> it. Anybody knwo what importance does this field exists and begins
+> with 0 is?
+> 
+
+This rule was taken from the Bad Behavior package - http://www.bad-
+behavior.ioerror.us/documentation/how-it-works/
+
+This is part of the note for this rule -
+
+	// Range: field exists and begins with 0
+	// Real user-agents do not start ranges at 0
+
+When this rule triggers, can you confirm if the client is legit?
+
+-Ryan
+
+> crs-2.0.4/base_rules/modsecurity_crs_20_protocol_violations.conf:SecRule
+> REQUEST_HEADERS:Range "@contains =0-"
+> "phase:2,t:none,block,nolog,auditlog,msg:'Range: field exists and
+> begins with
+>  0.',severity:'5',id:'958291',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',setvar:
+> 'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+5,setvar:tx.protocol_violatio
+> n_score=+1,setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_v
+> ar_name}=%{matched_var}" crs-2.0.4/CHANGELOG:- Rule 958291 - Range: field
+>  exists and begins with 0.
+> 
+> 
+> Thanks
+> 
+> Dimitri
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+
+From listas at sapao.net  Fri Jan 15 10:54:16 2010
+From: listas at sapao.net (Lucas Ferreira)
+Date: Fri, 15 Jan 2010 13:54:16 -0200
+Subject: [Owasp-modsecurity-core-rule-set] Range: field exists and
+	begins with 0 - what does it mean?
+In-Reply-To: <201001150949.08525.ryan.barnett@breach.com>
+References: <2a63fac1001121443s2155c597vca09822fbdd00573@mail.gmail.com> 
+	<201001150949.08525.ryan.barnett@breach.com>
+Message-ID: <245770851001150754i366976ddv4f2ee4d7e5eb6430@mail.gmail.com>
+
+Hello Ryan,
+
+I have several requests that seam to be from legit clients. The User
+agents I collected are:
+
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR;
+rv:1.9.0.15) Gecko/2009101601 Firefox/3.0.15
+User-Agent: Mozilla/5.0 (compatible; YodaoBot/1.0;
+http://www.youdao.com/help/webmaster/spider/; )
+User-Agent: PuxaRapido v1.0
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR;
+rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5
+
+Here is a sample request that is similar to most requests from Firefox clients.
+
+GET /404b.htm HTTP/1.1
+Host: www.camara.gov.br
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; pt-BR;
+rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5 (.NET CLR 3.5.30729)
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-br,pt;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Cookie: ASPSESSIONIDCARATCBB=KPNIALIBMKJDALOPNIOFIJMA;
+ASPSESSIONIDAAQASDBB=CPBIALIBGCAIMECFHLAPIDFH
+Range: bytes=0-
+If-Range: "09ea6f7f2d9c21:4530"
+
+Here is the request from YouDao:
+
+GET /internet/midias/Radio/2008/05/rdflash20080512-VB-0001-mp3-028.mp3 HTTP/1.1
+Accept-Language: zh-cn;q=1.0, zh-tw;q=0.8, en;q=0.5, *;q=0.1
+If-Modified-Since: Thu, 15 Jan 1970 00:17:27 GMT
+Range: bytes=0-511
+Accept-Encoding: gzip;q=1.0, identity; q=0.5, *;q=0.1
+Referer:
+User-Agent: Mozilla/5.0 (compatible; YodaoBot/1.0;
+http://www.youdao.com/help/webmaster/spider/; )
+Host: imagem.camara.gov.br
+
+Regards,
+
+Lucas
+
+On Fri, Jan 15, 2010 at 12:49, Ryan Barnett <ryan.barnett at breach.com> wrote:
+> On Tuesday 12 January 2010 05:43:40 pm Dimitri Syuoul wrote:
+>> Hello,
+>>
+>> Ive noticed that Ive gotten some triggers over rule ID 958291... I
+>> tried googling for an explanation of this rule but I could not find
+>> it. Anybody knwo what importance does this field exists and begins
+>> with 0 is?
+>>
+>
+> This rule was taken from the Bad Behavior package - http://www.bad-
+> behavior.ioerror.us/documentation/how-it-works/
+>
+> This is part of the note for this rule -
+>
+> ? ? ? ?// Range: field exists and begins with 0
+> ? ? ? ?// Real user-agents do not start ranges at 0
+>
+> When this rule triggers, can you confirm if the client is legit?
+>
+> -Ryan
+>
+>> crs-2.0.4/base_rules/modsecurity_crs_20_protocol_violations.conf:SecRule
+>> REQUEST_HEADERS:Range "@contains =0-"
+>> "phase:2,t:none,block,nolog,auditlog,msg:'Range: field exists and
+>> begins with
+>> ?0.',severity:'5',id:'958291',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',setvar:
+>> 'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+5,setvar:tx.protocol_violatio
+>> n_score=+1,setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_v
+>> ar_name}=%{matched_var}" crs-2.0.4/CHANGELOG:- Rule 958291 - Range: field
+>> ?exists and begins with 0.
+>>
+>>
+>> Thanks
+>>
+>> Dimitri
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+
+-- 
+Homo sapiens non urinat in ventum.
+
+From chris.datfung at gmail.com  Sat Jan 16 17:02:56 2010
+From: chris.datfung at gmail.com (Chris Datfung)
+Date: Sun, 17 Jan 2010 00:02:56 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+Message-ID: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+
+I get the following message in section H of a false positive event:
+
+Message: Pattern match "['";=]" at FILES:cvFilename. [file
+"/opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf"]
+[line "51"] [msg "Attempted multipart/form-data bypass"] [severity
+"CRITICAL"]
+
+That rule does not have a rule id. How do I whitelist this?
+
+Also if I may be so rude, but for the benefit of others and myself, I have a
+hard time wrapping my brain around the new whitelisting method in the v2.*
+CRS, can you please explain the methodology?
+
+Thank you,
+
+ - Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100117/bb84f3e5/attachment.html 
+
+From ivan.ristic at gmail.com  Sat Jan 16 17:34:59 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Sat, 16 Jan 2010 22:34:59 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+Message-ID: <1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+
+Hi Chris,
+
+
+On Sat, Jan 16, 2010 at 10:02 PM, Chris Datfung <chris.datfung at gmail.com> wrote:
+> I get the following message in section H of a false positive event:
+>
+> Message: Pattern match "['";=]" at FILES:cvFilename. [file
+> "/opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf"]
+> [line "51"] [msg "Attempted multipart/form-data bypass"] [severity
+> "CRITICAL"]
+> That rule does not have a rule id. How do I whitelist this?
+
+If there's no ID you can always try to use SecRuleRemoveByMsg before
+you resort to the direct file modification. Ryan, the author of CRS,
+may have a better answer.
+
+Having said that, if you don't mind, can we see the original request
+that triggered that rule (ideally the entire audit log file)?
+
+
+> Also if I may be so rude, but for the benefit of others and myself, I have a
+> hard time wrapping my brain around the new whitelisting method in the v2.*
+> CRS, can you please explain the methodology?
+> Thank you,
+> ?- Chris
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From misc.lists at blueyonder.co.uk  Sat Jan 16 17:54:47 2010
+From: misc.lists at blueyonder.co.uk (Arthur Dent)
+Date: Sat, 16 Jan 2010 22:54:47 +0000
+Subject: [Owasp-modsecurity-core-rule-set] More Squirrelmail Denials
+In-Reply-To: <201001141711.50881.ryan.barnett@breach.com>
+References: <1262771823.3700.20.camel@localhost>
+	<201001131531.34318.ryan.barnett@breach.com>
+	<1263493589.3847.12.camel@localhost>
+	<201001141711.50881.ryan.barnett@breach.com>
+Message-ID: <1263682487.12529.416.camel@localhost>
+
+On Thu, 2010-01-14 at 17:11 -0500, Ryan Barnett wrote:
+> On Thursday 14 January 2010 01:26:29 pm you wrote:
+> > > 
+> 
+> OK, the debug log certainly helped.  I thought that there was only 1 false positive match 
+> however the debug log shows that there were multiple matches that needed to be fixed.  My 
+> example exception was only capturing the last match since it used MATCHED_VAR_NAME in the 
+> 2nd part of the rule.  In order to capture *all* matches, try this rule -
+> 
+> SecRule TX:'/^PHPIDS-30-(.*)-ARGS_NAMES/' "@contains ][" 
+> "chain,phase:2,t:none,nolog,pass,setvar:tx.name_counter=+1,setvar:tx.name_%{tx.name_counter}=%{matched_var_name}"
+>        SecRule TX:'/^NAME_/' "TX\:(.*)" "capture,t:none,setvar:!tx.
+> %{tx.1},setvar:tx.anomaly_score=-4"
+> 
+> Let me know if this helps.
+> 
+
+Ryan,
+
+Thank you very much for this. It worked!
+
+I have only done very limited testing, but the specific case I outlined
+previously (adding a new email identity in squirrelmail) certainly
+worked without any mod_sec intervention. Interestingly, deleting an
+identity did cause an entry in the mod_sec log but the action was not
+blocked and the identity was deleted. This is such a rare event that I
+can't say that it merits any more work or investigation on your part.
+
+So once again, thank you for all your help.
+
+I do still have one other outstanding issue with mod_sec, and that is to
+do with its relationship with squidGuard on my network (I posted about
+that too some time ago) but I am conscious that I have already taken too
+much of your time and I think I will wait until CRS 2.0.5 comes out
+before I bother you with that again, in case 2.0.5 solves it anyway.
+
+Thanks!
+
+Mark
+ 
+
+
+
+From chris.datfung at gmail.com  Sun Jan 17 07:25:14 2010
+From: chris.datfung at gmail.com (Chris Datfung)
+Date: Sun, 17 Jan 2010 14:25:14 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+Message-ID: <4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+
+On Sun, Jan 17, 2010 at 12:34 AM, Ivan Ristic <ivan.ristic at gmail.com> wrote:
+
+>
+> If there's no ID you can always try to use SecRuleRemoveByMsg before
+> you resort to the direct file modification. Ryan, the author of CRS,
+> may have a better answer.
+>
+
+Hi Ivan,
+
+I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+ruleRemoveById is a ctl option but ruleRemoveByMsg is not? Ideally, in this
+case, I'd like to create a single rule that first matches the effected
+parameter and then removes the rule based on the message. I guess I could
+still do that by chaining two rules together.
+
+
+>
+> Having said that, if you don't mind, can we see the original request
+> that triggered that rule (ideally the entire audit log file)?
+>
+>
+Unfortunately, the request contains a lot of sensitive data, so it would be
+a lot of work to clean it up before posting to the list.
+
+
+>
+> > Also if I may be so rude, but for the benefit of others and myself, I
+> have a
+> > hard time wrapping my brain around the new whitelisting method in the
+> v2.*
+> > CRS, can you please explain the methodology?
+>
+
+Thanks,
+ Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100117/b55c6b68/attachment.html 
+
+From ivan.ristic at gmail.com  Sun Jan 17 10:25:16 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Sun, 17 Jan 2010 15:25:16 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+Message-ID: <1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+
+On Sun, Jan 17, 2010 at 12:25 PM, Chris Datfung <chris.datfung at gmail.com> wrote:
+> On Sun, Jan 17, 2010 at 12:34 AM, Ivan Ristic <ivan.ristic at gmail.com> wrote:
+>>
+>> If there's no ID you can always try to use SecRuleRemoveByMsg before
+>> you resort to the direct file modification. Ryan, the author of CRS,
+>> may have a better answer.
+>
+> Hi Ivan,
+> I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+> ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+
+Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+affect the configuration that will be used as a starting point for all
+requests. The ctl:ruleRemoveById action is executed on per-transaction
+basis and can only affect the transaction in which it executes.
+
+
+> Ideally, in this
+> case, I'd like to create a single rule that first matches the effected
+> parameter and then removes the rule based on the message. I guess I could
+> still do that by chaining two rules together.
+
+Yes, that sounds likely.
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From chris.datfung at gmail.com  Sun Jan 17 10:43:56 2010
+From: chris.datfung at gmail.com (Chris Datfung)
+Date: Sun, 17 Jan 2010 17:43:56 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+Message-ID: <4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+
+>
+> >
+> > Hi Ivan,
+> > I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+> > ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+>
+> Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+> affect the configuration that will be used as a starting point for all
+> requests. The ctl:ruleRemoveById action is executed on per-transaction
+> basis and can only affect the transaction in which it executes.
+>
+>
+Hi Ivan,
+
+I still don't understand why you can't have a ctl:ruleRemoveByMsg action
+that is executed on a per-transaction basis.
+
+
+> > Ideally, in this
+> > case, I'd like to create a single rule that first matches the effected
+> > parameter and then removes the rule based on the message. I guess I could
+> > still do that by chaining two rules together.
+>
+> Yes, that sounds likely.
+>
+
+I've been playing around with this and have hit a dead end. I created the
+following rule:
+
+SecRule REQUEST_URI "script.cfm"
+phase:1,t:none,t:urlDecode,t:lowercase,t:normalisePath,chain
+SecRule &FILES:Filename "@gt 0" chain
+SecRuleRemoveByMsg "Attempted multipart\/form-data bypass"
+
+but whenever that rule is uncommented I get the following error:
+
+Syntax error on line 21 of
+/opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf:
+ModSecurity: Execution phases can only be specified by chain starter rules.
+
+By commented the rule I added the error goes away.
+
+Thanks,
+  Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100117/dcc58a3d/attachment.html 
+
+From Ryan.Barnett at breach.com  Sun Jan 17 10:46:07 2010
+From: Ryan.Barnett at breach.com (Ryan Barnett)
+Date: Sun, 17 Jan 2010 10:46:07 -0500
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>,
+	<4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+Message-ID: <8A1B4B015C52A54886DF15E9A97C7FB9F7294B56@MONET.utopiasystems.net>
+
+This doesn't work as SecRuleRemoveByMsg is a global directive and can't be chained with standard SecRules.  The easiest thing for you to do is to give this rule a rule ID of your own and then you can use the ctl action.
+
+We will be revamping the CRS this week for v2.0.5 and will correct these issues.
+
+-Ryan
+
+________________________________
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Chris Datfung [chris.datfung at gmail.com]
+Sent: Sunday, January 17, 2010 10:43 AM
+To: Ivan Ristic
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] rule bypass
+
+>
+> Hi Ivan,
+> I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+> ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+
+Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+affect the configuration that will be used as a starting point for all
+requests. The ctl:ruleRemoveById action is executed on per-transaction
+basis and can only affect the transaction in which it executes.
+
+
+Hi Ivan,
+
+I still don't understand why you can't have a ctl:ruleRemoveByMsg action that is executed on a per-transaction basis.
+
+> Ideally, in this
+> case, I'd like to create a single rule that first matches the effected
+> parameter and then removes the rule based on the message. I guess I could
+> still do that by chaining two rules together.
+
+Yes, that sounds likely.
+
+I've been playing around with this and have hit a dead end. I created the following rule:
+
+SecRule REQUEST_URI "script.cfm" phase:1,t:none,t:urlDecode,t:lowercase,t:normalisePath,chain
+SecRule &FILES:Filename "@gt 0" chain
+SecRuleRemoveByMsg "Attempted multipart\/form-data bypass"
+
+but whenever that rule is uncommented I get the following error:
+
+Syntax error on line 21 of /opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf:
+ModSecurity: Execution phases can only be specified by chain starter rules.
+
+By commented the rule I added the error goes away.
+
+Thanks,
+  Chris
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100117/4e03e87c/attachment-0001.html 
+
+From ivan.ristic at gmail.com  Sun Jan 17 10:50:01 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Sun, 17 Jan 2010 15:50:01 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+	<4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+Message-ID: <1f9222b71001170750v439bc2e1u322b00d6abb6a879@mail.gmail.com>
+
+On Sun, Jan 17, 2010 at 3:43 PM, Chris Datfung <chris.datfung at gmail.com> wrote:
+>> >
+>> > Hi Ivan,
+>> > I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+>> > ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+>>
+>> Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+>> affect the configuration that will be used as a starting point for all
+>> requests. The ctl:ruleRemoveById action is executed on per-transaction
+>> basis and can only affect the transaction in which it executes.
+>>
+>
+> Hi Ivan,
+>
+> I still don't understand why you can't have a ctl:ruleRemoveByMsg action
+> that is executed on a per-transaction basis.
+
+You most certainly can. In fact, that's the only way to conditionally
+remove a rule (which sounds like what you're after).
+
+
+>> > Ideally, in this
+>> > case, I'd like to create a single rule that first matches the effected
+>> > parameter and then removes the rule based on the message. I guess I
+>> > could
+>> > still do that by chaining two rules together.
+>>
+>> Yes, that sounds likely.
+>
+> I've been playing around with this and have hit a dead end. I created the
+> following rule:
+>
+> SecRule REQUEST_URI "script.cfm"
+> phase:1,t:none,t:urlDecode,t:lowercase,t:normalisePath,chain
+> SecRule &FILES:Filename "@gt 0" chain
+> SecRuleRemoveByMsg "Attempted multipart\/form-data bypass"
+
+SecRuleRemoveByMsg is also not a rule and cannot be chained. It's a
+configuration directive. You should be using the ctl: action in your
+second rule.
+
+
+> but whenever that rule is uncommented I get the following error:
+>
+> Syntax error on line 21 of
+> /opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf:
+> ModSecurity: Execution phases can only be specified by chain starter rules.
+
+What's on line 21?
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From ivan.ristic at gmail.com  Sun Jan 17 10:51:43 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Sun, 17 Jan 2010 15:51:43 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <1f9222b71001170750v439bc2e1u322b00d6abb6a879@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+	<4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+	<1f9222b71001170750v439bc2e1u322b00d6abb6a879@mail.gmail.com>
+Message-ID: <1f9222b71001170751j49137fe1kc03a48445642804f@mail.gmail.com>
+
+Ah, I now realise that there's no ctl:ruleRemoveByMsg and since
+there's no ID associated with the rule you want to remove, your only
+option is to modify the CRS file directly.
+
+
+On Sun, Jan 17, 2010 at 3:50 PM, Ivan Ristic <ivan.ristic at gmail.com> wrote:
+> On Sun, Jan 17, 2010 at 3:43 PM, Chris Datfung <chris.datfung at gmail.com> wrote:
+>>> >
+>>> > Hi Ivan,
+>>> > I'll try the SecRuleRemoveByMsg. As an aside, is there a reason that
+>>> > ruleRemoveById is a ctl option but ruleRemoveByMsg is not?
+>>>
+>>> Yes, there is. SecRuleRemoveBy(Id|Msg) operate at configure-time and
+>>> affect the configuration that will be used as a starting point for all
+>>> requests. The ctl:ruleRemoveById action is executed on per-transaction
+>>> basis and can only affect the transaction in which it executes.
+>>>
+>>
+>> Hi Ivan,
+>>
+>> I still don't understand why you can't have a ctl:ruleRemoveByMsg action
+>> that is executed on a per-transaction basis.
+>
+> You most certainly can. In fact, that's the only way to conditionally
+> remove a rule (which sounds like what you're after).
+>
+>
+>>> > Ideally, in this
+>>> > case, I'd like to create a single rule that first matches the effected
+>>> > parameter and then removes the rule based on the message. I guess I
+>>> > could
+>>> > still do that by chaining two rules together.
+>>>
+>>> Yes, that sounds likely.
+>>
+>> I've been playing around with this and have hit a dead end. I created the
+>> following rule:
+>>
+>> SecRule REQUEST_URI "script.cfm"
+>> phase:1,t:none,t:urlDecode,t:lowercase,t:normalisePath,chain
+>> SecRule &FILES:Filename "@gt 0" chain
+>> SecRuleRemoveByMsg "Attempted multipart\/form-data bypass"
+>
+> SecRuleRemoveByMsg is also not a rule and cannot be chained. It's a
+> configuration directive. You should be using the ctl: action in your
+> second rule.
+>
+>
+>> but whenever that rule is uncommented I get the following error:
+>>
+>> Syntax error on line 21 of
+>> /opt/modsecurity/etc/crs/base_rules/modsecurity_crs_20_protocol_violations.conf:
+>> ModSecurity: Execution phases can only be specified by chain starter rules.
+>
+> What's on line 21?
+>
+> --
+> Ivan Ristic
+> ModSecurity Handbook [https://www.feistyduck.com]
+> SSL Labs [https://www.ssllabs.com/ssldb/]
+>
+
+
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From chris.datfung at gmail.com  Sun Jan 17 10:53:49 2010
+From: chris.datfung at gmail.com (Chris Datfung)
+Date: Sun, 17 Jan 2010 17:53:49 +0200
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <1f9222b71001170751j49137fe1kc03a48445642804f@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+	<4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+	<1f9222b71001170750v439bc2e1u322b00d6abb6a879@mail.gmail.com>
+	<1f9222b71001170751j49137fe1kc03a48445642804f@mail.gmail.com>
+Message-ID: <4c9cc6791001170753v30964fdaw6957e6e1815face2@mail.gmail.com>
+
+On Sun, Jan 17, 2010 at 5:51 PM, Ivan Ristic <ivan.ristic at gmail.com> wrote:
+
+> Ah, I now realise that there's no ctl:ruleRemoveByMsg and since
+> there's no ID associated with the rule you want to remove, your only
+> option is to modify the CRS file directly.
+>
+
+Exactly. Which gets back to the question, would adding a ctl:ruleRemoveByMsg
+feature to ModSecurity be appropriate/doable.
+
+Thanks,
+  Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100117/7f6959bf/attachment.html 
+
+From ivan.ristic at gmail.com  Sun Jan 17 10:56:54 2010
+From: ivan.ristic at gmail.com (Ivan Ristic)
+Date: Sun, 17 Jan 2010 15:56:54 +0000
+Subject: [Owasp-modsecurity-core-rule-set] rule bypass
+In-Reply-To: <4c9cc6791001170753v30964fdaw6957e6e1815face2@mail.gmail.com>
+References: <4c9cc6791001161402j64d32830i68a45134f4e9348f@mail.gmail.com>
+	<1f9222b71001161434l259e0d90n63b05947b097dd8b@mail.gmail.com>
+	<4c9cc6791001170425w2e993efbs922568d94086a534@mail.gmail.com>
+	<1f9222b71001170725p412836e5u50f75dc4a5b28e1c@mail.gmail.com>
+	<4c9cc6791001170743u3fc5af89p85d3198e2dfc791f@mail.gmail.com>
+	<1f9222b71001170750v439bc2e1u322b00d6abb6a879@mail.gmail.com>
+	<1f9222b71001170751j49137fe1kc03a48445642804f@mail.gmail.com>
+	<4c9cc6791001170753v30964fdaw6957e6e1815face2@mail.gmail.com>
+Message-ID: <1f9222b71001170756i63116e37udd33212d7c264289@mail.gmail.com>
+
+On Sun, Jan 17, 2010 at 3:53 PM, Chris Datfung <chris.datfung at gmail.com> wrote:
+>
+>
+> On Sun, Jan 17, 2010 at 5:51 PM, Ivan Ristic <ivan.ristic at gmail.com> wrote:
+>>
+>> Ah, I now realise that there's no ctl:ruleRemoveByMsg and since
+>> there's no ID associated with the rule you want to remove, your only
+>> option is to modify the CRS file directly.
+>
+> Exactly. Which gets back to the question, would adding a ctl:ruleRemoveByMsg
+> feature to ModSecurity be appropriate/doable.
+
+I should think so. It's definitely worth adding it as an enhancement
+request to the tracker:
+
+    https://www.modsecurity.org/tracker/
+
+>
+> Thanks,
+> ? Chris
+
+-- 
+Ivan Ristic
+ModSecurity Handbook [https://www.feistyduck.com]
+SSL Labs [https://www.ssllabs.com/ssldb/]
+
+From dreamice.jiang at gmail.com  Sun Jan 17 21:26:11 2010
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Mon, 18 Jan 2010 10:26:11 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to restrict the upload file's
+	type with modsecurity rules
+Message-ID: <d5dfca261001171826y39b66b76o6223631d3a5b6d20@mail.gmail.com>
+
+Dear all,
+I want restrict the upload files' type by using modsecurity rules. With
+these rules, we can check the upload files type such as excutable files,
+webshell and so on.
+Is there any rules for this purpose?
+
+Thanks in advance!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100118/3603cd69/attachment.html 
+
+From apacheuse at gmail.com  Tue Jan 19 10:19:24 2010
+From: apacheuse at gmail.com (Apacheuse Apacheuse)
+Date: Tue, 19 Jan 2010 10:19:24 -0500
+Subject: [Owasp-modsecurity-core-rule-set] 'SecFilterSelective' equivalent
+	use in Apache 2.2.14
+Message-ID: <44ec102a1001190719g7377237du8560022b47cc23e@mail.gmail.com>
+
+When the Syntax below is used in Apache 1.2, works fine without any issues .
+
+But the same syntax gives error in Apache 2.2.14
+
+
+
+SecFilterSelective REQUEST_URI "^/(OA_HTML|html|jinitiator)/test.jsp" chain
+SecFilterSelective ARG_page "/mytest/apps/webui/MyPG"
+
+Restarted Apache, receiving the following
+Syntax error on line 10 of D:/Apache2/conf/test_security.conf:
+Invalid command 'SecFilterSelective', perhaps misspelled or defined by a
+module
+not included in the server configuration
+
+So wondering what would be the equivalent syntax in Apache 2.2.14 ?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100119/204c787c/attachment.html 
+
+From ryan.barnett at breach.com  Tue Jan 19 10:38:52 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Tue, 19 Jan 2010 10:38:52 -0500
+Subject: [Owasp-modsecurity-core-rule-set] 'SecFilterSelective'
+	equivalent use in Apache 2.2.14
+In-Reply-To: <44ec102a1001190719g7377237du8560022b47cc23e@mail.gmail.com>
+References: <44ec102a1001190719g7377237du8560022b47cc23e@mail.gmail.com>
+Message-ID: <201001191038.52376.ryan.barnett@breach.com>
+
+On Tuesday 19 January 2010 10:19:24 am Apacheuse Apacheuse wrote:
+> When the Syntax below is used in Apache 1.2, works fine without any issues
+>  . But the same syntax gives error in Apache 2.2.14
+> 
+> 
+> 
+> SecFilterSelective REQUEST_URI "^/(OA_HTML|html|jinitiator)/test.jsp" chain
+> SecFilterSelective ARG_page "/mytest/apps/webui/MyPG"
+> 
+> Restarted Apache, receiving the following
+> Syntax error on line 10 of D:/Apache2/conf/test_security.conf:
+> Invalid command 'SecFilterSelective', perhaps misspelled or defined by a
+>  module not included in the server configuration
+> 
+> So wondering what would be the equivalent syntax in Apache 2.2.14 ?
+> 
+
+What version of ModSecurity are you using on the 2.2.14 version of Apache?  If you are 
+using ModSecurity v2 the you need to use SecRule instead of SecFilterSelective.  Reference 
+the migration doc - http://www.modsecurity.org/documentation/ModSecurity-Migration-
+Matrix.pdf
+
+-Ryan
+
+From chris.datfung at gmail.com  Wed Jan 20 16:55:26 2010
+From: chris.datfung at gmail.com (Chris Datfung)
+Date: Wed, 20 Jan 2010 23:55:26 +0200
+Subject: [Owasp-modsecurity-core-rule-set] global.utf8_encoding_used
+	collection
+Message-ID: <4c9cc6791001201355j2504f919h5d2a4014fd8071ed@mail.gmail.com>
+
+I'm running the latest CRS and seeing hundreds of events with the following
+message:
+
+Could not set variable "global.utf8_encoding_used" as the collection does
+not exist.
+
+Any idea why modsecurity can't set the global.utf8_encoding_used variable?
+
+Thanks,
+ - Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100120/1fb2f618/attachment.html 
+
+From ryan.barnett at breach.com  Wed Jan 20 16:58:23 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Wed, 20 Jan 2010 16:58:23 -0500
+Subject: [Owasp-modsecurity-core-rule-set] global.utf8_encoding_used
+	collection
+In-Reply-To: <4c9cc6791001201355j2504f919h5d2a4014fd8071ed@mail.gmail.com>
+References: <4c9cc6791001201355j2504f919h5d2a4014fd8071ed@mail.gmail.com>
+Message-ID: <201001201658.23819.ryan.barnett@breach.com>
+
+On Wednesday 20 January 2010 04:55:26 pm Chris Datfung wrote:
+> I'm running the latest CRS and seeing hundreds of events with the following
+>  message:
+> 
+> Could not set variable "global.utf8_encoding_used" as the collection does
+>  not exist.
+> 
+> Any idea why modsecurity can't set the global.utf8_encoding_used variable?
+> 
+
+Are you using the modsecurity_crs_10_global_config.conf file?  There is a rule at the end of 
+that file that initiates the global collection -
+
+# Create both Global and IP collections for rules to use
+SecAction "phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}"
+
+
+From ossec.junkie at gmail.com  Mon Jan 25 11:05:31 2010
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Mon, 25 Jan 2010 08:05:31 -0800
+Subject: [Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+Message-ID: <869a38361001250805s56ab587fm4d603c2b5229ebd6@mail.gmail.com>
+
+All:
+
+I am using the RBL lookup and the ip.pag file is huge.  I thought this
+would be recycled nightly but I guess not.  Any ideas or insight on
+how to shrink would be great.  I could script the file to be deleted
+nightly but just wanted to make sure there isn't something I need to
+be doing but am not..
+
+Thanks
+
+From ryan.barnett at breach.com  Mon Jan 25 11:09:20 2010
+From: ryan.barnett at breach.com (Ryan Barnett)
+Date: Mon, 25 Jan 2010 11:09:20 -0500
+Subject: [Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+In-Reply-To: <869a38361001250805s56ab587fm4d603c2b5229ebd6@mail.gmail.com>
+References: <869a38361001250805s56ab587fm4d603c2b5229ebd6@mail.gmail.com>
+Message-ID: <201001251109.20347.ryan.barnett@breach.com>
+
+On Monday 25 January 2010 11:05:31 am OSSEC junkie wrote:
+> All:
+> 
+> I am using the RBL lookup and the ip.pag file is huge.  I thought this
+> would be recycled nightly but I guess not.  Any ideas or insight on
+> how to shrink would be great.  I could script the file to be deleted
+> nightly but just wanted to make sure there isn't something I need to
+> be doing but am not..
+> 
+
+Please send the exact RBL rule(s) you are using.  More than likely, you will need to use 
+some expirevar actions to clear these out more frequently.
+
+-Ryan
+
+
+
+From ossec.junkie at gmail.com  Mon Jan 25 11:14:30 2010
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Mon, 25 Jan 2010 08:14:30 -0800
+Subject: [Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+In-Reply-To: <201001251109.20347.ryan.barnett@breach.com>
+References: <869a38361001250805s56ab587fm4d603c2b5229ebd6@mail.gmail.com>
+	<201001251109.20347.ryan.barnett@breach.com>
+Message-ID: <869a38361001250814w686ed580jacf68408b70b7c41@mail.gmail.com>
+
+Here is the ruleset below:
+SecRule IP:PREVIOUS_RBL_CHECK "@eq 1"
+"phase:1,t:none,pass,nolog,skipAfter:END_RBL_LOOKUP"
+
+  SecRule REMOTE_ADDR "@rbl sbl-xbl.spamhaus.org"
+"phase:1,t:none,log,auditlog,msg:'RBL Match for SPAM
+Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule
+.msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var},setvar:ip.s
+pammer=1,expirevar:ip.spammer=86400,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400,skipAfter:END_RBL_CHECK"
+
+  SecAction "phase:1.t:none,nolog,pass,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400"
+
+SecMarker END_RBL_LOOKUP
+
+  SecRule IP:SPAMMER "@eq 1" "phase:1,t:none,log,auditlog,msg:'Request
+from Known SPAM Source (Previous
+RBLMatch)',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{
+rule.msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+
+SecMarker END_RBL_CHECK
+
+
+On Mon, Jan 25, 2010 at 8:09 AM, Ryan Barnett <ryan.barnett at breach.com> wrote:
+> On Monday 25 January 2010 11:05:31 am OSSEC junkie wrote:
+>> All:
+>>
+>> I am using the RBL lookup and the ip.pag file is huge. ?I thought this
+>> would be recycled nightly but I guess not. ?Any ideas or insight on
+>> how to shrink would be great. ?I could script the file to be deleted
+>> nightly but just wanted to make sure there isn't something I need to
+>> be doing but am not..
+>>
+>
+> Please send the exact RBL rule(s) you are using. ?More than likely, you will need to use
+> some expirevar actions to clear these out more frequently.
+>
+> -Ryan
+>
+>
+>
+
+From ossec.junkie at gmail.com  Tue Jan 26 15:06:07 2010
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Tue, 26 Jan 2010 12:06:07 -0800
+Subject: [Owasp-modsecurity-core-rule-set] RBL Lookup File - ip.pag help!
+In-Reply-To: <869a38361001250814w686ed580jacf68408b70b7c41@mail.gmail.com>
+References: <869a38361001250805s56ab587fm4d603c2b5229ebd6@mail.gmail.com>
+	<201001251109.20347.ryan.barnett@breach.com>
+	<869a38361001250814w686ed580jacf68408b70b7c41@mail.gmail.com>
+Message-ID: <869a38361001261206vf33e2f3g668760273e90648b@mail.gmail.com>
+
+Sorry to bug but do you have any insight as to what could be wrong
+with the configuration?
+
+Thanks!
+
+
+On Mon, Jan 25, 2010 at 8:14 AM, OSSEC junkie <ossec.junkie at gmail.com> wrote:
+> Here is the ruleset below:
+> SecRule IP:PREVIOUS_RBL_CHECK "@eq 1"
+> "phase:1,t:none,pass,nolog,skipAfter:END_RBL_LOOKUP"
+>
+> ?SecRule REMOTE_ADDR "@rbl sbl-xbl.spamhaus.org"
+> "phase:1,t:none,log,auditlog,msg:'RBL Match for SPAM
+> Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule
+> .msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var},setvar:ip.s
+> pammer=1,expirevar:ip.spammer=86400,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400,skipAfter:END_RBL_CHECK"
+>
+> ?SecAction "phase:1.t:none,nolog,pass,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400"
+>
+> SecMarker END_RBL_LOOKUP
+>
+> ?SecRule IP:SPAMMER "@eq 1" "phase:1,t:none,log,auditlog,msg:'Request
+> from Known SPAM Source (Previous
+> RBLMatch)',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{
+> rule.msg}',setvar:tx.automation_score=+1,logdata:'%{TX.0}',setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}"
+>
+> SecMarker END_RBL_CHECK
+>
+>
+> On Mon, Jan 25, 2010 at 8:09 AM, Ryan Barnett <ryan.barnett at breach.com> wrote:
+>> On Monday 25 January 2010 11:05:31 am OSSEC junkie wrote:
+>>> All:
+>>>
+>>> I am using the RBL lookup and the ip.pag file is huge. ?I thought this
+>>> would be recycled nightly but I guess not. ?Any ideas or insight on
+>>> how to shrink would be great. ?I could script the file to be deleted
+>>> nightly but just wanted to make sure there isn't something I need to
+>>> be doing but am not..
+>>>
+>>
+>> Please send the exact RBL rule(s) you are using. ?More than likely, you will need to use
+>> some expirevar actions to clear these out more frequently.
+>>
+>> -Ryan
+>>
+>>
+>>
+>
+

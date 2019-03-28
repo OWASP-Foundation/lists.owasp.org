@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] phpmyadmin usage via localhost interface through mod_security
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20phpmyadmin%20usage%20via%0A%20localhost%20interface%20through%20mod_security&In-Reply-To=FB5EC5B3-010B-4AAC-86E1-424EB837B079%40mi-squared.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000531.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] phpmyadmin usage via localhost interface through mod_security</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20phpmyadmin%20usage%20via%0A%20localhost%20interface%20through%20mod_security&In-Reply-To=FB5EC5B3-010B-4AAC-86E1-424EB837B079%40mi-squared.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] phpmyadmin usage via localhost interface through mod_security">RBarnett at trustwave.com
+       </A><BR>
+    <I>Sun Oct 31 10:25:58 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000531.html">[Owasp-modsecurity-core-rule-set] phpmyadmin usage via	localhost interface through mod_security
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#532">[ date ]</a>
+              <a href="thread.html#532">[ thread ]</a>
+              <a href="subject.html#532">[ subject ]</a>
+              <a href="author.html#532">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If you want to remove entire categories of rules, I would suggest you use SecRuleRemoveByMsg - <A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-reference.html#N10B9F">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.12/modsecurity2-apache-reference.html#N10B9F</A>
+
+You could do - 
+
+&gt;&gt;<i> &lt;LocationMatch /phpmyadmin/&gt;
+</I>&gt;&gt;<i> SecRuleRemoveByMsg &quot;SQL Injection&quot;
+</I>&gt;&gt;<i> &lt;/LocationMatch&gt;
+</I>
+While this does make it easier to remove groups o rules, it doesn't contain the logic you want (remote_addr). We need to enhance the ctl action to include this capability so you can do conditional exceptions based on more data then the URI. 
+
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+On Oct 30, 2010, at 6:41 PM, Jason Brooks &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jason at mi-squared.com</A>&gt; wrote:
+
+&gt;<i> First, thank you for your reply.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> There are a couple of ways to handle this, but here's one example that
+</I>&gt;&gt;<i> disables both the rule and audit engine for a specific IP:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> SecRule REMOTE_ADDR &quot;@streq xxx.xxx.xxx.xxx&quot; &quot;phase:1,nolog,allow, \
+</I>&gt;&gt;<i> ctl:ruleEngine=Off,ctl:auditEngine=Off&quot;
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Does the equivalent string &quot;LOCAL_ADDR&quot; exist?  It's the listening  
+</I>&gt;<i> address of localhost i want to unblock...
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;&gt;<i> and
+</I>&gt;&gt;&gt;<i> 2) how to enable/disable some or all of CRS based on the request url,
+</I>&gt;&gt;&gt;<i> or the request path.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> To disable some of the rules based on URI you can use something like:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &lt;LocationMatch /phpmyadmin/&gt;
+</I>&gt;&gt;<i> SecRuleRemoveById 900000-900010
+</I>&gt;&gt;<i> SecRuleRemoveById 999999
+</I>&gt;&gt;<i> &lt;/LocationMatch&gt;
+</I>&gt;<i> 
+</I>&gt;<i> Silly question: how do I determine what the various ruleids will be?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> another variant could be:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> SecRule REQUEST_URI phpmyadmin &quot;phase:2,t:none,t:lowercase,nolog, \
+</I>&gt;&gt;<i> ctl:ruleRemoveById=999999&quot;
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> - Josh
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I think i need to buy the book.   :)
+</I>&gt;<i> 
+</I>&gt;<i> --jason
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000531.html">[Owasp-modsecurity-core-rule-set] phpmyadmin usage via	localhost interface through mod_security
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#532">[ date ]</a>
+              <a href="thread.html#532">[ thread ]</a>
+              <a href="subject.html#532">[ subject ]</a>
+              <a href="author.html#532">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20AppSensor%20API%20Questions%20%28Node.js%0A%20Demonstration%20Implementation%29&In-Reply-To=%3CCAAxdBBmbi776Gx%3DaeNO83vuSObp8sxajj75kVUVct9riOKKY6Q%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000695.html">
+   <LINK REL="Next"  HREF="000700.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)</H1>
+    <B>Colin Watson</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20AppSensor%20API%20Questions%20%28Node.js%0A%20Demonstration%20Implementation%29&In-Reply-To=%3CCAAxdBBmbi776Gx%3DaeNO83vuSObp8sxajj75kVUVct9riOKKY6Q%40mail.gmail.com%3E"
+       TITLE="[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)">colin.watson at owasp.org
+       </A><BR>
+    <I>Tue Mar 25 16:47:52 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000695.html">[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)
+</A></li>
+        <LI>Next message: <A HREF="000700.html">[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#696">[ date ]</a>
+              <a href="thread.html#696">[ thread ]</a>
+              <a href="subject.html#696">[ subject ]</a>
+              <a href="author.html#696">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>John et al
+
+On the topic of events and JSON.... would it be useful if the
+detection point ID were unique per application/host? I am just trying
+to write up what someone might do if they sent events somewhere else
+using Common Event Format.
+
+A centralised system might want to know that RE4 on the corporate
+website is different to RE4 on the customer extranet or RE4 on the
+supplier extranet.  Not sure if it matters too much in the
+demonstration implementation, but might be nice not to rule it out?
+And in my experience some applications have multiple instances of
+detection point types (RE1, RE2, RE3, IE4 etc). I don't want to
+complicate anything too much though.
+
+  &quot;SOME_HOST_ID&quot;-&quot;SOME_APP_ID&quot;-&quot;SOME_APP_VERSION&quot;-&quot;SOME_DETECTION_POINT_TYPE&quot;-&quot;SOME_DP_ID&quot;
+
+e.g. WS03-CUSTEXTRANET-3.02-RE3-002
+
+Maybe this is already possible with AppSensor WS - just a longer
+string for the &quot;SOME_DETECTION_POINT_ID&quot;?
+
+
+Colin
+
+
+
+
+On 25 March 2014 15:32, Colin Watson &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">colin.watson at owasp.org</A>&gt; wrote:
+&gt;<i> Hi John
+</I>&gt;<i>
+</I>&gt;<i> Thanks for the event JSON. I am writing things for the Guide v2. Would
+</I>&gt;<i> you have an example JSON request with that all populated including the
+</I>&gt;<i> HTTP headers?
+</I>&gt;<i>
+</I>&gt;<i> If the applications is running on multiple hosts, would it be better
+</I>&gt;<i> to include the host identity in the
+</I>&gt;<i> 'X-Appsensor-Client-Application-Name' header as well?
+</I>&gt;<i>
+</I>&gt;<i>    X-Appsensor-Client-Application-Name: WidgetCo-Web05
+</I>&gt;<i>
+</I>&gt;<i> Or should we encourage a separate optional header for host?
+</I>&gt;<i>
+</I>&gt;<i> And do you have the same for attacks and responses, which I think are
+</I>&gt;<i> the other exposed services (having had a snoop around the code)?
+</I>&gt;<i>
+</I>&gt;<i> I have forgotten, but are we (you) doing any form of identity
+</I>&gt;<i> authentication or message integrity checking at this stage?Just so
+</I>&gt;<i> that I can allude to such stuff in my draft text.
+</I>&gt;<i>
+</I>&gt;<i> Colin
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 17 March 2014 05:25, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Chetan,
+</I>&gt;&gt;<i> Replying to this on list since Colin had asked for an example json snippet
+</I>&gt;&gt;<i> at one point. A sample JSON string for adding a new event is below.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> {&quot;user&quot;:{&quot;username&quot;:&quot;SOME_END_USERNAME&quot;},&quot;detectionPoint&quot;:{&quot;id&quot;:&quot;SOME_DETECTION_POINT_ID&quot;},&quot;timestamp&quot;:
+</I>&gt;&gt;<i> SOME_UNIX_TIMESTAMP }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The only additional point to note is that you have to make the request with
+</I>&gt;&gt;<i> an http request header. The default key for that header is
+</I>&gt;&gt;<i> 'X-Appsensor-Client-Application-Name' and the value would be the name of the
+</I>&gt;&gt;<i> client application being used.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> For further info check the addRecord method at
+</I>&gt;&gt;<i> <A HREF="https://github.com/jtmelton/appsensor/blob/master/sample-apps/simple-dashboard/src/main/webapp/index.jsp">https://github.com/jtmelton/appsensor/blob/master/sample-apps/simple-dashboard/src/main/webapp/index.jsp</A>
+</I>&gt;&gt;<i> .
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks,
+</I>&gt;&gt;<i> John
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sun, Mar 16, 2014 at 11:40 PM, Chetan Karande &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">chetan.karande at owasp.org</A>&gt;
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Great. Thank you  John.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Mar 16, 2014 11:37 PM, &quot;John Melton&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Chetan,
+</I>&gt;&gt;&gt;&gt;<i> Good question. I've been working on the code. I'm actually pushing some
+</I>&gt;&gt;&gt;&gt;<i> code right now, then I'll send out a group email with some updates. I
+</I>&gt;&gt;&gt;&gt;<i> haven't pulled out the JSON structure yet, but I'll try to get some basic
+</I>&gt;&gt;&gt;&gt;<i> examples together and documented and send it to the list in the next couple
+</I>&gt;&gt;&gt;&gt;<i> days.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Thanks,
+</I>&gt;&gt;&gt;&gt;<i> John
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> On Sun, Mar 16, 2014 at 10:57 PM, Chetan Karande
+</I>&gt;&gt;&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">chetan.karande at owasp.org</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Hi John,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I was side tracked due to other priorities for a while, and wanted to
+</I>&gt;&gt;&gt;&gt;&gt;<i> resume working in AppSensor reference implementation in Node.js.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> As per our last conversation, you were going to work on adding a sample
+</I>&gt;&gt;&gt;&gt;&gt;<i> app and include minimum required json message structure as part the tech
+</I>&gt;&gt;&gt;&gt;&gt;<i> documentation. Just wanted to check if you had chance to do any progress on
+</I>&gt;&gt;&gt;&gt;&gt;<i> that.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Thank you.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Best Regards,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Chetan Karande
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">chetan.karande at owasp.org</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> OWASP NYC Local Chapter
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Open Web Application Security Project
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> On Mon, Dec 9, 2013 at 2:42 AM, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Chetan,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Awesome to see what you're coming up with.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> With respect to your questions, I responded inline below, but also
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> wanted to mention that one task I have for Colin is to give him the minimum
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> json structure needed so it can be documented. I'll also put that in the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> tech documentation as well.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Thanks,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> John
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> On Sun, Dec 8, 2013 at 6:07 PM, Chetan Karande
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">chetan.karande at owasp.org</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Hi John,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> I started exploring the AppSensor code on github and went over the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> AppSensor Guide document. It helped me in getting more idea about AppSensor
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> in general. I have a few questions for you specifically about approaching
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Node.js demonstration implementation. Please answer when you get chance:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Question 1. As per on our earlier email conversation, I explored more
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> on implementing addEvent() and getResponses() methods in Node.js app. Based
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> on the AppSensor REST Service code on github, I think the service expects
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> client using following endpoints and JSON message structures. Can you please
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> confirm if I am on right track, and answer question highlighted.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> addEvent() Implementation:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> ======================
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Invoke REST Endpoint: /api/v1.0/events
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Sample Event JSON Object to be sent from the Node.js  App:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> user: {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> username: &quot;&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> ipAddress: &quot;&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> },
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> detectionPoint : {  // ??? Does Node.js client need to populate this
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> object? If yes, what goes in responses, how to decide threshold?
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> All that is needed in the detectionPoint object field is the &quot;id&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> field. The rest is found server-side.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> id: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> threshold: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> responses: []
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> },
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> timestamp: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> detectionSystemId: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> resource: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> eventType: &quot;&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> }
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> getResponses() Implementation:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> =========================
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Poll REST EndPoint URL: /api/v1.0/responses
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Expected Response object from AppSensor REST service:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> id: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> threshold: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> responses: [
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> user: {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> username: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> ipAddress: &quot;&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> },
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> action: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> detectionPoint: {}, //???. It contains responses array again. What to
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> expect in it?
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> The detection point really shouldn't be part of the response - I'll try
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> to remove this from being serialized.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> timestamp: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> detectionSystemId: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> interval : {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> duration: &quot;&quot;,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> unit: 0 //number
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> }
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> },
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> {
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> //another response
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> }
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> ]
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> }
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> 2. In case multiple responses received as result of invoking
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> getResponses(), does order in which actions are performed matter?
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Good question that I don't think has been considered before. It
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> shouldn't in our case in the reference implementation (unless we add some
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> new features), but the timestamp is available, so it's likely best practice
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> to execute them in order. I'll add this point to the documentation.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> 3. Can I set AppSensor REST Server on my machine and use it for
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> testing Node.js demo implementation? If so, can you please provide me steps
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> to set it up.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Yep, but there's not a project setup to do it yet. I'll try to add a
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> sample app for that soon. If you'd like to use it before I get that done,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> have a look at the appsensor-ws-rest-server project and the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> RestRequestHandlerTest class. There is a helper method at the bottom of the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> class (startServer) that runs the service on grizzly. You can call that in a
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> main method to get a small simple server going for testing.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Just to share, I am exploring to retrofit ghost, an open-source
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Node.js based blogging platform for AppSensor demonstration implementation.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> I am working on getting familiar with its code and identify detection
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> points.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> That's an awesome project. Adding security to existing popular
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> platforms has been a goal for OWASP for some time - nice to see progress
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> here.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Best Regards,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Chetan Karande
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">chetan.karande at owasp.org</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> OWASP NYC Local Chapter
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Open Web Application Security Project
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;&gt;<i>
+</I></PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000695.html">[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)
+</A></li>
+	<LI>Next message: <A HREF="000700.html">[Owasp-appsensor-project] AppSensor API Questions (Node.js Demonstration Implementation)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#696">[ date ]</a>
+              <a href="thread.html#696">[ thread ]</a>
+              <a href="subject.html#696">[ subject ]</a>
+              <a href="author.html#696">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

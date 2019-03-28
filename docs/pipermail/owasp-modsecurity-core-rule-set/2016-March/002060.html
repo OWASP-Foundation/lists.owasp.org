@@ -1,0 +1,252 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%20entries%20of%20stricter%20siblings&In-Reply-To=%3C20160306182108.GA6761%40elias%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002053.html">
+   <LINK REL="Next"  HREF="002065.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Level%3A%20Multiple%20log%0A%20entries%20of%20stricter%20siblings&In-Reply-To=%3C20160306182108.GA6761%40elias%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log entries of stricter siblings">christian.folini at netnea.com
+       </A><BR>
+    <I>Sun Mar  6 18:21:08 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002053.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+        <LI>Next message: <A HREF="002065.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2060">[ date ]</a>
+              <a href="thread.html#2060">[ thread ]</a>
+              <a href="subject.html#2060">[ subject ]</a>
+              <a href="author.html#2060">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello everybody,
+
+Thanks to Franziska for bringing this up. It has to be sorted out and
+we need a general policy to adhere to. The worst would be each group
+of related rules (a base rule and its siblings) to behave differently.
+
+It's a real problem.
+
+On Sun, Mar 06, 2016 at 03:11:51PM +0100, Walter Hop wrote:
+&gt;<i> Your message also makes me remember another possible problem: the anomaly score being increased multiple times. (I don&#8217;t recall if this was already decided on earlier, in any case I can&#8217;t find it in the list archives)
+</I>
+That's the other side of the same medal: Multiple alerts, raising the
+anomaly score multiple times.
+
+&gt;<i> For instance, if a user runs at paranoia level 4, we don&#8217;t want the following to happen:
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Paranoia level 2:
+</I>&gt;<i> &gt; SecRule ARGS_NAMES|ARGS|XML:/* &quot;([\~\!\@\#\.....\&lt;\&gt;].*?){5,}&quot; \&#8230;
+</I>&gt;<i> 
+</I>&gt;<i> anomaly +5
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Paranoia level 3:
+</I>&gt;<i> &gt; SecRule ARGS_NAMES|ARGS|XML:/* &quot;([\~\!\@\#\.....\&lt;\&gt;].*?){3,}&quot; \&#8230;
+</I>&gt;<i> 
+</I>&gt;<i> anomaly +5
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Paranoia level 4:
+</I>&gt;<i> &gt; SecRule ARGS_NAMES|ARGS|XML:/* &quot;[\~\!\@\#\.....\&lt;\&gt;]&quot; \&#8230;
+</I>&gt;<i> 
+</I>&gt;<i> anomaly +5
+</I>
+Thank you for that obvious example, Walter. I think this illustrates the
+problem described b Franziska very plainly.
+
+I admit this looks a bit crazy. But please give me a chance to highlight 
+the advantages of this when compared to the alternatives.
+
+At Paranoia Level 2, we get the 1 alert, score 5.
+	Say rule 942380.
+At Paranoia Level 3, we get the 2 alert, score 10.
+	Say rule 942380, 942381.
+At Paranoia Level 4, we get the 3 alert, score 15.
+	Say rule 942380, 942381 and 942382.
+
+This is very consistent behaviour. The higher you go. The more
+alerts you get and the higher the score. This is what I would
+expect from a paranoia setting. 
+
+If we adopt the alternative strategy with distinct alerts, we
+encounter a different behaviour. Here are the new limits:
+&gt;<i> - level 2: {5,}
+</I>&gt;<i> - level 3: {3,4}       (vs. {3,} in the example above)
+</I>&gt;<i> - level 4: {1,2}       (vs. {1,} in the example above)
+</I>
+The behaviour is now:
+At Paranoia Level 2, we get the 1 alert, score 5.
+	Say rule 942380.
+At Paranoia Level 3, we get the 1 alert, score 5.
+	Say rule 942381.
+At Paranoia Level 4, we get the 1 alert, score 5.
+	Say rule 942382.
+
+If you are familiar with the paranoia mode, you will realise,
+that there is a relationship between the requests and this
+makes sense.
+
+Now, if you are unfamiliar, then this is strange behaviour.
+You change the paranoia setting and alerts disappear and new
+ones appear, but somehow the anomaly score remains the same.
+That must be puzzling. The alerts are now a moving target
+and changing the paranoia level does not alter the overall
+anomaly score, just the composition of the alerts that result 
+in the said score. Strange to understand for the uninitiated.
+
+It would be unwise to start with a high paranoia setting and
+then reduce it. But I imagine an enthusiastic newbie might set
+out this way. He does some tuning (-&gt; removed 942382) and then he 
+realises he needs to lower the paranoia level for there are just
+too many false positives. With this approach he will get a 
+new alert for 942381. So the anomaly score will actually be 
+higher with a lower paranoia setting. And that's totally crazy.
+
+With the cumulative behaviour. He has a lot more alerts,
+but whatever you tune on level 4, the level 3 will have
+less alerts and a lower anomaly score.
+I think that is very easy to understand even if there is an
+excessive amount of alerts.
+
+If we take the more reasonable approach and start with
+paranoia setting 2, we get a single alert. We tune this away
+and then when everything seems calm and cosy, so we raise
+the paranoia level to 3. Now a new alerts pops up. Makes sense,
+higher paranoia, new alert. You attempt to tune it and
+stumble over the previous tuning rule and you realise the
+alerts are siblings and with the stricter setting, you
+have to tune it a second time. And then repeat for
+paranoia level 4.
+
+So I would argue, if you follow the best practice in the
+soon to be written documentation, you won't be confronted
+with cumulative alerts on the same parameter. You will start
+with a low paranoia level and tune the false positives
+before you move higher.
+
+But of course, a real attack will trigger 3 times. And I
+do not mind that. If there is a real attack then I am
+very open for anomaly score to grow at great velocity. And 
+in fact that is the behaviour of the 2.2.X core rules:
+
+$&gt; curl --data &quot;arg1=' or 1=1&quot; &quot;<A HREF="http://localhost/index.html">http://localhost/index.html</A>&quot;
+
+brings
+
+981318 ARGS:arg1 SQL Injection Attack: Common Injection Testing Detected
+950901 ARGS:arg1 SQL Injection Attack: SQL Tautology Detected.
+959071 ARGS:arg1 SQL Injection Attack
+981242 ARGS:arg1 Detects classic SQL injection probings 1/2
+
+That's a score of 20 for a single parameter. And it's what makes
+the sqli core rules so strong. If you really attempt an sql
+injection right now, it will sound as if an elephant would dash 
+into a china shop.
+
+Where you do have a point though is that attack vectors for
+weaknesses, where we have rules with stricter siblings, will
+trigger a higher anomaly score than a different attack, where
+the rules do _not_ have stricter siblings. So cumulation has
+an unbalancing effect. But I do not really mind this very much.
+It is in line with the core rules focusing more on certain areas
+than others. We are very strong against sql injection, but
+traditionally fairly weak when it comes to ldap injections.
+
+There is more to it. If we have more complicated rules than the example,
+it's more difficult to avoid the cumulation.  If you can go from {3,} to
+{3,4}, that's easy. But if you need to work with more complex patterns,
+it gets very hard. It makes complex rules even more complex.
+
+I do not want to dig for a perfect example, but imagine we want to
+do rules and stricter siblings for these evasion attempts:
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/294">https://github.com/SpiderLabs/owasp-modsecurity-crs/issues/294</A>
+
+This means that a stricter sibling would have to cover strong evasion b
+_and_ make sure it does not trigger on the simple evasion a, as evasion
+a is already covered in a less strict sibling. The stricter sibling would 
+thus be even more complex. And if I can chose between
+annoying plain cumulation and added complexity, I will go for cumulation
+any time.
+
+Walter, you propose a variable to keep the siblings of a single
+group together and then evaluate them together. I think this might
+solve the problem I just pointed out. But it adds complexity
+again - and the rules are no longer self contained. They will
+thus be harder to read, more difficult to write and tough to update.
+I like the self-contained nature of the rules we have.
+There are a few chains, there are a few variables that are set
+by rule a and evaluated by rule b, but all in all most rules
+are self contained. That's plain and simple.
+
+There is a 2nd issue with this variable proposal. The way the
+merged mechanism works right now is that rules of paranoia level
+2 are executed before level 3 and finally level 4. If we return
+to the example above, 942380 has triggered before 942381 is
+even evaluated. You would have to withhold the alert of 942380
+in order to see if 942381 triggers before you can evaluate the
+first alert. This means you need to change the behaviour of
+942380 because it has a stricter sibling. This adds complexity
+again. The cumulation is way simpler for the rules.
+942380 works by itself. Then 942381, then 942381. Very plain.
+I think that's a lot better.
+
+Sorry for taking this long. It's time to come to an end.
+When I read Franziska's message, I was ready to agree. But 
+then I thought about it and I came to the conclusion, that 
+alert cumulation is not ideal, but everything else is even 
+worse. 
+
+Let's keep it simple even if it brings a few more alerts.
+
+Cheers,
+
+Christian
+
+-- 
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+<A HREF="http://www.christian-folini.ch">http://www.christian-folini.ch</A>
+twitter: @ChrFolini
+</PRE>
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002053.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+	<LI>Next message: <A HREF="002065.html">[Owasp-modsecurity-core-rule-set] Paranoia Level: Multiple log	entries of stricter siblings
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2060">[ date ]</a>
+              <a href="thread.html#2060">[ thread ]</a>
+              <a href="subject.html#2060">[ subject ]</a>
+              <a href="author.html#2060">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

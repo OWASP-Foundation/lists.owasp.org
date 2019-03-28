@@ -1,0 +1,336 @@
+From ssharma4 at sapient.com  Tue Apr  1 13:07:28 2014
+From: ssharma4 at sapient.com (Suraj Sharma)
+Date: Tue, 1 Apr 2014 13:07:28 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Need Inputs for Validating
+	Multilingual Charset
+Message-ID: <4F0B2DFC8C33D24C85EA83DAD5C07D0F4666DC6B@DLUMAIL03.sapient.com>
+
+Hi,
+Need your help in creating rules for supporting multilingual character set. Our current site is supported for English characters only , we would like validate all the other language data as well but disallow characters like ;"/< etc. Is it possible to build a generic rule to support all the native language character set ?
+
+Thanks
+~Suraj
+
+
+From RBarnett at trustwave.com  Tue Apr  1 13:38:54 2014
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 1 Apr 2014 13:38:54 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Need Inputs for Validating
+ Multilingual Charset
+In-Reply-To: <4F0B2DFC8C33D24C85EA83DAD5C07D0F4666DC6B@DLUMAIL03.sapient.com>
+References: <4F0B2DFC8C33D24C85EA83DAD5C07D0F4666DC6B@DLUMAIL03.sapient.com>
+Message-ID: <CF60389F.E4D2C%rbarnett@trustwave.com>
+
+The two main configuration items you need to use are -
+
+SecUnicodeMapFile directives -
+https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecUnicodeM
+apFile.  This will set your language code point for use by t:urlDecodeUni.
+Use t:utf8toUnicode,t:urlDecodeUni to map multi-byte characters into the
+proper Unicode points.
+
+See these references -
+http://blog.spiderlabs.com/2011/06/modsecurity-advanced-topic-of-the-week-u
+nicode-mapping-support.html
+
+http://blog.spiderlabs.com/2012/08/waf-normalization-and-i18n.html
+
+
+
+Ryan Barnett
+Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com <http://www.trustwave.com/>
+
+
+
+
+On 4/1/14 9:07 AM, "Suraj Sharma" <ssharma4 at sapient.com> wrote:
+
+>Hi,
+>Need your help in creating rules for supporting multilingual character
+>set. Our current site is supported for English characters only , we would
+>like validate all the other language data as well but disallow characters
+>like ;"/< etc. Is it possible to build a generic rule to support all the
+>native language character set ?
+>
+>Thanks
+>~Suraj
+>
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From ty733420 at gmail.com  Tue Apr  1 15:17:59 2014
+From: ty733420 at gmail.com (Ty)
+Date: Tue, 1 Apr 2014 10:17:59 -0500
+Subject: [Owasp-modsecurity-core-rule-set] "multiple URL encoding" matching
+	unexpectedly
+Message-ID: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+
+I know this rule (950109) has been brought up on this list before because
+posters were confused by its behavior for various reasons.  I'm also by
+something very specific about it and so I'll get right to the point:
+
+If this string (before URL encoding) appears in a parameter, the rule
+matches:
+
+hello%0dworld
+
+Which is expected, and I understand (percent followed by two potentially
+hex characters).  What I don't understand is why this string:
+
+hello%world
+
+also causes the rule to match, and I don't understand that (the following
+characters are not hexadecimal).  Looking at the regex, it would appear
+it's been written to look specifically for hex characters (and their
+unicode equivalent):
+
+SecRule ARGS "\%((?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})" \
+
+But clearly it matches non-hex characters as well.  Am I misunderstanding
+how the rule should work, or is there a problem with the rule's regex?
+
+Thanks,
+Ty
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140401/bc548035/attachment.html>
+
+From ssharma4 at sapient.com  Wed Apr  2 11:26:25 2014
+From: ssharma4 at sapient.com (Suraj Sharma)
+Date: Wed, 2 Apr 2014 11:26:25 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Need Inputs for Validating
+ Multilingual Charset
+In-Reply-To: <CF60389F.E4D2C%rbarnett@trustwave.com>
+References: <4F0B2DFC8C33D24C85EA83DAD5C07D0F4666DC6B@DLUMAIL03.sapient.com>
+	<CF60389F.E4D2C%rbarnett@trustwave.com>
+Message-ID: <4F0B2DFC8C33D24C85EA83DAD5C07D0F4666E3D8@DLUMAIL03.sapient.com>
+
+Thanks Ryan. After adding t:utf8toUnicode,t:urlDecodeUni its working.
+
+-----Original Message-----
+From: Ryan Barnett [mailto:RBarnett at trustwave.com] 
+Sent: Tuesday, April 01, 2014 7:09 PM
+To: Suraj Sharma; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Need Inputs for Validating Multilingual Charset
+
+The two main configuration items you need to use are -
+
+SecUnicodeMapFile directives -
+https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#SecUnicodeM
+apFile.  This will set your language code point for use by t:urlDecodeUni.
+Use t:utf8toUnicode,t:urlDecodeUni to map multi-byte characters into the
+proper Unicode points.
+
+See these references -
+http://blog.spiderlabs.com/2011/06/modsecurity-advanced-topic-of-the-week-u
+nicode-mapping-support.html
+
+http://blog.spiderlabs.com/2012/08/waf-normalization-and-i18n.html
+
+
+
+Ryan Barnett
+Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com <http://www.trustwave.com/>
+
+
+
+
+On 4/1/14 9:07 AM, "Suraj Sharma" <ssharma4 at sapient.com> wrote:
+
+>Hi,
+>Need your help in creating rules for supporting multilingual character
+>set. Our current site is supported for English characters only , we would
+>like validate all the other language data as well but disallow characters
+>like ;"/< etc. Is it possible to build a generic rule to support all the
+>native language character set ?
+>
+>Thanks
+>~Suraj
+>
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From ty733420 at gmail.com  Wed Apr  9 21:17:06 2014
+From: ty733420 at gmail.com (Ty)
+Date: Wed, 9 Apr 2014 16:17:06 -0500
+Subject: [Owasp-modsecurity-core-rule-set] "multiple URL encoding"
+	matching unexpectedly
+In-Reply-To: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+References: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+Message-ID: <CACBJu2UU=Z-YoTtWY0KB0_NMQTVVS_H94_ZcCfJ9WLJvTX6Ytg@mail.gmail.com>
+
+This is reproducible on the demo site:
+
+http://www.modsecurity.org/demo/demo-deny.html?test=YourPayload%25Here
+
+Is it really the intention of rule 950109 to regard any percent sign,
+surrounded by anything, in an any argument, as Multiple URL Encoding?
+
+
+On Tue, Apr 1, 2014 at 10:17 AM, Ty <ty733420 at gmail.com> wrote:
+
+> I know this rule (950109) has been brought up on this list before because
+> posters were confused by its behavior for various reasons.  I'm also by
+> something very specific about it and so I'll get right to the point:
+>
+> If this string (before URL encoding) appears in a parameter, the rule
+> matches:
+>
+> hello%0dworld
+>
+> Which is expected, and I understand (percent followed by two potentially
+> hex characters).  What I don't understand is why this string:
+>
+> hello%world
+>
+> also causes the rule to match, and I don't understand that (the following
+> characters are not hexadecimal).  Looking at the regex, it would appear
+> it's been written to look specifically for hex characters (and their
+> unicode equivalent):
+>
+> SecRule ARGS "\%((?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})" \
+>
+> But clearly it matches non-hex characters as well.  Am I misunderstanding
+> how the rule should work, or is there a problem with the rule's regex?
+>
+> Thanks,
+> Ty
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140409/2b985e97/attachment.html>
+
+From brectanu at gmail.com  Thu Apr 10 08:58:51 2014
+From: brectanu at gmail.com (Brian Rectanus)
+Date: Thu, 10 Apr 2014 10:58:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] "multiple URL encoding"
+ matching unexpectedly
+In-Reply-To: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+References: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+Message-ID: <CAO-Tt1ub+Y9KtG9JwSegmu8FrCVvWYEmR1V8Z+xmwJPBQMekjQ@mail.gmail.com>
+
+On Tue, Apr 1, 2014 at 5:17 PM, Ty <ty733420 at gmail.com> wrote:
+
+> I know this rule (950109) has been brought up on this list before because
+> posters were confused by its behavior for various reasons.  I'm also by
+> something very specific about it and so I'll get right to the point:
+>
+> If this string (before URL encoding) appears in a parameter, the rule
+> matches:
+>
+> hello%0dworld
+>
+> Which is expected, and I understand (percent followed by two potentially
+> hex characters).  What I don't understand is why this string:
+>
+> hello%world
+>
+> also causes the rule to match, and I don't understand that (the following
+> characters are not hexadecimal).  Looking at the regex, it would appear
+> it's been written to look specifically for hex characters (and their
+> unicode equivalent):
+>
+> SecRule ARGS "\%((?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})" \
+>
+> But clearly it matches non-hex characters as well.  Am I misunderstanding
+> how the rule should work, or is there a problem with the rule's regex?
+>
+>
+It is a bad regex.  It says:
+
+Match a "%" followed by (NOT (end of string OR non-word char)) OR 2 hex
+chars OR "u" + 4 hex chars
+
+Which matches "%w" (e.g., "%" followed by NOT a non-word char; "%" followed
+by any word character, which "w" is)
+
+I think you want something like:
+
+ "\%([0-9a-fA-F]{2}|[uU][0-9a-fA-F]{4})"
+
+I am not sure the intention of (?!$|\W), but I assume it was added to
+resolve some FP.
+
+-B
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140410/ff57b11c/attachment.html>
+
+From RBarnett at trustwave.com  Fri Apr 11 18:04:59 2014
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 11 Apr 2014 18:04:59 +0000
+Subject: [Owasp-modsecurity-core-rule-set] "multiple URL encoding"
+ matching unexpectedly
+In-Reply-To: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+References: <CACBJu2W-uHb82pjAhNj-go1wPTw5EuKtEyAz=gg=aJSjMZouSg@mail.gmail.com>
+Message-ID: <CF6DA6B7.ECBCF%rbarnett@trustwave.com>
+
+This regex was modified a long time ago to help prevent false positives when the @validateUrlEncoding operator was used - https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#validateUrlEncoding
+
+Without this ? the operator would throw errors when it saw any % sign with other chars after it other than the normal ranges.
+
+We will look to improve it for CRS v3.0.0.
+
+Ryan Barnett
+Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: Ty <ty733420 at gmail.com<mailto:ty733420 at gmail.com>>
+Date: Tuesday, April 1, 2014 11:17 AM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] "multiple URL encoding" matching unexpectedly
+
+I know this rule (950109) has been brought up on this list before because posters were confused by its behavior for various reasons.  I'm also by something very specific about it and so I'll get right to the point:
+
+If this string (before URL encoding) appears in a parameter, the rule matches:
+
+hello%0dworld
+
+Which is expected, and I understand (percent followed by two potentially hex characters).  What I don't understand is why this string:
+
+hello%world
+
+also causes the rule to match, and I don't understand that (the following characters are not hexadecimal).  Looking at the regex, it would appear it's been written to look specifically for hex characters (and their unicode equivalent):
+
+SecRule ARGS "\%((?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})" \
+
+But clearly it matches non-hex characters as well.  Am I misunderstanding how the rule should work, or is there a problem with the rule's regex?
+
+Thanks,
+Ty
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140411/8b5c3c8a/attachment.html>
+

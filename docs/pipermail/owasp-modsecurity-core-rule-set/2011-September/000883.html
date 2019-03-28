@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981176%27s%20last%20matched%20data%0A%20issues&In-Reply-To=CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000882.html">
+   <LINK REL="Next"  HREF="000885.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981176's last matched data issues</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981176%27s%20last%20matched%20data%0A%20issues&In-Reply-To=CAAzXPXDwHf_w4ruGiaATpPYr00V0NLZfY18Ns-rEy6D-ni6vuA%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] 981176's last matched data issues">RBarnett at trustwave.com
+       </A><BR>
+    <I>Wed Sep 28 16:35:35 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000882.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+</A></li>
+        <LI>Next message: <A HREF="000885.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data	issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#883">[ date ]</a>
+              <a href="thread.html#883">[ thread ]</a>
+              <a href="subject.html#883">[ subject ]</a>
+              <a href="author.html#883">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+From: rm4dillo D &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&gt;&gt;
+Date: Wed, 28 Sep 2011 12:18:17 -0500
+To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: [Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+
+I have three questions concerning the changes that have been applied to the rule 981176 in order to add the last matched data in the log line.
+
+Yeah, these rules in the 49 inbound blocking file can certainly be improved upon.
+
+
+First, when ModSecurity is in &quot;DetectionOnly&quot; mode, the chained rule ( SecRule TX:/^\d/ &quot;(.*)&quot; ) that has been added is triggered as many times as the number of variable names in the transaction collection that match the &quot;^\d&quot; regular expression. This makes ModSecurity log only one entry when it's in the &quot;Blocking&quot; mode and lots of entries when in &quot;DetectionOnly&quot; mode.
+
+This is true however you can control how you want the rules to log by editing the SecDefaultAction within the 10 config file.  If you wan to run in anomaly scoring mode with blocking and less logging, then you can set SecDefaultAction to &quot;pass,nolog,auditlog&quot; and this will mean that each individual SecRule will log an entry to the audit log but only the rules in the 40 inbound blocking file will log to the Apache error_log.  This will give you the overall anomaly score and data on the last rule match.
+
+If you want to run in anomaly scoring mode with blocking but to have more logging in the Apache error log, then simply change the SecDefaultAction to &quot;pass,log&quot; and this means that all rules will log to both the audit and error logs.  This is more chatty obviously but you will still have all logging.
+
+
+The second issue with this chained rule is that the &quot;^\d&quot; regular expression is not discriminant enough as it matches the &quot;capture&quot; action variables &quot;TX:0&quot;, &quot;TX:1&quot;, ... and &quot;TX:9&quot; when in &quot;DetectionOnly&quot; mod. A quick fix to avoid that would be replacing the regular expression by &quot;^/d{2}&quot;.
+
+Agreed.  I updated it to this and it seems to work better -
+
+SecRule TX:/^\d+\-/ &quot;(.*)&quot;
+
+
+The last issue (still related to this chained rule; I think that I don't like it much ;-) ) is that the &quot;matched_var&quot; variable does not really contain the &quot;Last Matched Data&quot;. In &quot;DetectionOnly&quot; mode, it will only be valid for the last logged line as it corresponds to the last matched rule and erroneous for all the other lines (Cf. first issue). In &quot;Blocking&quot; mode (as we log only once then the request is rejected if the score has exceeded) it will contain the matched data of the first rule that matched and the message (tx.msg) of the last one.
+This produces misleading logs as the one below:
+
+        [Wed Sep 28 18:44:53 2011] [error] [client ::1] ModSecurity: Warning. Pattern match &quot;(.*)&quot; at TX:959073-WEB_ATTACK/SQL_INJECTION-ARGS:test. [file &quot;/etc/modsecurity/activated_rules/modsecurity_crs_49_inbound_blocking.conf&quot;] [line &quot;26&quot;] [id &quot;981176&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total Score: 44, SQLi=15, XSS=30): Last Matched Message: IE XSS Filters - Attack Detected&quot;] [data &quot;Last Matched Data: benchmark(&quot;] [hostname &quot;localhost&quot;] [uri &quot;/&quot;]
+
+As most rules use the &quot;capture&quot; action, why don't we replace the chained rule &quot;hack?&quot; with a simple &quot;logdata:'Last Matched Data: %{tx.0}&quot;. This still would be better but still not perfect as the content will sometimes be erronuous because some rules can't capture. Or, even cleaner, why don't we add a &quot;setvar:'tx.last_matched_data=...&quot; in every rule?
+
+I updated the rules to use the following.  Let me know if this is any better -
+
+# Alert and Block based on Anomaly Scores
+#
+SecRule TX:ANOMALY_SCORE &quot;@gt 0&quot; \
+    &quot;chain,phase:2,id:'981176',t:none,deny,log,msg:'Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): %{tx.msg}',logdata:'%{tx.0}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbound_anomaly_score=%{tx.anomaly_score}&quot;
+        SecRule TX:ANOMALY_SCORE &quot;@ge %{tx.inbound_anomaly_score_level}&quot; chain
+                SecRule TX:ANOMALY_SCORE_BLOCKING &quot;@streq on&quot; chain
+                        SecRule TX:/^\d+\-/ &quot;(.*)&quot; &quot;capture&quot;
+
+-Ryan
+
+
+
+
+Cheers,
+
+Rm4dillo
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000882.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data issues
+</A></li>
+	<LI>Next message: <A HREF="000885.html">[Owasp-modsecurity-core-rule-set] 981176's last matched data	issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#883">[ date ]</a>
+              <a href="thread.html#883">[ thread ]</a>
+              <a href="subject.html#883">[ subject ]</a>
+              <a href="author.html#883">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

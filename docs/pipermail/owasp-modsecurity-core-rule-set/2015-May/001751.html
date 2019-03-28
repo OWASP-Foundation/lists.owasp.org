@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 11
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2073%2C%20Issue%2011&In-Reply-To=%3CCAN7RX0bJJFePFjMpShbFXhYgWhYrse2iBFg1V60sYEY_5KVZPg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001743.html">
+   <LINK REL="Next"  HREF="001752.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 11</H1>
+    <B>Russell Clemings</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%0A%09Owasp-modsecurity-core-rule-set%20Digest%2C%20Vol%2073%2C%20Issue%2011&In-Reply-To=%3CCAN7RX0bJJFePFjMpShbFXhYgWhYrse2iBFg1V60sYEY_5KVZPg%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 11">rclemings at gmail.com
+       </A><BR>
+    <I>Mon May 18 14:27:47 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001743.html">[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 5
+</A></li>
+        <LI>Next message: <A HREF="001752.html">[Owasp-modsecurity-core-rule-set] Require information on	modsecurity_crs_11_dos_protection.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1751">[ date ]</a>
+              <a href="thread.html#1751">[ thread ]</a>
+              <a href="subject.html#1751">[ subject ]</a>
+              <a href="author.html#1751">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>FWIW, you're not the only one having a lot of trouble with
+Cpanel's OWASP implementation.
+
+Setting up logrotate helps keep the modsec_audit.log under control. Here's
+what I did:
+
+1. Create a file /etc/logrotate.d/modsec_audit.log (644 root/root)
+2. Give it these contents:
+
+/usr/local/apache/logs/modsec_audit.log {
+ missingok
+ notifempty
+ daily
+ copytruncate
+ compress
+}
+
+I'll probably have to add &quot;rotate 7&quot; or something to keep it from storing
+copies forever, but for now I'm just deleting the old ones manually.
+
+I had to increase both of these to 10000 (default was 1500):
+Perl Compatible Regular Expressions Library Match Limit
+Perl Compatible Regular Expressions Library Match Limit Recursion
+
+(see WHM/Security Center/ModSecurity Configuration, then scroll to the
+bottom)
+
+I also had to disable 950901 (SQL injection) because it was blocking pretty
+much every edit on my Drupal site. I hope it gets revised soon (or that I
+can figure and fix the problem) because preventing SQL injection is kind of
+important.
+
+Finally, I'm seeing lots of lines like this in modsec_debug.log. Neither my
+ISP or Cpanel could figure out what's causing them or whether it's a
+problem. Most are on /user/register or /user/login:
+
+4775:[18/May/2015:10:21:48 --0400]
+[my.domain.tld/sid#9cf1c90][rid#a71a050][/user/register][1] Rule processing
+failed.
+
+
+
+On Sun, May 17, 2015 at 6:57 PM, &lt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-request at lists.owasp.org</A>&gt; wrote:
+
+&gt;<i>
+</I>&gt;<i> Message: 1
+</I>&gt;<i> Date: Sun, 17 May 2015 22:56:23 -0300
+</I>&gt;<i> From: Guilherme Y &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A>&gt;
+</I>&gt;<i> To: Barry Pollard &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt;
+</I>&gt;<i> Cc: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;<i>         &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates
+</I>&gt;<i>         false positives from my own server IP
+</I>&gt;<i> Message-ID: &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">SNT151-W887AF069927C88C9AC831BB6C40 at phx.gbl</A>&gt;
+</I>&gt;<i> Content-Type: text/plain; charset=&quot;windows-1252&quot;
+</I>&gt;<i>
+</I>&gt;<i> Tks so much Barry!
+</I>&gt;<i> Pretty much standard modsecurity install: installed from WHM, enabled
+</I>&gt;<i> vendor OWASP and that was it. Maybe my Centos has some oddities...
+</I>&gt;<i> I understood your examples as part of the flexibility, that's OK. But
+</I>&gt;<i> newbies like me are not very imaginative and most (like me!) need these
+</I>&gt;<i> examples as part of the documentation so that at least we get to know what
+</I>&gt;<i> are the possibilities. If it wasn't for your kind help I would be sitting
+</I>&gt;<i> still staring and wondering what I did wrong!
+</I>&gt;<i> I had Modsecurity configured to log noteworthy transactions only but just
+</I>&gt;<i> a while ago I found out why my modsec_audit.log was filling up so fast: I
+</I>&gt;<i> had a permissions issue on var/cpanel/Secdatadir folder that was
+</I>&gt;<i> restraining Apache httpd user to write in there. Also my Apcahe error_log
+</I>&gt;<i> was growing excessively because of this issue. Fixed the group/owner and it
+</I>&gt;<i> all worked out as it should!
+</I>&gt;<i> I also appreciated your suggestion of disabling 960015 and already did it.
+</I>&gt;<i> Thank you very much for that too.
+</I>&gt;<i> BTW, I have disabled the following rules:958977 - it seems to deal with
+</I>&gt;<i> PHP injection and I don't know if I did right to disable it, do you agree
+</I>&gt;<i> with this? 960015 - that one! - your suggestion worked out just right981138
+</I>&gt;<i> - blocks Google bot for bad IP reputation - I thought it's OK to disable,
+</I>&gt;<i> didn't you?981175 - blocks Google bot for bad IP reputation - I thought
+</I>&gt;<i> it's OK to disable, didn't you?981204 - it seems to issue a Warning from
+</I>&gt;<i> anomaly score and blocks our iPhone app - had to disable981242 - this
+</I>&gt;<i> blocks entirely one of my apps - had to disable981245 - has to do with SQL
+</I>&gt;<i> authentication and seems to block logins from our iPhone app - had to
+</I>&gt;<i> disable981246 - has to do with login SQL auth and seems to block logins
+</I>&gt;<i> from our iPhone app - had to disable981257 - this blocks entirely one of my
+</I>&gt;<i> apps - had to disable
+</I>&gt;<i> I did not block but found the following rules already blocked after
+</I>&gt;<i> installing the OWASP rules vendor (I don't have the faintest idea
+</I>&gt;<i> why):970901973337981205990002Any idea why this is so? Is it OK to leave
+</I>&gt;<i> these disabled?
+</I>&gt;<i> PS.: I still did not find any hint in the documentation as to where (which
+</I>&gt;<i> file) hits are stored. I flushed modsec_audit.log but all hits since May
+</I>&gt;<i> 2nd still show up at WHM/Security Center/Modsecurity Tools. If you ever
+</I>&gt;<i> find an answer to this, please let me know, just out of curiosity.
+</I>&gt;<i> Thank you again!Have a great week, live long and prosper!All the best!Luiz
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150518/1b5e8926/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150518/1b5e8926/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001743.html">[Owasp-modsecurity-core-rule-set]	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 5
+</A></li>
+	<LI>Next message: <A HREF="001752.html">[Owasp-modsecurity-core-rule-set] Require information on	modsecurity_crs_11_dos_protection.conf
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1751">[ date ]</a>
+              <a href="thread.html#1751">[ thread ]</a>
+              <a href="subject.html#1751">[ subject ]</a>
+              <a href="author.html#1751">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Modsecurity%20crs%202.1.1%0A%2041_advanced_filters%20%26%20Lua%20issue&In-Reply-To=1296088677.3142.14.camel%40chris-desktop">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000629.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue</H1>
+    <B>Chris Swanson</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Modsecurity%20crs%202.1.1%0A%2041_advanced_filters%20%26%20Lua%20issue&In-Reply-To=1296088677.3142.14.camel%40chris-desktop"
+       TITLE="[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue">chris at riverstyx.net
+       </A><BR>
+    <I>Mon Feb  7 14:09:43 EST 2011</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000629.html">[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#620">[ date ]</a>
+              <a href="thread.html#620">[ thread ]</a>
+              <a href="subject.html#620">[ subject ]</a>
+              <a href="author.html#620">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi, we haven't had any luck with this issue, just wondering if anyone
+else has seen this or knows a solution?
+
+Here is the original email and a response follow up with some
+suggestions.
+
+Thanks
+-Chris
+
+
+
+
+On Wed, 2011-01-26 at 16:37 -0800, Chris Swanson wrote:
+
+&gt;<i> Hi, we're having a hard time with the new update(s) and Lua in our
+</I>&gt;<i> testing environment. Here's the error we're seeing in Audit Console,
+</I>&gt;<i> this is opening up a single transaction: 
+</I>&gt;<i> 
+</I>&gt;<i> Unknown  | Lua: Script execution failed: attempt to call a nil value
+</I>&gt;<i> Unknown  | Rule processing failed.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> This is happening with modsecurity 2.5.13 and modsec CRS 2.1.1 on our
+</I>&gt;<i> Debian 5 servers, apache is configured with:
+</I>&gt;<i> 
+</I>&gt;<i> ./configure --prefix=/usr/local/apache --disable-userdir
+</I>&gt;<i> --enable-rewrite --enable-so --enable-info --enable-status
+</I>&gt;<i> --enable-ssl
+</I>&gt;<i> --enable-cgi --enable-unique-id --enable-mime-magic
+</I>&gt;<i> --with-included-apr
+</I>&gt;<i> --with-pcre=/usr/bin/pcre-config --enable-deflate --enable-expires
+</I>&gt;<i> --enable-headers
+</I>&gt;<i> 
+</I>&gt;<i> modsecuirty cofigured with:
+</I>&gt;<i> 
+</I>&gt;<i> ./configure --with-apxs=/usr/local/apache/bin/apxs
+</I>&gt;<i> --with-apr=/usr/local/apache/bin/apr-1-config
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I've narrowed it down to the include in our http.conf for
+</I>&gt;<i> modsecurity_crs_41_advanced_filters.conf, which was previously working
+</I>&gt;<i> as the phpids rules. Even further, by commenting out this section at
+</I>&gt;<i> the
+</I>&gt;<i> top of the 41_advanced_filters file everything works fine:
+</I>&gt;<i> 
+</I>&gt;<i> # Lua script to normalize input payloads
+</I>&gt;<i> # Based on PHPIDS Converter.php code
+</I>&gt;<i> # Reference the following whitepaper -
+</I>&gt;<i> # <A HREF="http://docs.google.com/Doc?id=dd7x5smw_17g9cnx2cn">http://docs.google.com/Doc?id=dd7x5smw_17g9cnx2cn</A> 
+</I>&gt;<i> # 
+</I>&gt;<i> SecRuleScript ../lua/advanced_filter_converter.lua
+</I>&gt;<i> &quot;phase:2,t:none,pass&quot;
+</I>&gt;<i> SecRule TX:/centrifuge_ratio/ &quot;.*&quot;
+</I>&gt;<i> &quot;phase:2,t:none,log,capture,msg:'Centrifuge Threshold Alert - Ratio
+</I>&gt;<i> Value is: %{tx.0}'&quot;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Here is the modsecurity includes in our http.conf
+</I>&gt;<i> 
+</I>&gt;<i> #modsecurity Rules
+</I>&gt;<i> Include conf/modsecurity.conf
+</I>&gt;<i> Include conf/modsecurity-crs_2.1.1/*.conf
+</I>&gt;<i> Include
+</I>&gt;<i> conf/modsecurity-crs_2.1.1/experimental_rules/modsecurity_crs_41_advanced_filters.conf
+</I>&gt;<i> Include
+</I>&gt;<i> conf/modsecurity-crs_2.1.1/optional_rules/modsecurity_crs_25_cc_known.conf
+</I>&gt;<i> Include conf/modsecurity-crs_2.1.1/base_rules/*conf
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> With the same setup and versions Modsecurity/Apache, CRS 2.0.10 worked
+</I>&gt;<i> perfectly. We could move forward without Lua functionally, but I'm
+</I>&gt;<i> lost
+</I>&gt;<i> as to why such a big addition would be broken from the get-go. Haven't
+</I>&gt;<i> been able to find anyone posting with a similar issue so any help
+</I>&gt;<i> would
+</I>&gt;<i> be greatly appreciated.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Thanks,
+</I>&gt;<i> -Chris
+</I>&gt;<i> 
+</I>
+
+
+&gt;<i> A couple questions -
+</I>&gt;<i> 
+</I>&gt;<i> 1) Did you modify the path to Lua in the script to point to your local
+</I>&gt;<i> version?
+</I>&gt;<i> 2) Did you install the additional bitop Lua module?
+</I>&gt;<i> <A HREF="http://bitop.luajit.org/">http://bitop.luajit.org/</A>
+</I>&gt;<i>    It is specified at the top of the script in a require statement.
+</I>&gt;<i> This
+</I>&gt;<i> is needed for the Octal to Decimal conversions.
+</I>
+I was missing Bitop, I've installed it from source, changed the install
+path for Debian, and I believe it's working as we can run the included
+bitbench.lua with no errors. The Lua problem still exists.
+
+&gt;<i> 3) What was the request that triggered this error?
+</I>
+It triggers on any request, the one I've been using the most is
+accessing the page via IP instead of hostname, here's a breakdown of all
+the information regarding the request:
+
+----------------------
+
+
+Alert Messages:
+The following messages have been raised for this event:
+        Severity
+        Rule ID
+        Message
+UNKNOWN
+
+Lua: Script execution
+failed: attempt to call
+a nil value
+Rule-Message:
+
+UNKNOWN
+
+Rule processing failed.
+Rule-Message:
+
+
+
+Rules Section
+
+The following rules have been fired for this event:
+SecAction phase:1 t:none nolog pass setvar:tx.anomaly_score_blocking=on
+SecAction phase:1 t:none nolog pass setvar:tx.critical_anomaly_score=5
+setvar:tx.error_anomaly_score=4 setvar:tx.warning_anomaly_score=3
+setvar:tx.notice_anomaly_score=2
+SecAction phase:1 t:none nolog pass
+setvar:tx.inbound_anomaly_score_level=5
+SecAction phase:1 t:none nolog pass
+setvar:tx.outbound_anomaly_score_level=4
+SecAction phase:1 t:none nolog pass setvar:tx.paranoid_mode=0
+SecAction phase:1 t:none nolog pass setvar:tx.max_num_args=255
+SecAction phase:1 t:none nolog pass setvar:'tx.allowed_methods=GET HEAD
+POST OPTIONS'
+setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded multipart/form-data text/xml application/xml application/x-amf' setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1' setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/' setvar:'tx.restricted_headers=/Lock-Token/ /Content-Range/ /Translate/ /via/ /if/'
+SecRule REQUEST_HEADERS:User-Agent @rx ^(.*)$ phase:1 t:none pass nolog
+t:sha1 t:hexEncode setvar:tx.ua_hash=%{matched_var}
+SecAction phase:1 t:none pass nolog initcol:global=global initcol:ip=
+%{remote_addr}_%{tx.ua_hash}
+SecAction phase:4 t:none nolog skipAfter:END_KNOWN_CC_OUTBOUND_CHECK\
+
+
+Request
+
+GET / HTTP/1.1
+Host:
+172.16.100.191
+Connection:
+keep-alive
+Accept:
+application/xml,application/xhtml
++xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+User-Agent:
+Mozilla/5.0 (X11; U; Linux x86_64;
+en-US) AppleWebKit/534.10 (KHTML,
+like Gecko) Chrome/8.0.552.200
+Safari/534.10
+Accept-Encoding:
+gzip,deflate,sdch
+Accept-Language:
+en-US,en;q=0.8
+Accept-Charset:
+ISO-8859-1,utf-8;q=0.7,*;q=0.3
+
+
+----------------------
+
+&gt;<i> You can still run it in this manner but since it will NOT be
+</I>&gt;<i> normalizing
+</I>&gt;<i> data in the same way as PHPIDS, there will be a higher % of false
+</I>&gt;<i> positives/false negatives.
+</I>&gt;<i> We did put this in the experimental directory after all ;) 
+</I>
+True enough!
+
+&gt;<i>  Seriously, we
+</I>&gt;<i> need more people to field test this new, advanced functionality.  I
+</I>&gt;<i> applaud you for jumping in!  Don't give up on it, hopefully we can get
+</I>&gt;<i> it
+</I>&gt;<i> working for you.
+</I>&gt;<i> 
+</I>&gt;<i> -Ryan
+</I>
+Glad we can help out, we will keep on it until it's resolved.
+
+-Chris
+
+&gt;<i> 
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110207/56ba6f61/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110207/56ba6f61/attachment.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000629.html">[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#620">[ date ]</a>
+              <a href="thread.html#620">[ thread ]</a>
+              <a href="subject.html#620">[ subject ]</a>
+              <a href="author.html#620">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

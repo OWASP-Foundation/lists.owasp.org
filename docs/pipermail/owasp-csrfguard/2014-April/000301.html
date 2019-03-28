@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] pull request
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20pull%20request&In-Reply-To=%3C04BE669BEE19E54BBDC2A9A2585BB68885470BB0%40exch-mbx02.exchange.upenn.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000298.html">
+   <LINK REL="Next"  HREF="000302.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] pull request</H1>
+    <B>Chris Hyzer</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20pull%20request&In-Reply-To=%3C04BE669BEE19E54BBDC2A9A2585BB68885470BB0%40exch-mbx02.exchange.upenn.edu%3E"
+       TITLE="[Owasp-csrfguard] pull request">mchyzer at isc.upenn.edu
+       </A><BR>
+    <I>Sun Apr 20 06:55:37 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000298.html">[Owasp-csrfguard] Community Question regarding OWASP-CSRF
+</A></li>
+        <LI>Next message: <A HREF="000302.html">[Owasp-csrfguard] pull request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#301">[ date ]</a>
+              <a href="thread.html#301">[ thread ]</a>
+              <a href="subject.html#301">[ subject ]</a>
+              <a href="author.html#301">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I added some enhancements to csrfguard, and would like it to be merged in to the main source branch.  I sent a pull request to aramrami and justinedelson.
+
+<A HREF="https://github.com/mchyzer/OWASP-CSRFGuard">https://github.com/mchyzer/OWASP-CSRFGuard</A>
+
+In general my changes are backward compatible I believe.  Im happy to tweak anything to make it acceptable for people.  Maybe we should setup a conference call to discuss these?  :)
+
+
+1.       Took out the gpg maven plugin.  I just run a build from eclipse by right clicking, and it gives an error.  If someone can please tell me how to address the error (add gpg secret somewhere?), then I can add back in :)  we should document this with a comment in the pom or somewhere else?  Sorry, didn't see answer and didn't have internet to discuss this
+
+2.       In pom I added the config file in the META-INF, this is so the default config is shipped with the jar, and also, if the Owasp.CsrfGuard.properties is not present, it can just use defaults from the jar (see config overlays below)
+
+3.       I have the changes based on code from  Justin Edelson for a configuration provider.  You can specify which configuration type you want, and it will use that instead of simple properties file.  Note, you specify this in the properties file to bootstrap it :).  Note there is also a configuration factory so the configuration can be cached
+
+4.       I added a configuration provider for properties files overlays.  The goal here is that there can be a default config file (Owasp.CsrfGuard.properties), which is shipped with csrfguard, and an overlay: Owasp.CsrfGuard.overlay.properties which overrides properties in the default.  Another feature is it will reload the properties if any change, so you can change the config without bouncing the app.  Note, you can have multiple overlays (one for the app and one for the env the app is running in?), and they can live in the classpath or filesystem.  I want to distribute csrfguard with my webapp application, and I don't want deployers to worry about what is the default csrfguard config, and what I specified.  So basically I have a Owasp.CsrfGuard.overlay.properties that has these contents and that's all the app needs:
+
+
+org.owasp.csrfguard.Logger=org.openTwoFactor.server.log.CsrfGuardLogger
+
+org.owasp.csrfguard.UnprotectedMethods=GET
+
+org.owasp.csrfguard.TokenPerPage=false
+org.owasp.csrfguard.Rotate=false
+
+org.owasp.csrfguard.action.Redirect.Page=%servletContext%/assets/html/csrfError.html
+
+org.owasp.csrfguard.configuration.provider.factory=org.owasp.csrfguard.config.overlay.ConfigurationOverlayProviderFactory
+
+Here is the config in the default config (Owasp.CsrfGuard.properties) to specify the configuration provider factory
+
+###########################
+## Config overlay settings if you have the provider above set to ConfigurationOverlayProvider
+## This CSRF config provider uses Internet2 Configuration Overlays (documented on Internet2 wiki)
+## By default the configuration is read from the Owasp.CsrfGuard.properties
+## (which should not be edited), and the Owasp.CsrfGuard.overlay.properties overlays
+## the base settings.  See the Owasp.CsrfGuard.properties for the possible
+## settings that can be applied to the Owasp.CsrfGuard.overlay.properties
+###########################
+
+# comma separated config files that override each other (files on the right override the left)
+# each should start with file: or classpath:
+# e.g. classpath:Owasp.CsrfGuard.properties, file:c:/temp/myFile.properties
+org.owasp.csrfguard.configOverlay.hierarchy = classpath:Owasp.CsrfGuard.properties, classpath:Owasp.CsrfGuard.overlay.properties
+
+# seconds between checking to see if the config files are updated
+org.owasp.csrfguard.configOverlay.secondsBetweenUpdateChecks = 60
+
+Note: the factory is a simple interface:
+
+/**
+* implement this interface to provide the configuration
+*/
+public interface ConfigurationProviderFactory {
+
+       /**
+       * called when retrieving the configuration
+       * @param properties
+       * @return the configuration
+       */
+       public ConfigurationProvider retrieveConfiguration(Properties properties);
+
+}
+
+The ConfigurationProvider is a little more complicated (see github for interface)
+
+<A HREF="https://github.com/mchyzer/OWASP-CSRFGuard/blob/master/csrfguard/src/main/java/org/owasp/csrfguard/config/ConfigurationProvider.java">https://github.com/mchyzer/OWASP-CSRFGuard/blob/master/csrfguard/src/main/java/org/owasp/csrfguard/config/ConfigurationProvider.java</A>
+
+
+
+5.       Note, to specify the configuration provider factory, the default is an automatic picker, which sees if there is an overlay, if so, see if the provider factory is specified, and if so, use it.  This way if there is no overlay config file, then the default is the provider from before, simple properties.  If there is an overlay, and it changes the provider, then you don't have to change the base config which is shipped with csrfguard
+
+6.       I have options in the config file for all the configs in the web.xml.  I don't think the web.xml is a good place for configuration, and it obviously wont work with the new overlay concept.  So if you configure in the web.xml (legacy), that will take precedence, but if you don't, then it will be read from the properties file.  E.g.
+
+# Boolean value that determines whether or not the dynamic JavaScript code should be strict
+# with regards to what links it should inject the CSRF prevention token. With a value of true,
+# the JavaScript code will only place the token in links that point to the same exact domain
+# from which the HTML originated. With a value of false, the JavaScript code will place the
+# token in links that not only point to the same exact domain from which the HTML originated,
+# but sub-domains as well.
+org.owasp.csrfguard.JavascriptServlet.domainStrict = true
+
+# Allows the developer to specify the value of the Cache-Control header in the HTTP response
+# when serving the dynamic JavaScript file. The default value is private, maxage=28800.
+# Caching of the dynamic JavaScript file is intended to minimize traffic and improve performance.
+# Note that the Cache-Control header is always set to &quot;no-store&quot; when either the &quot;Rotate&quot;
+# &quot;TokenPerPage&quot; options is set to true in Owasp.CsrfGuard.properties.
+org.owasp.csrfguard.JavascriptServlet.cacheControl = private, maxage=28800
+
+Then all you need in your web.xml is something like this:
+
+  &lt;listener&gt;
+    &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardServletContextListener&lt;/listener-class&gt;
+  &lt;/listener&gt;
+  &lt;listener&gt;
+    &lt;listener-class&gt;org.owasp.csrfguard.CsrfGuardHttpSessionListener&lt;/listener-class&gt;
+  &lt;/listener&gt;
+
+  &lt;servlet&gt;
+     &lt;servlet-name&gt;OwaspJavaScriptServlet&lt;/servlet-name&gt;
+     &lt;servlet-class&gt;org.owasp.csrfguard.servlet.JavaScriptServlet&lt;/servlet-class&gt;
+  &lt;/servlet&gt;
+
+  &lt;servlet-mapping&gt;
+     &lt;servlet-name&gt;OwaspJavaScriptServlet&lt;/servlet-name&gt;
+     &lt;url-pattern&gt;/OwaspJavaScriptServlet&lt;/url-pattern&gt;
+  &lt;/servlet-mapping&gt;
+
+  &lt;filter&gt;
+    &lt;filter-name&gt;CSRFGuard&lt;/filter-name&gt;
+    &lt;filter-class&gt;org.owasp.csrfguard.CsrfGuardFilter&lt;/filter-class&gt;
+  &lt;/filter&gt;
+  &lt;filter-mapping&gt;
+    &lt;filter-name&gt;CSRFGuard&lt;/filter-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+  &lt;/filter-mapping&gt;
+
+
+
+
+
+7.       It is *very* inconvenient to hardcode the servlet context (app name) in the configuration.  Differente envs could have different app names for the same app.  So I added a variable that can be used in the config to represent the context root.  Here is the doc and examples
+
+# Common substitutions
+# %servletContext%  is the servlet context (e.g. the configured app prefix or war file name, or blank.
+# e.g. if you deploy a default warfile as someApp.war, then %servletContext% will be /someApp
+# if there isnt a context it will be the empty string.  So to use this in the configuration, use e.g. %servletContext%/something.html
+# which will translate to e.g. /someApp/something.html
+
+org.owasp.csrfguard.unprotected.Ajax=%servletContext%/ajax.html
+org.owasp.csrfguard.unprotected.Error=%servletContext%/error.html
+org.owasp.csrfguard.unprotected.Index=%servletContext%/index.html
+org.owasp.csrfguard.unprotected.JavaScript=%servletContext%/javascript.html
+
+
+
+8.       I took the concept from Victor Yushenko to be able to have protected or unprotected pages by regex.  My implementation is a little different since it is backwards compatible with the existing configuration.  Here is the config and example
+
+# Case 1: exact match between request uri and unprotected page
+# Case 2: longest path prefix match, beginning / and ending /*
+# Case 3: extension match, beginning *.
+# Case 4: if the value starts with ^ and ends with $, it will be evaulated as a regex.  Note that before the
+#   regex is compiled, any common variables will be substituted (e.g. %servletContext%)
+# Default: requested resource must be validated by CSRFGuard
+
+# regex example starts with ^ and ends with $, and the %servletContext% is evaluated before the regex
+# org.owasp.csrfguard.unprotected.PublicServlet=^%servletContext%/.*Public\.do$
+
+
+
+9.       There are a handful of cases where String.replaceAll() is used when String.replace() should be used.  I fixed those.  Note, in some cases in the source String.replaceAll() was correct, and I left those
+
+10.   I feel like in security you should deny all and pick what you want to allow.  But in the HTTP methods, it is opposite.  I added a way to allow methods you want to allow the ones you want and deny the rest.  It is backwards compatible
+
+# only available by POST requests when in fact some are available via GET requests. If the
+# user has excluded GET requests from the list then they have introduced a vulnerability.
+# The following configuration snippet instructs OWASP CSRFGuard to protect only the POST,
+# PUT, and DELETE HTTP methods.
+#
+# org.owasp.csrfguard.ProtectedMethods=POST,PUT,DELETE
+
+# or you can configure all to be protected, and specify which is unprotected.  This is the preferred approach
+
+# org.owasp.csrfguard.UnprotectedMethods=GET
+
+
+11.   The javascript servlet does a GET, then the JS posts to itself again, and it doesn't send a token, and this is inconvenient if you just want to allow GET, you shouldn't have to whitelist the Javascript servlet.  So now automatically after the first GET, the Javascript servlet is whitelisted so you don't have to add it to the unprotected page list
+
+12.   If the config file name is not mentioned in the web.xml, it will try to get configuration from the classpath:Owasp.CsrfGuard.properties
+
+13.   You can log the HTTP method when logging CSRF problems, and it does this by default.  Also it looks in more places for the user using the app (e.g. REMOTE_USER request attribute)
+
+14.   In the javascript referrer checking, there is an option to simply check to see that the referrer is the same domain as the javascript request.  This is easier for people to configure and should do the trick.  It defaults to on.  Note, if the referrer is missing, it wont cause a problem (just like the regex option)
+
+# Similar to javascript servlet referer pattern, but this will make sure the referer of the
+# javascript servlet matches the domain of the request.  If there is no referer (proxy strips it?)
+# then it will not fail.  Generally this is a good idea to be true.
+org.owasp.csrfguard.JavascriptServlet.refererMatchDomain = true
+
+
+Thanks,
+Chris
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20140420/51f8ca96/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20140420/51f8ca96/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000298.html">[Owasp-csrfguard] Community Question regarding OWASP-CSRF
+</A></li>
+	<LI>Next message: <A HREF="000302.html">[Owasp-csrfguard] pull request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#301">[ date ]</a>
+              <a href="thread.html#301">[ thread ]</a>
+              <a href="subject.html#301">[ subject ]</a>
+              <a href="author.html#301">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

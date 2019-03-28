@@ -1,0 +1,324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Modsecurity%20crs%202.1.1%0A%2041_advanced_filters%20%26%20Lua%20issue&In-Reply-To=1298315836.2315.23.camel%40chris-desktop">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000629.html">
+   <LINK REL="Next"  HREF="000621.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Modsecurity%20crs%202.1.1%0A%2041_advanced_filters%20%26%20Lua%20issue&In-Reply-To=1298315836.2315.23.camel%40chris-desktop"
+       TITLE="[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue">rcbarnett at gmail.com
+       </A><BR>
+    <I>Mon Feb 21 14:34:13 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000629.html">[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+</A></li>
+        <LI>Next message: <A HREF="000621.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#630">[ date ]</a>
+              <a href="thread.html#630">[ thread ]</a>
+              <a href="subject.html#630">[ subject ]</a>
+              <a href="author.html#630">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ah, right.  Sorry, I assumed you already had lrexlib installed.
+
+I will update the comments in the modsecurity_crs_41_advanced_filters.conf
+file for the SecRuleScript line.
+
+Let me know if you run into any more issues and also how the Lua
+script/rules work.
+
+-Ryan
+
+
+On 2/21/11 2:17 PM, &quot;Chris Swanson&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">chris at riverstyx.net</A>&gt; wrote:
+
+&gt;<i>Here is the solution to the problem:
+</I>&gt;<i>
+</I>&gt;<i>After installing BitOp which Ryan suggested in a previous message
+</I>&gt;<i>(<A HREF="http://bitop.luajit.org/download.html">http://bitop.luajit.org/download.html</A>) we we're still getting the same
+</I>&gt;<i>error. The Lua script also has a require for rex_pcre, which we were
+</I>&gt;<i>missing. 
+</I>&gt;<i>
+</I>&gt;<i>This isn't available out of the Debian repo for Lenny so I've installed
+</I>&gt;<i>it from the Ubuntu Lucid repo.
+</I>&gt;<i>
+</I>&gt;<i>liblua5.1-rex-pcre0_2.4.0-1_amd64.deb
+</I>&gt;<i>liblua5.1-rex-pcre-dev_2.4.0-1_amd64.deb
+</I>&gt;<i>
+</I>&gt;<i>dependencies:
+</I>&gt;<i>
+</I>&gt;<i>libpcre3_7.8-3build1_amd64.deb
+</I>&gt;<i>libpcre3-dev_7.8-3build1_amd64.deb
+</I>&gt;<i>libpcrecpp0_7.8-3build1_amd64.deb
+</I>&gt;<i>
+</I>&gt;<i>Again, here is the original error:
+</I>&gt;<i>
+</I>&gt;<i>Unknown  | Lua: Script execution failed: attempt to call a nil value
+</I>&gt;<i>Unknown  | Rule processing failed.
+</I>&gt;<i>
+</I>&gt;<i>I'm not sure if BitOp and rex_pcre are stated as requirements outside of
+</I>&gt;<i>the script, but it might be worth adding. (Apologies if I've missed it)
+</I>&gt;<i>
+</I>&gt;<i>Thanks again for the assistance.
+</I>&gt;<i>-Chris
+</I>&gt;<i>
+</I>&gt;<i>On Mon, 2011-02-07 at 11:09 -0800, Chris Swanson wrote:
+</I>&gt;&gt;<i> Hi, we haven't had any luck with this issue, just wondering if anyone
+</I>&gt;&gt;<i> else has seen this or knows a solution?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Here is the original email and a response follow up with some
+</I>&gt;&gt;<i> suggestions.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks
+</I>&gt;&gt;<i> -Chris
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> On Wed, 2011-01-26 at 16:37 -0800, Chris Swanson wrote:
+</I>&gt;&gt;<i> &gt; Hi, we're having a hard time with the new update(s) and Lua in our
+</I>&gt;&gt;<i> &gt; testing environment. Here's the error we're seeing in Audit Console,
+</I>&gt;&gt;<i> &gt; this is opening up a single transaction:
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Unknown  | Lua: Script execution failed: attempt to call a nil value
+</I>&gt;&gt;<i> &gt; Unknown  | Rule processing failed.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; This is happening with modsecurity 2.5.13 and modsec CRS 2.1.1 on
+</I>&gt;&gt;<i> &gt; our
+</I>&gt;&gt;<i> &gt; Debian 5 servers, apache is configured with:
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; ./configure --prefix=/usr/local/apache --disable-userdir
+</I>&gt;&gt;<i> &gt; --enable-rewrite --enable-so --enable-info --enable-status
+</I>&gt;&gt;<i> &gt; --enable-ssl
+</I>&gt;&gt;<i> &gt; --enable-cgi --enable-unique-id --enable-mime-magic
+</I>&gt;&gt;<i> &gt; --with-included-apr
+</I>&gt;&gt;<i> &gt; --with-pcre=/usr/bin/pcre-config --enable-deflate --enable-expires
+</I>&gt;&gt;<i> &gt; --enable-headers
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; modsecuirty cofigured with:
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; ./configure --with-apxs=/usr/local/apache/bin/apxs
+</I>&gt;&gt;<i> &gt; --with-apr=/usr/local/apache/bin/apr-1-config
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; I've narrowed it down to the include in our http.conf for
+</I>&gt;&gt;<i> &gt; modsecurity_crs_41_advanced_filters.conf, which was previously
+</I>&gt;&gt;<i> &gt; working
+</I>&gt;&gt;<i> &gt; as the phpids rules. Even further, by commenting out this section at
+</I>&gt;&gt;<i> &gt; the
+</I>&gt;&gt;<i> &gt; top of the 41_advanced_filters file everything works fine:
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; # Lua script to normalize input payloads
+</I>&gt;&gt;<i> &gt; # Based on PHPIDS Converter.php code
+</I>&gt;&gt;<i> &gt; # Reference the following whitepaper -
+</I>&gt;&gt;<i> &gt; # <A HREF="http://docs.google.com/Doc?id=dd7x5smw_17g9cnx2cn">http://docs.google.com/Doc?id=dd7x5smw_17g9cnx2cn</A>
+</I>&gt;&gt;<i> &gt; # 
+</I>&gt;&gt;<i> &gt; SecRuleScript ../lua/advanced_filter_converter.lua
+</I>&gt;&gt;<i> &gt; &quot;phase:2,t:none,pass&quot;
+</I>&gt;&gt;<i> &gt; SecRule TX:/centrifuge_ratio/ &quot;.*&quot;
+</I>&gt;&gt;<i> &gt; &quot;phase:2,t:none,log,capture,msg:'Centrifuge Threshold Alert - Ratio
+</I>&gt;&gt;<i> &gt; Value is: %{tx.0}'&quot;
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Here is the modsecurity includes in our http.conf
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; #modsecurity Rules
+</I>&gt;&gt;<i> &gt; Include conf/modsecurity.conf
+</I>&gt;&gt;<i> &gt; Include conf/modsecurity-crs_2.1.1/*.conf
+</I>&gt;&gt;<i> &gt; Include
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i>conf/modsecurity-crs_2.1.1/experimental_rules/modsecurity_crs_41_advanced
+</I>&gt;&gt;<i>_filters.conf
+</I>&gt;&gt;<i> &gt; Include
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i>conf/modsecurity-crs_2.1.1/optional_rules/modsecurity_crs_25_cc_known.con
+</I>&gt;&gt;<i>f
+</I>&gt;&gt;<i> &gt; Include conf/modsecurity-crs_2.1.1/base_rules/*conf
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; With the same setup and versions Modsecurity/Apache, CRS 2.0.10
+</I>&gt;&gt;<i> &gt; worked
+</I>&gt;&gt;<i> &gt; perfectly. We could move forward without Lua functionally, but I'm
+</I>&gt;&gt;<i> &gt; lost
+</I>&gt;&gt;<i> &gt; as to why such a big addition would be broken from the get-go.
+</I>&gt;&gt;<i> &gt; Haven't
+</I>&gt;&gt;<i> &gt; been able to find anyone posting with a similar issue so any help
+</I>&gt;&gt;<i> &gt; would
+</I>&gt;&gt;<i> &gt; be greatly appreciated.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Thanks,
+</I>&gt;&gt;<i> &gt; -Chris
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &gt; A couple questions -
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 1) Did you modify the path to Lua in the script to point to your
+</I>&gt;&gt;<i> local
+</I>&gt;&gt;<i> &gt; version?
+</I>&gt;&gt;<i> &gt; 2) Did you install the additional bitop Lua module?
+</I>&gt;&gt;<i> &gt; <A HREF="http://bitop.luajit.org/">http://bitop.luajit.org/</A>
+</I>&gt;&gt;<i> &gt;    It is specified at the top of the script in a require statement.
+</I>&gt;&gt;<i> &gt; This
+</I>&gt;&gt;<i> &gt; is needed for the Octal to Decimal conversions.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I was missing Bitop, I've installed it from source, changed the
+</I>&gt;&gt;<i> install
+</I>&gt;&gt;<i> path for Debian, and I believe it's working as we can run the included
+</I>&gt;&gt;<i> bitbench.lua with no errors. The Lua problem still exists.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &gt; 3) What was the request that triggered this error?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> It triggers on any request, the one I've been using the most is
+</I>&gt;&gt;<i> accessing the page via IP instead of hostname, here's a breakdown of
+</I>&gt;&gt;<i> all
+</I>&gt;&gt;<i> the information regarding the request:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> ----------------------
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Alert Messages:
+</I>&gt;&gt;<i> The following messages have been raised for this event:
+</I>&gt;&gt;<i>         Severity
+</I>&gt;&gt;<i>         Rule ID
+</I>&gt;&gt;<i>         Message
+</I>&gt;&gt;<i> UNKNOWN
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Lua: Script execution
+</I>&gt;&gt;<i> failed: attempt to call
+</I>&gt;&gt;<i> a nil value
+</I>&gt;&gt;<i> Rule-Message:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> UNKNOWN
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Rule processing failed.
+</I>&gt;&gt;<i> Rule-Message:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Rules Section
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> The following rules have been fired for this event:
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass
+</I>&gt;&gt;<i> setvar:tx.anomaly_score_blocking=on
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass setvar:tx.critical_anomaly_score=5
+</I>&gt;&gt;<i> setvar:tx.error_anomaly_score=4 setvar:tx.warning_anomaly_score=3
+</I>&gt;&gt;<i> setvar:tx.notice_anomaly_score=2
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass
+</I>&gt;&gt;<i> setvar:tx.inbound_anomaly_score_level=5
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass
+</I>&gt;&gt;<i> setvar:tx.outbound_anomaly_score_level=4
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass setvar:tx.paranoid_mode=0
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass setvar:tx.max_num_args=255
+</I>&gt;&gt;<i> SecAction phase:1 t:none nolog pass setvar:'tx.allowed_methods=GET
+</I>&gt;&gt;<i> HEAD
+</I>&gt;&gt;<i> POST OPTIONS'
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded
+</I>&gt;&gt;<i> multipart/form-data text/xml application/xml application/x-amf'
+</I>&gt;&gt;<i>setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1'
+</I>&gt;&gt;<i>setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+</I>&gt;&gt;<i>.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/
+</I>&gt;&gt;<i>.csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/
+</I>&gt;&gt;<i>.ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/
+</I>&gt;&gt;<i>.pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/
+</I>&gt;&gt;<i>.webinfo/ .xsd/ .xsx/' setvar:'tx.restricted_headers=/Lock-Token/
+</I>&gt;&gt;<i>/Content-Range/ /Translate/ /via/ /if/'
+</I>&gt;&gt;<i> SecRule REQUEST_HEADERS:User-Agent @rx ^(.*)$ phase:1 t:none pass
+</I>&gt;&gt;<i> nolog
+</I>&gt;&gt;<i> t:sha1 t:hexEncode setvar:tx.ua_hash=%{matched_var}
+</I>&gt;&gt;<i> SecAction phase:1 t:none pass nolog initcol:global=global initcol:ip=
+</I>&gt;&gt;<i> %{remote_addr}_%{tx.ua_hash}
+</I>&gt;&gt;<i> SecAction phase:4 t:none nolog skipAfter:END_KNOWN_CC_OUTBOUND_CHECK\
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Request
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> GET / HTTP/1.1
+</I>&gt;&gt;<i> Host:
+</I>&gt;&gt;<i> 172.16.100.191
+</I>&gt;&gt;<i> Connection:
+</I>&gt;&gt;<i> keep-alive
+</I>&gt;&gt;<i> Accept:
+</I>&gt;&gt;<i> application/xml,application/xhtml
+</I>&gt;&gt;<i> +xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+</I>&gt;&gt;<i> User-Agent:
+</I>&gt;&gt;<i> Mozilla/5.0 (X11; U; Linux x86_64;
+</I>&gt;&gt;<i> en-US) AppleWebKit/534.10 (KHTML,
+</I>&gt;&gt;<i> like Gecko) Chrome/8.0.552.200
+</I>&gt;&gt;<i> Safari/534.10
+</I>&gt;&gt;<i> Accept-Encoding:
+</I>&gt;&gt;<i> gzip,deflate,sdch
+</I>&gt;&gt;<i> Accept-Language:
+</I>&gt;&gt;<i> en-US,en;q=0.8
+</I>&gt;&gt;<i> Accept-Charset:
+</I>&gt;&gt;<i> ISO-8859-1,utf-8;q=0.7,*;q=0.3
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> ----------------------
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &gt; You can still run it in this manner but since it will NOT be
+</I>&gt;&gt;<i> &gt; normalizing
+</I>&gt;&gt;<i> &gt; data in the same way as PHPIDS, there will be a higher % of false
+</I>&gt;&gt;<i> &gt; positives/false negatives.
+</I>&gt;&gt;<i> &gt; We did put this in the experimental directory after all ;)
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> True enough!
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &gt;  Seriously, we
+</I>&gt;&gt;<i> &gt; need more people to field test this new, advanced functionality.  I
+</I>&gt;&gt;<i> &gt; applaud you for jumping in!  Don't give up on it, hopefully we can
+</I>&gt;&gt;<i> get
+</I>&gt;&gt;<i> &gt; it
+</I>&gt;&gt;<i> &gt; working for you.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; -Ryan
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Glad we can help out, we will keep on it until it's resolved.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -Chris
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> 
+</I>&gt;<i>
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000629.html">[Owasp-modsecurity-core-rule-set] Modsecurity crs 2.1.1 41_advanced_filters &amp; Lua issue
+</A></li>
+	<LI>Next message: <A HREF="000621.html">[Owasp-modsecurity-core-rule-set] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#630">[ date ]</a>
+              <a href="thread.html#630">[ thread ]</a>
+              <a href="subject.html#630">[ subject ]</a>
+              <a href="author.html#630">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

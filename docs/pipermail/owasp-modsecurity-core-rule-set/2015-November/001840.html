@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rules%20981172%20and%20981173%20in%203.0.0&In-Reply-To=%3C20151119101314.GA15682%40elias%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="001841.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rules%20981172%20and%20981173%20in%203.0.0&In-Reply-To=%3C20151119101314.GA15682%40elias%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0">christian.folini at time-machine.ch
+       </A><BR>
+    <I>Thu Nov 19 10:13:14 UTC 2015</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="001841.html">[Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1840">[ date ]</a>
+              <a href="thread.html#1840">[ thread ]</a>
+              <a href="subject.html#1840">[ subject ]</a>
+              <a href="author.html#1840">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi there,
+
+The rule 981173 was recently updated in the 2.9 core rule branch
+to reduce the uuid induced false positives for the rule.
+
+Uuids are indeed a major source of false positives on this rule,
+also in installations I know.
+
+The said update pulled in a request which raised the limit of
+acceptable number of special characters from 3 to 4. This is the
+rule as it stands now with &quot;{5,}&quot; meaning an alert is triggered when
+5 special chars are detected.
+
+<A HREF="https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/263">https://github.com/SpiderLabs/owasp-modsecurity-crs/pull/263</A>
+
+SecRule ARGS_NAMES|ARGS|XML:/* &quot;([\~\!\@\#\$\%\^\&amp;\*\(\)\-\+\=\{\}\[\]\|\:\;\&quot;\'\&#180;\&#8217;\&#8216;\`\&lt;\&gt;].*?){5,}&quot; &quot;phase:2,t:none,t:urlDecodeUni,block,id:'981173',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'8',msg:'Restricted SQL Character Anomaly Detection Alert - Total # of special characters exceeded',capture,logdata:'Matched Data: %{TX.1} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}',tag:'OWASP_CRS/WEB_ATTACK/SQL_INJECTION',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.sql_injection_score=+1,setvar:'tx.msg=%{rule.msg}',setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/RESTRICTED_SQLI_CHARS-%{matched_var_name}=%{tx.0}&quot;
+
+I think coping with the uuid problem is a good idea. But raising
+the limit seems a poor handling of the false positives, when
+a whitelisting of the uuid pattern like
+
+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+or simpler
+^[0-9a-f-]{36}$
+
+would have been enough.
+
+It's true, that 981173 and it's ally 981172 are gone with the upcoming
+3.0.0 release. So maybe this little update is not very significant.
+But I think it is. 
+
+And I think 981173 and 981172 should stay. Not only because of SQLi, 
+But because they are the guardsmen doing a lot of dirty work for many 
+installations beyond SQLi. In many, many occasions, when there is something 
+amiss with a request, 981172 and 73 will issue an alert.
+The false positive rate is high, I admit. But in my experience, many 
+attackers managed to evade most other rules, but these two guardsmen 
+still alerted. Remember 981173 used to alert on the occurrence of 4
+special characters in a parameter. So I would argue, that the false negative 
+rate of 981172 and 981173 is lower than with other rules.
+
+The two rules come with an anomaly score of &quot;warning&quot;. That's fair given
+the high false positive rate and still enough to examine their alarms.
+
+So I propose to include them into 3.0.0 as well. I think there is still
+some room in REQUEST-42-APPLICATION-ATTACK-SQLI.conf for these two
+guys. I plan to issue a pull request to accomplish this.
+
+It will take some feedback for this proposal to go through. So please give
+me some. Maybe we can improve the rules before the said pull request.
+
+Best,
+
+Christian Folini
+
+
+-- 
+The most dangerous thought that you can have as a creative person is
+to think that you know what you're doing. Because once you think you 
+know what you're doing you stop looking around for other ways of doing 
+things and you stop being able to see other ways of doing things. 
+You become blind.
+-- Bret Victor
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="001841.html">[Owasp-modsecurity-core-rule-set] Rules 981172 and 981173 in 3.0.0
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1840">[ date ]</a>
+              <a href="thread.html#1840">[ thread ]</a>
+              <a href="subject.html#1840">[ subject ]</a>
+              <a href="author.html#1840">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

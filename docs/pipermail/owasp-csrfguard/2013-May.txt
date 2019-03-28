@@ -1,0 +1,234 @@
+From amolk112k at gmail.com  Thu May  2 11:44:32 2013
+From: amolk112k at gmail.com (Amol Kulkarni)
+Date: Thu, 2 May 2013 17:14:32 +0530
+Subject: [Owasp-csrfguard] Newbie question
+Message-ID: <CABhJRgONUr7e4xns4uuvGCsqev_AbWTr2e3q+Uex9jaqpNA2hA@mail.gmail.com>
+
+Hi,
+
+I've a simple Email application in servlets. I want to secure email sending
+using the csrfguard. The Compose and Send servlets are differerent. The
+compose servlet just displays the compose page and the send page is invoked
+to send the mail.
+
+
+I've installed and configured it according to the document.
+
+For protecting the send page, I've added it in filter like :
+    <filter-mapping>
+                <filter-name>CSRFGuard</filter-name>
+                <url-pattern>/servlet/Send</url-pattern>
+        </filter-mapping>
+
+
+When any user logs in and sends mail, he gets error from csrf. In log it
+shows :
+
+[Thu May 02 17:02:27 IST 2013] [Info] CsrfGuard analyzing request
+/baya/servlet/Send
+[Thu May 02 17:02:27 IST 2013] [Error] potential cross-site request forgery
+(CSRF) attack thwarted (user:abuse at test.int, ip:192.168.0.17,
+uri:/baya/servlet/Send, error:required token is missing from the request
+org.owasp.csrfguard.CsrfGuardException: required token is missing from the
+request)
+
+
+I think I'm missing something here.
+Can anyone help me out ?
+
+Thanks,
+Amol.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130502/a8b728c6/attachment.html>
+
+From armyofda12mnkeys at gmail.com  Thu May  2 13:25:22 2013
+From: armyofda12mnkeys at gmail.com (Arian)
+Date: Thu, 2 May 2013 09:25:22 -0400
+Subject: [Owasp-csrfguard] Newbie question
+In-Reply-To: <CABhJRgONUr7e4xns4uuvGCsqev_AbWTr2e3q+Uex9jaqpNA2hA@mail.gmail.com>
+References: <CABhJRgONUr7e4xns4uuvGCsqev_AbWTr2e3q+Uex9jaqpNA2hA@mail.gmail.com>
+Message-ID: <CANZ6e7zDULW3gvtAcwhvpf0BO=-2zAXvXj=oK5JBTdEPUSJ=kg@mail.gmail.com>
+
+just some quick suggestions...
+
+Is your token on your Compose page?
+Can you look at the source and see it at the bottom of the form?
+(if using their Javascript way to inject the token, then need to look at
+DOM via Firebug or something or can just View Source if using their
+server-side tag library to inject it).
+
+if it is there, you can compare what is on the form vs what token is on
+that server after you land on the Compose page (can create a 3rd
+jsp/Servlet that outputs session vars [or you can set a breakpoint in that
+3rd page, and see what the session holds after you land on Compose]).
+
+-Arian
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130502/7309fbc3/attachment.html>
+
+From MCheung at tmrs.com  Mon May  6 16:07:44 2013
+From: MCheung at tmrs.com (Cheung, Ming)
+Date: Mon, 6 May 2013 16:07:44 +0000
+Subject: [Owasp-csrfguard] Where is the SVN repository for Alpha version
+ OWASP CSRFGuard 3.0.0.503 (ALPHA)
+In-Reply-To: <28B3FE87AB2E1847A5FE9B8C0A4CC6ED086E8914@Post.intra.tmrs.org>
+References: <28B3FE87AB2E1847A5FE9B8C0A4CC6ED086E85E4@Post.intra.tmrs.org>
+	<28B3FE87AB2E1847A5FE9B8C0A4CC6ED086E85FC@Post.intra.tmrs.org>
+	<512FD538.6070209@stanford.edu>
+	<28B3FE87AB2E1847A5FE9B8C0A4CC6ED086E8914@Post.intra.tmrs.org>
+Message-ID: <28B3FE87AB2E1847A5FE9B8C0A4CC6ED086FA3BC@Post.intra.tmrs.org>
+
+How can I redirect a http call from a protected servlet to another protected servlet? Currently, CSRFGuard 3.0.0.503 always claims this redirection as invalid and sends me to an error page.
+
+
+I have the following setup in the web.xml.
+
+
+	<filter-mapping>
+		<filter-name>CSRFGuard</filter-name> 
+		<url-pattern>/CreateUsers</url-pattern>
+		<url-pattern>/EditUsers</url-pattern>
+		<url-pattern>/DeleteUser</url-pattern>
+	</filter-mapping>
+
+
+My application creates a user first with /CreateUsers servlet, once it completes, /CreateUsers servlet redirects to /EditUsers servlet for newly created users modification. However, CSRFGuard always complained about this and redirects this call to an error page instead.
+
+
+Does CSRFGuard 3.0.0.503 support a similar property from CSRFGuard 2.2? I think this is a very useful property while a protected resource, is used in between http redirection.
+
+
+# Parameterless Token Validation
+#
+# Define whether or not the token validation should occur
+# on pages that do not have HTTP parameters (except for the token itself).
+#
+# If false, only validate when there is at least one parameter
+# If true, validate regardless of the number of parameters
+#
+# Ex: /CSRFGuardTestAppVulnerable/index.jsp has no parameters. No need to validate. Clicking refresh will cause issues.
+# Ex: /AddCart/32 has no parameters. Visiting the URL will add item '32' to cart. We must validate token
+org.owasp.csrfguard.ParameterlessValidation=false
+
+
+
+
+Thanks,
+Ming
+
+-----Original Message-----
+From: Cheung, Ming [mailto:MCheung at tmrs.com] 
+Sent: Tuesday, March 05, 2013 11:50 AM
+To: Patrick Radtke
+Cc: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Where is the SVN repository for Alpha version OWASP CSRFGuard 3.0.0.503 (ALPHA)
+
+First of all, Thanks Patrick for providing the download link.
+
+I just learned the download link is NOT for the Alpha version OWASP CSRFGuard 3.0.0.503 (ALPHA), It is for the trunk.
+
+Does anyone have the instructions on how to use the latest CSRFguard from the trunk? Because CSRFGuard 3.0.0.503 (ALPHA) instructions, https://www.owasp.org/index.php/CSRFGuard_3_Installation, is already out of date.
+
+
+1. Which Listener should be use? CsrfGuardHttpSessionListener or CsrfGuardServletContextListener? 
+
+2. What is the difference?
+
+3. Which Guard class should be added to the Web.xml? CsrfGuardFilter? Or CsrfGuard?
+
+4. Comparing to the latest code from trunk, CSRFGuard 3.0.0.503 (ALPHA) works better. CSRFGuard 3.0.0.503 (ALPHA) only failed on one single page with "Required token is missing from the request", therefore, does anyone has the link for the CSRFGuard 3.0.0.503 (ALPHA)?
+
+
+Thanks,
+Ming
+
+
+
+-----Original Message-----
+From: Patrick Radtke [mailto:pradtke at stanford.edu]
+Sent: Thursday, February 28, 2013 4:08 PM
+To: Cheung, Ming
+Cc: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Where is the SVN repository for Alpha version OWASP CSRFGuard 3.0.0.503 (ALPHA)
+
+https://github.com/esheri3/OWASP-CSRFGuard
+
+
+On 2/28/13 1:25 PM, Cheung, Ming wrote:
+> RA layer request failed
+>
+> svn: Server sent unexpected return value (405 Method Not Allowed) in 
+> response to OPTIONS request for 'http://owaspcsrfguard.googlecode.com'
+>
+> Thanks,
+>
+> Ming
+>
+> *From:*Cheung, Ming [mailto:MCheung at tmrs.com]
+> *Sent:* Thursday, February 28, 2013 3:08 PM
+> *To:* owasp-csrfguard at lists.owasp.org
+> *Subject:* [Owasp-csrfguard] Where is the SVN repository for Alpha 
+> version OWASP CSRFGuard 3.0.0.503 (ALPHA)
+>
+> Hi There,
+>
+> The CSRFGuard failed on certain pages of my application, Could someone 
+> please point me to the SVN repository for downloading the java source?
+>
+> Thanks,
+>
+> Ming
+>
+> ###################################################################
+> CONFIDENTIALITY NOTICE: This communication, including attachments, is 
+> intended only for the use of the individual or entity to which it is 
+> addressed and may contain information that is privileged, 
+> confidential, and exempt from disclosure under applicable law.
+> If you are not the intended recipient, you are notified that any use, 
+> dissemination, forwarding, distribution, or copying of the 
+> communication is strictly prohibited. Please notify the sender 
+> immediately by e-mail if you have received this communication by 
+> mistake and delete all copies of the original message and attachments 
+> from your system.
+> ###################################################################
+>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+
+
+###################################################################
+CONFIDENTIALITY NOTICE: This communication, including attachments, is intended only for the use of the individual or entity to which it is addressed and may contain information that is privileged, confidential, and exempt from disclosure under applicable law.
+If you are not the intended recipient, you are notified that any use, dissemination, forwarding, distribution, or copying of the communication is strictly prohibited. Please notify the sender immediately by e-mail if you have received this communication by mistake and delete all copies of the original message and attachments from your system.
+###################################################################
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+From dhalliyur at yahoo.com  Wed May 29 20:42:38 2013
+From: dhalliyur at yahoo.com (Dharanesha Halliyur)
+Date: Wed, 29 May 2013 13:42:38 -0700 (PDT)
+Subject: [Owasp-csrfguard] I cannot build the latest CSRF Guard project. The
+	<replace> type doesn't support the "failonnoreplacements" attribute.
+Message-ID: <1369860158.53199.YahooMailClassic@web121904.mail.ne1.yahoo.com>
+
+
+Hello,?I get below error when I tried to build the CSRF project. Let me know if I need to set any parameters. I use the Apache Ant version 1.6.5 compiled on June 2 2005.?Hope to get response of this. Thank You...?
+C:\Users\f353509\Desktop\OWASP-CSRFGuard-master\Owasp.CsrfGuard>ant dist?Buildfile: build.xml?
+version:?
+init:?
+compile:?
+build:?
+dist:?
+BUILD FAILED?Owasp.CsrfGuard\build.xml:51: The <replace> type doesn't support the "failonnoreplacements" attribute.?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130529/66b53c44/attachment.html>
+

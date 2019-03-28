@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rules triggering False Positives frequently
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rules%20triggering%20False%0A%20Positives%20frequently&In-Reply-To=%3C20160201081202.GA1369%40elias%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="001885.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rules triggering False Positives frequently</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rules%20triggering%20False%0A%20Positives%20frequently&In-Reply-To=%3C20160201081202.GA1369%40elias%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rules triggering False Positives frequently">christian.folini at netnea.com
+       </A><BR>
+    <I>Mon Feb  1 08:12:02 UTC 2016</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="001885.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1884">[ date ]</a>
+              <a href="thread.html#1884">[ thread ]</a>
+              <a href="subject.html#1884">[ subject ]</a>
+              <a href="author.html#1884">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Good morning Walter,
+
+Thank you for your detailed info and the remarks on the wiki page. This
+is exactly what we need to get a broader view on the problems to make
+informed decisions.
+
+It looks as if we agree in most cases. Where I am not sure if we really
+agree, I plan to take the discussion here to come to a conclusion.
+
+On Sat, Jan 30, 2016 at 05:13:06PM +0100, Walter Hop wrote:
+&gt;<i> 3) Rules from subdirectories in v2 which are no longer in v3.0.0-rc1, but we want to bring them back in paranoid mode because we think they do have worth. Bringing these rules back does not affect security for normal mode users. (experimental_rules, optional_rules, slr_rules)
+</I>&gt;<i>
+</I>&gt;<i> I have looked at these, but I would recommend that more people look at them too. Most of them are uninteresting to me, so it's fine that they are removed. The slr_rules look quite outdated in particular. It's worth looking through experimental_rules and optional_rules though. I have added some possible candidates for us here, although I have no experience with them in production, so maybe Chaim can chime in if there are strong reasons for keeping them removed: <A HREF="https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode#Optional.2C_experimental.2C_slr_rules">https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode#Optional.2C_experimental.2C_slr_rules</A>
+</I>
+Looking into these three separate subfolders is very useful. I was
+willing to omit this work in order to push things ahead. It is very
+good that at least you took a closer look. It would be even better if
+somebody else would repeat this effort.
+
+
+&gt;<i> Finally, I noticed that some candidates might be considered paranoid but are currently already in the normal mode at notice_anomaly_score level (for example, User-Agent, Accept, Host header existence checks). These rules do not block in isolation, so we should keep in mind that the possible negative impact of FP on them is limited. Maybe it would be a useful task to add the scoring level as a column in the wiki.
+</I>
+As 90% of the rules are on critical, I think a remark in the remark
+column would do.
+
+I think some of these might be cloning-candidates:
+In standard mode, they are anomaly level &quot;notice&quot;. When in paranoid
+mode, the same rule is repeated, but with anomaly level &quot;warning&quot;.
+That way you end up with up with &quot;notice&quot; + &quot;warning&quot; = &quot;critical&quot;.
+
+&gt;<i> In fact, we might even consider that any paranoid rules are possibly worth keeping in the 'normal mode' as lower-scoring rules - and just have paranoid mode bump up their score level, e.g. from 2 to 5. After all, if a normal user would consider the occurrence of 3 harmless protocol violations as a valid blocking heuristic, why not the occurrence of 3 paranoid rules? This last situation might be probably more predictive of an attack.
+</I>
+This!
+
+The other option I have in mind is repeating rules with stricter limits.
+To give you an example:
+960901/920270 does @validateByteRange 1-255.
+In paranoid mode, the same rule could be repeated with @validateByteRange 32-126.
+
+Ahoj,
+
+Christian
+
+
+
+-- 
+There has grown in the minds of certain groups in this country the idea 
+that just because a man or corporation has made a profit out of the public 
+for a number of years, the government and the courts are charged with 
+guaranteeing such a profit in the future, even in the face of changing 
+circumstances and contrary to public interest. This strange doctrine is 
+supported by neither statute or common law. Neither corporations or 
+individuals have the right to come into court and ask that the clock 
+of history be stopped, or turned back.
+--- Robert Heinlein, Life-Line, 1939
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="001885.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1884">[ date ]</a>
+              <a href="thread.html#1884">[ thread ]</a>
+              <a href="subject.html#1884">[ subject ]</a>
+              <a href="author.html#1884">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

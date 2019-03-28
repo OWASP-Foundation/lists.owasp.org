@@ -1,0 +1,108 @@
+From cmorris at part.net  Thu Aug 20 16:48:03 2009
+From: cmorris at part.net (cam)
+Date: Thu, 20 Aug 2009 20:48:03 -0000
+Subject: [Owasp-csrfguard] CSRFGuard Additions
+In-Reply-To: <1245172819.7537.53.camel@cam.part.net>
+References: <1245172819.7537.53.camel@cam.part.net>
+Message-ID: <1250801659.3583.46.camel@cam.part.net>
+
+Attached is the source of a version of CSRFGuard that includes a JAAS
+Login Method, and a pluggable TokenStrategy.  The motivation behind this
+work is to share a CSRF token across applications that have SSO enabled
+but don't share a session object.  
+
+This doesn't include any of the struts2 work we proposed a few months
+back.
+
+Here is the readme:
+
+
+
+This version of CSRFGuard is as build by PartNet.  It is built on the
+2.2 beta version.
+It adds the following features:
+- JAAS LoginModule that places a token name and value on the Subject
+(For sharing tokens across web-applications)
+- Pluggable strategy for obtaining token names and values
+- SubjectTokenStrategy for obtaining token name and value from the
+Subject
+- VariableLengthTokenStrategy for random token names and variable length
+tokens values
+
+Questions? Contact Cam Morris at cmorris at part.net
+
+
+
+On Tue, 2009-06-16 at 11:20 -0600, cam wrote: 
+> Hello CSRFGuard Folks,
+> 
+> My company, PartNet, has been evaluating different CSRF prevention tools
+> and settled on building our own.  But, as we've been designing and
+> coding it, we've had interoperability with CSRFGuard in mind.  PartNet
+> just gave permission to donate any work on this tool to OWASP so I'd
+> like to discuss the merits of the contribution and design with you.
+> 
+> What it is:
+> Most of this includes integration with the struts2 framework, a struts2
+> interceptor, struts2 theme, and a struts2 URL tag.  The only part that
+> isn't struts related is a JAAS login method. 
+> 
+> JAAS Login Method:
+> One problem we faced in using CSRFGuard is a user session was not shared
+> across multiple applications.  We wanted CSRF protection on all the
+> applications deployed including links between them.  Since we use
+> container-managed authentication, and have our own JAAS login methods,
+> we built an additional login method to generate a CSRF token and store
+> it on the Subject.  This subject is provided to all applications even
+> when the user's session is unique for each application.
+> 
+> We modified the code that generates a token to instead use a token
+> generation strategy.  In addition to the default strategy, we created a
+> strategy that will pull the token off of the subject and provide it
+> instead of creating a new on.  We then made the login module use the
+> default strategy.
+> 
+> Struts2 Interceptor:
+> Instead of the CSRFGuard filter, the enforcement is done in a struts2
+> interceptor.  The main difference is the configuration is based on
+> annotations instead of configuration (not that one is better, some
+> prefer annotations).
+> 
+> Struts2 Theme:
+> Instead of re-writing the outgoing web-pages we changed the struts2
+> themes to include tokens in links and forms.
+> 
+> Struts2 URL tag:
+> Instead of using the jsp tags to insert tokens in custom javascript, we
+> found that most, if not all, of our custom javascript uses URLs built by
+> the struts2 URL tag.  So we build an extension of the tag to include the
+> token.
+> 
+> Interoperability
+> The goal is to make the CSRFGuard filter and the struts2 interceptor
+> interchangeable.  In other words.  The CSRFGuard re-writer would work
+> with the struts2 interceptor, or the CSRFGuard filter would work with
+> struts2 theme.
+> 
+> I have a more detailed design doc.  But I wanted to get something out
+> here to measure any interest in this project.  Please let me know what
+> you think.
+> 
+> Cameron Morris, 
+> Software Security Specialist 
+> PartNet
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: OWASP-CSRFGuard-2.2-partnet-build-dist.jar
+Type: application/x-java-archive
+Size: 47773 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.bin 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: OWASP-CSRFGuard-2.2-partnet-build-src.zip
+Type: application/zip
+Size: 45294 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.zip 
+

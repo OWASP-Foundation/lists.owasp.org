@@ -1,0 +1,517 @@
+From mlfisher_56 at hotmail.com  Sun Jul  5 20:10:25 2015
+From: mlfisher_56 at hotmail.com (Mitchell Fisher)
+Date: Sun, 5 Jul 2015 20:10:25 +0000
+Subject: [Owasp-webgoat] CSRF Problems
+Message-ID: <SNT151-W60C066E0FEB1DD5C82FE4F91940@phx.gbl>
+
+Hi, this is my first post to this list.  I am impressed by WebGoat; thank you to all who work on it.
+ 
+If I see a problem in WebGoat  6.0.1, Build: 247 should I report it here?  I am not sure I have time to contribute changes right now but hope to in the future.
+ 
+In the CSRF tests, I can't click on the Message List link.  I think its because the link is located within the <form> element.  When I move the link out of the <form> element I can click on it and invoke the embedded script.
+ 
+I see some other wording glitches, and may have a comment on Command Injection next.  Thanks again!
+ 
+-Mitchell Fisher
+ 		 	   		  
+
+From mlfisher_56 at hotmail.com  Sun Jul  5 23:56:19 2015
+From: mlfisher_56 at hotmail.com (Mitchell Fisher)
+Date: Sun, 5 Jul 2015 23:56:19 +0000
+Subject: [Owasp-webgoat] Command Injection
+Message-ID: <SNT151-W7414825339E6105D8C170791940@phx.gbl>
+
+At Bruce's suggestion, here is another.
+ 
+I couldn't get the Command Injection solution to work on Windows in WebGoat 6.0.1, Build: 247.  The & separator between Windows command line commands is also the parameter separator in the POST data, and messed up the parameter parsing?
+
+I was able to do the attack by using the || separator, which on Windows means that if the first command fails, execute the second command.  So I misspelled the file name to type and followed it with my added command, and only one command:
+
+HelpFile=AccessControlMatrixXX.help" || netstat -an&SUBMIT=View
+
+Which returned the result of netstat to my screen but did not give me credit :(
+
+Perhaps the test in the exec() methods could be changed from:
+
+ if ((command[2].indexOf("&") != -1 || command[2].indexOf(";") != -1) && !er.getError())
+ 
+ 
+to:
+
+ if ((command[2].indexOf("netstat") != -1) && !er.getError())
+ 
+ 
+-Mitchell Fisher 
+ 		 	   		  
+
+From mlfisher_56 at hotmail.com  Thu Jul 23 00:43:42 2015
+From: mlfisher_56 at hotmail.com (Mitchell Fisher)
+Date: Thu, 23 Jul 2015 00:43:42 +0000
+Subject: [Owasp-webgoat] New Contributor
+Message-ID: <SNT151-W236337D7BD6B9A550CC7ED91820@phx.gbl>
+
+Hi, I am just about ready to be a Contributor to WebGoat.  I am running on Windows 7 and have GitHub set up, the source cloned to my desktop, the project loaded into Eclipse, and a bat file that runs maven to build and starts WebGoat.  This is all probably not a big deal for everyone else, but this is all new to me!
+
+I have run through all of the examples in WebGoat except for the final Challenge.  About a quarter of the way through I saw problems and posted them to this list, and Bruce asked me to contribute.  Kept notes on the rest of the examples, some of which I could not get to work and of those some might be my misunderstanding.
+
+Questions:
+
+Who is currently developing on WebGoat?
+
+Since the mailing list is quiet, are there side discussions going on?
+
+What are the current priorities for fixes and improvements?
+
+Is there a schedule in mind for when there might be the next release?
+
+Is anyone else using Windows to run and develop WebGoat on?
+
+Should I just start fixing things, anywhere and all over?  Is anyone working on certain areas I should hold off touching or coordinate with?  This is the first time I have used Git and worked with a group like this, all separately located.
+
+Would someone please reply to this post just so I know someone has seen it?  Maybe say hello?
+
+-Mitchell Fisher 
+ 		 	   		  
+
+From webgoat at owasp.org  Thu Jul 23 14:26:28 2015
+From: webgoat at owasp.org (webgoat webgoat)
+Date: Thu, 23 Jul 2015 10:26:28 -0400
+Subject: [Owasp-webgoat] New Contributor
+In-Reply-To: <SNT151-W236337D7BD6B9A550CC7ED91820@phx.gbl>
+References: <SNT151-W236337D7BD6B9A550CC7ED91820@phx.gbl>
+Message-ID: <CAJREbOWJF51_5bDD4tfRVrNUKtcD6xsMW9o=n70x=uNe4U0D2w@mail.gmail.com>
+
+Hi Mitchell
+
+The project is fairly active and we communicate using email and have a
+bi-weekly call and screen share to touch bases with each other.  There is a
+core team of about 5-6 people and an extended team of a few more that pop
+in and out when life allows them time to contribute.
+
+This mailing list is fairly quiet as most people send email to
+webgoat at owasp.org and that forwards to my work email.  I reply from that
+email which is not on the WebGoat mail list so the mail list is very
+inactive.
+
+We get a few requests to contribute per month but a small percentage of
+those folks actually contribute.  We encourage contributions at any level.
+
+To answer your questions:
+
+Who is currently developing on WebGoat?
+  - The about page in WebGoat is fairly accurate.  Nanne and Jason are
+probably the most active contributors right now
+  -
+https://github.com/WebGoat/WebGoat/blob/master/src/main/webapp/WEB-INF/pages/about.jsp
+
+Since the mailing list is quiet, are there side discussions going on?
+  - Yes, I will bring up the topic of using the mailing list again.  A lot
+of use our work emails to communicate and don;t wish our work emails to be
+in the archive.
+
+What are the current priorities for fixes and improvements?
+  - We are finishing the new plugin architecture in the WebGoat and
+WebGoat-Lessons Repos
+  - We are changing the UI to backbone
+  - We are looking for new lessons
+  - We have had lots of volunteers to test but no active output from those
+efforts
+  - We are working on getting better documentation and cleaning up of the
+various websites
+
+Is there a schedule in mind for when there might be the next release?
+  - As soon as we get the UI working again
+
+Is anyone else using Windows to run and develop WebGoat on?
+  - Windows and Mac are the two big dev platforms
+
+Should I just start fixing things, anywhere and all over?  Is anyone
+working on certain areas I should hold off touching or coordinate with?
+This is the first time I have used Git and worked with a group like this,
+all separately located.
+  - If you are working in the WebGoat or WebGoat-Lessons repos you may want
+to coordinate.  We use jira but right now it is more of a free-for-all as
+we get the 6.1 release stable
+  - Once you create Pull Request it will get reviewed by the team.  It is
+safe to work on any lessons in the WebGoat-Lessons repo.
+  - It is better to file a Jira ticket, but not needed
+
+Would someone please reply to this post just so I know someone has seen
+it?  Maybe say hello?
+  - HELLO :)
+
+
+On Wed, Jul 22, 2015 at 8:43 PM, Mitchell Fisher <mlfisher_56 at hotmail.com>
+wrote:
+
+> Hi, I am just about ready to be a Contributor to WebGoat.  I am running on
+> Windows 7 and have GitHub set up, the source cloned to my desktop, the
+> project loaded into Eclipse, and a bat file that runs maven to build and
+> starts WebGoat.  This is all probably not a big deal for everyone else, but
+> this is all new to me!
+>
+> I have run through all of the examples in WebGoat except for the final
+> Challenge.  About a quarter of the way through I saw problems and posted
+> them to this list, and Bruce asked me to contribute.  Kept notes on the
+> rest of the examples, some of which I could not get to work and of those
+> some might be my misunderstanding.
+>
+> Questions:
+>
+> Who is currently developing on WebGoat?
+>
+> Since the mailing list is quiet, are there side discussions going on?
+>
+> What are the current priorities for fixes and improvements?
+>
+> Is there a schedule in mind for when there might be the next release?
+>
+> Is anyone else using Windows to run and develop WebGoat on?
+>
+> Should I just start fixing things, anywhere and all over?  Is anyone
+> working on certain areas I should hold off touching or coordinate with?
+> This is the first time I have used Git and worked with a group like this,
+> all separately located.
+>
+> Would someone please reply to this post just so I know someone has seen
+> it?  Maybe say hello?
+>
+> -Mitchell Fisher
+>
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+>
+
+
+
+-- 
+Bruce Mayhew
+OWASP WebGoat Project Lead
+
+From johnccr at yahoo.com  Thu Jul 23 15:54:12 2015
+From: johnccr at yahoo.com (Juan C Calderon)
+Date: Thu, 23 Jul 2015 15:54:12 +0000 (UTC)
+Subject: [Owasp-webgoat] New Contributor
+In-Reply-To: <CAJREbOWJF51_5bDD4tfRVrNUKtcD6xsMW9o=n70x=uNe4U0D2w@mail.gmail.com>
+References: <CAJREbOWJF51_5bDD4tfRVrNUKtcD6xsMW9o=n70x=uNe4U0D2w@mail.gmail.com>
+Message-ID: <283677149.1124517.1437666852473.JavaMail.yahoo@mail.yahoo.com>
+
+Webgoat team, the links to stable and nighly builds forWebgoat do not work, please fix them :)
+Category:OWASP WebGoat Project - OWASP
+
+| ? |
+| ? |  | ? | ? | ? | ? | ? |
+| Category:OWASP WebGoat Project - OWASPPages in category "OWASP WebGoat Project" The following 17 pages are in this category, out of 17 total. B Basic Operation H How to write a new WebGoat lesson L Les... |
+|  |
+| View on www.owasp.org | Preview by Yahoo |
+|  |
+| ? |
+
+Regards,Juan Carlos Calder?n
+      From: webgoat webgoat <webgoat at owasp.org>
+ To: Mitchell Fisher <mlfisher_56 at hotmail.com> 
+Cc: WebGoat mailing list <owasp-webgoat at lists.owasp.org> 
+ Sent: Thursday, July 23, 2015 9:26 AM
+ Subject: Re: [Owasp-webgoat] New Contributor
+   
+Hi Mitchell
+
+The project is fairly active and we communicate using email and have a
+bi-weekly call and screen share to touch bases with each other.? There is a
+core team of about 5-6 people and an extended team of a few more that pop
+in and out when life allows them time to contribute.
+
+This mailing list is fairly quiet as most people send email to
+webgoat at owasp.org and that forwards to my work email.? I reply from that
+email which is not on the WebGoat mail list so the mail list is very
+inactive.
+
+We get a few requests to contribute per month but a small percentage of
+those folks actually contribute.? We encourage contributions at any level.
+
+To answer your questions:
+
+Who is currently developing on WebGoat?
+? - The about page in WebGoat is fairly accurate.? Nanne and Jason are
+probably the most active contributors right now
+? -
+https://github.com/WebGoat/WebGoat/blob/master/src/main/webapp/WEB-INF/pages/about.jsp
+
+Since the mailing list is quiet, are there side discussions going on?
+? - Yes, I will bring up the topic of using the mailing list again.? A lot
+of use our work emails to communicate and don;t wish our work emails to be
+in the archive.
+
+What are the current priorities for fixes and improvements?
+? - We are finishing the new plugin architecture in the WebGoat and
+WebGoat-Lessons Repos
+? - We are changing the UI to backbone
+? - We are looking for new lessons
+? - We have had lots of volunteers to test but no active output from those
+efforts
+? - We are working on getting better documentation and cleaning up of the
+various websites
+
+Is there a schedule in mind for when there might be the next release?
+? - As soon as we get the UI working again
+
+Is anyone else using Windows to run and develop WebGoat on?
+? - Windows and Mac are the two big dev platforms
+
+Should I just start fixing things, anywhere and all over?? Is anyone
+working on certain areas I should hold off touching or coordinate with?
+This is the first time I have used Git and worked with a group like this,
+all separately located.
+? - If you are working in the WebGoat or WebGoat-Lessons repos you may want
+to coordinate.? We use jira but right now it is more of a free-for-all as
+we get the 6.1 release stable
+? - Once you create Pull Request it will get reviewed by the team.? It is
+safe to work on any lessons in the WebGoat-Lessons repo.
+? - It is better to file a Jira ticket, but not needed
+
+Would someone please reply to this post just so I know someone has seen
+it?? Maybe say hello?
+? - HELLO :)
+
+
+On Wed, Jul 22, 2015 at 8:43 PM, Mitchell Fisher <mlfisher_56 at hotmail.com>
+wrote:
+
+> Hi, I am just about ready to be a Contributor to WebGoat.? I am running on
+> Windows 7 and have GitHub set up, the source cloned to my desktop, the
+> project loaded into Eclipse, and a bat file that runs maven to build and
+> starts WebGoat.? This is all probably not a big deal for everyone else, but
+> this is all new to me!
+>
+> I have run through all of the examples in WebGoat except for the final
+> Challenge.? About a quarter of the way through I saw problems and posted
+> them to this list, and Bruce asked me to contribute.? Kept notes on the
+> rest of the examples, some of which I could not get to work and of those
+> some might be my misunderstanding.
+>
+> Questions:
+>
+> Who is currently developing on WebGoat?
+>
+> Since the mailing list is quiet, are there side discussions going on?
+>
+> What are the current priorities for fixes and improvements?
+>
+> Is there a schedule in mind for when there might be the next release?
+>
+> Is anyone else using Windows to run and develop WebGoat on?
+>
+> Should I just start fixing things, anywhere and all over?? Is anyone
+> working on certain areas I should hold off touching or coordinate with?
+> This is the first time I have used Git and worked with a group like this,
+> all separately located.
+>
+> Would someone please reply to this post just so I know someone has seen
+> it?? Maybe say hello?
+>
+> -Mitchell Fisher
+>
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+>
+
+
+
+-- 
+Bruce Mayhew
+OWASP WebGoat Project Lead
+
+
+_______________________________________________
+Owasp-webgoat mailing list
+Owasp-webgoat at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+
+
+  
+
+From jason.white at owasp.org  Mon Jul 27 13:41:47 2015
+From: jason.white at owasp.org (Jason White)
+Date: Mon, 27 Jul 2015 09:41:47 -0400
+Subject: [Owasp-webgoat] New Contributor
+In-Reply-To: <CAJREbOWJF51_5bDD4tfRVrNUKtcD6xsMW9o=n70x=uNe4U0D2w@mail.gmail.com>
+References: <SNT151-W236337D7BD6B9A550CC7ED91820@phx.gbl>
+	<CAJREbOWJF51_5bDD4tfRVrNUKtcD6xsMW9o=n70x=uNe4U0D2w@mail.gmail.com>
+Message-ID: <CAL1HEEC0Q0wEL4DfrrKvN1q6sZxp-RJ0wQLzYQ_gk6Yo3Y9=EQ@mail.gmail.com>
+
+Hey Mitchell,
+
+I'm Jason ... the primary UI contributor currently .. and the road block to
+our next release. :)  My momentum is picking back up. I'm working at
+re-implementing the 'helps' for each lesson currently, sorting out an
+async. issue currently for solution/plans/source. Next up is to re-enable
+the hints, then the Cookies/parameters.  I've had some folks say they're
+ready to help, but no pull requests yet (we have our FT jobs and our issue
+tracking is lacking a bit ... I accept a bit of the blame there).
+
+BTW, I work on Linux for development, so I welcome some Windows/Mac users
+for testing purposes. E.g. someone caught a legacy file (same name, diff.
+case in file name) that was creating an issue on Windows.
+
+As to schedule, I definitely want to have my part wrapped up in time to
+have 6.1 out around AppSecUSA (mid-late September) although I don't think
+I'll be there this year. For me that means the next 2-3 weeks to allow
+burn-in and fix time after the initial Backbone implementation.
+
+As noted, there have been a number of side conversations. I'll make it a
+point to be more active here on the list while respecting the work email
+issue.
+
+Cheers,
+Jason
+
+On Thu, Jul 23, 2015 at 10:26 AM, webgoat webgoat <webgoat at owasp.org> wrote:
+
+> Hi Mitchell
+>
+> The project is fairly active and we communicate using email and have a
+> bi-weekly call and screen share to touch bases with each other.  There is a
+> core team of about 5-6 people and an extended team of a few more that pop
+> in and out when life allows them time to contribute.
+>
+> This mailing list is fairly quiet as most people send email to
+> webgoat at owasp.org and that forwards to my work email.  I reply from that
+> email which is not on the WebGoat mail list so the mail list is very
+> inactive.
+>
+> We get a few requests to contribute per month but a small percentage of
+> those folks actually contribute.  We encourage contributions at any level.
+>
+> To answer your questions:
+>
+> Who is currently developing on WebGoat?
+>   - The about page in WebGoat is fairly accurate.  Nanne and Jason are
+> probably the most active contributors right now
+>   -
+>
+> https://github.com/WebGoat/WebGoat/blob/master/src/main/webapp/WEB-INF/pages/about.jsp
+>
+> Since the mailing list is quiet, are there side discussions going on?
+>   - Yes, I will bring up the topic of using the mailing list again.  A lot
+> of use our work emails to communicate and don;t wish our work emails to be
+> in the archive.
+>
+> What are the current priorities for fixes and improvements?
+>   - We are finishing the new plugin architecture in the WebGoat and
+> WebGoat-Lessons Repos
+>   - We are changing the UI to backbone
+>   - We are looking for new lessons
+>   - We have had lots of volunteers to test but no active output from those
+> efforts
+>   - We are working on getting better documentation and cleaning up of the
+> various websites
+>
+> Is there a schedule in mind for when there might be the next release?
+>   - As soon as we get the UI working again
+>
+> Is anyone else using Windows to run and develop WebGoat on?
+>   - Windows and Mac are the two big dev platforms
+>
+> Should I just start fixing things, anywhere and all over?  Is anyone
+> working on certain areas I should hold off touching or coordinate with?
+> This is the first time I have used Git and worked with a group like this,
+> all separately located.
+>   - If you are working in the WebGoat or WebGoat-Lessons repos you may want
+> to coordinate.  We use jira but right now it is more of a free-for-all as
+> we get the 6.1 release stable
+>   - Once you create Pull Request it will get reviewed by the team.  It is
+> safe to work on any lessons in the WebGoat-Lessons repo.
+>   - It is better to file a Jira ticket, but not needed
+>
+> Would someone please reply to this post just so I know someone has seen
+> it?  Maybe say hello?
+>   - HELLO :)
+>
+>
+> On Wed, Jul 22, 2015 at 8:43 PM, Mitchell Fisher <mlfisher_56 at hotmail.com>
+> wrote:
+>
+> > Hi, I am just about ready to be a Contributor to WebGoat.  I am running
+> on
+> > Windows 7 and have GitHub set up, the source cloned to my desktop, the
+> > project loaded into Eclipse, and a bat file that runs maven to build and
+> > starts WebGoat.  This is all probably not a big deal for everyone else,
+> but
+> > this is all new to me!
+> >
+> > I have run through all of the examples in WebGoat except for the final
+> > Challenge.  About a quarter of the way through I saw problems and posted
+> > them to this list, and Bruce asked me to contribute.  Kept notes on the
+> > rest of the examples, some of which I could not get to work and of those
+> > some might be my misunderstanding.
+> >
+> > Questions:
+> >
+> > Who is currently developing on WebGoat?
+> >
+> > Since the mailing list is quiet, are there side discussions going on?
+> >
+> > What are the current priorities for fixes and improvements?
+> >
+> > Is there a schedule in mind for when there might be the next release?
+> >
+> > Is anyone else using Windows to run and develop WebGoat on?
+> >
+> > Should I just start fixing things, anywhere and all over?  Is anyone
+> > working on certain areas I should hold off touching or coordinate with?
+> > This is the first time I have used Git and worked with a group like this,
+> > all separately located.
+> >
+> > Would someone please reply to this post just so I know someone has seen
+> > it?  Maybe say hello?
+> >
+> > -Mitchell Fisher
+> >
+> > _______________________________________________
+> > Owasp-webgoat mailing list
+> > Owasp-webgoat at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+> >
+>
+>
+>
+> --
+> Bruce Mayhew
+> OWASP WebGoat Project Lead
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-webgoat
+>
+
+From webgoat at owasp.org  Tue Jul 28 12:22:33 2015
+From: webgoat at owasp.org (webgoat webgoat)
+Date: Tue, 28 Jul 2015 08:22:33 -0400
+Subject: [Owasp-webgoat] WebGoat 6.1 (Unstable Repos) Status
+Message-ID: <CAJREbOUkoUJVJ8h3GTz-5nxidaTLgoGdxW8=_BteuHx1Tbsi0Q@mail.gmail.com>
+
+The 6.1 (Unstable - WebGoat and WebGoat-Lessons) release is working again.
+The UI is a bit rough in areas especially around navigation and lesson
+rendering.  There is still some functionality that has not been hooked back
+up like cookies, lesson completion, ....  We also have some browser
+specific issues like chrome renders better than safari, if you experience
+some rendering problems try a different browser until we get it all sorted.
+
+The majority of the plugin architecture is completed and works well.  Each
+lesson is now self contained and easier to see all the parts and pieces
+like lesson specific code, internationalization strings, lesson plans, and
+lesson solutions.
+
+If you are building the 6.1 release, please pay attention to the README, as
+it will not build properly without building the webgoat-classloader first.
+
+T*he WebGoat-Legacy release is still the preferred release for users.  *
+
+-- 
+Bruce Mayhew
+OWASP WebGoat Project Lead
+

@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Location/LocationMatch%0A%20failing%20to%20disable%20rules&In-Reply-To=%3CCEC2496D.C709C%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="001492.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Location/LocationMatch%0A%20failing%20to%20disable%20rules&In-Reply-To=%3CCEC2496D.C709C%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules">RBarnett at trustwave.com
+       </A><BR>
+    <I>Mon Dec  2 19:29:12 UTC 2013</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="001492.html">[Owasp-modsecurity-core-rule-set] Global Piwik support?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1491">[ date ]</a>
+              <a href="thread.html#1491">[ thread ]</a>
+              <a href="subject.html#1491">[ subject ]</a>
+              <a href="author.html#1491">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+From: Phill Watkins &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">phill.watkins at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">phill.watkins at gmail.com</A>&gt;&gt;
+Date: Tuesday, November 26, 2013 4:54 PM
+To: OWASP CRS Mailing List &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules
+
+This has solved my problem.
+
+Thank you and everyone who has chimed in on this.
+
+One last question though. Is this generally a better approach than using Location, LocationMatch etc to disable rules?
+
+Personally, I believe it is however it is visually more intuitive to group rules within Apache scope locations.  The downside of that approach is what you are running into here.
+
+-Ryan
+
+
+
+On Tuesday, November 26, 2013, Ryan Barnett wrote:
+Hey Phil,
+Based on the info you gave about your setup, I think I know what the issue might be.  First of all, take a look at this Apache request flow diagram on the ModSecurity Reference Manual Wiki page -
+<A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Processing_Phases</A>
+
+This diagram shows where ModSecurity's Phase hooks are.  With this as a visual backdrop, now understand that if you place any ModSecurity rules or directives inside Apache scope locations (&lt;Location&gt;, &lt;LocationMatch&gt;, &lt;Directory&gt;, etc&#8230;) then they will only be available to ModSecurity in Phase:2 (Fixup hook).  The issue, most likely, is that your AJP proxying is happening before the Fixup Phase:2 hook so your rules/exceptions are not working.
+
+What I recommend for you situation would be to use SecRules + ctl:ruleRemoveById action in Phase:1 instead of nesting them within Apache scope locations.  Something like this (untested) added to a modsecurity_crs_15_custon.conf file so that it runs before the rest of the CRS rules -
+
+   SecRule REQUEST_FILENAME &quot;@beginsWith /subsonic/&quot; &quot;id:1234,phase:1,t:none,nolog,pass,ctl:ruleRemoveById=330792&quot;
+
+One other note &#8211; you might need to recompile with &quot;--enable-request-early&quot; to get this to work in the &quot;post-read-request&quot; hook  (<A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-Configure_ModSecurity</A>)
+
+Hope this info helps.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+
+From: Phill Watkins &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">phill.watkins at gmail.com</A>&gt;
+Date: Monday, November 25, 2013 6:45 AM
+To: OWASP CRS Mailing List &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: [Owasp-modsecurity-core-rule-set] Location/LocationMatch failing to disable rules
+
+Hi,
+
+For some reason I'm struggling to to disable rules using SecRuleRemoveById inside a Location or LocationMatch.
+
+I can disable rules globally (which isn't ideal) so I know the directive works but I don't know why Apache doesn't act upon the Location/LocationMatch.
+
+One of the applications on my web server that I'm trying to disable a rule for is Subsonic. Subsonic requires Tomcat and is a connected to Apache via the AJP connector module.
+
+I have successfully disabled one of the Atomicorp delayed rules in the past like this:
+
+&lt;IfModule mod_jk.c&gt;
+JkMount /subsonic ajp13_worker
+JkMount /subsonic/* ajp13_worker
+&lt;Location /subsonic/upload.view&gt;
+SecRuleRemoveById 330792
+&lt;/Location&gt;
+&lt;/IfModule&gt;
+
+I am now trying to disable rule 960010 from the CRS for the entire application because of too many false positives.
+
+I have tried &lt;Location /subsonic/&gt;  as well as multiple regular expressions for days but nothing works.
+
+Here is an example from the audit log:
+
+--35e37e6c-A--
+[12/Nov/2013:12:19:05 +0000] UoIcuX8AAQEAAAJ3AQgAAAAA hidden 45509 hidden 443
+--35e37e6c-B--
+POST /subsonic/dwr/call/plaincall/nowPlayingService.getNowPlaying.dwr HTTP/1.1
+Host: hidden
+Connection: keep-alive
+Content-Length: 214
+Origin: <A HREF="https://hidden">https://hidden</A>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.114 Safari/537.36
+Content-Type: text/plain
+Accept: */*
+Referer: <A HREF="https://hidden/subsonic/right.view?">https://hidden/subsonic/right.view?</A>
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+Cookie: player-656c6c6965=6; player-73727661646d=6; JSESSIONID=088A746CDC6B4356A388E7C1D44EEE6A.ajp13_worker; player-7068696c6c=9; compact_display_state=false
+
+--35e37e6c-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 221
+Keep-Alive: timeout=5, max=88
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--35e37e6c-H--
+Message: Access denied with code 403 (phase 1). Match of &quot;rx ^%{tx.allowed_request_content_type}$&quot; against &quot;TX:0&quot; required. [file &quot;/etc/apache2/owasp-modsecurity-crs/activated_rules/modsecurity_crs_30_http_policy.conf&quot;] [line &quot;64&quot;] [id &quot;960010&quot;] [rev &quot;2&quot;] [msg &quot;Request content type is not allowed by policy&quot;] [data &quot;text/plain&quot;] [severity &quot;CRITICAL&quot;] [ver &quot;OWASP_CRS/2.2.8&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag &quot;OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-20&quot;] [tag &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/EE2&quot;] [tag &quot;PCI/12.1&quot;]
+Action: Intercepted (phase 1)
+Stopwatch: 1384258745437774 1085 (- - -)
+Stopwatch2: 1384258745437774 1085; combined=426, p1=363, p2=0, p3=0, p4=0, p5=63, sr=48, sw=0, l=0, gc=0
+Producer: ModSecurity for Apache/2.7.5 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); OWASP_CRS/2.2.8.&lt;<A HREF="http://2.2.8.">http://2.2.8.</A>&gt;
+Server: Apache
+Engine-Mode: &quot;ENABLED&quot;
+
+--35e37e6c-Z--
+
+I'd be grateful of any advice.
+
+Thanks for your time.
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131202/1bd99929/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20131202/1bd99929/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="001492.html">[Owasp-modsecurity-core-rule-set] Global Piwik support?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1491">[ date ]</a>
+              <a href="thread.html#1491">[ thread ]</a>
+              <a href="subject.html#1491">[ subject ]</a>
+              <a href="author.html#1491">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

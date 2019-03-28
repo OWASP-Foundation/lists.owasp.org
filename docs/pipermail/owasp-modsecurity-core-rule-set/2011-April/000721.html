@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Seeking%20Feedback%20-%20New%0A%20Approach%20for%20XSS%20Detection/Response&In-Reply-To=C9CC87E7.1E7B4%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000720.html">
+   <LINK REL="Next"  HREF="000724.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response</H1>
+    <B>Jonathan Marcil</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Seeking%20Feedback%20-%20New%0A%20Approach%20for%20XSS%20Detection/Response&In-Reply-To=C9CC87E7.1E7B4%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response">jonathan.marcil at pheromone.ca
+       </A><BR>
+    <I>Thu Apr 14 12:36:33 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000720.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach	for XSS Detection/Response
+</A></li>
+        <LI>Next message: <A HREF="000724.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#721">[ date ]</a>
+              <a href="thread.html#721">[ thread ]</a>
+              <a href="subject.html#721">[ subject ]</a>
+              <a href="author.html#721">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ryan,
+
+I like the correlation between inbound and outbound in the POST. It
+gives you an insight on how the application is processing the input.
+
+But I see some ways that this can't replace full inbound checking and
+blocking :
+- What if the application is not outputting the input right away?
+- What if the application is actually outputting the input in many
+places in different ways? For instance, Drupal may output directly the
+content on a node after modification, but its doing security check on
+output in other places. Flaws can be everywhere in this case not just
+when you submit something.
+- What if a valid HTML in the output of a page that is not related to
+the user input can actually trigger a false positive? (let's say my
+website really do alert('XSS'); at some point ;-)
+
+Parsing on output seams harder to me because there's more stuff to parse
+:<i> the whole page vs. a simple user input.
+</I>
+Thanks,
+
+- Jonathan
+
+
+
+On 11-04-14 11:15 AM, Ryan Barnett wrote:
+&gt;<i> I have been thinking a lot recently about XSS Attacks and how ModSecurity can potentially identify these attacks and respond - <A HREF="http://www.modsecurity.org/documentation/XSS_Street_Fight-Ryan_Barnett-BlackhatDC-2011.pdf">http://www.modsecurity.org/documentation/XSS_Street_Fight-Ryan_Barnett-BlackhatDC-2011.pdf</A>
+</I>&gt;<i> 
+</I>&gt;<i> I would like to get some community feedback on a possible new approach for XSS.
+</I>&gt;<i> 
+</I>&gt;<i> The big current issue I see with the ModSecurity CRS approach is that the rules are looking for potentially malicious input and flagging them as XSS and executing blocking.  This approach is flawed for 2 reasons -
+</I>&gt;<i> 
+</I>&gt;<i>  1.  Many of the XSS signatures are too broad and are looking for any html data on inbound.  This may work OK if the application or specific parameter is never supposed to contain html code, however many users have apps that allow for some html code on the inbound.  There are many ModSecurity users who get upset because the rules end up blocking normal transaction in applications like WordPress.  The XSS signatures should probably be broken up into separate files - 1) Malicious code &#8211; which would only contain signatures for confirmed, malicious code.  These rules can be acted upon for blocking actions in any circumstance.  2) Html code &#8211; which would trigger on any html-like code.  This could be activated for sites that don't allow any html code.
+</I>&gt;<i>  2.  Blocking inbound data for XSS is prone to False Positives.  XSS manifests itself when client-supplied data is echoed back out to clients in a non-escaped format.  The applications may actually be properly output escaping user-supplied data and they don't need for ModSecurity to do any blocking.  It seems that the best place to choose a blocking action for XSS is actually in the response back to the client.
+</I>&gt;<i> 
+</I>&gt;<i> Here is an example approach for #2 above.
+</I>&gt;<i> We are already flagging inbound data as potential XSS attacks and saving the data in TX variables.  If we were to not block for XSS on the inbound, but instead inspect the RESPONSE_BODY variables for matches of TX XSS data, we could then choose to block.  Here is an example rule which does just that -
+</I>&gt;<i> 
+</I>&gt;<i> SecRule TX:/XSS/ &quot;@within %{response_body}&quot; &quot;phase:4,t:none,log,block,msg:'Malicious Client Data Found in Response Page.',logdata:'%{matched_var}'&quot;
+</I>&gt;<i> 
+</I>&gt;<i> As a test, I sent the following request (from the ModSec audit log) -
+</I>&gt;<i> 
+</I>&gt;<i> ###############################
+</I>&gt;<i> --25ab4619-B--
+</I>&gt;<i> POST /cgi-bin/fup.cgi HTTP/1.1
+</I>&gt;<i> Host: localhost
+</I>&gt;<i> Connection: keep-alive
+</I>&gt;<i> Referer: <A HREF="http://localhost/upload.html">http://localhost/upload.html</A>
+</I>&gt;<i> Content-Length: 429
+</I>&gt;<i> Cache-Control: max-age=0
+</I>&gt;<i> Origin: <A HREF="http://localhost">http://localhost</A>
+</I>&gt;<i> User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.204 Safari/534.16
+</I>&gt;<i> Content-Type: multipart/form-data; boundary=----WebKitFormBoundary5l4ChTnz96IS0ru8
+</I>&gt;<i> Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+</I>&gt;<i> Accept-Encoding: gzip,deflate,sdch
+</I>&gt;<i> Accept-Language: en-US,en;q=0.8
+</I>&gt;<i> Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3
+</I>&gt;<i> 
+</I>&gt;<i> --25ab4619-I--
+</I>&gt;<i> note=%3cscript%3ealert%28%27xss%27%29%3c%2fscript%3e
+</I>&gt;<i> --25ab4619-F--
+</I>&gt;<i> HTTP/1.1 200 OK
+</I>&gt;<i> Content-Length: 308
+</I>&gt;<i> Keep-Alive: timeout=5, max=100
+</I>&gt;<i> Connection: Keep-Alive
+</I>&gt;<i> Content-Type: text/html
+</I>&gt;<i> 
+</I>&gt;<i> --25ab4619-E--
+</I>&gt;<i> &lt;html&gt;
+</I>&gt;<i> &lt;head&gt;
+</I>&gt;<i> &lt;title&gt;File Upload Results&lt;/title&gt;
+</I>&gt;<i> &lt;/head&gt;
+</I>&gt;<i> &lt;body&gt;
+</I>&gt;<i> &lt;h1&gt;File Upload Results&lt;/h1&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;
+</I>&gt;<i> &lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;
+</I>&gt;<i> &lt;p&gt;The file's contents are:
+</I>&gt;<i> &lt;pre&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;/pre&gt;
+</I>&gt;<i> &lt;/body&gt;
+</I>&gt;<i> &lt;/html&gt;
+</I>&gt;<i> ###############################
+</I>&gt;<i> 
+</I>&gt;<i> The new rule generated a number of events -
+</I>&gt;<i> 
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:958052-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;alert(&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:958051-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;&lt;script&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:973300-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;&lt;script&gt;&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:973307-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;alert(&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:973310-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;'xss'&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> [Thu Apr 14 11:00:59 2011] [error] [client ::1] ModSecurity: Warning. String match within &quot;&lt;html&gt;\\n&lt;head&gt;\\n&lt;title&gt;File Upload Results&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n&lt;h1&gt;File Upload Results&lt;/h1&gt;\\n\\n&lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;\\n&lt;blockquote&gt;&lt;script&gt;alert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;script&gt;&lt;/script&gt;\\n&lt;p&gt;The file's contents are:\\n&lt;pre&gt;\\n\\n&lt;/pre&gt;\\n&lt;/body&gt;\\n&lt;/html&gt;\\n&quot; at TX:973331-WEB_ATTACK/XSS-ARGS:note. [file &quot;/usr/local/apache/conf/crs/base_rules/modsecurity_crs_15_customrules.conf&quot;] [line &quot;17&quot;] [msg &quot;Malicious Client Data Found n Response Page.&quot;] [data &quot;&lt;script&gt;&quot;] [hostname &quot;localhost&quot;] [uri &quot;/cgi-bin/fup.cgi&quot;] [unique_id &quot;TacMK8CoqAEAAKdOIfUAAAAB&quot;]
+</I>&gt;<i> 
+</I>&gt;<i> This approach seems to me to be more accurate for detecting/reacting to XSS as you are doing the inspection/blocking in the outbound which means that you have less false positives.
+</I>&gt;<i> 
+</I>&gt;<i> Now, taking this approach one step further!  With the upcoming ModSecurity v2.6 &#8211; you could actually extend the rule logic to use @rsub against the STREAM_OUTPUT_BODY and actually remove malicious code from response bodies and still send the page :)
+</I>&gt;<i> 
+</I>&gt;<i> SecRule TX:/XSS/ &quot;@within %{response_body}&quot; &quot;chain,phase:4,t:none,log,pass,msg:'Malicious Client Data Removed From Response Page.',logdata:'%{matched_var}'&quot;
+</I>&gt;<i>        SecRule STREAM_OUTPUT_BODY &quot;@rsub s/%{matched_var}/MALICIOUS_CODE_REMOVED/d&quot;
+</I>&gt;<i> 
+</I>&gt;<i> Running new ruleset &#8211; this is how the reflected XSS attack response page would look to a client -
+</I>&gt;<i> 
+</I>&gt;<i> $ curl &quot;<A HREF="http://localhost/cgi-bin/fup.cgi?note=&lt;script">http://localhost/cgi-bin/fup.cgi?note=&lt;script</A>&gt;alert('xss')&lt;/script&gt;&quot;
+</I>&gt;<i> &lt;html&gt;
+</I>&gt;<i> &lt;head&gt;
+</I>&gt;<i> &lt;title&gt;File Upload Results&lt;/title&gt;
+</I>&gt;<i> &lt;/head&gt;
+</I>&gt;<i> &lt;body&gt;
+</I>&gt;<i> &lt;h1&gt;File Upload Results&lt;/h1&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;p&gt;You've uploaded a file.  Your notes on the file were:&lt;br&gt;
+</I>&gt;<i> &lt;blockquote&gt;MALICIOUS_CODE_REMOVEDalert('xss')&lt;/script&gt;&lt;/blockquote&gt;&lt;br&gt;
+</I>&gt;<i> &lt;p&gt;The file's contents are:
+</I>&gt;<i> &lt;pre&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;/pre&gt;
+</I>&gt;<i> &lt;/body&gt;
+</I>&gt;<i> &lt;/html&gt;
+</I>&gt;<i> 
+</I>&gt;<i> Comments welcome!
+</I>&gt;<i> 
+</I>&gt;<i> -Ryan
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ________________________________
+</I>&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I></PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000720.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach	for XSS Detection/Response
+</A></li>
+	<LI>Next message: <A HREF="000724.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#721">[ date ]</a>
+              <a href="thread.html#721">[ thread ]</a>
+              <a href="subject.html#721">[ subject ]</a>
+              <a href="author.html#721">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

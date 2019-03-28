@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-cheat-sheets] Query Parameterization Cheat Sheet / Java	Hibernate
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-cheat-sheets%5D%20Query%20Parameterization%20Cheat%20Sheet%20/%20Java%0A%09Hibernate&In-Reply-To=%3CCA%2BM5M1fJQkrDGntRCABNOszJAJVu18Vcj-XvD70Zkvp59GB11A%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000009.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-cheat-sheets] Query Parameterization Cheat Sheet / Java	Hibernate</H1>
+    <B>Torsten Gigler</B> 
+    <A HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-cheat-sheets%5D%20Query%20Parameterization%20Cheat%20Sheet%20/%20Java%0A%09Hibernate&In-Reply-To=%3CCA%2BM5M1fJQkrDGntRCABNOszJAJVu18Vcj-XvD70Zkvp59GB11A%40mail.gmail.com%3E"
+       TITLE="[Owasp-cheat-sheets] Query Parameterization Cheat Sheet / Java	Hibernate">torsten.gigler at owasp.org
+       </A><BR>
+    <I>Thu Jan 30 16:29:33 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000009.html">[Owasp-cheat-sheets] Query Parameterization Cheat Sheet / Java	Hibernate
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10">[ date ]</a>
+              <a href="thread.html#10">[ thread ]</a>
+              <a href="subject.html#10">[ subject ]</a>
+              <a href="author.html#10">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Jim,
+
+here, both examples, as I put it on
+<A HREF="https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler-2013/A1-Injection">https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler-2013/A1-Injection</A>
+
+HQL:
+
+ String userSuppliedParameter =
+request.getParameter(&quot;Product-Description&quot;); // This should REALLY be
+validated too
+// perform input validation to detect attacks
+* Query safeHQLQuery = session.createQuery(&quot;from Inventory where
+productDescription=:productdescription&quot;);*
+*safeHQLQuery.setParameter(&quot;productdescription&quot;, userSuppliedParameter)*;
+
+
+Hibernate Criteria Query:
+
+String userSuppliedParameter = request.getParameter(&quot;Product-Description&quot;);
+// This should REALLY be validated too
+// perform input validation to detect attacks
+
+* Inventory inv =*
+ * (Inventory)
+session.createCriteria(Inventory.class).add(Restrictions.eq(&quot;productDescription&quot;,
+userSuppliedParameter)).uniqueResult();*
+
+
+Thanks.
+
+
+Cheers,
+
+Torsten
+
+
+2014-01-30 Torsten Gigler &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">torsten.gigler at owasp.org</A>&gt;
+
+&gt;<i> Hi Jim,
+</I>&gt;<i>
+</I>&gt;<i> thanks a lot.
+</I>&gt;<i> We changed the query to get the *&quot;productDescription&quot; *not just the *&quot;productID&quot;.
+</I>&gt;<i> *So we have a better example that justifies to use 'createCriteria' and
+</I>&gt;<i> not simply use the 'session.load' (Thanks for this hint, too).
+</I>&gt;<i>
+</I>&gt;<i> So we get a brand new example for Hybernate ;-)
+</I>&gt;<i>
+</I>&gt;<i> String userSuppliedParameter = request.getParameter(&quot;id&quot;); // This should
+</I>&gt;<i> REALLY be validated too
+</I>&gt;<i> // perform input validation to detect attacks
+</I>&gt;<i> *Inventory inv = (Inventory)*
+</I>&gt;<i> *
+</I>&gt;<i> session.createCriteria(Inventory.class).add(Restrictions.eq(&quot;productDescription&quot;,*
+</I>&gt;<i> *         userSuppliedParameter)).uniqueResult();*
+</I>&gt;<i>
+</I>&gt;<i> If you like it, feel free to use it in the Cheet Sheets as second example
+</I>&gt;<i> for Hybernate, too.
+</I>&gt;<i>
+</I>&gt;<i> Thanks
+</I>&gt;<i>
+</I>&gt;<i> Torsten
+</I>&gt;<i>
+</I>&gt;<i> PS: We do have good Beer in BAVARIA ;-))
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2014-01-30 Jim Manico &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jim.manico at owasp.org</A>&gt;
+</I>&gt;<i>
+</I>&gt;&gt;<i>  &gt; Additionally we should be automatically protected from SQL injection,
+</I>&gt;&gt;<i> assuming that in this case Hibernate builds the underlying query like
+</I>&gt;&gt;<i> parameterized Queries.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> TOTALLY. As long as you are using the Criteria API, you are completely
+</I>&gt;&gt;<i> safe from SQL injection. When you use un-parameterized HQL, you are
+</I>&gt;&gt;<i> vulnerable to HQL injection.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Cool?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> PS: THERE IS BEER IN HAWAII! REALLY!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Is this OK? What do you think about it?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Kind Regards
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Torsten
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2014-01-25 Jim Manico &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jim.manico at owasp.org</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>  It looks like you are loading one Inventory object for one productId.
+</I>&gt;&gt;&gt;<i> I would normally do something like this so I would not need any kind of
+</I>&gt;&gt;&gt;<i> parameterization....
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> String userSuppliedParameter = request.getParameter(&quot;id&quot;);
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Long userSuppliedLong = new Long(userSuppliedParameter); //need to check
+</I>&gt;&gt;&gt;<i> for errors here
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> *Inventory inv = (Inventory) = session.load(Inventory.class,
+</I>&gt;&gt;&gt;<i> userSuppliedLong);*
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> *From:* Torsten Gigler [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">torsten.gigler at owasp.org</A>]
+</I>&gt;&gt;&gt;<i> *Sent:* Friday, January 24, 2014 2:56 AM
+</I>&gt;&gt;&gt;<i> *To:* <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp-cheat-sheets at lists.owasp.org</A>; Jim Manico
+</I>&gt;&gt;&gt;<i> *Cc:* <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">owasp_top_10_fuer_entwickler at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> *Subject:* Query Parameterization Cheat Sheet / Java Hibernate
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi Jim, hi Community,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> we have a suggestion in our Project 'OWASP Top 10 fuer Entwickler' (Top
+</I>&gt;&gt;&gt;<i> 10 Developer Edition in German) for a different example for* 'Java
+</I>&gt;&gt;&gt;<i> Hibernate'*:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> String userSuppliedParameter = request.getParameter(&quot;id&quot;); // This
+</I>&gt;&gt;&gt;<i> should REALLY be validated too
+</I>&gt;&gt;&gt;<i> // perform input validation to detect attacks
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> *Inventory inv = (Inventory)
+</I>&gt;&gt;&gt;<i> session.createCriteria(Inventory.class).add(Restrictions.eq(&quot;productID&quot;,
+</I>&gt;&gt;&gt;<i>       userSuppliedParameter)).uniqueResult();*
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> (see:
+</I>&gt;&gt;&gt;<i> <A HREF="https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler/A1_Injection">https://www.owasp.org/index.php/Germany/Projekte/Top_10_fuer_Entwickler/A1_Injection</A>
+</I>&gt;&gt;&gt;<i> )
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Acually we provide both examples, preferring the new one.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Do you have any comments about the new example?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks.Kind regards
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Torsten
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20140130/28bad635/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20140130/28bad635/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000009.html">[Owasp-cheat-sheets] Query Parameterization Cheat Sheet / Java	Hibernate
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10">[ date ]</a>
+              <a href="thread.html#10">[ thread ]</a>
+              <a href="subject.html#10">[ subject ]</a>
+              <a href="author.html#10">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">More information about the Owasp-cheat-sheets
+mailing list</a><br>
+</body></html>

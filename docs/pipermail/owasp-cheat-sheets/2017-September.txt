@@ -1,0 +1,833 @@
+From yo at johanpeeters.com  Fri Sep  8 07:45:40 2017
+From: yo at johanpeeters.com (Johan Peeters)
+Date: Fri, 8 Sep 2017 09:45:40 +0200
+Subject: [OWASP-cheat-sheets] Basic Authentication for REST APIs
+Message-ID: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+
+During the REST API session at the OWASP summit, I was surprised to
+hear that so many people are using Basic Authentication
+(username:password). I just added a section in the protocols section
+of the cheat sheet explaining the downside of doing so. I also
+indicated in which circumstances it may be acceptable:
+https://www.owasp.org/index.php/REST_Security_Cheat_Sheet#Protocols_for_Authentication_and_Authorization.
+
+I am looking forward to your comments.
+
+Yo
+-- 
+Johan Peeters
+https://www.johanpeeters.com
+
+From yo at johanpeeters.com  Fri Sep  8 14:41:56 2017
+From: yo at johanpeeters.com (Johan Peeters)
+Date: Fri, 8 Sep 2017 16:41:56 +0200
+Subject: [OWASP-cheat-sheets] cheat sheet editing broken
+Message-ID: <CADFnxGdMm17CuRabboiX9bD67HcNVjeyVvKqXhkjo+cinkp1Lg@mail.gmail.com>
+
+Something broke on the OWASP site making it impossible to edit cheat
+sheets - see screen shot. Who can help?
+
+-- 
+Johan Peeters
+https://www.johanpeeters.com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Screen Shot 2017-09-08 at 16.11.17.png
+Type: image/png
+Size: 255884 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170908/ea612069/attachment-0001.png>
+
+From torsten.gigler at owasp.org  Fri Sep  8 15:09:28 2017
+From: torsten.gigler at owasp.org (Torsten Gigler)
+Date: Fri, 8 Sep 2017 17:09:28 +0200
+Subject: [OWASP-cheat-sheets] cheat sheet editing broken
+In-Reply-To: <CADFnxGdMm17CuRabboiX9bD67HcNVjeyVvKqXhkjo+cinkp1Lg@mail.gmail.com>
+References: <CADFnxGdMm17CuRabboiX9bD67HcNVjeyVvKqXhkjo+cinkp1Lg@mail.gmail.com>
+Message-ID: <9ef79dc5-81f2-302c-aa11-6545d204ab75@owasp.org>
+
+Hi Johan,
+
+It seems to be an internal API-Error if you use 'Edit' (perhaps the root 
+certificate changed):
+Raw Response Header: "MediaWiki-API-Error=(curl error: 60) Peer 
+certificate cannot be authenticated with given CA certificates"
+Perhaps Matt Tesauro could help (see last receiver).
+
+'Edit Source' seems to work (At last I've used it until yesterday).
+
+Cheers
+Torsten
+
+Am 08.09.2017 um 16:41 schrieb Johan Peeters:
+> Something broke on the OWASP site making it impossible to edit cheat
+> sheets - see screen shot. Who can help?
+>
+>
+>
+> _______________________________________________
+> OWASP-cheat-sheets mailing list
+> OWASP-cheat-sheets at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170908/5e8a859d/attachment.html>
+
+From jim.manico at owasp.org  Fri Sep  8 19:54:51 2017
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 8 Sep 2017 12:54:51 -0700
+Subject: [OWASP-cheat-sheets] Basic Authentication for REST APIs
+In-Reply-To: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+References: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+Message-ID: <2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+
+I like where you're going with this Yo. A few comments...
+
+1) One of the big issues with HTTP Basic/Digest is that there is no
+clean way to logout the user. You're logged in until the browser closes.
+There is no real session management in play. You're using credentials as
+session identifiers basically - which is a nono.
+
+2) This comment does not seem true to me. /*Each API endpoint must have
+access to the password database. Effectively, this means that all APIs
+are part of the attack surface. Since a password database is a
+high-value target, its attack surface should be carefully controlled.
+This becomes almost impossible as the number of endpoints grows and the
+API need to evolve quickly.*/
+
+A webservice could just pass the authentication data to another service
+that does the verification. I have seen this done before using a variety
+of products and architectures. A more accurate comment would be "each
+API endpoint must /*PROCESS*/ usernames and passwords in some way".
+
+3) I also politely disagree with this comment for the same reason as
+#2./*Authentication and authorization logic runs on every endpoint.
+Ideally, this would be shared code, subjected to rigorous QA, but this
+may be difficult to realise as distinct API endpoints may have different
+release cycles. Any security patch would impact all endpoints."*/
+
+API endpoints could pass these AuthN/Z challenges to another internal
+service (think of the proxy service pattern). I'm not sure how to
+wordsmith this, but does my comment make sense?
+
+Aloha, Jim
+
+
+On 9/8/17 12:45 AM, Johan Peeters wrote:
+> During the REST API session at the OWASP summit, I was surprised to
+> hear that so many people are using Basic Authentication
+> (username:password). I just added a section in the protocols section
+> of the cheat sheet explaining the downside of doing so. I also
+> indicated in which circumstances it may be acceptable:
+> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet#Protocols_for_Authentication_and_Authorization.
+>
+> I am looking forward to your comments.
+>
+> Yo
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170908/b927ba81/attachment.html>
+
+From jim.manico at owasp.org  Fri Sep  8 19:57:23 2017
+From: jim.manico at owasp.org (Jim Manico)
+Date: Fri, 8 Sep 2017 12:57:23 -0700
+Subject: [OWASP-cheat-sheets] Basic Authentication for REST APIs
+In-Reply-To: <2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+References: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+	<2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+Message-ID: <ba869d51-f33a-55c8-589d-e0270b5c4141@owasp.org>
+
+One more comment...
+
+"Before users can make use of an API, they must be registered with the
+service. This is at odds with casual use."
+
+I don't understand what the issue is here. This is not specific to HTTP
+Basic. Can you clarify this point more?
+
+Aloha, Jim
+
+
+On 9/8/17 12:54 PM, Jim Manico wrote:
+>
+> I like where you're going with this Yo. A few comments...
+>
+> 1) One of the big issues with HTTP Basic/Digest is that there is no
+> clean way to logout the user. You're logged in until the browser
+> closes. There is no real session management in play. You're using
+> credentials as session identifiers basically - which is a nono.
+>
+> 2) This comment does not seem true to me. /*Each API endpoint must
+> have access to the password database. Effectively, this means that all
+> APIs are part of the attack surface. Since a password database is a
+> high-value target, its attack surface should be carefully controlled.
+> This becomes almost impossible as the number of endpoints grows and
+> the API need to evolve quickly.*/
+>
+> A webservice could just pass the authentication data to another
+> service that does the verification. I have seen this done before using
+> a variety of products and architectures. A more accurate comment would
+> be "each API endpoint must /*PROCESS*/ usernames and passwords in some
+> way".
+>
+> 3) I also politely disagree with this comment for the same reason as
+> #2./*Authentication and authorization logic runs on every endpoint.
+> Ideally, this would be shared code, subjected to rigorous QA, but this
+> may be difficult to realise as distinct API endpoints may have
+> different release cycles. Any security patch would impact all
+> endpoints."*/
+>
+> API endpoints could pass these AuthN/Z challenges to another internal
+> service (think of the proxy service pattern). I'm not sure how to
+> wordsmith this, but does my comment make sense?
+>
+> Aloha, Jim
+>
+>
+> On 9/8/17 12:45 AM, Johan Peeters wrote:
+>> During the REST API session at the OWASP summit, I was surprised to
+>> hear that so many people are using Basic Authentication
+>> (username:password). I just added a section in the protocols section
+>> of the cheat sheet explaining the downside of doing so. I also
+>> indicated in which circumstances it may be acceptable:
+>> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet#Protocols_for_Authentication_and_Authorization.
+>>
+>> I am looking forward to your comments.
+>>
+>> Yo
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170908/33509984/attachment.html>
+
+From torsten.gigler at owasp.org  Fri Sep  8 20:46:38 2017
+From: torsten.gigler at owasp.org (Torsten Gigler)
+Date: Fri, 8 Sep 2017 22:46:38 +0200
+Subject: [OWASP-cheat-sheets] cheat sheet editing broken
+In-Reply-To: <CAJq9yoR+8EYL1c3EQKRb1St5rCF6CP9P7+rhu=rKNkGqrzOQNg@mail.gmail.com>
+References: <CADFnxGdMm17CuRabboiX9bD67HcNVjeyVvKqXhkjo+cinkp1Lg@mail.gmail.com>
+	<9ef79dc5-81f2-302c-aa11-6545d204ab75@owasp.org>
+	<CAJq9yoQL1apj5MCP7u5mgxds1TJrojcfA-9Rh4d=H6eTsCufOg@mail.gmail.com>
+	<CAJq9yoR+8EYL1c3EQKRb1St5rCF6CP9P7+rhu=rKNkGqrzOQNg@mail.gmail.com>
+Message-ID: <61c1aac7-fffa-549c-92cb-650bb56f87a4@owasp.org>
+
+@Matt - Thank you very much for the fast fix.
+@Johan - And thanks to Johan for bringing up the issue.
+
+Cheers
+Torsten
+
+Am 08.09.2017 um 18:01 schrieb Matt Tesauro:
+> Torsten,
+>
+> Its fixed.  Thanks for letting me know.  I was editing pages yesterday but
+> hadn't done any yet today.
+>
+> BTW, if this happens again and you really need to make an edit, the
+> old-school "Edit source" still works - it doesn't depend on the wiki API
+> nor the parsoid service.
+>
+> Cheers!
+>
+> --
+> -- Matt Tesauro
+> Operations Director, OWASP Foundation
+>
+>
+> On Fri, Sep 8, 2017 at 10:53 AM, Matt Tesauro <matt.tesauro at owasp.org>
+> wrote:
+>
+>> Torsten,
+>>
+>> Yeah, this happens from time to time.  There's a separate service that
+>> does the new GUI editor and when Let's Encrypt renews the certs, that
+>> service has not seen the updated cert and has to be manually stopped and
+>> restarted.
+>>
+>> The certs just renewed last night and I bet that's what happened.  I'll
+>> stop/start that service so the GUI editor won't see an expired TLS cert.
+>>
+>> I'll reply again here once that's done.
+>>
+>> --
+>> -- Matt Tesauro
+>> Operations Director, OWASP Foundation
+>>
+>>
+>> On Fri, Sep 8, 2017 at 10:09 AM, Torsten Gigler <torsten.gigler at owasp.org>
+>> wrote:
+>>
+>>> Hi Johan,
+>>>
+>>> It seems to be an internal API-Error if you use 'Edit' (perhaps the root
+>>> certificate changed):
+>>> Raw Response Header: "MediaWiki-API-Error=(curl error: 60) Peer
+>>> certificate cannot be authenticated with given CA certificates"
+>>> Perhaps Matt Tesauro could help (see last receiver).
+>>>
+>>> 'Edit Source' seems to work (At last I've used it until yesterday).
+>>>
+>>> Cheers
+>>> Torsten
+>>>
+>>> Am 08.09.2017 um 16:41 schrieb Johan Peeters:
+>>>
+>>> Something broke on the OWASP site making it impossible to edit cheat
+>>> sheets - see screen shot. Who can help?
+>>>
+>>>
+>>>
+>>>
+>>> _______________________________________________
+>>> OWASP-cheat-sheets mailing listOWASP-cheat-sheets at lists.owasp.orghttps://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets
+>>>
+>>>
+>>>
+
+
+From yo at johanpeeters.com  Sat Sep  9 07:48:42 2017
+From: yo at johanpeeters.com (Johan Peeters)
+Date: Sat, 9 Sep 2017 09:48:42 +0200
+Subject: [OWASP-cheat-sheets] Basic Authentication for REST APIs
+In-Reply-To: <ba869d51-f33a-55c8-589d-e0270b5c4141@owasp.org>
+References: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+	<2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+	<ba869d51-f33a-55c8-589d-e0270b5c4141@owasp.org>
+Message-ID: <CADFnxGeZxwbodmoEuXkCRjwn3K2D=1KwTAOV4qKi=JDWA=3D2Q@mail.gmail.com>
+
+Many thanks for your comments, Jim. I will try to address them as I
+continue work on the REST cheat sheet later today.
+
+Wrt 'casual use', this is meant as a forward pointer to some text to
+be written pointing out that social login (Facebook, Google, LinkedIn,
+...) facilitates casual use - I do not need to go through the process
+of registering with a service before I can use it.
+
+On 8 September 2017 at 21:57, Jim Manico <jim.manico at owasp.org> wrote:
+> One more comment...
+>
+> "Before users can make use of an API, they must be registered with the
+> service. This is at odds with casual use."
+>
+> I don't understand what the issue is here. This is not specific to HTTP
+> Basic. Can you clarify this point more?
+>
+> Aloha, Jim
+>
+>
+> On 9/8/17 12:54 PM, Jim Manico wrote:
+>
+> I like where you're going with this Yo. A few comments...
+>
+> 1) One of the big issues with HTTP Basic/Digest is that there is no clean
+> way to logout the user. You're logged in until the browser closes. There is
+> no real session management in play. You're using credentials as session
+> identifiers basically - which is a nono.
+>
+> 2) This comment does not seem true to me. Each API endpoint must have access
+> to the password database. Effectively, this means that all APIs are part of
+> the attack surface. Since a password database is a high-value target, its
+> attack surface should be carefully controlled. This becomes almost
+> impossible as the number of endpoints grows and the API need to evolve
+> quickly.
+>
+> A webservice could just pass the authentication data to another service that
+> does the verification. I have seen this done before using a variety of
+> products and architectures. A more accurate comment would be "each API
+> endpoint must PROCESS usernames and passwords in some way".
+>
+> 3) I also politely disagree with this comment for the same reason as #2.
+> Authentication and authorization logic runs on every endpoint. Ideally, this
+> would be shared code, subjected to rigorous QA, but this may be difficult to
+> realise as distinct API endpoints may have different release cycles. Any
+> security patch would impact all endpoints."
+>
+> API endpoints could pass these AuthN/Z challenges to another internal
+> service (think of the proxy service pattern). I'm not sure how to wordsmith
+> this, but does my comment make sense?
+>
+> Aloha, Jim
+>
+>
+> On 9/8/17 12:45 AM, Johan Peeters wrote:
+>
+> During the REST API session at the OWASP summit, I was surprised to
+> hear that so many people are using Basic Authentication
+> (username:password). I just added a section in the protocols section
+> of the cheat sheet explaining the downside of doing so. I also
+> indicated in which circumstances it may be acceptable:
+> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet#Protocols_for_Authentication_and_Authorization.
+>
+> I am looking forward to your comments.
+>
+> Yo
+>
+>
+>
+
+
+
+-- 
+Johan Peeters
+https://www.johanpeeters.com
+
+From yo at johanpeeters.com  Sun Sep 10 04:39:00 2017
+From: yo at johanpeeters.com (Johan Peeters)
+Date: Sun, 10 Sep 2017 06:39:00 +0200
+Subject: [OWASP-cheat-sheets] Basic Authentication for REST APIs
+In-Reply-To: <2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+References: <CADFnxGcDZ=KjCcQBGZtxCMKQyrxwWVLhGqrsZ+=qHXb=c+NSMw@mail.gmail.com>
+	<2fa6883b-2235-c0be-d096-1d982cdb57f5@owasp.org>
+Message-ID: <CADFnxGemObRP7efGxWPATDKNNt+0P3nGJAc=0Hq5GzANfbnJgw@mail.gmail.com>
+
+Jim,
+
+I have removed the 2 sections you object to (point 2 and 3). Your
+criticism is fair. The important points to make here, I think, is that
+there should be a separate component responsible for authentication
+(an IdP) and passing credentials through the service provider is
+unnecessary and undesirable - use an STS instead. I try to make these
+points in a new section: Externalising the Security Token Service and
+Identity Provider.
+
+I have also added the lack of a mechanism to log the user out as a
+drawback of Basic/Digest Authentication. What is this 'session' thing
+that you speak of?
+
+Yo
+
+On 8 September 2017 at 21:54, Jim Manico <jim.manico at owasp.org> wrote:
+> I like where you're going with this Yo. A few comments...
+>
+> 1) One of the big issues with HTTP Basic/Digest is that there is no clean
+> way to logout the user. You're logged in until the browser closes. There is
+> no real session management in play. You're using credentials as session
+> identifiers basically - which is a nono.
+>
+> 2) This comment does not seem true to me. Each API endpoint must have access
+> to the password database. Effectively, this means that all APIs are part of
+> the attack surface. Since a password database is a high-value target, its
+> attack surface should be carefully controlled. This becomes almost
+> impossible as the number of endpoints grows and the API need to evolve
+> quickly.
+>
+> A webservice could just pass the authentication data to another service that
+> does the verification. I have seen this done before using a variety of
+> products and architectures. A more accurate comment would be "each API
+> endpoint must PROCESS usernames and passwords in some way".
+>
+> 3) I also politely disagree with this comment for the same reason as #2.
+> Authentication and authorization logic runs on every endpoint. Ideally, this
+> would be shared code, subjected to rigorous QA, but this may be difficult to
+> realise as distinct API endpoints may have different release cycles. Any
+> security patch would impact all endpoints."
+>
+> API endpoints could pass these AuthN/Z challenges to another internal
+> service (think of the proxy service pattern). I'm not sure how to wordsmith
+> this, but does my comment make sense?
+>
+> Aloha, Jim
+>
+>
+> On 9/8/17 12:45 AM, Johan Peeters wrote:
+>
+> During the REST API session at the OWASP summit, I was surprised to
+> hear that so many people are using Basic Authentication
+> (username:password). I just added a section in the protocols section
+> of the cheat sheet explaining the downside of doing so. I also
+> indicated in which circumstances it may be acceptable:
+> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet#Protocols_for_Authentication_and_Authorization.
+>
+> I am looking forward to your comments.
+>
+> Yo
+>
+>
+
+
+
+-- 
+Johan Peeters
+https://www.johanpeeters.com
+
+From kxp43 at case.edu  Tue Sep 12 18:32:52 2017
+From: kxp43 at case.edu (Kenneth Po)
+Date: Tue, 12 Sep 2017 14:32:52 -0400
+Subject: [OWASP-cheat-sheets] Question: ECDHE and DHE cipher orders
+Message-ID: <CAABd0sBvUe4KSOrJ1mqJEP4CMvJyh=Hfg51fGoOP4et5jENZGQ@mail.gmail.com>
+
+To whom this may concern:
+
+I have seen some inconsistencies in various OWASP cipher ordering
+guidance. I'm unsure which guidance is correct or if info is dated.
+Would someone be able to clarify?
+
+1. This lists that DHE is preferred over ECDHE.
+https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers
+
+2. These various sites list ECDHE algorithms first:
+2A. OWASP NGINX: https://www.owasp.org/index.php/SCG_WS_nginx
+2B. SSL Labs lists out ECDHE before DHE:
+https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices
+2C. Mozilla SSL Confguration Generator list out ECDHE before DHE:
+https://mozilla.github.io/server-side-tls/ssl-config-generator/
+2D. The logjam guidance site also lists out ECDHE first:
+https://weakdh.org/sysadmin.html
+
+---------
+I'd be happy to update the cheat sheets to reflect changes. I know
+that the word 'volantile' could be a German/Deutsch translation
+mistake and should be replaced with 'volatile'.
+
+Additionally, the guidance may need to be applied to the draft version
+of the TLS Cipher String Cheat Sheet
+(https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet)
+
+Thanks in advance.
+
+Kenneth Po
+
+From torsten.gigler at owasp.org  Tue Sep 12 22:24:14 2017
+From: torsten.gigler at owasp.org (Torsten Gigler)
+Date: Wed, 13 Sep 2017 00:24:14 +0200
+Subject: [OWASP-cheat-sheets] Question: ECDHE and DHE cipher orders
+In-Reply-To: <CAABd0sBvUe4KSOrJ1mqJEP4CMvJyh=Hfg51fGoOP4et5jENZGQ@mail.gmail.com>
+References: <CAABd0sBvUe4KSOrJ1mqJEP4CMvJyh=Hfg51fGoOP4et5jENZGQ@mail.gmail.com>
+Message-ID: <e68494bd-2a83-472e-9d6d-0ef701071865@owasp.org>
+
+Dear Kenneth,
+
+thank you for your mail and your points for discussion.
+
+About your question: DHE versus ECDHE:
+
+  * DHE and ECDHE, both do support Forward Secrecy. So they should be offered by a server with
+    hightest priority.
+      o "Highest priority for ciphers that support 'Forward Secrecy' (-> Support ephemeral
+        Diffie-Hellman key exchange, see rule above)."
+  * But there is still the need to start with one cipher. There have been a lot of discussions about
+    the reliability of Elliptic Curves, and finally two Curves are about to be standardized for TLS
+    (https://datatracker.ietf.org/doc/draft-ietf-tls-rfc4492bis/?include_text=1). Until now, only
+    some crypto libraries support them and some of them have had vulnerabilities by implementing
+    them, e.g. http://www.cvedetails.com/cve/CVE-2017-0379/
+    So I'd still favor DHE over ECDHE in general, but it's only a fine nuance:?
+
+          o "Favor DHE over ECDHE (and monitor the CPU usage, see Notes below), ECDHE lacks now of
+            really reliable Elliptic Curves, see discussion about secp{224,256,384,521}r1 and
+            secp256k1, cf. [3] <http://safecurves.cr.yp.to>, [4]
+            <https://www.schneier.com/blog/archives/2013/09/the_nsa_is_brea.html#c1675929>. The
+            solution might be to use Brainpool Curves [German]
+            <http://www.researchgate.net/profile/Johannes_Merkle/publication/260050106_Standardisierung_der_Brainpool-Kurven_fr_TLS_und_IPSec/file/60b7d52f36a0cc2fdd.pdf>,
+            defined for TLS in RFC 7027 <https://tools.ietf.org/html/rfc7027>, or Edwards Curves
+            <http://eprint.iacr.org/2007/286>. The most promising candidates for the latter are
+            'Curve25519' <https://tools.ietf.org/html/draft-josefsson-tls-curve25519-06> and
+            Ed448-Goldilocks <http://sourceforge.net/p/ed448goldilocks/wiki/Home/> (see RFC 7748 -
+            Elliptic Curves for Security <https://tools.ietf.org/html/rfc7748>), that are about to
+            be defined by RFC for TLS, cf. DRAFT-ietf-tls-rfc4492bis
+            <https://tools.ietf.org/html/draft-ietf-tls-rfc4492bis-11> and IANA (temporary
+            registrations for ecdh_x25519, ecdh_x448)
+            <http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8>,
+            furthermore some crypto libraries support already Curve 25519
+            <https://en.wikipedia.org/wiki/Comparison_of_TLS_implementations#Supported_elliptic_curves>."
+
+
+    Meanwhile other influences get more weight, e.g. to favor GCM over CBC. So, I've discussed this
+    with Achim Hoffmann and we have developed the DRAFT for
+    'https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet'. There has been a Cheat Sheet
+    workshop in Germany the last two days and I've sent our draft as input. So now, I am awaiting
+    feedback if they had time to discuss it. And yes, it is planned to link to the Transport Layer
+    Protection Cheat Sheet with the TLS Cipher String Cheat Sheet if the feedback is positive. 
+
+  * *Additional remarks*: The overall setup for DHE/ECDHE needs to be up to date: 'Use cryptographic
+    parameters (like DH-parameter) that use a secure length that match to the supported keylength of
+    your certificate (>=2048 bits or equivalent Elliptic Curves).'
+    -> As a consequence do not use DHE if you can not use DH parameters with at least 2048 bits.
+    Same for ECDHE, if you can not use curves with at least 250 bits, e.g. secp{256,384,521}r1,
+    x25519 (weaker curves should be deactivated, which is still a challenge. In many cases you might
+    get a standard list, mostly undocumented/or with a hard to find documentation).
+
+Finally, thank you for the hint about the typo. I've fixed it already.
+
+I hope that this answers help or start a deeper discussion.
+
+Cheers
+Torsten
+
+
+Am 12.09.2017 um 20:32 schrieb Kenneth Po:
+> To whom this may concern:
+>
+> I have seen some inconsistencies in various OWASP cipher ordering
+> guidance. I'm unsure which guidance is correct or if info is dated.
+> Would someone be able to clarify?
+>
+> 1. This lists that DHE is preferred over ECDHE.
+> https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Cryptographic_Ciphers
+>
+> 2. These various sites list ECDHE algorithms first:
+> 2A. OWASP NGINX: https://www.owasp.org/index.php/SCG_WS_nginx
+> 2B. SSL Labs lists out ECDHE before DHE:
+> https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices
+> 2C. Mozilla SSL Confguration Generator list out ECDHE before DHE:
+> https://mozilla.github.io/server-side-tls/ssl-config-generator/
+> 2D. The logjam guidance site also lists out ECDHE first:
+> https://weakdh.org/sysadmin.html
+>
+> ---------
+> I'd be happy to update the cheat sheets to reflect changes. I know
+> that the word 'volantile' could be a German/Deutsch translation
+> mistake and should be replaced with 'volatile'.
+>
+> Additionally, the guidance may need to be applied to the draft version
+> of the TLS Cipher String Cheat Sheet
+> (https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet)
+>
+> Thanks in advance.
+>
+> Kenneth Po
+> _______________________________________________
+> OWASP-cheat-sheets mailing list
+> OWASP-cheat-sheets at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170913/50e2ed6e/attachment.html>
+
+From jan.wolff at owasp.org  Sat Sep 16 11:32:48 2017
+From: jan.wolff at owasp.org (Jan Wolff)
+Date: Sat, 16 Sep 2017 13:32:48 +0200
+Subject: [OWASP-cheat-sheets] OWASP Cheat Sheet Workshop
+Message-ID: <be1d910c-98b1-9b33-06f3-8353c97ac513@owasp.org>
+
+Hello everybody,
+
+the OWASP Cheat Sheet Workshop Germany finally took place on 11th/12th 
+of September close to Frankfurt.
+https://www.owasp.org/index.php/Germany/Cheat_Sheet_Workshop
+
+The original idea was to get two groups together working on one topic 
+each. We had less registrations as expected over the summer and, as was 
+to be expected, lost some participants because of short-term 
+obligations. We ended up with motivated group of five participants 
+working on the REST Web Services and Denial of Service cheat sheets.
+
+People were arriving on Sunday the 10th and we had a nice get together 
+in the evening. On Monday, we kicked off the workshop with a remote call 
+with Jim Manico who stayed up late for us in California (thx Jim!). The 
+following two days were filled with brainstorming, discussions and 
+editing... and good food and coffee as well.
+
+Results (still in draft/review status)
+https://www.owasp.org/index.php/REST_Security_Cheat_Sheet
+https://www.owasp.org/index.php/DRAFT_Denial_of_Service_Cheat_Sheet
+
+Improving the existing cheat sheets sometimes meant removing content. We 
+did not take those decisions lightly and want to encourage everyone to 
+have a look/discuss/review what is there. If you do not agree with 
+changes, please state your opinion and let us discuss on the mailing 
+list to improve the material.
+
+Big thanks to everyone who supported us and made this great experience 
+possible: Jim Manico, Martin Knobloch, all the helpers from the German 
+Chapter and especially Boris Hemkemeier, who had the idea and initiated 
+the project.
+
+Best
+Jan Wolff
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170916/cbaf1131/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: epgbamnagkbmmcem.png
+Type: image/png
+Size: 1104863 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170916/cbaf1131/attachment-0001.png>
+
+From jim.manico at owasp.org  Sat Sep 16 23:54:18 2017
+From: jim.manico at owasp.org (Jim Manico)
+Date: Sun, 17 Sep 2017 07:54:18 +0800
+Subject: [OWASP-cheat-sheets] OWASP Cheat Sheet Workshop
+In-Reply-To: <be1d910c-98b1-9b33-06f3-8353c97ac513@owasp.org>
+References: <be1d910c-98b1-9b33-06f3-8353c97ac513@owasp.org>
+Message-ID: <996ef471-97f9-b18d-3aa8-58f494c90860@owasp.org>
+
+What brilliant pieces of work. Thank you!
+
+I am extremely grateful that you all took time to help the community by
+advancing these important cheat sheet.
+
+Very nice work on the changes you made to the REST cheatsheet. It's a
+difficult topic and I think you advanced the work significantly. I think
+we can take it out of draft mode.
+
+Thank you kindly for adding a new DOS cheatsheet!
+
+I'll be sure to add these to the navigation.
+
+ALOHA! :)
+
+- Jim
+
+
+
+On 9/16/17 7:32 PM, Jan Wolff wrote:
+>
+> Hello everybody,
+>
+> the OWASP Cheat Sheet Workshop Germany finally took place on 11th/12th
+> of September close to Frankfurt.
+> https://www.owasp.org/index.php/Germany/Cheat_Sheet_Workshop
+>
+> The original idea was to get two groups together working on one topic
+> each. We had less registrations as expected over the summer and, as
+> was to be expected, lost some participants because of short-term
+> obligations. We ended up with motivated group of five participants
+> working on the REST Web Services and Denial of Service cheat sheets.
+>
+> People were arriving on Sunday the 10th and we had a nice get together
+> in the evening. On Monday, we kicked off the workshop with a remote
+> call with Jim Manico who stayed up late for us in California (thx
+> Jim!). The following two days were filled with brainstorming,
+> discussions and editing... and good food and coffee as well.
+>
+> Results (still in draft/review status)
+> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet
+> https://www.owasp.org/index.php/DRAFT_Denial_of_Service_Cheat_Sheet
+>
+> Improving the existing cheat sheets sometimes meant removing content.
+> We did not take those decisions lightly and want to encourage everyone
+> to have a look/discuss/review what is there. If you do not agree with
+> changes, please state your opinion and let us discuss on the mailing
+> list to improve the material.
+>
+> Big thanks to everyone who supported us and made this great experience
+> possible: Jim Manico, Martin Knobloch, all the helpers from the German
+> Chapter and especially Boris Hemkemeier, who had the idea and
+> initiated the project.
+>
+> Best
+> Jan Wolff
+>
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170917/d4d7fd84/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: epgbamnagkbmmcem.png
+Type: image/png
+Size: 1104863 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170917/d4d7fd84/attachment-0001.png>
+
+From yo at johanpeeters.com  Sun Sep 17 02:54:50 2017
+From: yo at johanpeeters.com (Johan Peeters)
+Date: Sun, 17 Sep 2017 04:54:50 +0200
+Subject: [OWASP-cheat-sheets] OWASP Cheat Sheet Workshop
+In-Reply-To: <996ef471-97f9-b18d-3aa8-58f494c90860@owasp.org>
+References: <be1d910c-98b1-9b33-06f3-8353c97ac513@owasp.org>
+	<996ef471-97f9-b18d-3aa8-58f494c90860@owasp.org>
+Message-ID: <CADFnxGdcqubQF02m+QBm68XPVKQJu4zgXjVBrjgku_AzaxPY-Q@mail.gmail.com>
+
+Thank you for the flattering comments, Jim. I felt privileged to be part of
+such a great group of security wonks and I agree that we made significant
+progress. However, I think more is needed to lift the draft status of the
+REST cheat sheet - at least all items on the TODO list should be covered.
+
+Looking forward to continuing the work with your and the community's
+feedback.
+
+Yo
+
+On 17 September 2017 at 01:54, Jim Manico <jim.manico at owasp.org> wrote:
+
+> What brilliant pieces of work. Thank you!
+>
+> I am extremely grateful that you all took time to help the community by
+> advancing these important cheat sheet.
+>
+> Very nice work on the changes you made to the REST cheatsheet. It's a
+> difficult topic and I think you advanced the work significantly. I think we
+> can take it out of draft mode.
+>
+> Thank you kindly for adding a new DOS cheatsheet!
+>
+> I'll be sure to add these to the navigation.
+>
+> ALOHA! :)
+>
+> - Jim
+>
+>
+>
+> On 9/16/17 7:32 PM, Jan Wolff wrote:
+>
+> Hello everybody,
+>
+> the OWASP Cheat Sheet Workshop Germany finally took place on 11th/12th of
+> September close to Frankfurt.
+> https://www.owasp.org/index.php/Germany/Cheat_Sheet_Workshop
+>
+> The original idea was to get two groups together working on one topic
+> each. We had less registrations as expected over the summer and, as was to
+> be expected, lost some participants because of short-term obligations. We
+> ended up with motivated group of five participants working on the REST Web
+> Services and Denial of Service cheat sheets.
+>
+> People were arriving on Sunday the 10th and we had a nice get together in
+> the evening. On Monday, we kicked off the workshop with a remote call with
+> Jim Manico who stayed up late for us in California (thx Jim!). The
+> following two days were filled with brainstorming, discussions and
+> editing... and good food and coffee as well.
+>
+> Results (still in draft/review status)
+> https://www.owasp.org/index.php/REST_Security_Cheat_Sheet
+> https://www.owasp.org/index.php/DRAFT_Denial_of_Service_Cheat_Sheet
+>
+> Improving the existing cheat sheets sometimes meant removing content. We
+> did not take those decisions lightly and want to encourage everyone to have
+> a look/discuss/review what is there. If you do not agree with changes,
+> please state your opinion and let us discuss on the mailing list to improve
+> the material.
+>
+> Big thanks to everyone who supported us and made this great experience
+> possible: Jim Manico, Martin Knobloch, all the helpers from the German
+> Chapter and especially Boris Hemkemeier, who had the idea and initiated the
+> project.
+>
+> Best
+> Jan Wolff
+>
+>
+>
+>
+>
+
+
+-- 
+Johan Peeters
+https://www.johanpeeters.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170917/506db0cf/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: epgbamnagkbmmcem.png
+Type: image/png
+Size: 1104863 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20170917/506db0cf/attachment-0001.png>
+

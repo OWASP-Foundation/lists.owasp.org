@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Why%20is%20rule%20981318%20triggering%3F&In-Reply-To=%3CCC5BD409.5AFA3%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001164.html">
+   <LINK REL="Next"  HREF="001166.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Why%20is%20rule%20981318%20triggering%3F&In-Reply-To=%3CCC5BD409.5AFA3%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Aug 23 16:39:50 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001164.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+        <LI>Next message: <A HREF="001166.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1165">[ date ]</a>
+              <a href="thread.html#1165">[ thread ]</a>
+              <a href="subject.html#1165">[ subject ]</a>
+              <a href="author.html#1165">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Christian,
+Is this an application that you control?  It looks as though this is some
+type of search field where the user can type in text.  If this is the
+case, then I suggest that the application use proper Unicode encoding of
+the input data so that the param field would be - keywords=%u0119 rather
+than keywords=&#281;.
+
+In addition, I would suggest that you add the following to your
+ModSecurity main config file -
+
+SecUnicodeCodePoint 20127
+SecUnicodeMapFile /path/to/unicode.mapping
+
+You will need to adjust the first directive to suit your local code point.
+ 20127 maps to US-ASCII.  The unicode.mapping file comes bundled with the
+ModSecurity source code.  By using these directives, any t:urlDecodeUni
+transformation functions will map the Unicode data to the mappings you
+specify.
+
+-Ryan
+
+
+
+On 8/23/12 9:34 AM, &quot;Christian Klossek&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">c.klossek at apodiscounter.de</A>&gt; wrote:
+
+&gt;<i>Hi,
+</I>&gt;<i>
+</I>&gt;<i>I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+</I>&gt;<i>
+</I>&gt;<i>Why is the rule 981318 triggering on a GET-param with a value of &quot;&#281;&quot;
+</I>&gt;<i>(Unicode U+0119)?
+</I>&gt;<i>
+</I>&gt;<i>I get this in my debug log (debug level 9):
+</I>&gt;<i>-------------------------------------
+</I>&gt;<i>SecRule
+</I>&gt;<i>&quot;REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+</I>&gt;<i>L:/*&quot;
+</I>&gt;<i>&quot;@rx
+</I>&gt;<i>(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x
+</I>&gt;<i>80\x98;]+$)&quot;
+</I>&gt;<i>&quot;phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:
+</I>&gt;<i>'SQL
+</I>&gt;<i>Injection Attack: Common Injection Testing
+</I>&gt;<i>Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTIO
+</I>&gt;<i>N,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/
+</I>&gt;<i>6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critic
+</I>&gt;<i>al_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},se
+</I>&gt;<i>tvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;<i>
+</I>&gt;<i>Expanded
+</I>&gt;<i>&quot;REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+</I>&gt;<i>L:/*&quot;
+</I>&gt;<i>to &quot;REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords&quot;.
+</I>&gt;<i>
+</I>&gt;<i>T (0) urlDecodeUni: &quot;/test.php&quot;
+</I>&gt;<i>Transformation completed in 13 usec.
+</I>&gt;<i>Executing operator &quot;rx&quot; with param
+</I>&gt;<i>&quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;<i>x80\x98;]+$)&quot;
+</I>&gt;<i>against REQUEST_FILENAME.
+</I>&gt;<i>Target value: &quot;/test.php&quot;
+</I>&gt;<i>Operator completed in 9 usec.
+</I>&gt;<i>
+</I>&gt;<i>T (0) urlDecodeUni: &quot;keywords&quot;
+</I>&gt;<i>Transformation completed in 13 usec.
+</I>&gt;<i>Executing operator &quot;rx&quot; with param
+</I>&gt;<i>&quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;<i>x80\x98;]+$)&quot;
+</I>&gt;<i>against ARGS_NAMES:keywords.
+</I>&gt;<i>Target value: &quot;keywords&quot;
+</I>&gt;<i>Operator completed in 4 usec.
+</I>&gt;<i>
+</I>&gt;<i>T (0) urlDecodeUni: &quot;\xc4\x99&quot;
+</I>&gt;<i>Transformation completed in 14 usec.
+</I>&gt;<i>Executing operator &quot;rx&quot; with param
+</I>&gt;<i>&quot;(^[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\&quot;'`\xc2\xb4\xe2\x80\x99\xe2\
+</I>&gt;<i>x80\x98;]+$)&quot;
+</I>&gt;<i>against ARGS:keywords.
+</I>&gt;<i>Target value: &quot;\xc4\x99&quot;
+</I>&gt;<i>Added regex subexpression to TX.0: \x99
+</I>&gt;<i>Added regex subexpression to TX.1: \x99
+</I>&gt;<i>Operator completed in 38 usec.
+</I>&gt;<i>Setting variable: tx.msg=%{rule.msg}
+</I>&gt;<i>Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+</I>&gt;<i>Testing Detected
+</I>&gt;<i>..
+</I>&gt;<i>..
+</I>&gt;<i>-------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i>Thanks for your help
+</I>&gt;<i>
+</I>&gt;<i>Christian
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001164.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+	<LI>Next message: <A HREF="001166.html">[Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1165">[ date ]</a>
+              <a href="thread.html#1165">[ thread ]</a>
+              <a href="subject.html#1165">[ subject ]</a>
+              <a href="author.html#1165">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,2206 @@
+From dreamice.jiang at gmail.com  Tue Sep  1 23:58:17 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Wed, 2 Sep 2009 11:58:17 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Is there rules for Web link theft?
+Message-ID: <d5dfca260909012058o1ded107bke92ba0013e18a8f5@mail.gmail.com>
+
+Dear all,
+I want to know is there any modsecurity rules for 'Web link theft'
+protection?
+
+Thanks in advance!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090902/6a3c5656/attachment.html 
+
+From rcbarnett at gmail.com  Wed Sep  2 11:02:00 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Wed, 2 Sep 2009 11:02:00 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Is there rules for Web link
+	theft?
+In-Reply-To: <d5dfca260909012058o1ded107bke92ba0013e18a8f5@mail.gmail.com>
+References: <d5dfca260909012058o1ded107bke92ba0013e18a8f5@mail.gmail.com>
+Message-ID: <200909021102.00239.rcbarnett@gmail.com>
+
+What exactly do you mean by "web link theft?"
+
+--
+Ryan C. Barnett
+WASC Distributed Open Proxy Honeypot Project Leader
+OWASP ModSecurity Core Rule Set Project Leader
+Tactical Web Application Security
+http://tacticalwebappsec.blogspot.com
+
+On Tuesday 01 September 2009 11:58:17 pm Junyong Jiang wrote:
+> Dear all,
+> I want to know is there any modsecurity rules for 'Web link theft'
+> protection?
+>
+> Thanks in advance!
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090902/754c4de2/attachment.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 10:53:27 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 07:53:27 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule Configuration!
+Message-ID: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+
+I am looking at the rules for the IE8 XSS filter and was wondering if we
+have to use the setvar configuration.
+Can we change this:
+SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+"phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS Filters -
+Attack
+Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:tx.anomaly_score=+1,setvar:tx.%{
+rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+
+
+to look like this?
+SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+"phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,log,msg:'IE
+XSS Filters - Attack
+Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:'2'"
+
+Will that work as I would hope or am I off completely here?
+
+
+Thanks!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/2f5a773b/attachment.html 
+
+From rcbarnett at gmail.com  Fri Sep 11 11:03:51 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 11:03:51 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+Message-ID: <cba0286a0909110803r15463aaj6aa106a5dc4e2bf4@mail.gmail.com>
+
+On Fri, Sep 11, 2009 at 10:53 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+
+> I am looking at the rules for the IE8 XSS filter and was wondering if we
+> have to use the setvar configuration.
+> Can we change this:
+> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+> "phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS Filters -
+> Attack
+> Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:tx.anomaly_score=+1,setvar:tx.%{
+> rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+>
+>
+> to look like this?
+> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+> "phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,log,msg:'IE
+> XSS Filters - Attack
+> Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:'2'"
+>
+> Will that work as I would hope or am I off completely here?
+>
+>
+>
+What are you "hoping" this will do?  The purpose of using the setvar actions
+is so that anomaly scoring can be used.
+
+-- 
+Ryan C. Barnett
+WASC Distributed Open Proxy Honeypot Project Leader
+OWASP ModSecurity Core Rule Set Project Leader
+Tactical Web Application Security
+http://tacticalwebappsec.blogspot.com/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/a25ba076/attachment.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 11:10:12 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 08:10:12 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <cba0286a0909110803r15463aaj6aa106a5dc4e2bf4@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909110803r15463aaj6aa106a5dc4e2bf4@mail.gmail.com>
+Message-ID: <869a38360909110810w757db58btd86f383c1e2a43a4@mail.gmail.com>
+
+Not using anomaly scoring at all, just wanted it to be like the old rule set
+...is that possible?
+
+On Fri, Sep 11, 2009 at 8:03 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+
+> On Fri, Sep 11, 2009 at 10:53 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+>
+>> I am looking at the rules for the IE8 XSS filter and was wondering if we
+>> have to use the setvar configuration.
+>> Can we change this:
+>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+>> "phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS Filters -
+>> Attack
+>> Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:tx.anomaly_score=+1,setvar:tx.%{
+>> rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+>>
+>>
+>> to look like this?
+>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[ /+\t]*=)"
+>> "phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,log,msg:'IE
+>> XSS Filters - Attack
+>> Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:'2'"
+>>
+>> Will that work as I would hope or am I off completely here?
+>>
+>>
+>>
+> What are you "hoping" this will do?  The purpose of using the setvar
+> actions is so that anomaly scoring can be used.
+>
+> --
+> Ryan C. Barnett
+> WASC Distributed Open Proxy Honeypot Project Leader
+> OWASP ModSecurity Core Rule Set Project Leader
+> Tactical Web Application Security
+> http://tacticalwebappsec.blogspot.com/
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/18ac3afe/attachment.html 
+
+From rcbarnett at gmail.com  Fri Sep 11 11:16:43 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 11:16:43 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909110810w757db58btd86f383c1e2a43a4@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909110803r15463aaj6aa106a5dc4e2bf4@mail.gmail.com>
+	<869a38360909110810w757db58btd86f383c1e2a43a4@mail.gmail.com>
+Message-ID: <cba0286a0909110816n44ad8023p94a7003ce3724d2f@mail.gmail.com>
+
+On Fri, Sep 11, 2009 at 11:10 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+
+> Not using anomaly scoring at all, just wanted it to be like the old rule
+> set ...is that possible?
+>
+>
+May I ask why?  What is it about the anomaly scoring approach that you do
+not like?
+
+
+>
+> On Fri, Sep 11, 2009 at 8:03 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+>
+>> On Fri, Sep 11, 2009 at 10:53 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+>>
+>>> I am looking at the rules for the IE8 XSS filter and was wondering if we
+>>> have to use the setvar configuration.
+>>> Can we change this:
+>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+>>> /+\t]*=)" "phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS
+>>> Filters - Attack
+>>> Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:tx.anomaly_score=+1,setvar:tx.%{
+>>> rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+>>>
+>>>
+>>> to look like this?
+>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+>>> /+\t]*=)"
+>>> "phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,log,msg:'IE
+>>> XSS Filters - Attack
+>>> Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:'2'"
+>>>
+>>> Will that work as I would hope or am I off completely here?
+>>>
+>>>
+>>>
+>> What are you "hoping" this will do?  The purpose of using the setvar
+>> actions is so that anomaly scoring can be used.
+>>
+>> --
+>> Ryan C. Barnett
+>> WASC Distributed Open Proxy Honeypot Project Leader
+>> OWASP ModSecurity Core Rule Set Project Leader
+>> Tactical Web Application Security
+>> http://tacticalwebappsec.blogspot.com/
+>>
+>>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+
+-- 
+Ryan C. Barnett
+WASC Distributed Open Proxy Honeypot Project Leader
+OWASP ModSecurity Core Rule Set Project Leader
+Tactical Web Application Security
+http://tacticalwebappsec.blogspot.com/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/115ae5ee/attachment.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 11:20:21 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 08:20:21 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <cba0286a0909110816n44ad8023p94a7003ce3724d2f@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909110803r15463aaj6aa106a5dc4e2bf4@mail.gmail.com>
+	<869a38360909110810w757db58btd86f383c1e2a43a4@mail.gmail.com>
+	<cba0286a0909110816n44ad8023p94a7003ce3724d2f@mail.gmail.com>
+Message-ID: <869a38360909110820t706937c9s13379402a89e10d9@mail.gmail.com>
+
+When I tested this out with our systems, it was not detecting every single
+IIE8 XSS attempt I used. It would seem to detect one, then let another pass,
+then detect one, let another pass...
+
+
+
+On Fri, Sep 11, 2009 at 8:16 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+
+> On Fri, Sep 11, 2009 at 11:10 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+>
+>> Not using anomaly scoring at all, just wanted it to be like the old rule
+>> set ...is that possible?
+>>
+>>
+> May I ask why?  What is it about the anomaly scoring approach that you do
+> not like?
+>
+>
+>>
+>> On Fri, Sep 11, 2009 at 8:03 AM, Ryan Barnett <rcbarnett at gmail.com>wrote:
+>>
+>>> On Fri, Sep 11, 2009 at 10:53 AM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+>>>
+>>>> I am looking at the rules for the IE8 XSS filter and was wondering if we
+>>>> have to use the setvar configuration.
+>>>> Can we change this:
+>>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+>>>> /+\t]*=)" "phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS
+>>>> Filters - Attack
+>>>> Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:tx.anomaly_score=+1,setvar:tx.%{
+>>>> rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+>>>>
+>>>>
+>>>> to look like this?
+>>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+>>>> /+\t]*=)"
+>>>> "phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,log,msg:'IE
+>>>> XSS Filters - Attack
+>>>> Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:'2'"
+>>>>
+>>>> Will that work as I would hope or am I off completely here?
+>>>>
+>>>>
+>>>>
+>>> What are you "hoping" this will do?  The purpose of using the setvar
+>>> actions is so that anomaly scoring can be used.
+>>>
+>>> --
+>>> Ryan C. Barnett
+>>> WASC Distributed Open Proxy Honeypot Project Leader
+>>> OWASP ModSecurity Core Rule Set Project Leader
+>>> Tactical Web Application Security
+>>> http://tacticalwebappsec.blogspot.com/
+>>>
+>>>
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+>
+>
+> --
+> Ryan C. Barnett
+> WASC Distributed Open Proxy Honeypot Project Leader
+> OWASP ModSecurity Core Rule Set Project Leader
+> Tactical Web Application Security
+> http://tacticalwebappsec.blogspot.com/
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/df3d0e46/attachment-0001.html 
+
+From rcbarnett at gmail.com  Fri Sep 11 11:23:31 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 11:23:31 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909110820t706937c9s13379402a89e10d9@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909110816n44ad8023p94a7003ce3724d2f@mail.gmail.com>
+	<869a38360909110820t706937c9s13379402a89e10d9@mail.gmail.com>
+Message-ID: <200909111123.31775.rcbarnett@gmail.com>
+
+On Friday 11 September 2009 11:20:21 am OSSEC junkie wrote:
+> When I tested this out with our systems, it was not detecting every single
+> IIE8 XSS attempt I used. It would seem to detect one, then let another
+> pass, then detect one, let another pass...
+>
+
+What IE8 XSS payloads were you using to test?  Did you look at the debug log?  
+We would want to see if this is a signature issue vs. something related to 
+using setvar/anomaly scoring.
+
+> On Fri, Sep 11, 2009 at 8:16 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> > On Fri, Sep 11, 2009 at 11:10 AM, OSSEC junkie 
+<ossec.junkie at gmail.com>wrote:
+> >> Not using anomaly scoring at all, just wanted it to be like the old rule
+> >> set ...is that possible?
+> >
+> > May I ask why?  What is it about the anomaly scoring approach that you do
+> > not like?
+> >
+> >> On Fri, Sep 11, 2009 at 8:03 AM, Ryan Barnett <rcbarnett at gmail.com>wrote:
+> >>> On Fri, Sep 11, 2009 at 10:53 AM, OSSEC junkie 
+<ossec.junkie at gmail.com>wrote:
+> >>>> I am looking at the rules for the IE8 XSS filter and was wondering if
+> >>>> we have to use the setvar configuration.
+> >>>> Can we change this:
+> >>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+> >>>> /+\t]*=)" "phase:2,t:none,t:lowercase,block,nolog,auditlog,msg:'IE XSS
+> >>>> Filters - Attack
+> >>>> Detected',setvar:'tx.msg=%{rule.msg}',setvar:tx.xss_score=+20,setvar:t
+> >>>>x.anomaly_score=+1,setvar:tx.%{
+> >>>> rule.id}-WEB_ATTACK/XSS-%{matched_var_name}=%{matched_var}"
+> >>>>
+> >>>>
+> >>>> to look like this?
+> >>>> SecRule REQUEST_URI_RAW|REQUEST_BODY "(?i:<APPLET[ /+\t].*?code[
+> >>>> /+\t]*=)"
+> >>>> "phase:2,capture,t:none,t:htmlEntityDecode,t:compressWhiteSpace,t:lowe
+> >>>>rcase,ctl:auditLogParts=+E,log,msg:'IE XSS Filters - Attack
+> >>>> Detected',id:'950006',tag:'WEB_ATTACK/XSS',logdata:'%{TX.0}',severity:
+> >>>>'2'"
+> >>>>
+> >>>> Will that work as I would hope or am I off completely here?
+> >>>
+> >>> What are you "hoping" this will do?  The purpose of using the setvar
+> >>> actions is so that anomaly scoring can be used.
+> >>>
+> >>> --
+> >>> Ryan C. Barnett
+> >>> WASC Distributed Open Proxy Honeypot Project Leader
+> >>> OWASP ModSecurity Core Rule Set Project Leader
+> >>> Tactical Web Application Security
+> >>> http://tacticalwebappsec.blogspot.com/
+> >>
+> >> _______________________________________________
+> >> Owasp-modsecurity-core-rule-set mailing list
+> >> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+> > --
+> > Ryan C. Barnett
+> > WASC Distributed Open Proxy Honeypot Project Leader
+> > OWASP ModSecurity Core Rule Set Project Leader
+> > Tactical Web Application Security
+> > http://tacticalwebappsec.blogspot.com/
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/9c39601b/attachment.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 11:38:03 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 08:38:03 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <200909111136.02014.rcbarnett@gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111123.31775.rcbarnett@gmail.com>
+	<869a38360909110827i14b6cf83j843adc3ef032c8@mail.gmail.com>
+	<200909111136.02014.rcbarnett@gmail.com>
+Message-ID: <869a38360909110838w546d2313r97b44fbaf7ee4588@mail.gmail.com>
+
+A penetration test and from private industry sources...
+
+
+On Fri, Sep 11, 2009 at 8:36 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> Where did you get these payloads?
+>
+> --
+> Ryan C. Barnett
+> WASC Distributed Open Proxy Honeypot Project Leader
+> OWASP ModSecurity Core Rule Set Project Leader
+> Tactical Web Application Security
+> http://tacticalwebappsec.blogspot.com
+>
+> On Friday 11 September 2009 11:27:19 am you wrote:
+>>
+>> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27%29
+>>;function%20a%28%29{var%20a=%22
+>>
+>>
+>> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.d%27%2b%27omain%29%27%29
+>>;function%20a%28%29{var%20a=%22
+>>
+>> I turned on the debugging but nothing was detected, thats why I wanted
+>> to move away from anomaly scoring...
+>
+>
+
+From rcbarnett at gmail.com  Fri Sep 11 11:42:19 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 11:42:19 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909110838w546d2313r97b44fbaf7ee4588@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111136.02014.rcbarnett@gmail.com>
+	<869a38360909110838w546d2313r97b44fbaf7ee4588@mail.gmail.com>
+Message-ID: <200909111142.19524.rcbarnett@gmail.com>
+
+On Friday 11 September 2009 11:38:03 am OSSEC junkie wrote:
+> A penetration test and from private industry sources...
+
+This is a signature issue and removing anomaly scoring won't help.  While this 
+payload may bypass the current filters, I am skeptical that these payloads 
+would actually trigger in a browser.  The underlying issue, however, is if 
+there is a lack of proper output encoding in the protected app.  Is your app 
+echoing back this data in a non-escaping/encoded way?
+
+> On Fri, Sep 11, 2009 at 8:36 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> > Where did you get these payloads?
+> >
+> > --
+> > Ryan C. Barnett
+> > WASC Distributed Open Proxy Honeypot Project Leader
+> > OWASP ModSecurity Core Rule Set Project Leader
+> > Tactical Web Application Security
+> > http://tacticalwebappsec.blogspot.com
+> >
+> > On Friday 11 September 2009 11:27:19 am you wrote:
+> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27
+> >>%29 ;function%20a%28%29{var%20a=%22
+> >>
+> >>
+> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.d%27%2b%27omain%29%27
+> >>%29 ;function%20a%28%29{var%20a=%22
+> >>
+> >> I turned on the debugging but nothing was detected, thats why I wanted
+> >> to move away from anomaly scoring...
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/f381dce3/attachment.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 11:46:14 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 08:46:14 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <200909111142.19524.rcbarnett@gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111136.02014.rcbarnett@gmail.com>
+	<869a38360909110838w546d2313r97b44fbaf7ee4588@mail.gmail.com>
+	<200909111142.19524.rcbarnett@gmail.com>
+Message-ID: <869a38360909110846k1e8e712as277364d69a6af95c@mail.gmail.com>
+
+Correct, the app is echoing back the data as expected.  At least I can
+try to get things working without the anomaly scoring, is the current
+configuration I originally sent formatted correctly to not use the
+scoring?
+
+
+
+On Fri, Sep 11, 2009 at 8:42 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> On Friday 11 September 2009 11:38:03 am OSSEC junkie wrote:
+>> A penetration test and from private industry sources...
+>
+> This is a signature issue and removing anomaly scoring won't help. While
+> this payload may bypass the current filters, I am skeptical that these
+> payloads would actually trigger in a browser. The underlying issue, however,
+> is if there is a lack of proper output encoding in the protected app. Is
+> your app echoing back this data in a non-escaping/encoded way?
+>
+>> On Fri, Sep 11, 2009 at 8:36 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+>> > Where did you get these payloads?
+>> >
+>> > --
+>> > Ryan C. Barnett
+>> > WASC Distributed Open Proxy Honeypot Project Leader
+>> > OWASP ModSecurity Core Rule Set Project Leader
+>> > Tactical Web Application Security
+>> > http://tacticalwebappsec.blogspot.com
+>> >
+>> > On Friday 11 September 2009 11:27:19 am you wrote:
+>> >>
+>> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27
+>> >>%29 ;function%20a%28%29{var%20a=%22
+>> >>
+>> >>
+>> >>
+>> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.d%27%2b%27omain%29%27
+>> >>%29 ;function%20a%28%29{var%20a=%22
+>> >>
+>> >> I turned on the debugging but nothing was detected, thats why I wanted
+>> >> to move away from anomaly scoring...
+>>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+From rcbarnett at gmail.com  Fri Sep 11 12:06:23 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 12:06:23 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909110846k1e8e712as277364d69a6af95c@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111142.19524.rcbarnett@gmail.com>
+	<869a38360909110846k1e8e712as277364d69a6af95c@mail.gmail.com>
+Message-ID: <200909111206.23658.rcbarnett@gmail.com>
+
+On Friday 11 September 2009 11:46:14 am OSSEC junkie wrote:
+> Correct, the app is echoing back the data as expected.  At least I can
+> try to get things working without the anomaly scoring, is the current
+> configuration I originally sent formatted correctly to not use the
+> scoring?
+>
+
+Yes, your rule looks fine but again, that won't fix this issue.
+
+One important note for everyone - we will be adding the converted PHPIDS 
+signatures to the CRS.  I just tested your attack payloads against the 
+converted PHPIDS signatures and it is detected.  I will update the CRS today 
+with these new rules.
+
+
+> On Fri, Sep 11, 2009 at 8:42 AM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> > On Friday 11 September 2009 11:38:03 am OSSEC junkie wrote:
+> >> A penetration test and from private industry sources...
+> >
+> > This is a signature issue and removing anomaly scoring won't help. While
+> > this payload may bypass the current filters, I am skeptical that these
+> > payloads would actually trigger in a browser. The underlying issue,
+> > however, is if there is a lack of proper output encoding in the protected
+> > app. Is your app echoing back this data in a non-escaping/encoded way?
+> >
+> >> On Fri, Sep 11, 2009 at 8:36 AM, Ryan Barnett <rcbarnett at gmail.com> 
+wrote:
+> >> > Where did you get these payloads?
+> >> >
+> >> > --
+> >> > Ryan C. Barnett
+> >> > WASC Distributed Open Proxy Honeypot Project Leader
+> >> > OWASP ModSecurity Core Rule Set Project Leader
+> >> > Tactical Web Application Security
+> >> > http://tacticalwebappsec.blogspot.com
+> >> >
+> >> > On Friday 11 September 2009 11:27:19 am you wrote:
+> >> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29
+> >> >>%27 %29 ;function%20a%28%29{var%20a=%22
+> >> >>
+> >> >>
+> >> >>
+> >> >> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.d%27%2b%27omain%29
+> >> >>%27 %29 ;function%20a%28%29{var%20a=%22
+> >> >>
+> >> >> I turned on the debugging but nothing was detected, thats why I
+> >> >> wanted to move away from anomaly scoring...
+> >>
+> >> _______________________________________________
+> >> Owasp-modsecurity-core-rule-set mailing list
+> >> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/b827fa7d/attachment-0001.html 
+
+From ossec.junkie at gmail.com  Fri Sep 11 12:26:13 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Fri, 11 Sep 2009 09:26:13 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <200909111206.23658.rcbarnett@gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111142.19524.rcbarnett@gmail.com>
+	<869a38360909110846k1e8e712as277364d69a6af95c@mail.gmail.com>
+	<200909111206.23658.rcbarnett@gmail.com>
+Message-ID: <869a38360909110926j7e0e593au1d945102f94bb67b@mail.gmail.com>
+
+Thanks for that, I'll be looking for the updated core rule set today.
+I appreciate it!
+
+From rcbarnett at gmail.com  Fri Sep 11 17:42:43 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 17:42:43 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Fwd: [JIRA] Resolved:
+	(CORERULES-13) Added converted PHPIDS signatures
+Message-ID: <200909111742.43967.rcbarnett@gmail.com>
+
+     [ 
+https://www.modsecurity.org/tracker/browse/CORERULES-13?page=com.atlassian.jira.plugin.system.issuetabpanels:all-
+tabpanel ]
+
+Ryan Barnett resolved CORERULES-13.
+-----------------------------------
+
+       Resolution: Fixed
+    Fix Version/s: 2.0
+
+Added PHPIDS signatures.
+
+> Added converted PHPIDS signatures
+> ---------------------------------
+>
+>                 Key: CORERULES-13
+>                 URL: https://www.modsecurity.org/tracker/browse/CORERULES-13
+>             Project: Core Rules
+>          Issue Type: Improvement
+>      Security Level: New
+>    Affects Versions: 2.0
+>            Reporter: Ryan Barnett
+>            Assignee: Ryan Barnett
+>             Fix For: 2.0
+>
+>
+> Added converted PHPIDS signatures from here - https://svn.php-
+ids.org/svn/trunk/lib/IDS/default_filter.xml
+
+-- 
+This message is automatically generated by JIRA.
+-
+If you think it was sent incorrectly contact one of the administrators: 
+https://www.modsecurity.org/tracker/secure/Administrators.jspa
+-
+For more information on JIRA, see: http://www.atlassian.com/software/jira
+
+        
+
+-------------------------------------------------------
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/90beaac4/attachment.html 
+
+From rcbarnett at gmail.com  Fri Sep 11 17:46:15 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Fri, 11 Sep 2009 17:46:15 -0400
+Subject: [Owasp-modsecurity-core-rule-set] CRS version 2.0.2 Released
+Message-ID: <200909111746.15869.rcbarnett@gmail.com>
+
+The latest CRS version is available for download - 
+https://sourceforge.net/projects/mod-security/files/modsecurity-crs/0-CURRENT/
+
+Here are the two updates -
+
+--------------------------
+Version 2.0.2 - 09/11/2009
+--------------------------
+
+Improvements:
+- Added converted PHPIDS signatures (https://svn.php-
+ids.org/svn/trunk/lib/IDS/default_filter.xml)
+  https://www.modsecurity.org/tracker/browse/CORERULES-13
+
+Bug Fixes:
+- Rule 958297 - Fixed Comment SPAM UA false positive that triggered only on 
+mozilla.
+  https://www.modsecurity.org/tracker/browse/CORERULES-15
+
+--
+Ryan C. Barnett
+WASC Distributed Open Proxy Honeypot Project Leader
+OWASP ModSecurity Core Rule Set Project Leader
+Tactical Web Application Security
+http://tacticalwebappsec.blogspot.com
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090911/53e388a8/attachment.html 
+
+From ossec.junkie at gmail.com  Sun Sep 13 02:38:39 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Sat, 12 Sep 2009 23:38:39 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <cba0286a0909111426q67461045waccf520beae9596d@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<200909111142.19524.rcbarnett@gmail.com>
+	<869a38360909110846k1e8e712as277364d69a6af95c@mail.gmail.com>
+	<200909111206.23658.rcbarnett@gmail.com>
+	<869a38360909110926j7e0e593au1d945102f94bb67b@mail.gmail.com>
+	<cba0286a0909111426q67461045waccf520beae9596d@mail.gmail.com>
+Message-ID: <869a38360909122338i70875b08t2e74300ea0d54219@mail.gmail.com>
+
+I'm testing this with Firefox and Chrome using this payload,
+1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27%29;function%20a%28%29{var%20a=%22
+
+But it never gets caught, even with the phpids filters applied, did
+not modify them, left as is.
+
+The only time it gets caught is when my browser changes the payload
+to: 1";}eval('al'%2b'ert(docu'%2b'ment.c'%2b'ookie)');function%20a(){var%20a="
+
+Then ModSecurity picks it up, but every other time I try with the 1%22
+... payload...it just gets right past ModSecurity..any ideas?
+
+
+On Fri, Sep 11, 2009 at 2:26 PM, Ryan Barnett <rcbarnett at gmail.com> wrote:
+> On Fri, Sep 11, 2009 at 12:26 PM, OSSEC junkie <ossec.junkie at gmail.com>
+> wrote:
+>>
+>> Thanks for that, I'll be looking for the updated core rule set today.
+>> I appreciate it!
+>>
+>
+> I haven't packaged the whole new 2.0.2 CRS archive up yet - but you can
+> download the new phpids rules file here -
+> https://mod-security.svn.sourceforge.net/svnroot/mod-security/crs/trunk/base_rules/modsecurity_crs_41_phpids_filters.conf
+>
+> Test this one out against your example payloads and verify that they are
+> caught.
+>
+> --
+> Ryan C. Barnett
+> WASC Distributed Open Proxy Honeypot Project Leader
+> OWASP ModSecurity Core Rule Set Project Leader
+> Tactical Web Application Security
+> http://tacticalwebappsec.blogspot.com/
+>
+>
+
+From rcbarnett at gmail.com  Sun Sep 13 08:35:52 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Sun, 13 Sep 2009 08:35:52 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909122338i70875b08t2e74300ea0d54219@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909111426q67461045waccf520beae9596d@mail.gmail.com>
+	<869a38360909122338i70875b08t2e74300ea0d54219@mail.gmail.com>
+Message-ID: <200909130835.53215.rcbarnett@gmail.com>
+
+On Sunday 13 September 2009 02:38:39 am OSSEC junkie wrote:
+> I'm testing this with Firefox and Chrome using this payload,
+> 1%22;}eval%28%27al%27%2b%27ert%28docu%27%2b%27ment.c%27%2b%27ookie%29%27%29
+>;function%20a%28%29{var%20a=%22
+>
+> But it never gets caught, even with the phpids filters applied, did
+> not modify them, left as is.
+>
+
+Works fine for me.  I sent your payload and the error_log showed this 
+(indicating that the anomaly score was 60) -
+
+[Sun Sep 13 08:15:55 2009] [error] [client 127.0.0.1] ModSecurity: Warning. 
+Operator GE matched 5 at TX:anomaly_score. [file 
+"/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_60_correlation.conf"] [line "41"] [msg 
+"Transactional Anomaly Score (score 60): Detects JavaScript language 
+constructs"] [hostname "localhost"] [uri "/example.php"] [unique_id 
+"Sqzie38AAQEAABXNKDEAAAAA"]
+
+Here is the data from the modsec_audit.log.  Notice under section H that there 
+are 3 phpids rules that trigger on this payload -
+
+--4533267f-A--
+[13/Sep/2009:08:15:55 --0400] Sqzie38AAQEAABXNKDEAAAAA 127.0.0.1 41838 
+127.0.0.1 80
+--4533267f-B--
+GET /example.php?test=1%20;
+%7Deval%20%20AL%20%2B%20ERT%20DOCU%20%2B%20MENT.C%20%2B%20OOKIE%20%20%20;function%20a%20%20%7Bvar%20a=%20 
+HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.3) Gecko/20090824 
+Firefox/3.5.3
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 300
+Connection: keep-alive
+Pragma: no-cache
+Cache-Control: no-cache
+
+--4533267f-F--
+HTTP/1.1 403 Forbidden
+Content-Length: 213
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--4533267f-H--
+Message: Pattern match "(?:,\s*(?:alert|showmodaldialog|eval)\s*,)|(?::
+\s*eval\s*[^\s])|([^:\s\w,.\/?+-]\s*)?(?<![a-z\/_@])(\s*return\s*)?(?:
+(?:document\s*\.)?(?:.+\/)?(?:alert|eval|msgbox|showmodaldialog|prompt|
+write(?:ln)?|confirm|dialog|open))\s*(?(1)[^\w]|(?:\s*[^\s\w,.@\ ..." at 
+REQUEST_URI_RAW. [file "/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "47"] [id 
+"phpids-21"] [msg "Detects very basic XSS probings"] [data "}eval "] [severity 
+"CRITICAL"] [tag "WEB_ATTACK"]
+
+Message: Pattern match "([^*\s\w,.\/?+-]\s*)?(?<![a-mo-z]\s)(?<![a-
+z\/_@>\-\|])(\s*return\s*)?(?:alert|inputbox|showmodaldialog|infinity|isnan|
+isnull|msgbox|expression|prompt|write(?:ln)?|confirm|dialog|urn|(?:un)?eval|
+exec|execscript|tostring|status|execute|window|unescape|n ..." at 
+REQUEST_URI_RAW. [file "/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "55"] [id 
+"phpids-16"] [msg "Detects possible includes and typical script methods"] 
+[data "}eval "] [severity "CRITICAL"] [tag "WEB_ATTACK"]
+
+Message: Pattern match "([^*:\s\w,.\/?+-]\s*)?(?<![a-z]\s)(?<![a-z_@>\|])
+(\s*return\s*)?(?:globalstorage|sessionstorage|postmessage|callee|constructor|
+content|domain|prototype|try|catch|top|call|apply|url|function|object|array|
+string|math|if|elseif|case|switch|regex|boolean|l ..." at REQUEST_URI_RAW. 
+[file "/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_41_phpids_filters.conf"] [line "67"] [id 
+"phpids-20"] [msg "Detects JavaScript language constructs"] [data ";function 
+"] [severity "CRITICAL"] [tag "WEB_ATTACK"]
+
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file 
+"/usr/local/apache/conf/modsecurity-
+crs_2.0.2/base_rules/modsecurity_crs_60_correlation.conf"] [line "41"] [msg 
+"Transactional Anomaly Score (score 60): Detects JavaScript language 
+constructs"]
+Action: Intercepted (phase 2)
+Stopwatch: 1252844155385934 200058 (4259 199045 -)
+Producer: ModSecurity for Apache/2.5.10-dev1 (http://www.modsecurity.org/); 
+core ruleset/2.0.2.
+Server: Apache/2.2.12 (Unix) mod_ssl/2.2.12 OpenSSL/0.9.8g DAV/2
+
+> The only time it gets caught is when my browser changes the payload
+> to:
+> 1";}eval('al'%2b'ert(docu'%2b'ment.c'%2b'ookie)');function%20a(){var%20a="
+>
+> Then ModSecurity picks it up, but every other time I try with the 1%22
+> ... payload...it just gets right past ModSecurity..any ideas?
+>
+
+The rules are using t:urlDecodeUni which will perform url decoding.  Did you 
+review the debug log to see what is happening?
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090913/b420061e/attachment.html 
+
+From ossec.junkie at gmail.com  Mon Sep 14 15:43:45 2009
+From: ossec.junkie at gmail.com (OSSEC junkie)
+Date: Mon, 14 Sep 2009 12:43:45 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <200909130835.53215.rcbarnett@gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909111426q67461045waccf520beae9596d@mail.gmail.com>
+	<869a38360909122338i70875b08t2e74300ea0d54219@mail.gmail.com>
+	<200909130835.53215.rcbarnett@gmail.com>
+Message-ID: <869a38360909141243r21260764o986dd5d1cd75ebb9@mail.gmail.com>
+
+Okay I figured out what the deal was.  My account was not authorized
+to make changes to mod_security.conf per our FIM application.
+Everytime I made the changes to load the /base_rules folder and
+restarted Apache, the FIM reverted my mod_security.conf to it's
+original state.  Sorry for the confusion, didn't know my account
+wasn't authorized to make the changes.
+
+I get the detection now with the anomaly scoring, see below:
+ModSecurity: Warning. Operator GE matched 5 at TX:anomaly_score. [file
+"/webtier/apache/conf.d/modsecurity/base_rules/modsecurity_crs_60_correlation.conf"]
+[line "41"] [msg "Transactional Anomaly Score (score 101): XSS Attack
+Detected"] [hostname "server21.inside.mycompany.com"] [uri
+"/buy/PizzaPurchase"] [unique_id "Sq6bnwoBBGsAADafGX0AAAAH"]
+
+Any advice on the proper setting for me to start dropping people who
+send a single XSS attack, or any attack in that matter?
+
+From rcbarnett at gmail.com  Mon Sep 14 15:58:32 2009
+From: rcbarnett at gmail.com (Ryan Barnett)
+Date: Mon, 14 Sep 2009 15:58:32 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Question About Rule
+	Configuration!
+In-Reply-To: <869a38360909141243r21260764o986dd5d1cd75ebb9@mail.gmail.com>
+References: <869a38360909110753y3adeb84ds97bfad9e45ffb124@mail.gmail.com>
+	<cba0286a0909111426q67461045waccf520beae9596d@mail.gmail.com>
+	<869a38360909122338i70875b08t2e74300ea0d54219@mail.gmail.com>
+	<200909130835.53215.rcbarnett@gmail.com>
+	<869a38360909141243r21260764o986dd5d1cd75ebb9@mail.gmail.com>
+Message-ID: <cba0286a0909141258v3084b511u5ad1c88c728644a8@mail.gmail.com>
+
+On Mon, Sep 14, 2009 at 3:43 PM, OSSEC junkie <ossec.junkie at gmail.com>wrote:
+
+> Okay I figured out what the deal was.  My account was not authorized
+> to make changes to mod_security.conf per our FIM application.
+> Everytime I made the changes to load the /base_rules folder and
+> restarted Apache, the FIM reverted my mod_security.conf to it's
+> original state.  Sorry for the confusion, didn't know my account
+> wasn't authorized to make the changes.
+>
+> I get the detection now with the anomaly scoring, see below:
+> ModSecurity: Warning. Operator GE matched 5 at TX:anomaly_score. [file
+>
+> "/webtier/apache/conf.d/modsecurity/base_rules/modsecurity_crs_60_correlation.conf"]
+> [line "41"] [msg "Transactional Anomaly Score (score 101): XSS Attack
+> Detected"] [hostname "server21.inside.mycompany.com"] [uri
+> "/buy/PizzaPurchase"] [unique_id "Sq6bnwoBBGsAADafGX0AAAAH"]
+>
+> Any advice on the proper setting for me to start dropping people who
+> send a single XSS attack, or any attack in that matter?
+>
+
+Check out the examples in the modsecurity_crs_49_enforcement.conf file :)
+You can do one of two things -
+
+1)  For XSS attacks, our new rules are including the category tag data in
+the TX name, so you can uncomment the following rule which will deny/log if
+the XSS score is more than 0 -
+
+# Alert on XSS anomalies
+#
+#SecRule TX:XSS_SCORE "!@eq 0" \
+#    "phase:2,t:none,log,deny,msg:'XSS Detected (score %{TX.XSS_SCORE}):
+%{tx.msg}'"
+
+2) If you want to block when *any* major attack is detected then set the
+following -
+
+# Alert and Deny on High Anomaly Scores
+#
+SecRule TX:ANOMALY_SCORE "@ge 20" \
+    "phase:2,t:none,nolog,auditlog,deny,msg:'Anomaly Score Exceeded (score
+%{TX.ANOMALY_SCORE}): %{tx.msg}',setvar:tx.inbound_tx_msg=%{tx.msg}"
+
+This works since all of the XSS, SQL Injection, Remote File Inclusion (RFI)
+attacks, etc.... are set at Severity 2 and are given an anomaly score of
+20.  So, this rule doesn't care what the category if the issue is, but only
+that the score is 20 or more points.  This effectively will deny if either 1
+Severity 2 rule matches or if there are multiple lower severity issues.
+
+-- 
+Ryan C. Barnett
+WASC Distributed Open Proxy Honeypot Project Leader
+OWASP ModSecurity Core Rule Set Project Leader
+Tactical Web Application Security
+http://tacticalwebappsec.blogspot.com/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090914/96d8ae3a/attachment.html 
+
+From ndrsslzr80 at gmail.com  Wed Sep 16 03:00:42 2009
+From: ndrsslzr80 at gmail.com (Andres Salazar)
+Date: Wed, 16 Sep 2009 02:00:42 -0500
+Subject: [Owasp-modsecurity-core-rule-set] How does mod_security defend on
+	buffer overflows?
+Message-ID: <d7491310909160000o404015b2v26eca2eb38be2f44@mail.gmail.com>
+
+Hello,
+
+As we all know there is countless CVEs every now and then in regards
+to possible buffer overflows in apache or apache-lib codings that
+malicious users can use to trigger a DoS or it is my understanding
+that it can get so bad that in certain cases abrbitrary commands could
+get executed.
+
+My question is, how does mod_security stop buffer overflows, and
+exactly which types can it stop?
+
+Recently yet another buffer overflow over apache2 is being
+investigated at
+http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-2412  would
+this be stopped by mod_security?
+
+Thank you
+
+Andres
+
+From dreamice.jiang at gmail.com  Tue Sep 22 10:34:32 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Tue, 22 Sep 2009 22:34:32 +0800
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+Message-ID: <d5dfca260909220734w48a2cabar8d44896be93bc29b@mail.gmail.com>
+
+Dear all,
+
+I want write a modsecurity rule to detect such SQL injection like:
+http://www.example.com/product.asp?tp=0+0+0+1234
+the correct request is: http://www.example.com/product.asp?tp=1234
+I write the rule as:
+SecRule QUERY_STRING|ARGS|ARGS_NAMES|REQUEST_FILENAME "0\+0" \
+
+"phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,msg:'sql
+injection',id:'410135',tag:'SQL_INJECTION',logdata:'%{TX.0}',severity:'2'"
+
+But it does not work. Could you explain that what is wrong with my rule?
+
+Thanks in advance.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/859168f2/attachment.html 
+
+From Ryan.Barnett at breach.com  Tue Sep 22 10:38:23 2009
+From: Ryan.Barnett at breach.com (Ryan Barnett)
+Date: Tue, 22 Sep 2009 10:38:23 -0400
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+ injection
+Message-ID: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4D@MONET.utopiasystems.net>
+
+Did you look at the debug log (level 9)? It will show you how the data looks after the transformation functions when the operator is applied.
+
+
+Ryan C. Barnett
+Director of Application Security Research
+Breach Security, Inc.
+Ryan.Barnett at Breach.com
+www.Breach.com
+
+________________________________
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Sent: Tue Sep 22 10:34:32 2009
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+
+Dear all,
+
+I want write a modsecurity rule to detect such SQL injection like:
+http://www.example.com/product.asp?tp=0+0+0+1234
+the correct request is: http://www.example.com/product.asp?tp=1234
+I write the rule as:
+SecRule QUERY_STRING|ARGS|ARGS_NAMES|REQUEST_FILENAME "0\+0" \
+        "phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,msg:'sql injection',id:'410135',tag:'SQL_INJECTION',logdata:'%{TX.0}',severity:'2'"
+
+But it does not work. Could you explain that what is wrong with my rule?
+
+Thanks in advance.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: winmail.dat
+Type: application/ms-tnef
+Size: 4382 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/a8233e9f/attachment.bin 
+
+From dreamice.jiang at gmail.com  Tue Sep 22 10:49:50 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Tue, 22 Sep 2009 22:49:50 +0800
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+	injection
+In-Reply-To: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4D@MONET.utopiasystems.net>
+References: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4D@MONET.utopiasystems.net>
+Message-ID: <d5dfca260909220749nf7d3dfei3a58754f15820f43@mail.gmail.com>
+
+This is my accesss log:
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] "GET *
+product.asp?tp=0+0+0+1234* HTTP/1.1" .....
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] "GET *product.asp?tp=0+0+0+1234
+*HTTP/1.1" ....."-" "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1;
+.NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR
+3.5.21022)"
+
+http://www.example.com/product.asp?tp=0+0+0+1234
+2009/9/22 Ryan Barnett <Ryan.Barnett at breach.com>
+
+> Did you look at the debug log (level 9)? It will show you how the data
+> looks after the transformation functions when the operator is applied.
+>
+>
+> Ryan C. Barnett
+> Director of Application Security Research
+> Breach Security, Inc.
+> Ryan.Barnett at Breach.com
+> www.Breach.com <http://www.breach.com/>
+>
+> ________________________________
+> From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Sent: Tue Sep 22 10:34:32 2009
+> Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+>
+> Dear all,
+>
+> I want write a modsecurity rule to detect such SQL injection like:
+> http://www.example.com/product.asp?tp=0+0+0+1234
+> the correct request is: http://www.example.com/product.asp?tp=1234
+> I write the rule as:
+> SecRule QUERY_STRING|ARGS|ARGS_NAMES|REQUEST_FILENAME "0\+0" \
+>
+>  "phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,msg:'sql
+> injection',id:'410135',tag:'SQL_INJECTION',logdata:'%{TX.0}',severity:'2'"
+>
+> But it does not work. Could you explain that what is wrong with my rule?
+>
+> Thanks in advance.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/a23a7586/attachment.html 
+
+From Ryan.Barnett at breach.com  Tue Sep 22 10:51:32 2009
+From: Ryan.Barnett at breach.com (Ryan Barnett)
+Date: Tue, 22 Sep 2009 10:51:32 -0400
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+ injection
+Message-ID: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4E@MONET.utopiasystems.net>
+
+You need to look at the modsecurity debug log (modsec_debug.log).
+
+Ryan C. Barnett
+Director of Application Security Research
+Breach Security, Inc.
+Ryan.Barnett at Breach.com
+www.Breach.com
+
+________________________________
+From: Junyong Jiang
+To: Ryan Barnett
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Sent: Tue Sep 22 10:49:50 2009
+Subject: Re: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+
+This is my accesss log:
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" .....
+192.168.3.12 - - [22/Sep/2009:22:47:58 +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" ....."-" "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"
+
+http://www.example.com/product.asp?tp=0+0+0+1234
+2009/9/22 Ryan Barnett <Ryan.Barnett at breach.com<mailto:Ryan.Barnett at breach.com>>
+Did you look at the debug log (level 9)? It will show you how the data looks after the transformation functions when the operator is applied.
+
+
+Ryan C. Barnett
+Director of Application Security Research
+Breach Security, Inc.
+Ryan.Barnett at Breach.com
+www.Breach.com<http://www.breach.com/>
+
+________________________________
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>
+To: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Sent: Tue Sep 22 10:34:32 2009
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+
+Dear all,
+
+I want write a modsecurity rule to detect such SQL injection like:
+http://www.example.com/product.asp?tp=0+0+0+1234
+the correct request is: http://www.example.com/product.asp?tp=1234
+I write the rule as:
+SecRule QUERY_STRING|ARGS|ARGS_NAMES|REQUEST_FILENAME "0\+0" \
+       "phase:2,capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,ctl:auditLogParts=+E,deny,log,auditlog,msg:'sql injection',id:'410135',tag:'SQL_INJECTION',logdata:'%{TX.0}',severity:'2'"
+
+But it does not work. Could you explain that what is wrong with my rule?
+
+Thanks in advance.
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: winmail.dat
+Type: application/ms-tnef
+Size: 5910 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/3bac45c6/attachment-0001.bin 
+
+From dreamice.jiang at gmail.com  Tue Sep 22 10:57:24 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Tue, 22 Sep 2009 22:57:24 +0800
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+	injection
+In-Reply-To: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4E@MONET.utopiasystems.net>
+References: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4E@MONET.utopiasystems.net>
+Message-ID: <d5dfca260909220757y523a7c2eu660e3dc924bfccab@mail.gmail.com>
+
+Thanks Ryan!
+My request is:http://192.168.3.144/show.asp?id=0+0+0+1299
+My debug log has been modified of the coding, so I past the audit log here.
+I think this is more detaild.
+--9cddd82d-A--
+["2009-09-22 22:54:04"] SrjlDH8AAAEAAEzOOaEAAAAA 192.168.3.12 63822
+192.168.3.144 80
+--9cddd82d-B--
+GET /show.asp?id=0+0+0+1299 HTTP/1.1
+Accept: */*
+Accept-Language: zh-cn
+UA-CPU: x86
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR
+1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)
+Host: 192.168.3.144
+Connection: Keep-Alive
+Cookie: ASPSESSIONIDQATCQSCQ=MLHDBIGANDOGNEILOKBJEMCD
+--9cddd82d-F--
+HTTP/1.1 403 Forbidden
+Keep-Alive: timeout=5
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=iso-8859-1
+--9cddd82d-E--
+ <font face="????" size=2>
+<p>Microsoft OLE DB Provider for SQL Server</font> <font face="????"
+size=2>???? '80040e14'</font>
+<p>
+??????2009/9/22 Ryan Barnett ?<Ryan.Ba<font face="????" size=2>?? 1 ??: '0'
+????????????</font>
+<p>
+<font face="????" size=2>/show.asp</font><font face="????" size=2>????
+6</font>
+--9cddd82d-H--
+Message: Access denied",500009,"61",NULL,"ERROR",3,"31",NULL,NULL,403
+Action: Intercepted (phase 4)
+Apache-Handler: proxy-server
+Stopwatch: 1253631244583806 129146 (1662 117667 -)
+Response-Body-Transformed: Dechunked
+Producer: Security for Apache/2.5.7 (http://www.dbappsecurity.com.cn/); core
+ruleset/2.0.1.
+Server: Apache/2.2.10 (Unix) mod_ssl/2.2.10 OpenSSL/0.9.8b
+--9cddd82d-K--
+SecAction
+"phase:1,auditlog,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}"
+SecRule "REQUEST_METHOD" "@rx ^(?:GET|HEAD)$"
+"phase:2,chain,t:none,deny,log,auditlog,status:400,msg:3,severity:2,id:200004,tag:2"
+SecRule "&REQUEST_HEADERS:Content-Type" "@eq 0"
+"phase:2,chain,t:none,log,deny,auditlog,msg:19,id:210008,tag:4,severity:4"
+SecRule "ARGS_NAMES" "@rx .*"
+"phase:2,auditlog,chain,t:none,nolog,pass,capture,setvar:tx.%{matched_var_name}=+1"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile dbapp_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pmFromFile dbapp_40_generic_attacks.data"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "&TX:/SQL_INJECTION/" "@eq 0"
+"phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+SecRule "REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+"@pm insert xp_enumdsn infile openrowset nvarchar autonomous_transaction
+print data_type or outfile inner shutdown tbcreator @@version xp_filelist
+sp_prepare sql_longvarchar xp_regenumkeys xp_loginconfig xp_dirtree ifnull
+sp_addextendedproc xp_regaddmultistring delete sp_sqlexec and sp_oacreate
+sp_execute cast xp_ntsec xp_regdeletekey drop varchar xp_execresultset
+having utl_file xp_regenumvalues xp_terminate xp_availablemedia
+xp_regdeletevalue dumpfile isnull sql_variant select 'sa'
+xp_regremovemultistring xp_makecab 'msdasql' xp_cmdshell openquery
+sp_executesql 'sqloledb' dbms_java 'dbo' utl_http sp_makewebtask benchmark
+xp_regread xp_regwrite"
+"phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,nolog,skip:1"
+SecAction "phase:2,auditlog,nolog,skipAfter:END_XSS_REGEX"
+SecRule "RESPONSE_STATUS" "@rx ^5\\d{2}$"
+"phase:4,t:none,ctl:auditLogParts=+E,deny,log,auditlog,msg:61,id:500009,tag:31,severity:3,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+15,setvar:tx.%{
+rule.id}-AVAILABILITY/APP_NOT_AVAIL-%{matched_var_name}=%{matched_var}"
+--9cddd82d-Z--
+
+
+breach.com>????You needto look at the modsecurit
+
+> bug log (modsec_debug.log).?????Ryan C. Barnett??Director of Appl
+>
+> on Security Res
+> rch??Breach Security, Inc.??Ryan.Barnett@
+> each.com???www.Breach
+> om?????________________
+> ___________??_ <http://www.breach.com/>
+>
+> rom: Junyong Jiang??To: Ryan Bne
+> ?Cc: ?owasp-modsecu
+> ty-core-rule-??s
+> @liss.owasp.org???Sent: Tue Sep 10:49:50 2009??Sub<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> t: Re: [Owasp-modsecurity-core
+> ule-??set] about one rule of SQL injection???This is my accesss
+> log:??192.168.
+>
+> - - [22/Sep/2009:22:47:
+> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" .....??192.168.3.12 - -
+> [22/Sep/2009:22:47:
+> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" ....."-" "Mozilla/4.0
+> (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR
+> 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"?????
+> http://www.example.com/??product.
+>
+> p=0+0+0+1234????2009/9/ Ryan Barnett <?Ryan.Barn<http://www.example.com/product.asp?tp=0+0+0+1234>
+> breach.com?<??mailto:?Ryn.Barnett at breach.com??? <Ryan.Barnett at breach.com>>?Did
+> yo look at the debug log <Ryan.Barnett at breach.com>ve
+> )? It will show you how the data looks after the transformation functions
+> when the operator is applied.??????Ryan C. Barnett??Director of App
+>
+>
+> on Security Res
+> rch??Breach Security, Inc.??Ryan.Barnett@
+> each.com????www.Breac
+> com?<?http://www.??brea
+> om/?>????_____ <http://www.breach.com/>_____________________??<http://www.breach.com/>
+> _
+>
+> om: ?owasp-modsecurity-core-ru-?
+> et-bouces at lists.owasp.org?<??mailt?owasp-modsecurity-core-??r<owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>
+> lset-bouces at lists.owasp.??org?>To: ?owasp-modsecurity-core-re-?<owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>
+> s
+> @liss.owasp.org?<mailto:?owa??spodsecurity-core-rul<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> -set@??lstswasp.org?>??????Sent: Tue Sep2 10:34:32 2009<owasp-modsecurity-core-rule-set at lists.owasp.org>
+> ?
+>  t: [Owasp-modsecurity-core-rul
+> ??set] about one rule of SQL injection??Dear all,????I want write a modsec
+>
+> y rule to
+>
+> ect such SQL injection like:???http://www.example.com/??product.as
+> p=0+0+0+1234???the corrt request is: ?http://www<http://www.example.com/product.asp?tp=0+0+0+1234>
+> ample.com/??product.asp?p=1234???I write the ru as:??SecRule QUERY<http://www.example.com/product.asp?tp=1234>
+> RING|ARGS|ARGS_NAMES
+> ?REQUEST_FILENAME "0\+0" \??      "phe:2,capture,t:none,t:??ur
+> ecodeUni,t:??htmlEntityDecode,t:replaceComments:??compressWhiteSpa,t:??lowercase,ctluditLogParts=+??E,denlog,auditlog,msg:'sql
+> injecti',id:'410135',tag:'??SQL_INJECTION',logdata:'%{TX.??0}',serity:'2'"????But
+> it does notork. Could you ex
+>
+> n that what is wrong with my rule?????Thanks in advance.?????????????
+>
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/e1f6d28d/attachment.html 
+
+From Ryan.Barnett at breach.com  Tue Sep 22 11:00:30 2009
+From: Ryan.Barnett at breach.com (Ryan Barnett)
+Date: Tue, 22 Sep 2009 11:00:30 -0400
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+ injection
+Message-ID: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4F@MONET.utopiasystems.net>
+
+Getting warmer but you need to look at the debug log. It shows the transformation changes to the data for each rule.
+
+
+Ryan C. Barnett
+Director of Application Security Research
+Breach Security, Inc.
+Ryan.Barnett at Breach.com
+www.Breach.com
+
+________________________________
+From: Junyong Jiang
+To: Ryan Barnett
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Sent: Tue Sep 22 10:57:24 2009
+Subject: Re: [Owasp-modsecurity-core-rule-set] about one rule of SQL injection
+
+Thanks Ryan!
+My request is:http://192.168.3.144/show.asp?id=0+0+0+1299
+My debug log has been modified of the coding, so I past the audit log here. I think this is more detaild.
+--9cddd82d-A--
+["2009-09-22 22:54:04"] SrjlDH8AAAEAAEzOOaEAAAAA 192.168.3.12 63822 192.168.3.144 80
+--9cddd82d-B--
+GET /show.asp?id=0+0+0+1299 HTTP/1.1
+Accept: */*
+Accept-Language: zh-cn
+UA-CPU: x86
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)
+Host: 192.168.3.144
+Connection: Keep-Alive
+Cookie: ASPSESSIONIDQATCQSCQ=MLHDBIGANDOGNEILOKBJEMCD
+--9cddd82d-F--
+HTTP/1.1 403 Forbidden
+Keep-Alive: timeout=5
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=iso-8859-1
+--9cddd82d-E--
+ <font face="????" size=2>
+<p>Microsoft OLE DB Provider for SQL Server</font> <font face="????" size=2>???? '80040e14'</font>
+<p>
+??????2009/9/22 Ryan Barnett ?<Ryan.Ba<font face="????" size=2>?? 1 ??: '0' ????????????</font>
+<p>
+<font face="????" size=2>/show.asp</font><font face="????" size=2>???? 6</font>
+--9cddd82d-H--
+Message: Access denied",500009,"61",NULL,"ERROR",3,"31",NULL,NULL,403
+Action: Intercepted (phase 4)
+Apache-Handler: proxy-server
+Stopwatch: 1253631244583806 129146 (1662 117667 -)
+Response-Body-Transformed: Dechunked
+Producer: Security for Apache/2.5.7 (http://www.dbappsecurity.com.cn/); core ruleset/2.0.1.<http://2.0.1.>
+Server: Apache/2.2.10 (Unix) mod_ssl/2.2.10 OpenSSL/0.9.8b
+--9cddd82d-K--
+SecAction "phase:1,auditlog,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}"
+SecRule "REQUEST_METHOD" "@rx<mailto:"REQUEST_METHOD"%20"@rx> ^(?:GET|HEAD)$" "phase:2,chain,t:none,deny,log,auditlog,status:400,msg:3,severity:2,id:200004,tag:2"
+SecRule "&REQUEST_HEADERS:Content-Type" "@eq<mailto:"&REQUEST_HEADERS:Content-Type"%20"@eq> 0" "phase:2,chain,t:none,log,deny,auditlog,msg:19,id:210008,tag:4,severity:4"
+SecRule "ARGS_NAMES" "@rx<mailto:"ARGS_NAMES"%20"@rx> .*" "phase:2,auditlog,chain,t:none,nolog,pass,capture,setvar:tx.%{matched_var_name}=+1"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer" "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile> dbapp_40_generic_attacks.data" "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer" "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile> dbapp_40_generic_attacks.data" "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+SecRule "&TX:/SQL_INJECTION/" "@eq<mailto:"&TX:/SQL_INJECTION/"%20"@eq> 0" "phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+SecRule "REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer" "@pm<mailto:"REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pm> insert xp_enumdsn infile openrowset nvarchar autonomous_transaction print data_type or outfile inner shutdown tbcreator @@version xp_filelist sp_prepare sql_longvarchar xp_regenumkeys xp_loginconfig xp_dirtree ifnull sp_addextendedproc xp_regaddmultistring delete sp_sqlexec and sp_oacreate sp_execute cast xp_ntsec xp_regdeletekey drop varchar xp_execresultset having utl_file xp_regenumvalues xp_terminate xp_availablemedia xp_regdeletevalue dumpfile isnull sql_variant select 'sa' xp_regremovemultistring xp_makecab 'msdasql' xp_cmdshell openquery sp_executesql 'sqloledb' dbms_java 'dbo' utl_http sp_makewebtask benchmark xp_regread xp_regwrite" "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,nolog,skip:1"
+SecAction "phase:2,auditlog,nolog,skipAfter:END_XSS_REGEX"
+SecRule "RESPONSE_STATUS" "@rx<mailto:"RESPONSE_STATUS"%20"@rx> ^5\\d{2}$" "phase:4,t:none,ctl:auditLogParts=+E,deny,log,auditlog,msg:61,id:500009,tag:31,severity:3,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+15,setvar:tx.%{rule.id<http://rule.id>}-AVAILABILITY/APP_NOT_AVAIL-%{matched_var_name}=%{matched_var}"
+--9cddd82d-Z--
+
+
+breach.com<http://breach.com>>????You needto look at the modsecurit
+bug log (modsec_debug.log).?????Ryan C. Barnett??Director of Appl
+
+on Security Res
+rch??Breach Security, Inc.??Ryan.Barnett@
+each.com???www.Breach<http://each.com???www.Breach>
+om?????________________
+___________??_<http://www.breach.com/>
+
+rom: Junyong Jiang??To: Ryan Bne
+?Cc: ?owasp-modsecu
+ty-core-rule-??s
+@liss.owasp.org???Sent: Tue Sep 10:49:50 2009??Sub<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+t: Re: [Owasp-modsecurity-core
+ule-??set] about one rule of SQL injection???This is my accesss log:??192.168.
+
+- - [22/Sep/2009:22:47:
++0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" .....??192.168.3.12 - - [22/Sep/2009:22:47:
++0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" ....."-" "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"?????http://www.example.com/??product.
+
+p=0+0+0+1234????2009/9/ Ryan Barnett <?Ryan.Barn<http://www.example.com/product.asp?tp=0+0+0+1234>
+breach.com<http://breach.com>?<??mailto:?Ryn.Barnett at breach.com???<mailto:Ryan.Barnett at breach.com>>?Did yo look at the debug log <mailto:Ryan.Barnett at breach.com> ve
+)? It will show you how the data looks after the transformation functions when the operator is applied.??????Ryan C. Barnett??Director of App
+
+
+on Security Res
+rch??Breach Security, Inc.??Ryan.Barnett@
+each.com????www.Breac<http://each.com????www.Breac>
+com?<?http://www.??brea
+om/?>????_____<http://www.breach.com/>_____________________??<http://www.breach.com/>_
+
+om: ?owasp-modsecurity-core-ru-?
+et-bouces at lists.owasp.org?<??mailt?owasp-modsecurity-core-??r<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>lset-bouces at lists.owasp.??org?>To: ?owasp-modsecurity-core-re-?<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>s
+@liss.owasp.org?<mailto:?owa??spodsecurity-core-rul<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>-set@??lstswasp.org?>??????Sent: Tue Sep2 10:34:32 2009<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>?
+t: [Owasp-modsecurity-core-rul
+??set] about one rule of SQL injection??Dear all,????I want write a modsec
+
+y rule to
+
+ect such SQL injection like:???http://www.example.com/??product.as
+p=0+0+0+1234???the corrt request is: ?http://www<http://www.example.com/product.asp?tp=0+0+0+1234>
+ample.com/??product.asp<http://ample.com/??product.asp>?p=1234???I write the ru as:??SecRule QUERY<http://www.example.com/product.asp?tp=1234>
+RING|ARGS|ARGS_NAMES
+?REQUEST_FILENAME "0\+0" \??      "phe:2,capture,t:none,t:??ur
+ecodeUni,t:??htmlEntityDecode,t:replaceComments:??compressWhiteSpa,t:??lowercase,ctluditLogParts=+??E,denlog,auditlog,msg:'sql injecti',id:'410135',tag:'??SQL_INJECTION',logdata:'%{TX.??0}',serity:'2'"????But it does notork. Could you ex
+
+n that what is wrong with my rule?????Thanks in advance.?????????????
+
+
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: winmail.dat
+Type: application/ms-tnef
+Size: 12958 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/1e94c342/attachment-0001.bin 
+
+From dreamice.jiang at gmail.com  Tue Sep 22 11:05:53 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Tue, 22 Sep 2009 23:05:53 +0800
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+	injection
+In-Reply-To: <d5dfca260909220804l48c35172g20efe28350c34e4a@mail.gmail.com>
+References: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4F@MONET.utopiasystems.net>
+	<d5dfca260909220804l48c35172g20efe28350c34e4a@mail.gmail.com>
+Message-ID: <d5dfca260909220805k2a426ab2u986060efbb0ff600@mail.gmail.com>
+
+By the way.
+Ryan: Could you please give your idea of detect such type of sql injection?
+
+2009/9/22 Junyong Jiang <dreamice.jiang at gmail.com>
+
+> My debug log. Log level is 9.
+> "2009-09-22
+> 22:47:58","192.168.3.144","192.168.3.12",35600,"192.168.3.144",80,"Srjjnn8AAAEAAD9fU-0AAAAB","/show.asp","id=0+0+0+1299","Mozilla/4.0
+> (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR
+> 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)",4,"Audit log: Not
+> configured to run for this request.
+>
+> 2009/9/22 Ryan Barnett <Ryan.Barnett at breach.com>
+>
+> Getting warmer but you need to look at the debug log. It shows the
+>> transformation changes to the data for each rule.
+>>
+>>
+>> Ryan C. Barnett
+>> Director of Application Security Research
+>> Breach Security, Inc.
+>> Ryan.Barnett at Breach.com
+>> www.Breach.com <http://www.breach.com/>
+>>
+>> ________________________________
+>> From: Junyong Jiang
+>> To: Ryan Barnett
+>> Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+>> Sent: Tue Sep 22 10:57:24 2009
+>> Subject: Re: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+>> injection
+>>
+>> Thanks Ryan!
+>> My request is:http://192.168.3.144/show.asp?id=0+0+0+1299
+>> My debug log has been modified of the coding, so I past the audit log
+>> here. I think this is more detaild.
+>> --9cddd82d-A--
+>> ["2009-09-22 22:54:04"] SrjlDH8AAAEAAEzOOaEAAAAA 192.168.3.12 63822
+>> 192.168.3.144 80
+>> --9cddd82d-B--
+>> GET /show.asp?id=0+0+0+1299 HTTP/1.1
+>> Accept: */*
+>> Accept-Language: zh-cn
+>> UA-CPU: x86
+>> Accept-Encoding: gzip, deflate
+>> User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET
+>> CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR
+>> 3.5.21022)
+>> Host: 192.168.3.144
+>> Connection: Keep-Alive
+>> Cookie: ASPSESSIONIDQATCQSCQ=MLHDBIGANDOGNEILOKBJEMCD
+>> --9cddd82d-F--
+>> HTTP/1.1 403 Forbidden
+>> Keep-Alive: timeout=5
+>> Connection: Keep-Alive
+>> Transfer-Encoding: chunked
+>> Content-Type: text/html; charset=iso-8859-1
+>> --9cddd82d-E--
+>>  <font face="????" size=2>
+>> <p>Microsoft OLE DB Provider for SQL Server</font> <font face="????"
+>> size=2>???? '80040e14'</font>
+>> <p>
+>> ??????2009/9/22 Ryan Barnett ?<Ryan.Ba<font face="????" size=2>?? 1 ??:
+>> '0' ????????????</font>
+>> <p>
+>> <font face="????" size=2>/show.asp</font><font face="????" size=2>????
+>> 6</font>
+>> --9cddd82d-H--
+>> Message: Access denied",500009,"61",NULL,"ERROR",3,"31",NULL,NULL,403
+>> Action: Intercepted (phase 4)
+>> Apache-Handler: proxy-server
+>> Stopwatch: 1253631244583806 129146 (1662 117667 -)
+>> Response-Body-Transformed: Dechunked
+>> Producer: Security for Apache/2.5.7 (http://www.dbappsecurity.com.cn/);
+>> core ruleset/2.0.1.<http://2.0.1.>
+>> Server: Apache/2.2.10 (Unix) mod_ssl/2.2.10 OpenSSL/0.9.8b
+>> --9cddd82d-K--
+>> SecAction
+>> "phase:1,auditlog,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}"
+>> SecRule "REQUEST_METHOD" "@rx<mailto:"REQUEST_METHOD"%20"@rx>
+>> ^(?:GET|HEAD)$"
+>> "phase:2,chain,t:none,deny,log,auditlog,status:400,msg:3,severity:2,id:200004,tag:2"
+>> SecRule "&REQUEST_HEADERS:Content-Type" "@eq<mailto:"&REQUEST_HEADERS:Content-Type"%20"@eq>
+>> 0"
+>> "phase:2,chain,t:none,log,deny,auditlog,msg:19,id:210008,tag:4,severity:4"
+>> SecRule "ARGS_NAMES" "@rx<mailto:"ARGS_NAMES"%20"@rx> .*"
+>> "phase:2,auditlog,chain,t:none,nolog,pass,capture,setvar:tx.%{matched_var_name}=+1"
+>> SecRule
+>> "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+>> "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile>
+>> dbapp_40_generic_attacks.data"
+>> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+>> SecRule
+>> "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+>> "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile>
+>> dbapp_40_generic_attacks.data"
+>> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+>> SecRule "&TX:/SQL_INJECTION/" "@eq<mailto:"&TX:/SQL_INJECTION/"%20"@eq>
+>> 0" "phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+>> SecRule
+>> "REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+>> "@pm<mailto:"REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pm>
+>> insert xp_enumdsn infile openrowset nvarchar autonomous_transaction print
+>> data_type or outfile inner shutdown tbcreator @@version xp_filelist
+>> sp_prepare sql_longvarchar xp_regenumkeys xp_loginconfig xp_dirtree ifnull
+>> sp_addextendedproc xp_regaddmultistring delete sp_sqlexec and sp_oacreate
+>> sp_execute cast xp_ntsec xp_regdeletekey drop varchar xp_execresultset
+>> having utl_file xp_regenumvalues xp_terminate xp_availablemedia
+>> xp_regdeletevalue dumpfile isnull sql_variant select 'sa'
+>> xp_regremovemultistring xp_makecab 'msdasql' xp_cmdshell openquery
+>> sp_executesql 'sqloledb' dbms_java 'dbo' utl_http sp_makewebtask benchmark
+>> xp_regread xp_regwrite"
+>> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,nolog,skip:1"
+>> SecAction "phase:2,auditlog,nolog,skipAfter:END_XSS_REGEX"
+>> SecRule "RESPONSE_STATUS" "@rx<mailto:"RESPONSE_STATUS"%20"@rx>
+>> ^5\\d{2}$"
+>> "phase:4,t:none,ctl:auditLogParts=+E,deny,log,auditlog,msg:61,id:500009,tag:31,severity:3,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+15,setvar:tx.%{
+>> rule.id<http://rule.id
+>> >}-AVAILABILITY/APP_NOT_AVAIL-%{matched_var_name}=%{matched_var}"
+>> --9cddd82d-Z--
+>>
+>>
+>> breach.com<http://breach.com>>????You needto look at the modsecurit
+>> bug log (modsec_debug.log).?????Ryan C. Barnett??Director of Appl
+>>
+>> on Security Res
+>> rch??Breach Security, Inc.??Ryan.Barnett@
+>> each.com???www.Breach <http://each.com/???www.Breach><
+>> http://each.com???www.Breach <http://each.com/???www.Breach>>
+>> om?????________________
+>> ___________??_<http://www.breach.com/>
+>>
+>> rom: Junyong Jiang??To: Ryan Bne
+>> ?Cc: ?owasp-modsecu
+>> ty-core-rule-??s
+>> @liss.owasp.org???Sent <http://liss.owasp.org/???Sent>: Tue Sep 10:49:50
+>> 2009??Sub<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> t: Re: [Owasp-modsecurity-core
+>> ule-??set] about one rule of SQL injection???This is my accesss
+>> log:??192.168.
+>>
+>> - - [22/Sep/2009:22:47:
+>> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" .....??192.168.3.12 - -
+>> [22/Sep/2009:22:47:
+>> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" ....."-" "Mozilla/4.0
+>> (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR
+>> 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"?????
+>> http://www.example.com/??product.
+>>
+>> p=0+0+0+1234????2009/9/ Ryan Barnett <?Ryan.Barn<
+>> http://www.example.com/product.asp?tp=0+0+0+1234>
+>> breach.com<http://breach.com>?<??mailto:?Ryn.Barnett at breach.com??<http://Ryn.Barnett at breach.com/??>
+>> ?<mailto:Ryan.Barnett at breach.com>>?Did yo look at the debug log <mailto:
+>> Ryan.Barnett at breach.com> ve
+>> )? It will show you how the data looks after the transformation functions
+>> when the operator is applied.??????Ryan C. Barnett??Director of App
+>>
+>>
+>> on Security Res
+>> rch??Breach Security, Inc.??Ryan.Barnett@
+>> each.com????www.Breac <http://each.com/????www.Breac><
+>> http://each.com????www.Breac <http://each.com/????www.Breac>>
+>> com?<?http://www.??brea
+>> om/ <http://www./??breaom/>?>????_____<http://www.breach.com/
+>> >_____________________??<http://www.breach.com/>_
+>>
+>> om: ?owasp-modsecurity-core-ru-?
+>> et-bouces at lists.owasp.org?<??mailt?owasp-modsecurity-core-??r<mailto:
+>> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+>> >lset-bouces at lists.owasp.??org?>To: ?owasp-modsecurity-core-re-?<mailto:
+>> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>s
+>> @liss.owasp.org?<mailto:?owa??spodsecurity-core-rul<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>-set@??lstswasp.org?>??????Sent:
+>> Tue Sep2 10:34:32 2009<mailto:
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>?
+>> t: [Owasp-modsecurity-core-rul
+>> ??set] about one rule of SQL injection??Dear all,????I want write a modsec
+>>
+>> y rule to
+>>
+>> ect such SQL injection like:???http://www.example.com/??product.as
+>> p=0+0+0+1234???the corrt request is: ?http://www<
+>> http://www.example.com/product.asp?tp=0+0+0+1234>
+>> ample.com/??product.asp<http://ample.com/??product.asp>?p=1234???I write
+>> the ru as:??SecRule QUERY<http://www.example.com/product.asp?tp=1234>
+>>  RING|ARGS|ARGS_NAMES
+>> ?REQUEST_FILENAME "0\+0" \??      "phe:2,capture,t:none,t:??ur
+>> ecodeUni,t:??htmlEntityDecode,t:replaceComments:??compressWhiteSpa,t:??lowercase,ctluditLogParts=+??E,denlog,auditlog,msg:'sql
+>> injecti',id:'410135',tag:'??SQL_INJECTION',logdata:'%{TX.??0}',serity:'2'"????But
+>> it does notork. Could you ex
+>>
+>> n that what is wrong with my rule?????Thanks in advance.?????????????
+>>
+>>
+>>
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/9d044f22/attachment.html 
+
+From dreamice.jiang at gmail.com  Tue Sep 22 11:04:28 2009
+From: dreamice.jiang at gmail.com (Junyong Jiang)
+Date: Tue, 22 Sep 2009 23:04:28 +0800
+Subject: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+	injection
+In-Reply-To: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4F@MONET.utopiasystems.net>
+References: <8A1B4B015C52A54886DF15E9A97C7FB9F7298E4F@MONET.utopiasystems.net>
+Message-ID: <d5dfca260909220804l48c35172g20efe28350c34e4a@mail.gmail.com>
+
+My debug log. Log level is 9.
+"2009-09-22
+22:47:58","192.168.3.144","192.168.3.12",35600,"192.168.3.144",80,"Srjjnn8AAAEAAD9fU-0AAAAB","/show.asp","id=0+0+0+1299","Mozilla/4.0
+(compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR
+2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)",4,"Audit log: Not
+configured to run for this request.
+
+2009/9/22 Ryan Barnett <Ryan.Barnett at breach.com>
+
+> Getting warmer but you need to look at the debug log. It shows the
+> transformation changes to the data for each rule.
+>
+>
+> Ryan C. Barnett
+> Director of Application Security Research
+> Breach Security, Inc.
+> Ryan.Barnett at Breach.com
+> www.Breach.com <http://www.breach.com/>
+>
+> ________________________________
+> From: Junyong Jiang
+> To: Ryan Barnett
+> Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Sent: Tue Sep 22 10:57:24 2009
+> Subject: Re: [Owasp-modsecurity-core-rule-set] about one rule of SQL
+> injection
+>
+> Thanks Ryan!
+> My request is:http://192.168.3.144/show.asp?id=0+0+0+1299
+> My debug log has been modified of the coding, so I past the audit log here.
+> I think this is more detaild.
+> --9cddd82d-A--
+> ["2009-09-22 22:54:04"] SrjlDH8AAAEAAEzOOaEAAAAA 192.168.3.12 63822
+> 192.168.3.144 80
+> --9cddd82d-B--
+> GET /show.asp?id=0+0+0+1299 HTTP/1.1
+> Accept: */*
+> Accept-Language: zh-cn
+> UA-CPU: x86
+> Accept-Encoding: gzip, deflate
+> User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET
+> CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR
+> 3.5.21022)
+> Host: 192.168.3.144
+> Connection: Keep-Alive
+> Cookie: ASPSESSIONIDQATCQSCQ=MLHDBIGANDOGNEILOKBJEMCD
+> --9cddd82d-F--
+> HTTP/1.1 403 Forbidden
+> Keep-Alive: timeout=5
+> Connection: Keep-Alive
+> Transfer-Encoding: chunked
+> Content-Type: text/html; charset=iso-8859-1
+> --9cddd82d-E--
+>  <font face="????" size=2>
+> <p>Microsoft OLE DB Provider for SQL Server</font> <font face="????"
+> size=2>???? '80040e14'</font>
+> <p>
+> ??????2009/9/22 Ryan Barnett ?<Ryan.Ba<font face="????" size=2>?? 1 ??: '0'
+> ????????????</font>
+> <p>
+> <font face="????" size=2>/show.asp</font><font face="????" size=2>????
+> 6</font>
+> --9cddd82d-H--
+> Message: Access denied",500009,"61",NULL,"ERROR",3,"31",NULL,NULL,403
+> Action: Intercepted (phase 4)
+> Apache-Handler: proxy-server
+> Stopwatch: 1253631244583806 129146 (1662 117667 -)
+> Response-Body-Transformed: Dechunked
+> Producer: Security for Apache/2.5.7 (http://www.dbappsecurity.com.cn/);
+> core ruleset/2.0.1.<http://2.0.1.>
+> Server: Apache/2.2.10 (Unix) mod_ssl/2.2.10 OpenSSL/0.9.8b
+> --9cddd82d-K--
+> SecAction
+> "phase:1,auditlog,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}"
+> SecRule "REQUEST_METHOD" "@rx<mailto:"REQUEST_METHOD"%20"@rx>
+> ^(?:GET|HEAD)$"
+> "phase:2,chain,t:none,deny,log,auditlog,status:400,msg:3,severity:2,id:200004,tag:2"
+> SecRule "&REQUEST_HEADERS:Content-Type" "@eq<mailto:"&REQUEST_HEADERS:Content-Type"%20"@eq>
+> 0"
+> "phase:2,chain,t:none,log,deny,auditlog,msg:19,id:210008,tag:4,severity:4"
+> SecRule "ARGS_NAMES" "@rx<mailto:"ARGS_NAMES"%20"@rx> .*"
+> "phase:2,auditlog,chain,t:none,nolog,pass,capture,setvar:tx.%{matched_var_name}=+1"
+> SecRule
+> "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+> "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile>
+> dbapp_40_generic_attacks.data"
+> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+> SecRule
+> "REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+> "@pmFromFile<mailto:"REQUEST_URI|REQUEST_BODY|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pmFromFile>
+> dbapp_40_generic_attacks.data"
+> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}"
+> SecRule "&TX:/SQL_INJECTION/" "@eq<mailto:"&TX:/SQL_INJECTION/"%20"@eq> 0"
+> "phase:2,auditlog,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK"
+> SecRule
+> "REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"
+> "@pm<mailto:"REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer"%20"@pm>
+> insert xp_enumdsn infile openrowset nvarchar autonomous_transaction print
+> data_type or outfile inner shutdown tbcreator @@version xp_filelist
+> sp_prepare sql_longvarchar xp_regenumkeys xp_loginconfig xp_dirtree ifnull
+> sp_addextendedproc xp_regaddmultistring delete sp_sqlexec and sp_oacreate
+> sp_execute cast xp_ntsec xp_regdeletekey drop varchar xp_execresultset
+> having utl_file xp_regenumvalues xp_terminate xp_availablemedia
+> xp_regdeletevalue dumpfile isnull sql_variant select 'sa'
+> xp_regremovemultistring xp_makecab 'msdasql' xp_cmdshell openquery
+> sp_executesql 'sqloledb' dbms_java 'dbo' utl_http sp_makewebtask benchmark
+> xp_regread xp_regwrite"
+> "phase:2,auditlog,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:replaceComments,t:compressWhiteSpace,t:lowercase,nolog,skip:1"
+> SecAction "phase:2,auditlog,nolog,skipAfter:END_XSS_REGEX"
+> SecRule "RESPONSE_STATUS" "@rx<mailto:"RESPONSE_STATUS"%20"@rx> ^5\\d{2}$"
+> "phase:4,t:none,ctl:auditLogParts=+E,deny,log,auditlog,msg:61,id:500009,tag:31,severity:3,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+15,setvar:tx.%{
+> rule.id<http://rule.id
+> >}-AVAILABILITY/APP_NOT_AVAIL-%{matched_var_name}=%{matched_var}"
+> --9cddd82d-Z--
+>
+>
+> breach.com<http://breach.com>>????You needto look at the modsecurit
+> bug log (modsec_debug.log).?????Ryan C. Barnett??Director of Appl
+>
+> on Security Res
+> rch??Breach Security, Inc.??Ryan.Barnett@
+> each.com???www.Breach <http://each.com/???www.Breach><
+> http://each.com???www.Breach <http://each.com/???www.Breach>>
+> om?????________________
+> ___________??_<http://www.breach.com/>
+>
+> rom: Junyong Jiang??To: Ryan Bne
+> ?Cc: ?owasp-modsecu
+> ty-core-rule-??s
+> @liss.owasp.org???Sent <http://liss.owasp.org/???Sent>: Tue Sep 10:49:50
+> 2009??Sub<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+> t: Re: [Owasp-modsecurity-core
+> ule-??set] about one rule of SQL injection???This is my accesss
+> log:??192.168.
+>
+> - - [22/Sep/2009:22:47:
+> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" .....??192.168.3.12 - -
+> [22/Sep/2009:22:47:
+> +0800] "GET product.asp?tp=0+0+0+1234 HTTP/1.1" ....."-" "Mozilla/4.0
+> (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR
+> 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"?????
+> http://www.example.com/??product.
+>
+> p=0+0+0+1234????2009/9/ Ryan Barnett <?Ryan.Barn<
+> http://www.example.com/product.asp?tp=0+0+0+1234>
+> breach.com<http://breach.com>?<??mailto:?Ryn.Barnett at breach.com??<http://Ryn.Barnett at breach.com/??>
+> ?<mailto:Ryan.Barnett at breach.com>>?Did yo look at the debug log <mailto:
+> Ryan.Barnett at breach.com> ve
+> )? It will show you how the data looks after the transformation functions
+> when the operator is applied.??????Ryan C. Barnett??Director of App
+>
+>
+> on Security Res
+> rch??Breach Security, Inc.??Ryan.Barnett@
+> each.com????www.Breac <http://each.com/????www.Breac><
+> http://each.com????www.Breac <http://each.com/????www.Breac>>
+> com?<?http://www.??brea
+> om/ <http://www./??breaom/>?>????_____<http://www.breach.com/
+> >_____________________??<http://www.breach.com/>_
+>
+> om: ?owasp-modsecurity-core-ru-?
+> et-bouces at lists.owasp.org?<??mailt?owasp-modsecurity-core-??r<mailto:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+> >lset-bouces at lists.owasp.??org?>To: ?owasp-modsecurity-core-re-?<mailto:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>s
+> @liss.owasp.org?<mailto:?owa??spodsecurity-core-rul<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>-set@??lstswasp.org?>??????Sent:
+> Tue Sep2 10:34:32 2009<mailto:
+> owasp-modsecurity-core-rule-set at lists.owasp.org>?
+> t: [Owasp-modsecurity-core-rul
+> ??set] about one rule of SQL injection??Dear all,????I want write a modsec
+>
+> y rule to
+>
+> ect such SQL injection like:???http://www.example.com/??product.as
+> p=0+0+0+1234???the corrt request is: ?http://www<
+> http://www.example.com/product.asp?tp=0+0+0+1234>
+> ample.com/??product.asp<http://ample.com/??product.asp>?p=1234???I write
+> the ru as:??SecRule QUERY<http://www.example.com/product.asp?tp=1234>
+>  RING|ARGS|ARGS_NAMES
+> ?REQUEST_FILENAME "0\+0" \??      "phe:2,capture,t:none,t:??ur
+> ecodeUni,t:??htmlEntityDecode,t:replaceComments:??compressWhiteSpa,t:??lowercase,ctluditLogParts=+??E,denlog,auditlog,msg:'sql
+> injecti',id:'410135',tag:'??SQL_INJECTION',logdata:'%{TX.??0}',serity:'2'"????But
+> it does notork. Could you ex
+>
+> n that what is wrong with my rule?????Thanks in advance.?????????????
+>
+>
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090922/c2cd9306/attachment-0001.html 
+
+From myoung24866 at gmail.com  Wed Sep 23 15:26:38 2009
+From: myoung24866 at gmail.com (Matthew Young)
+Date: Wed, 23 Sep 2009 14:26:38 -0500
+Subject: [Owasp-modsecurity-core-rule-set] What mod_security rules could I
+	for apache1?
+Message-ID: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+
+Hello,
+
+We use apache1 with modsecurity-apache-1.9.3 included by OpenBSD. It is my
+understanding the newest version of the core rules are only compatible with
+apache2? if not.. is there any ruleset (supported or not) that I could use?
+
+Thank you
+
+-Matt
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090923/5a3e3b9e/attachment.html 
+
+From chris at jwall.org  Mon Sep 28 04:37:51 2009
+From: chris at jwall.org (Christian Bockermann)
+Date: Mon, 28 Sep 2009 10:37:51 +0200
+Subject: [Owasp-modsecurity-core-rule-set] What mod_security rules could
+	I for apache1?
+In-Reply-To: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+References: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+Message-ID: <21612433-043B-45A6-8A91-FEEA12D6CE59@jwall.org>
+
+Hi Matt,
+
+the core-rules have been designed for ModSecurity 2.x right from the  
+begining (IIRC).
+The only "bundled-rules" for 1.3, which I am aware of, can be found at www.gotroot.com
+
+Best regards,
+
+    Chris
+
+
+Am 23.09.2009 um 21:26 schrieb Matthew Young:
+
+> Hello,
+>
+> We use apache1 with modsecurity-apache-1.9.3 included by OpenBSD. It  
+> is my understanding the newest version of the core rules are only  
+> compatible with apache2? if not.. is there any ruleset (supported or  
+> not) that I could use?
+>
+> Thank you
+>
+> -Matt
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From myoung24866 at gmail.com  Mon Sep 28 11:58:50 2009
+From: myoung24866 at gmail.com (Matthew Young)
+Date: Mon, 28 Sep 2009 10:58:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] What mod_security rules could
+	I for apache1?
+In-Reply-To: <21612433-043B-45A6-8A91-FEEA12D6CE59@jwall.org>
+References: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+	<21612433-043B-45A6-8A91-FEEA12D6CE59@jwall.org>
+Message-ID: <a257a4bc0909280858o38c9276j8144cf2e27d5a311@mail.gmail.com>
+
+What is the differance bewteen "bundled rules" and the current rule set?
+
+Thanks
+
+On Mon, Sep 28, 2009 at 3:37 AM, Christian Bockermann <chris at jwall.org>wrote:
+
+> Hi Matt,
+>
+> the core-rules have been designed for ModSecurity 2.x right from the
+> begining (IIRC).
+> The only "bundled-rules" for 1.3, which I am aware of, can be found at
+> www.gotroot.com
+>
+> Best regards,
+>
+>   Chris
+>
+>
+> Am 23.09.2009 um 21:26 schrieb Matthew Young:
+>
+>  Hello,
+>>
+>> We use apache1 with modsecurity-apache-1.9.3 included by OpenBSD. It is my
+>> understanding the newest version of the core rules are only compatible with
+>> apache2? if not.. is there any ruleset (supported or not) that I could use?
+>>
+>> Thank you
+>>
+>> -Matt
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090928/3b170f6e/attachment.html 
+
+From chris at jwall.org  Mon Sep 28 15:03:11 2009
+From: chris at jwall.org (Christian Bockermann)
+Date: Mon, 28 Sep 2009 21:03:11 +0200
+Subject: [Owasp-modsecurity-core-rule-set] What mod_security rules could
+	I for apache1?
+In-Reply-To: <a257a4bc0909280858o38c9276j8144cf2e27d5a311@mail.gmail.com>
+References: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+	<21612433-043B-45A6-8A91-FEEA12D6CE59@jwall.org>
+	<a257a4bc0909280858o38c9276j8144cf2e27d5a311@mail.gmail.com>
+Message-ID: <C93F3112-349A-4B9E-8129-D1B3F9378F96@jwall.org>
+
+Hi Matt,
+
+the "core rules" are a set of rules (or "bundled rules" :-) if you  
+like) which are provided
+and maintained by Breach Security. These used to be distributed along  
+with the ModSecurity
+module and have lately been split into a separate project.
+(As far as I know, the ModSecurity distribution does include them as  
+well.)
+
+With "bundled rules" I was just referring to someone/some institution  
+which is providing a
+"set of rules" [1] for protection with ModSecurity and is maintaining  
+them continuously (updates,
+etc.)
+Michael Shinn et.al. provide rules at their gotroot.com site for quite  
+a long time, now.
+ From what you can see on their website they still have supported/ 
+updates rules for ModSecurity 1.9.
+
+[1] 'set of rules' == 'bundle of rules' == 'rules package' :-)
+
+Best regards,
+    Chris
+
+Am 28.09.2009 um 17:58 schrieb Matthew Young:
+
+> What is the differance bewteen "bundled rules" and the current rule  
+> set?
+>
+> Thanks
+>
+> On Mon, Sep 28, 2009 at 3:37 AM, Christian Bockermann  
+> <chris at jwall.org> wrote:
+> Hi Matt,
+>
+> the core-rules have been designed for ModSecurity 2.x right from the  
+> begining (IIRC).
+> The only "bundled-rules" for 1.3, which I am aware of, can be found  
+> at www.gotroot.com
+>
+> Best regards,
+>
+>   Chris
+>
+>
+> Am 23.09.2009 um 21:26 schrieb Matthew Young:
+>
+> Hello,
+>
+> We use apache1 with modsecurity-apache-1.9.3 included by OpenBSD. It  
+> is my understanding the newest version of the core rules are only  
+> compatible with apache2? if not.. is there any ruleset (supported or  
+> not) that I could use?
+>
+> Thank you
+>
+> -Matt
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+
+From myoung24866 at gmail.com  Tue Sep 29 17:24:46 2009
+From: myoung24866 at gmail.com (Matthew Young)
+Date: Tue, 29 Sep 2009 16:24:46 -0500
+Subject: [Owasp-modsecurity-core-rule-set] What mod_security rules could
+	I for apache1?
+In-Reply-To: <C93F3112-349A-4B9E-8129-D1B3F9378F96@jwall.org>
+References: <a257a4bc0909231226o189f2de8qccdf166277102cab@mail.gmail.com>
+	<21612433-043B-45A6-8A91-FEEA12D6CE59@jwall.org>
+	<a257a4bc0909280858o38c9276j8144cf2e27d5a311@mail.gmail.com>
+	<C93F3112-349A-4B9E-8129-D1B3F9378F96@jwall.org>
+Message-ID: <a257a4bc0909291424y1de3e757na94f097cd8203c2e@mail.gmail.com>
+
+Thank you Christian .... However as the gotroot.com website says...
+they do not update anymore the Apache1 rules.
+
+As a apache1 user... what would be the best approach to this... are
+these updates crucial for security (just confirming)?
+
+
+-Matt
+
+On Mon, Sep 28, 2009 at 2:03 PM, Christian Bockermann <chris at jwall.org> wrote:
+> Hi Matt,
+>
+> the "core rules" are a set of rules (or "bundled rules" :-) if you like)
+> which are provided
+> and maintained by Breach Security. These used to be distributed along with
+> the ModSecurity
+> module and have lately been split into a separate project.
+> (As far as I know, the ModSecurity distribution does include them as well.)
+>
+> With "bundled rules" I was just referring to someone/some institution which
+> is providing a
+> "set of rules" [1] for protection with ModSecurity and is maintaining them
+> continuously (updates,
+> etc.)
+> Michael Shinn et.al. provide rules at their gotroot.com site for quite a
+> long time, now.
+> From what you can see on their website they still have supported/updates
+> rules for ModSecurity 1.9.
+>
+> [1] 'set of rules' == 'bundle of rules' == 'rules package' :-)
+>
+> Best regards,
+> ? Chris
+>
+> Am 28.09.2009 um 17:58 schrieb Matthew Young:
+>
+>> What is the differance bewteen "bundled rules" and the current rule set?
+>>
+>> Thanks
+>>
+>> On Mon, Sep 28, 2009 at 3:37 AM, Christian Bockermann <chris at jwall.org>
+>> wrote:
+>> Hi Matt,
+>>
+>> the core-rules have been designed for ModSecurity 2.x right from the
+>> begining (IIRC).
+>> The only "bundled-rules" for 1.3, which I am aware of, can be found at
+>> www.gotroot.com
+>>
+>> Best regards,
+>>
+>> ?Chris
+>>
+>>
+>> Am 23.09.2009 um 21:26 schrieb Matthew Young:
+>>
+>> Hello,
+>>
+>> We use apache1 with modsecurity-apache-1.9.3 included by OpenBSD. It is my
+>> understanding the newest version of the core rules are only compatible with
+>> apache2? if not.. is there any ruleset (supported or not) that I could use?
+>>
+>> Thank you
+>>
+>> -Matt
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+>
+>
+

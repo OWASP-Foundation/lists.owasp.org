@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Mode%3A%20Controversial%0A%09candidate%20950120%20/%20931130%20%28Possible%20RFI%29&In-Reply-To=%3C107A498C-7347-4C83-A6C1-AFA62DC3BA42%40spam.lifeforms.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001946.html">
+   <LINK REL="Next"  HREF="001956.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)</H1>
+    <B>Walter Hop</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Mode%3A%20Controversial%0A%09candidate%20950120%20/%20931130%20%28Possible%20RFI%29&In-Reply-To=%3C107A498C-7347-4C83-A6C1-AFA62DC3BA42%40spam.lifeforms.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)">modsec at spam.lifeforms.nl
+       </A><BR>
+    <I>Sat Feb 13 19:54:23 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001946.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+        <LI>Next message: <A HREF="001956.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1952">[ date ]</a>
+              <a href="thread.html#1952">[ thread ]</a>
+              <a href="subject.html#1952">[ subject ]</a>
+              <a href="author.html#1952">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I want to give a FINAL reply about the RFI rule and then I&#8217;ll move on to other rules, honestly!
+Also for Noel who emailed me about data for this rule.
+
+&gt;&gt;<i> I would hate to see the rule totally disappear from base just on my one FP note though. Maybe more people can check their audit logs for the rule since it&#8217;s in CRSv2 too. It does rule out a lot of exploits on legacy / in house PHP apps and attackers try it daily. So it&#8217;s a hard call...
+</I>&gt;<i> 
+</I>&gt;<i> Let's keep it in the base / on the default paranoia level then. Adding the whitelisting you 
+</I>&gt;<i> proposed does little harm and is in line with the UUID whitelisting No&#235;l has developed
+</I>&gt;<i> for 981173 (lately moved to 
+</I>&gt;<i> <A HREF="https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode_Sibling_981173">https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode_Sibling_981173</A> &lt;<A HREF="https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode_Sibling_981173">https://www.owasp.org/index.php/OWASP_ModSec_CRS_Paranoia_Mode_Sibling_981173</A>&gt;)
+</I>
+
+I said I had mostly only whitelisted ARGS:url for this rule. But I lied! After Noel emailed me, I checked logs and I noticed that I had adjusted the rule in my fork of the CRS git repo so it had a lower (non critical) score. So my experience was not the norm.
+
+To try to get some test data, I enabled the rule again on some staging &amp; internal sites to make it critical again. The experience was pretty horrible. There was a lot of breakage, colleagues complaining that I am wasting their time with 403 errors, and now I remember why I had edited this rule... :) As I could have expected, apps that broke were basically anything where a URL is passed.
+
+Some examples:
+- Wordpress admin pages, with unpredictable names (e.g. id&#8217;s in args name)
+- Wordpress multisite (ARGS:option[ping_sites])
+- Symfony user profile (ARGS:fos_user_profile_form[website], ARGS:fos_user_registration_form[website])
+- vBulletin user profile (ARGS:homepage)
+- billing system (ARGS:return/ARGS:cancel/ARGS:notify)
+
+This is just from a few days of people getting 403s. So after this experiment, I&#8217;m tending towards saying, this is the type of rule that makes the CRS scary to use, even if the rule is effective against RFI.
+
+Of course if the default paranoia level is nonzero and it stays at that level, we have sorta CRSv2 parity and still a good way to get out of these FP.
+
+-- 
+Walter Hop | PGP key: <A HREF="https://lifeforms.nl/pgp">https://lifeforms.nl/pgp</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160213/953102d2/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160213/953102d2/attachment.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001946.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+	<LI>Next message: <A HREF="001956.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1952">[ date ]</a>
+              <a href="thread.html#1952">[ thread ]</a>
+              <a href="subject.html#1952">[ subject ]</a>
+              <a href="author.html#1952">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

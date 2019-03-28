@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Input filter: failed to create temporary file
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Input%20filter%3A%20failed%20to%0A%20create%20temporary%20file&In-Reply-To=201001111157.45331.ryan.barnett%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000230.html">
+   <LINK REL="Next"  HREF="000233.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Input filter: failed to create temporary file</H1>
+    <B>Matthew Saltzman</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Input%20filter%3A%20failed%20to%0A%20create%20temporary%20file&In-Reply-To=201001111157.45331.ryan.barnett%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Input filter: failed to create temporary file">mjs at clemson.edu
+       </A><BR>
+    <I>Mon Jan 11 12:50:00 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000230.html">[Owasp-modsecurity-core-rule-set] Input filter: failed to	create temporary file
+</A></li>
+        <LI>Next message: <A HREF="000233.html">[Owasp-modsecurity-core-rule-set] Input filter: failed to	create temporary file
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#232">[ date ]</a>
+              <a href="thread.html#232">[ thread ]</a>
+              <a href="subject.html#232">[ subject ]</a>
+              <a href="author.html#232">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Mon, 2010-01-11 at 11:57 -0500, Ryan Barnett wrote: 
+&gt;<i> On Friday 08 January 2010 08:26:35 pm Matthew Saltzman wrote:
+</I>&gt;<i> &gt; Hello, I hope I'm in the right place--I'm a complete newbie at this and
+</I>&gt;<i> &gt; it's not my day job.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Could someone please explain to me what's going on with the following:
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt;         [Fri Jan 08 13:07:45 2010] [error] [client 129.138.19.192]
+</I>&gt;<i> &gt;  ModSecurity: Input fi lter: Failed to create temporary file:
+</I>&gt;<i> &gt;  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+</I>&gt;<i> &gt;  [hostname &quot;projects.coin-or.org&quot;] [uri &quot;/Csdp/att
+</I>&gt;<i> &gt;  achment/wiki/WikiStart/&quot;] [unique_id &quot;EHX6ekKtxHEAACF9asQAAAAB&quot;] [Fri Jan
+</I>&gt;<i> &gt;  08 13:07:45 2010] [error] [client 129.138.19.192] ModSecurity: Input fi
+</I>&gt;<i> &gt;  lter: Failed to delete temporary file:
+</I>&gt;<i> &gt;  /tmp/httpd/20100108-130745-EHX6ekKtxHEAAC F9asQAAAAB-request_body-RFm2a5
+</I>&gt;<i> &gt;  [hostname &quot;projects.coin-or.org&quot;] [uri &quot;/Csdp/att
+</I>&gt;<i> &gt;  achment/wiki/WikiStart/&quot;] [unique_id &quot;EHX6ekKtxHEAACF9asQAAAAB&quot;]
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; I have a pristine installation of mod_security-2.5.9-1.el5 from the EPEL
+</I>&gt;<i> &gt; repository on a Red Hat Enterprise 5 system.  The problem is from a
+</I>&gt;<i> &gt; trac-0.11.5-1.el5.rf project page.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; If you need more info to help, I'm glad to provide whatever I can, or if
+</I>&gt;<i> &gt; I should be asking elsewhere, please let me know.  TIA for your kind
+</I>&gt;<i> &gt; assistance.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> 
+</I>&gt;<i> Matt,
+</I>&gt;<i> Looking at the error message and the temporary path/filename ModSecurity is attempting to 
+</I>&gt;<i> create, this looks like it is related to either the SecTmpDir or SecUploadDir directives - 
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsecurity2-apache-">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.11/modsecurity2-apache-</A>
+</I>&gt;<i> reference.html#N10C18
+</I>&gt;<i> 
+</I>&gt;<i> Check your mod configs and see where you have specified /tmp/httpd in those directives.  You 
+</I>&gt;<i> will need to follow the ownership/perms requirements for these directives related to the 
+</I>&gt;<i> Apache user.
+</I>
+Both of these directives in modsecurity_crs_10_config.conf are set
+to /tmp.
+
+$ ls -ld /tmp
+drwxrwxrwt 7 root root 4096 Jan 11 12:45 /tmp
+
+Actually,
+
+$ ls -ldZ /tmp
+drwxrwxrwt. root root system_u:object_r:tmp_t:s0       /tmp
+
+Could this be an SELinux issue?
+
+&gt;<i> 
+</I>&gt;<i> -Ryan
+</I>&gt;<i> 
+</I>
+-- 
+                Matthew Saltzman
+
+Clemson University Math Sciences
+mjs AT clemson DOT edu
+<A HREF="http://www.math.clemson.edu/~mjs">http://www.math.clemson.edu/~mjs</A>
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000230.html">[Owasp-modsecurity-core-rule-set] Input filter: failed to	create temporary file
+</A></li>
+	<LI>Next message: <A HREF="000233.html">[Owasp-modsecurity-core-rule-set] Input filter: failed to	create temporary file
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#232">[ date ]</a>
+              <a href="thread.html#232">[ thread ]</a>
+              <a href="subject.html#232">[ subject ]</a>
+              <a href="author.html#232">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

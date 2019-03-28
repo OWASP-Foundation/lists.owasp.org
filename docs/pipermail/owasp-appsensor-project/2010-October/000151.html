@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] New DB implementation in demo code
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20New%20DB%20implementation%20in%20demo%20code&In-Reply-To=AANLkTikSMGvEG8PPWxAi2JVcDBTqj_GOYoyAy_voB1AN%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000150.html">
+   <LINK REL="Next"  HREF="000152.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] New DB implementation in demo code</H1>
+    <B>John Melton</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20New%20DB%20implementation%20in%20demo%20code&In-Reply-To=AANLkTikSMGvEG8PPWxAi2JVcDBTqj_GOYoyAy_voB1AN%40mail.gmail.com"
+       TITLE="[Owasp-appsensor-project] New DB implementation in demo code">jtmelton at gmail.com
+       </A><BR>
+    <I>Tue Oct 19 14:17:13 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000150.html">[Owasp-appsensor-project] New DB implementation in demo code
+</A></li>
+        <LI>Next message: <A HREF="000152.html">[Owasp-appsensor-project] New DB implementation in demo code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#151">[ date ]</a>
+              <a href="thread.html#151">[ thread ]</a>
+              <a href="subject.html#151">[ subject ]</a>
+              <a href="author.html#151">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Colin,
+That would be fine.  Just ping me offline about when you'd like to chat.
+I've tried to give a short answer to each of your questions listed below for
+the benefit of those on the list.
+Thanks,
+John
+
+On Tue, Oct 19, 2010 at 1:41 PM, Colin Watson &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">colin.watson at owasp.org</A>&gt;wrote:
+
+&gt;<i> John
+</I>&gt;<i>
+</I>&gt;<i> This sounds very useful.
+</I>&gt;<i>
+</I>&gt;<i> Could I maybe have a telephone/VOIP chat with you in a week or so's
+</I>&gt;<i> time?  I'm writing a code/language agnostic guidance about a method of
+</I>&gt;<i> selecting detection points and response actions (things to consider,
+</I>&gt;<i> how detection points relate top other taxonomies, etc).  One chart
+</I>&gt;<i> (work in progress attached, which tries to show how some detection
+</I>&gt;<i> points are a more general version of another detection point).   It is
+</I>&gt;<i> aimed at perhaps a less developer-orientated audience, and I'd like to
+</I>&gt;<i> understand what the ESAPI AppSensor code includes/does not include so
+</I>&gt;<i> I don't drop me or anyone else in it, when asked a question.
+</I>&gt;<i>
+</I>&gt;<i> Some of the sorts of things I'd like to ask are:
+</I>&gt;<i>
+</I>&gt;<i> - how configurable are threshold levels and time periods (per
+</I>&gt;<i> application, per detection point)
+</I>
+per detection point
+
+&gt;<i> - which detection points and responses are implemented (sorry about
+</I>&gt;<i> adding all those extra ideas)
+</I>&gt;<i>
+</I>Most if not all of the detection points we've implemented so far are in
+<A HREF="http://code.google.com/p/appsensor/source/browse/trunk/AppSensor/src/main/java/org/owasp/appsensor/AttackDetectorUtils.java">http://code.google.com/p/appsensor/source/browse/trunk/AppSensor/src/main/java/org/owasp/appsensor/AttackDetectorUtils.java</A>
+As far as response actions - those are listed in
+<A HREF="http://code.google.com/p/appsensor/source/browse/trunk/AppSensor/src/main/java/org/owasp/appsensor/intrusiondetection/reference/DefaultResponseAction.java">http://code.google.com/p/appsensor/source/browse/trunk/AppSensor/src/main/java/org/owasp/appsensor/intrusiondetection/reference/DefaultResponseAction.java</A>
+the current list is [log, logout, disable, disableComponent,
+disableComponentForUser, smsAdmin, emailAdmin]
+
+&gt;<i> - are the trend exceptions handled differently
+</I>&gt;<i>
+</I>trend exceptions are handled differently.  This is currently a weak area
+where not much time has been spent working through these issues.  There is
+some very basic code in the core project for trend monitoring, and a bit of
+code in the demo that exercises it -
+<A HREF="http://code.google.com/p/appsensor/source/browse/trunk/AppSensorDemo2/src/org/owasp/appsensor/demoapp/#demoapp/trend.">http://code.google.com/p/appsensor/source/browse/trunk/AppSensorDemo2/src/org/owasp/appsensor/demoapp/#demoapp/trend.</A>
+This will be an area of increased effort going forward.  This is going to be
+more complicated than the base functionality of threshold monitoring.
+
+&gt;<i> - how are the detection points that accumulate events (e.g. multiple
+</I>&gt;<i> failed passwords, large number of file uploads) implemented, if at all
+</I>&gt;<i>
+</I>If I understand the question, this is the core of appsensor.  An error state
+occurs, and the code creates an exception.  Part of the exception
+declaration includes the identifier code (IE1, STE1, etc).  The intrusion
+store differentiates between these exceptions.  When a new exception is
+created, the intrusion store checks if X number of that specific intrusion
+have occurred over Y amount of time, and if so, triggers a response.  The
+core detection/response code is there and working.  As for the detection of
+the 2 specific events you mentioned, I don't think those are implemented at
+all from a detection standpoint.
+
+&gt;<i> - etc
+</I>&gt;<i>
+</I>&gt;<i> Regards
+</I>&gt;<i>
+</I>&gt;<i> Colin
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20101019/eff62ddb/attachment.html">https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20101019/eff62ddb/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000150.html">[Owasp-appsensor-project] New DB implementation in demo code
+</A></li>
+	<LI>Next message: <A HREF="000152.html">[Owasp-appsensor-project] New DB implementation in demo code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#151">[ date ]</a>
+              <a href="thread.html#151">[ thread ]</a>
+              <a href="subject.html#151">[ subject ]</a>
+              <a href="author.html#151">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

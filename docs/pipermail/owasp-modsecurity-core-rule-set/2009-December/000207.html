@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%20%3D%3Futf-8%3Fb%3Fbm8gcnVsZSBJRCAg77yf%3F%3D&In-Reply-To=4B274BDC.3060003%40gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000206.html">
+   <LINK REL="Next"  HREF="000200.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;</H1>
+    <B>ll</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%0A%20%3D%3Futf-8%3Fb%3Fbm8gcnVsZSBJRCAg77yf%3F%3D&In-Reply-To=4B274BDC.3060003%40gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;">ibeginhere at gmail.com
+       </A><BR>
+    <I>Tue Dec 15 03:53:32 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000206.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+        <LI>Next message: <A HREF="000200.html">[Owasp-modsecurity-core-rule-set] Some queries regarding core rule	set
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#207">[ date ]</a>
+              <a href="thread.html#207">[ thread ]</a>
+              <a href="subject.html#207">[ subject ]</a>
+              <a href="author.html#207">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think I can set a chain rules to estimate the request host first .and 
+then do the same thing to pass the FALSE positive . or any other ideas ?
+
+&#20110; 2009-12-15 16:42, ll &#20889;&#36947;:
+&gt;<i> thank you so much. it's work now .according the example, I have more 
+</I>&gt;<i> clean understand about the 48_local_exceptions.conf.
+</I>&gt;<i> BTW, according  to this way to reduce the FALSE positive.I doubt it in 
+</I>&gt;<i> this situation .the modsecurity protect multiple website .In the A 
+</I>&gt;<i> website ,the website structure  have some keyword which course the 
+</I>&gt;<i> FALSE positive easy .but the B website is not. when I want to reduce 
+</I>&gt;<i> the FALSE positive based the website .how to do in this situation .
+</I>&gt;<i>
+</I>&gt;<i> &#20110; 2009-12-11 22:09, Ryan Barnett &#20889;&#36947;:
+</I>&gt;&gt;<i> On Thursday 10 December 2009 08:35:21 pm ll wrote:
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i> Yes ,I'm reading the 48 local excetions.but still confuse.here is my
+</I>&gt;&gt;&gt;<i>  auditlog, thanks your help.I just want to disable this rule for this url
+</I>&gt;&gt;&gt;<i>  (/news/abc.swf?id=20091211&amp;style=3) ,other website still need to be
+</I>&gt;&gt;&gt;<i>  inspect
+</I>&gt;&gt;&gt;<i> --cecdfa17-A--
+</I>&gt;&gt;&gt;<i> [10/Dec/2009:16:22:14 +0800] SyCvtdJMQTgAABXDVjcAAAAC 127.0.0.1 60252
+</I>&gt;&gt;&gt;<i>  127.0.0.1 8000 --cecdfa17-B--
+</I>&gt;&gt;&gt;<i> GET /news/abc.swf?id=20091211&amp;style=3 HTTP/1.1
+</I>&gt;&gt;&gt;<i> Accept: */*
+</I>&gt;&gt;&gt;<i> Referer: <A HREF="http://www.abc.com/news/index.html">http://www.abc.com/news/index.html</A>
+</I>&gt;&gt;&gt;<i> Accept-Language: zh-cn
+</I>&gt;&gt;&gt;<i> UA-CPU: x86
+</I>&gt;&gt;&gt;<i> Accept-Encoding: gzip, deflate
+</I>&gt;&gt;&gt;<i> User-Agent: Mozilla/4.0 ()
+</I>&gt;&gt;&gt;<i> Host: www.abc.com&lt;<A HREF="http://www.abc.com">http://www.abc.com</A>&gt;
+</I>&gt;&gt;&gt;<i> Cookie: JSESSIONID=869946B0D9D6C75C3600E22E54A2C172
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> If you look in your debug log when this match occurs, you will see a line like 
+</I>&gt;&gt;<i> this where it is setting the TX variable -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [9] Set variable &quot;tx.-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot; to 
+</I>&gt;&gt;<i> &quot;/news/abc.swf?id=20091211&amp;style=3&quot;.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> You can now use this TX data to create the following exception rule in the 
+</I>&gt;&gt;<i> modsecurity_crs_48_local_exceptions.conf file (keep in mind that this is a 
+</I>&gt;&gt;<i> chained rule with 2 SecRules and they should be on two lines so make sure to 
+</I>&gt;&gt;<i> correct this if copy/pasting from email) -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW 
+</I>&gt;&gt;<i> &quot;^\/news\/abc\.swf\?id=\d+&amp;style=\d+$&quot; &quot;chain,phase:2,t:none,nolog,pass&quot;
+</I>&gt;&gt;<i>        SecRule MATCHED_VAR_NAME &quot;TX\:(.*)&quot; &quot;capture,t:none,setvar:!tx.
+</I>&gt;&gt;<i> %{tx.1},setvar:tx.anomaly_score=-20&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> This will look for this exact TX variable name with a regex for the URI 
+</I>&gt;&gt;<i> payload (which allows for digit payloads both the id and style parameters).  
+</I>&gt;&gt;<i> If there is a match, it will remove this TX variable and decrease the anomaly 
+</I>&gt;&gt;<i> score by 20.  Here is the debug log show the exception in action -
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [4] Recipe: Invoking rule b8a6248; [file 
+</I>&gt;&gt;<i> &quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+</I>&gt;&gt;<i> [line &quot;44&quot;].
+</I>&gt;&gt;<i> [5] Rule b8a6248: SecRule &quot;TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot; &quot;@rx 
+</I>&gt;&gt;<i> ^\\/news\\/abc\\.swf\\?id=\\d+&amp;style=\\d+$&quot; &quot;phase:2,chain,t:none,nolog,pass&quot;
+</I>&gt;&gt;<i> [4] Transformation completed in 2 usec.
+</I>&gt;&gt;<i> [4] Executing operator &quot;rx&quot; with param 
+</I>&gt;&gt;<i> &quot;^\\/news\\/abc\\.swf\\?id=\\d+&amp;style=\\d+$&quot; against TX:-WEB_ATTACK/XSS-
+</I>&gt;&gt;<i> REQUEST_URI_RAW.
+</I>&gt;&gt;<i> [9] Target value: &quot;/news/abc.swf?id=20091211&amp;style=3&quot;
+</I>&gt;&gt;<i> [4] Operator completed in 6 usec.
+</I>&gt;&gt;<i> [4] Rule returned 1.
+</I>&gt;&gt;<i> [9] Match -&gt; mode NEXT_RULE.
+</I>&gt;&gt;<i> [4] Recipe: Invoking rule b8a6b10; [file 
+</I>&gt;&gt;<i> &quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+</I>&gt;&gt;<i> [line &quot;45&quot;].
+</I>&gt;&gt;<i> [5] Rule b8a6b10: SecRule &quot;MATCHED_VAR_NAME&quot; &quot;@rx TX\\:(.*)&quot; 
+</I>&gt;&gt;<i> &quot;capture,t:none,setvar:!tx.%{tx.1},setvar:tx.anomaly_score=-20&quot;
+</I>&gt;&gt;<i> [4] Transformation completed in 2 usec.
+</I>&gt;&gt;<i> [4] Executing operator &quot;rx&quot; with param &quot;TX\\:(.*)&quot; against MATCHED_VAR_NAME.
+</I>&gt;&gt;<i> [9] Target value: &quot;TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;
+</I>&gt;&gt;<i> [9] Added regex subexpression to TX.0: TX:-WEB_ATTACK/XSS-REQUEST_URI_RAW
+</I>&gt;&gt;<i> [9] Added regex subexpression to TX.1: -WEB_ATTACK/XSS-REQUEST_URI_RAW
+</I>&gt;&gt;<i> [4] Operator completed in 36 usec.
+</I>&gt;&gt;<i> [9] Setting variable: !tx.%{tx.1}=1
+</I>&gt;&gt;<i> [9] Resolved macro %{tx.1} to &quot;-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;
+</I>&gt;&gt;<i> [9] Unset variable &quot;tx.-WEB_ATTACK/XSS-REQUEST_URI_RAW&quot;.
+</I>&gt;&gt;<i> [9] Setting variable: tx.anomaly_score=-20
+</I>&gt;&gt;<i> [9] Original collection variable: tx.anomaly_score = &quot;20&quot;
+</I>&gt;&gt;<i> [9] Relative change: anomaly_score=20-20
+</I>&gt;&gt;<i> [9] Set variable &quot;tx.anomaly_score&quot; to &quot;0&quot;.
+</I>&gt;&gt;<i> [4] Warning. Pattern match &quot;TX\:(.*)&quot; at MATCHED_VAR_NAME. [file 
+</I>&gt;&gt;<i> &quot;/usr/local/apache/conf/modsecurity_crs-2.0.4/base_rules/modsecurity_crs_48_local_exceptions.conf&quot;] 
+</I>&gt;&gt;<i> [line &quot;44&quot;]
+</I>&gt;&gt;<i> [4] Rule returned 1.
+</I>&gt;&gt;<i> [9] Match -&gt; mode NEXT_RULE.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hope this helps,
+</I>&gt;&gt;<i> Ryan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091215/c4506cc4/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091215/c4506cc4/attachment.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000206.html">[Owasp-modsecurity-core-rule-set] no rule ID  &#65311;
+</A></li>
+	<LI>Next message: <A HREF="000200.html">[Owasp-modsecurity-core-rule-set] Some queries regarding core rule	set
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#207">[ date ]</a>
+              <a href="thread.html#207">[ thread ]</a>
+              <a href="subject.html#207">[ subject ]</a>
+              <a href="author.html#207">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

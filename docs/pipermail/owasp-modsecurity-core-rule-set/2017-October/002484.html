@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Possibility%20of%20fine%20tuning%0A%20libinjection%20results&In-Reply-To=%3C1507816828813.28272%40nadra.gov.pk%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002483.html">
+   <LINK REL="Next"  HREF="002485.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results</H1>
+    <B>Waqas Ali Khan (47247)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Possibility%20of%20fine%20tuning%0A%20libinjection%20results&In-Reply-To=%3C1507816828813.28272%40nadra.gov.pk%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results">waqas.khan at nadra.gov.pk
+       </A><BR>
+    <I>Thu Oct 12 14:00:30 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002483.html">[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+</A></li>
+        <LI>Next message: <A HREF="002485.html">[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2484">[ date ]</a>
+              <a href="thread.html#2484">[ thread ]</a>
+              <a href="subject.html#2484">[ subject ]</a>
+              <a href="author.html#2484">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The ctl action should be ruleRemoveTargetById. Sorry for the typo. So the final rule should be:
+
+SecRule REQUEST_URI &quot;@beginsWith /dhis/api/26/dimensions.json&quot; &quot;id:10000,phase:1,pass,nolog,ctl:ruleRemoveTargetById=942100&quot;
+
+Regards
+Waqas Ali
+________________________________________
+From: Waqas Ali Khan (47247)
+Sent: Thursday, October 12, 2017 6:56 PM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+
+Hi Bob
+
+To determine what exactly is triggering the rule, you can view the error logs that are created in response to the detected rule. Data matched variable is going to show exactly what is being detected as a threat.
+
+You can disable the mentioned rule just for this particular URI like:
+
+SecRule REQUEST_URI &quot;@beginsWith /dhis/api/26/dimensions.json&quot; &quot;id:10000,phase:1,pass,nolog,ctl:ruleRemoveById=942100&quot;
+
+You will have to include the above rule before the rule file 942100.
+
+Regards
+Waqas Ali
+----------------------------------------------------------------------
+
+Message: 1
+Date: Thu, 12 Oct 2017 13:39:53 +0200
+From: Bob Jolliffe &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">bobjolliffe at gmail.com</A>&gt;
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: [Owasp-modsecurity-core-rule-set] Possibility of fine tuning
+        libinjection results
+Message-ID:
+        &lt;CACd=f9ehJ9t24UG9fJch=<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">__59Q4rKb4jTUBBZC2v_dMR5VUNyw at mail.gmail.com</A>&gt;
+Content-Type: text/plain; charset=&quot;UTF-8&quot;
+
+Hi
+
+I am not very experienced with owcrs so please bear with me if I say
+silly things.
+
+I have a problem that rule 942100 (libinjection) is getting falsely
+triggered in response to a legitimate api call on our application.  In
+particular the the offending URL is:
+
+GET /dhis/api/26/dimensions.json?fields=id,displayName~rename(name),dimensionType&amp;paging=false
+
+Which triggers 942100 with a fingerprint of 'nok(n'.
+
+I don't really want to disable the whole rule as I am sure
+libinjection is valuable and it seems it is just this nok thing which
+is tripping.   I also will not easily get developers to change the api
+in a hurry.  Does anybody know is there a way to keep 942100 but just
+disable responding to this particular fingerprint?
+
+Bonus question: can anybody tell me what it is exactly in the URL
+which is upsetting libinjection?  I am suspecting it has to do with
+'rename(name)'
+
+Regards
+Bob
+
+
+------------------------------
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002483.html">[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+</A></li>
+	<LI>Next message: <A HREF="002485.html">[Owasp-modsecurity-core-rule-set] Possibility of fine tuning libinjection results
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2484">[ date ]</a>
+              <a href="thread.html#2484">[ thread ]</a>
+              <a href="subject.html#2484">[ subject ]</a>
+              <a href="author.html#2484">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

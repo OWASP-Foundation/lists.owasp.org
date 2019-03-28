@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] first request is not protected?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20first%20request%20is%20not%20protected%3F&In-Reply-To=%3C04BE669BEE19E54BBDC2A9A2585BB6886CE4ADE1%40exch-mbx01.exchange.upenn.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000251.html">
+   <LINK REL="Next"  HREF="000253.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] first request is not protected?</H1>
+    <B>Chris Hyzer</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20first%20request%20is%20not%20protected%3F&In-Reply-To=%3C04BE669BEE19E54BBDC2A9A2585BB6886CE4ADE1%40exch-mbx01.exchange.upenn.edu%3E"
+       TITLE="[Owasp-csrfguard] first request is not protected?">mchyzer at isc.upenn.edu
+       </A><BR>
+    <I>Tue Oct  1 19:17:37 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000251.html">[Owasp-csrfguard] first request is not protected?
+</A></li>
+        <LI>Next message: <A HREF="000253.html">[Owasp-csrfguard] first request is not protected?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#252">[ date ]</a>
+              <a href="thread.html#252">[ thread ]</a>
+              <a href="subject.html#252">[ subject ]</a>
+              <a href="author.html#252">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Not sure if this is the culprit... but I don't really understand it: (from CsrfGuardFilter)
+
+			if (session == null) {
+				// If there is no session, no harm can be done
+				filterChain.doFilter(httpRequest, (HttpServletResponse) response);
+				return;
+			}
+
+Isnt it possible a request to come not from an existing session that would be single-signed on with a cookie, and authenticated, authorized, and perform the action?  Seems like this shouldn't pass through, but should be checked by csrfguard (even if it is an option to do so for people who want it).  I guess this assumes the Java session timeout is exactly the same or greater than the authentication timeout.  At Penn that is not the case.  You could be timed out from the Java app, but the single sign on cookie will get you right back in without redirect or user-input, I think this is a gap.  Another use case is you have a bunch of apps on one apache, you are logged in to one, the single sign on cookie is valid, but you have no session on another, it would be vulnerable to CSRF.
+
+Thanks,
+Chris
+
+
+-----Original Message-----
+From: Chris Hyzer 
+Sent: Tuesday, October 01, 2013 1:11 AM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>
+Subject: first request is not protected?
+
+I have a protected URL: /whatever, and the first request can go through CSRFguard, but subsequent requests cannot (they go to the error page).  Shouldn't the first request by default be protected unless that page is allowed in the properties file?  Is there a setting I can change to make the first request be protected?  Granted I understand that users will need to login, but I would prefer if all requests to protected resources are protected unless the CSRF token is there.  I tried this setting and it didn't seem to work...  
+
+
+# New Token Redirect Page
+#
+# Defines where to send a user if the token is being generated for the first time.
+# Failure to define a redirect page will allow CSRF attacks to work for unauthenticated
+# users
+org.owasp.csrfguard.NewTokenRedirectPage=/myApp/assets/html/csrfError.html
+
+Thanks,
+Chris
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000251.html">[Owasp-csrfguard] first request is not protected?
+</A></li>
+	<LI>Next message: <A HREF="000253.html">[Owasp-csrfguard] first request is not protected?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#252">[ date ]</a>
+              <a href="thread.html#252">[ thread ]</a>
+              <a href="subject.html#252">[ subject ]</a>
+              <a href="author.html#252">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

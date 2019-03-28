@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Problems Injecting into Attributes Before	Submission
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Problems%20Injecting%20into%20Attributes%20Before%0A%09Submission&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000050.html">
+   <LINK REL="Next"  HREF="000053.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Problems Injecting into Attributes Before	Submission</H1>
+    <B>Eric Sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Problems%20Injecting%20into%20Attributes%20Before%0A%09Submission&In-Reply-To="
+       TITLE="[Owasp-csrfguard] Problems Injecting into Attributes Before	Submission">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Thu Mar 24 14:13:54 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000050.html">[Owasp-csrfguard] unable to deploy CSRFGAURD
+</A></li>
+        <LI>Next message: <A HREF="000053.html">[Owasp-csrfguard] Problems Injecting into Attributes Before	Submission
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#52">[ date ]</a>
+              <a href="thread.html#52">[ thread ]</a>
+              <a href="subject.html#52">[ subject ]</a>
+              <a href="author.html#52">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>List,
+
+I ran into a some fairly significant problems with the JavaScript that
+updates the DOM with appropriate tokens. When the page finishes loading,
+CSRFGuard JavaScript is called via the window.onload event. However,
+before that event is called, the browser will issue requests for URL
+based resources in tags that require no user interaction (ex: img,
+iframe, etc.). For example, assume you have the following HTML:
+
+&lt;iframe src=&quot;/Owasp.CsrfGuard.Test/HelloServlet&quot;&gt;&lt;/iframe&gt;
+&lt;script src=&quot;/Owasp.CsrfGuard.Test/JavaScriptServlet&quot;&gt;&lt;/script&gt;
+
+The browser will always issue a request for HelloServlet before
+triggering the window.onload event handler. As a result, the browser
+will send a request for the protected resource and CSRFGuard will detect
+it as an attack. So my question is - do you guys know of any event
+handlers that will be triggered BEFORE requests for such resources (ex:
+images, iframes, etc.) are actually sent? Any alternative strategies?
+
+Another problem happens when updating some of these tags, and this
+problem varies across browsers. Internet explorer, for example, will
+send TWO requests for EVERY src/href attributed tag that is dynamically
+updated using &quot;element.setAttribute&quot;. So when I inject the token
+name/value pair in an iframe, image, etc. by using the &quot;setAttribute&quot;
+method, Internet Explorer will issue a request for resource AGAIN but
+now with the token. Talk about band width overload!! Any thoughts on how
+to update HTML elements without triggering another submission?
+
+One strategy that may help in both cases is try to define a list of HTML
+elements that require 'user interaction' and only inject into them (ex:
+links, forms, others?). All others, by default, are not injected with
+JavaScript. If those tags send a request to a CSRF protected resource,
+they will be caught (i.e. deny by default). If you have a legitimate
+need for an auto-submitting tag (ex: iframe) that sends a request to a
+protected resource, then you must inject the token using the tag
+library. I'm not happy with that approach. Thoughts?
+
+-Eric
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000050.html">[Owasp-csrfguard] unable to deploy CSRFGAURD
+</A></li>
+	<LI>Next message: <A HREF="000053.html">[Owasp-csrfguard] Problems Injecting into Attributes Before	Submission
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#52">[ date ]</a>
+              <a href="thread.html#52">[ thread ]</a>
+              <a href="subject.html#52">[ subject ]</a>
+              <a href="author.html#52">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

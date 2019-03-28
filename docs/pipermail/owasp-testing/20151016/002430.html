@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-testing] hsecscan v0 (https://github.com/riramar/hsecscan)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-testing%5D%20hsecscan%20v0%20%28https%3A//github.com/riramar/hsecscan%29&In-Reply-To=%3CCAE5Wca3Yxhm0PA6KeQaPx2Rys-7HGyoQJzwZX8TRGRbbRazfAg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-testing] hsecscan v0 (https://github.com/riramar/hsecscan)</H1>
+    <B>Ricardo Iramar dos Santos</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-testing%5D%20hsecscan%20v0%20%28https%3A//github.com/riramar/hsecscan%29&In-Reply-To=%3CCAE5Wca3Yxhm0PA6KeQaPx2Rys-7HGyoQJzwZX8TRGRbbRazfAg%40mail.gmail.com%3E"
+       TITLE="[Owasp-testing] hsecscan v0 (https://github.com/riramar/hsecscan)">riramar at gmail.com
+       </A><BR>
+    <I>Fri Oct 16 13:00:11 UTC 2015</I>
+    <P><UL>
+        
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2430">[ date ]</a>
+              <a href="thread.html#2430">[ thread ]</a>
+              <a href="subject.html#2430">[ subject ]</a>
+              <a href="author.html#2430">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi All,
+
+I started to develop in python a dumb tool called hsecscan
+(<A HREF="https://github.com/riramar/hsecscan">https://github.com/riramar/hsecscan</A>). I'll appreciate any feedback.
+:<i>)
+</I>It's a security scanner for HTTP response headers. Just finished the
+usable version 0 with a few features.
+
+$ ./hsecscan.py
+usage: hsecscan.py [-h] [-P] [-p] [-u URL] [-R]
+
+A security scanner for HTTP response headers.
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -P, --database     Print the entire response headers database.
+  -p, --headers      Print only the enabled response headers from database.
+  -u URL, --URL URL  The URL to be scanned.
+  -R, --redirect     Print redirect headers.
+
+
+The code itself is short because I spent most of my time constructing
+the sqlite database. You can check the database content on hsecscan.db
+(sqlite) or hsecscan.tsv (tab separated value).
+Most of the headers came from
+<A HREF="https://www.iana.org/assignments/message-headers/message-headers.xhtml">https://www.iana.org/assignments/message-headers/message-headers.xhtml</A>
+and the security description/reference/recommendation came from the
+related RFC. I also include all headers from
+<A HREF="https://www.owasp.org/index.php/List_of_useful_HTTP_headers.">https://www.owasp.org/index.php/List_of_useful_HTTP_headers.</A> The idea
+is keep the database up-to-date and if you want you can add your
+headers.
+Since this is version 0 I didn't include all the features that I want
+and this is my personal TODO list:
+
+Improve output to highlight the required headers
+Add option to select the method (GET or POST)
+Improve README.md with more information (eg. how to use as a module)
+Add options to show only the enabled headers
+Add option to select the User-Agent header or set any other header
+Add option to detect bad practice (eg. Content-Type without charset=utf-8)
+
+
+Basically &quot;hsecscan.py -u <A HREF="http://google.com">http://google.com</A>&quot; will do a GET on
+google.com over HTTP and retrieve all the headers. For each header
+hsecscan.py will search on the database and print the results. If you
+select the option &quot;-R&quot; hsecscan.py will also print results for each
+redirect response header.
+
+$ ./hsecscan.py -u <A HREF="http://google.com">http://google.com</A>
+URL: <A HREF="http://www.google.com.br/?gfe_rd=cr&amp;ei=uO8eVtCNA_Cp8weYqLCgAQ">http://www.google.com.br/?gfe_rd=cr&amp;ei=uO8eVtCNA_Cp8weYqLCgAQ</A>
+Code: 200
+Headers:
+Date: Thu, 15 Oct 2015 00:13:45 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+P3P: CP=&quot;This is not a P3P policy! See
+<A HREF="http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657">http://www.google.com/support/accounts/bin/answer.py?hl=en&amp;answer=151657</A>
+for more info.&quot;
+Server: gws
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+Set-Cookie: PREF=ID=1111111111111111:FF=0:TM=1444868025:LM=1444868025:V=1:S=63__QH8d-rawj72t;
+expires=Thu, 31-Dec-2015 16:02:17 GMT; path=/; domain=.google.com.br
+Set-Cookie: NID=72=CoRBDHqHqS4hFQZX_KM-EihW23odkCZSkndoN2tdH6DJY6lG--ZGRIGTQSZdqhePaWrWlBkwP0DXjt3r4OKLtnaU6ZsrVypT8GqJuN-9YzcDWHfamVpZTWd0b72YuiGNMDHBRH5X;
+expires=Fri, 15-Apr-2016 00:13:45 GMT; path=/; domain=.google.com.br;
+HttpOnly
+Accept-Ranges: none
+Vary: Accept-Encoding
+Connection: close
+
+
+  Header Field Name: X-XSS-Protection
+  Type 1: Personal
+  Protocol: http
+  Status:
+  Reference: <A HREF="http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx">http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx</A>
+  Type 2: Response
+  Enable: Y
+  Required: Y
+  HTTPS: N
+  Security Description: This header enables the Cross-site scripting
+(XSS) filter built into most recent web browsers. It's usually enabled
+by default anyway, so the role of this header is to re-enable the
+filter for this particular website if it was disabled by the user.
+This header is supported in IE 8+, and in Chrome (not sure which
+versions). The anti-XSS filter was added in Chrome 4. Its unknown if
+that version honored this header.
+  Security Reference:
+<A HREF="https://www.owasp.org/index.php/List_of_useful_HTTP_headers">https://www.owasp.org/index.php/List_of_useful_HTTP_headers</A>
+  Recommendations: Use &quot;X-XSS-Protection: 1; mode=block&quot; whenever is
+possible (ref. <A HREF="http://blogs.msdn.com/b/ieinternals/archive/2011/01/31/controlling-the-internet-explorer-xss-filter-with-the-x-xss-protection-http-header.aspx">http://blogs.msdn.com/b/ieinternals/archive/2011/01/31/controlling-the-internet-explorer-xss-filter-with-the-x-xss-protection-http-header.aspx</A>).
+  CWE: CWE-79: Improper Neutralization of Input During Web Page
+Generation ('Cross-site Scripting')
+  CWE URL: <A HREF="https://cwe.mitre.org/data/definitions/79.html">https://cwe.mitre.org/data/definitions/79.html</A>
+
+
+  Header Field Name: Set-Cookie
+  Type 1: Permanent
+  Protocol: http
+  Status: standard
+  Reference: <A HREF="https://tools.ietf.org/html/rfc6265">https://tools.ietf.org/html/rfc6265</A>
+  Type 2: Response
+  Enable: Y
+  Required: N
+  HTTPS: N
+  Security Description: Cookies have a number of security pitfalls. In
+particular, cookies encourage developers to rely on ambient authority
+for authentication, often becoming vulnerable to attacks such as
+cross-site request forgery. Also, when storing session identifiers in
+cookies, developers often create session fixation vulnerabilities.
+Transport-layer encryption, such as that employed in HTTPS, is
+insufficient to prevent a network attacker from obtaining or altering
+a victim's cookies because the cookie protocol itself has various
+vulnerabilities. In addition, by default, cookies do not provide
+confidentiality or integrity from network attackers, even when used in
+conjunction with HTTPS.
+  Security Reference: <A HREF="https://tools.ietf.org/html/rfc6265#section-8">https://tools.ietf.org/html/rfc6265#section-8</A>
+  Recommendations: Please at least read these references:
+<A HREF="https://tools.ietf.org/html/rfc6265#section-8">https://tools.ietf.org/html/rfc6265#section-8</A> and
+<A HREF="https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Cookies.">https://www.owasp.org/index.php/Session_Management_Cheat_Sheet#Cookies.</A>
+  CWE: CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute
+  CWE URL: <A HREF="https://cwe.mitre.org/data/definitions/614.html">https://cwe.mitre.org/data/definitions/614.html</A>
+
+
+  Header Field Name: Vary
+  Type 1: Permanent
+  Protocol: http
+  Status: standard
+  Reference: <A HREF="https://tools.ietf.org/html/rfc7231#section-7.1.4">https://tools.ietf.org/html/rfc7231#section-7.1.4</A>
+  Type 2: Response
+  Enable: N
+  Required:
+  HTTPS:
+  Security Description:
+  Security Reference:
+  Recommendations:
+  CWE:
+  CWE URL:
+
+
+  Header Field Name: Server
+  Type 1: Permanent
+  Protocol: http
+  Status: standard
+  Reference: <A HREF="https://tools.ietf.org/html/rfc7231#section-7.4.2">https://tools.ietf.org/html/rfc7231#section-7.4.2</A>
+  Type 2: Response
+  Enable: Y
+  Required: N
+  HTTPS: N
+  Security Description: Overly long and detailed Server field values
+increase response latency and potentially reveal internal
+implementation details that might make it (slightly) easier for
+attackers to find and exploit known security holes.
+  Security Reference: <A HREF="https://tools.ietf.org/html/rfc7231#section-7.4.2">https://tools.ietf.org/html/rfc7231#section-7.4.2</A>
+  Recommendations: An origin server SHOULD NOT generate a Server field
+containing needlessly fine-grained detail and SHOULD limit the
+addition of subproducts by third parties.
+  CWE: CWE-200: Information Exposure
+  CWE URL: <A HREF="https://cwe.mitre.org/data/definitions/200.html">https://cwe.mitre.org/data/definitions/200.html</A>
+
+
+  Header Field Name: X-Frame-Options
+  Type 1: Permanent
+  Protocol: http
+  Status: informational
+  Reference: <A HREF="https://tools.ietf.org/html/rfc7034">https://tools.ietf.org/html/rfc7034</A>
+  Type 2: Response
+  Enable: Y
+  Required: Y
+  HTTPS: N
+  Security Description: The use of &quot;X-Frame-Options&quot; allows a web page
+from host B to declare that its content (for example, a button, links,
+text, etc.) must not be displayed in a frame (&lt;frame&gt; or &lt;iframe&gt;) of
+another page (e.g., from host A). This is done by a policy declared in
+the HTTP header and enforced by browser implementations.
+  Security Reference: <A HREF="https://tools.ietf.org/html/rfc7034">https://tools.ietf.org/html/rfc7034</A>
+  Recommendations:  In 2009 and 2010, many browser vendors
+([Microsoft-X-Frame-Options] and [Mozilla-X-Frame-Options]) introduced
+the use of a non-standard HTTP [RFC2616] header field
+&quot;X-Frame-Options&quot; to protect against clickjacking. Please check here
+<A HREF="https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet">https://www.owasp.org/index.php/Clickjacking_Defense_Cheat_Sheet</A>
+what's the best option for your case.
+  CWE: CWE-693: Protection Mechanism Failure
+  CWE URL: <A HREF="https://cwe.mitre.org/data/definitions/693.html">https://cwe.mitre.org/data/definitions/693.html</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2430">[ date ]</a>
+              <a href="thread.html#2430">[ thread ]</a>
+              <a href="subject.html#2430">[ subject ]</a>
+              <a href="author.html#2430">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

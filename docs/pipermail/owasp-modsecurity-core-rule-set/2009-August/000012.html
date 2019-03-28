@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Help with Cole Rule Set
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Help%20with%20Cole%20Rule%20Set&In-Reply-To=200908031024.24114.ryan.barnett%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000011.html">
+   <LINK REL="Next"  HREF="000013.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Help with Cole Rule Set</H1>
+    <B>Josue Del Valle</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Help%20with%20Cole%20Rule%20Set&In-Reply-To=200908031024.24114.ryan.barnett%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Help with Cole Rule Set">jodelvalle at gmail.com
+       </A><BR>
+    <I>Mon Aug  3 12:14:03 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000011.html">[Owasp-modsecurity-core-rule-set] Help with Cole Rule Set
+</A></li>
+        <LI>Next message: <A HREF="000013.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-7) Mod Security Core Rules 2.5-1.6.1 blocks OpenID
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12">[ date ]</a>
+              <a href="thread.html#12">[ thread ]</a>
+              <a href="subject.html#12">[ subject ]</a>
+              <a href="author.html#12">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan,
+
+Thanks a whole lot for your detailed explanation.  I will do as
+recommended.
+
+Regards,
+
+Josue
+
+On Mon, Aug 3, 2009 at 10:24 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ryan.barnett at breach.com</A>&gt;wrote:
+
+&gt;<i>   On Monday 03 August 2009 12:03:06 am Josue Del Valle wrote:
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I am new to mod_security and new to Apache. I've been asked by my
+</I>&gt;<i> employer
+</I>&gt;<i> &gt; to configure and secure an Apache server that will run on Windows. I've
+</I>&gt;<i> &gt; been reading about the Core Rules and understand that initially they
+</I>&gt;<i> should
+</I>&gt;<i> &gt; be set to DetectOnly mode and that I should check my logs for false
+</I>&gt;<i> &gt; positives before turning them on. What I am not sure is what I will be
+</I>&gt;<i> &gt; looking for in the logs. The type of attacks or false positives blocks,
+</I>&gt;<i> &gt; How can I identify false positives? For how long should I run it on
+</I>&gt;<i> &gt; DetectOnly mode? Bottom line, I will really appreciate if someone can
+</I>&gt;<i> &gt; point me in the right direction. Thanks in advance for your help.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Welcome to ModSecurity! As far as the SecRuleEngine goes (
+</I>&gt;<i> <A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.9/modsecurity2-apache-reference.html#N10A4F">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.9/modsecurity2-apache-reference.html#N10A4F</A>)
+</I>&gt;<i> in the older version of the Core Rule Set (CRS) we certainly did recommend
+</I>&gt;<i> that this be set to DetectionOnly. The rationale for this was so that you
+</I>&gt;<i> would not mistakenly block any legitimate transactions before you had a
+</I>&gt;<i> chance to tune the rules a bit for your environment. In the current CRS
+</I>&gt;<i> v2.0.0, we have changed how the rules work. The SecRuleEngine is set to On
+</I>&gt;<i> (to allow blocking) however the rules all use the &quot;block&quot; action which
+</I>&gt;<i> reference the SecDefaultAction setting (which is set to pass).
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Specifically, the rules are now running in a &quot;collaborative&quot; mode and use
+</I>&gt;<i> an anomaly scoring system. Each rule, if it triggers, will increase a
+</I>&gt;<i> transactional anomaly score. At the end of phase:2 (the last chance to block
+</I>&gt;<i> the inbound request), you can set an appropriate anomaly score for your
+</I>&gt;<i> site. This lessens the likelihood of false positives. Basically, I would
+</I>&gt;<i> suggest that you review/update the modsecurity_crs_49_enforcement.conf file
+</I>&gt;<i> and make sure that the anomaly scoring level is set to around 20 and that
+</I>&gt;<i> there is no blocking action. This will allow your rules to generate alerts
+</I>&gt;<i> but not block.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> As for the false positives, I would suggest that you review the Data Format
+</I>&gt;<i> documentation (
+</I>&gt;<i> <A HREF="http://www.modsecurity.org/documentation/modsecurity-apache/2.5.9/modsecurity2-data-formats.html">http://www.modsecurity.org/documentation/modsecurity-apache/2.5.9/modsecurity2-data-formats.html</A>)
+</I>&gt;<i> so that you understand what data is presented. The alert data will tell you
+</I>&gt;<i> what rule matched, where in the transaction the match occurred and what data
+</I>&gt;<i> matched. You can then review the full audit log data of the transaction to
+</I>&gt;<i> confirm if the match was correct or not.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> By the way - the OWASP CRS project site needs to have better information to
+</I>&gt;<i> address your questions. We will update it soon.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hope this info helps.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Ryan C. Barnett
+</I>&gt;<i> WASC Distributed Open Proxy Honeypot Project Leader
+</I>&gt;<i> OWASP ModSecurity Core Rule Set Project Leader
+</I>&gt;<i> Tactical Web Application Security
+</I>&gt;<i> <A HREF="http://tacticalwebappsec.blogspot.com">http://tacticalwebappsec.blogspot.com</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090803/e4915023/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090803/e4915023/attachment.html</A> 
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000011.html">[Owasp-modsecurity-core-rule-set] Help with Cole Rule Set
+</A></li>
+	<LI>Next message: <A HREF="000013.html">[Owasp-modsecurity-core-rule-set] [JIRA] Resolved: (CORERULES-7) Mod Security Core Rules 2.5-1.6.1 blocks OpenID
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12">[ date ]</a>
+              <a href="thread.html#12">[ thread ]</a>
+              <a href="subject.html#12">[ subject ]</a>
+              <a href="author.html#12">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

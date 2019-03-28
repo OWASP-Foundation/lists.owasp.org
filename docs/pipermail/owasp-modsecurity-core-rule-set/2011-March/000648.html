@@ -1,0 +1,248 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Questions about modsecurity rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%20modsecurity%20rules&In-Reply-To=loom.20110310T061031-83%40post.gmane.org">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000646.html">
+   <LINK REL="Next"  HREF="000649.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Questions about modsecurity rules</H1>
+    <B>Abdellah Tantan</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%20modsecurity%20rules&In-Reply-To=loom.20110310T061031-83%40post.gmane.org"
+       TITLE="[Owasp-modsecurity-core-rule-set] Questions about modsecurity rules">adtantan at paydq.com
+       </A><BR>
+    <I>Tue Mar 15 14:38:42 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000646.html">[Owasp-modsecurity-core-rule-set] Call for	Assistance:	ModSecurity/CRS Event Data Statistics
+</A></li>
+        <LI>Next message: <A HREF="000649.html">[Owasp-modsecurity-core-rule-set] Questions about modsecurity rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#648">[ date ]</a>
+              <a href="thread.html#648">[ thread ]</a>
+              <a href="subject.html#648">[ subject ]</a>
+              <a href="author.html#648">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Hi, 
+
+Although I have read mod_security book by Ivan Restic, I feel I am still
+very new to Mod_Security. I am wondering why sending a simple request
+triggered all these rules (see raw data bellow)? if the request was marked
+as critical, why it was not blocked? Any help to understand this is
+appreciated, 
+
+This is my main configuration file
+
+SecComponentSignature &quot;core ruleset/2.1.1&quot;
+SecRuleEngine On
+SecDefaultAction &quot;phase:2,pass,nolog,auditlog&quot;
+SecAction &quot;phase:1,t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on&quot;
+SecAction &quot;phase:1,t:none,nolog,pass, \
+setvar:tx.critical_anomaly_score=5, \
+setvar:tx.error_anomaly_score=4, \
+setvar:tx.warning_anomaly_score=3, \
+setvar:tx.notice_anomaly_score=2&quot;
+SecAction
+&quot;phase:1,t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5&quot;
+SecAction
+&quot;phase:1,t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4&quot;
+
+
+raw data bellow.
+
+
+--342fe054-A--
+[15/Mar/2011:13:23:56 --0500] iAJfIgoAygIAAGstEDsAAAAC 66.37.224.199 52567
+10.0.202.2 80
+--342fe054-B--
+GET /lpandl/images/buttons/login.gif HTTP/1.1
+Host: 98.142.93.2
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15)
+Gecko/20110303 Firefox/3.6.15
+Accept: image/png,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Connection: keep-alive
+Referer:
+<A HREF="https://98.142.93.2/lpandl/Logon.do;jsessionid=2D2A0F2EC20B323DEFE7901DB4800">https://98.142.93.2/lpandl/Logon.do;jsessionid=2D2A0F2EC20B323DEFE7901DB4800</A>
+52E
+Cookie: JSESSIONID=2D2A0F2EC20B323DEFE7901DB480052E
+X-Forwarded-For: 66.37.224.199
+Front-End-Https: On
+
+--342fe054-E--
+
+--342fe054-F--
+HTTP/1.1 200 OK
+ETag: W/&quot;929-1272484876000&quot;
+Last-Modified: Wed, 28 Apr 2010 20:01:16 GMT
+Content-Length: 929
+Connection: close
+Content-Type: image/gif
+
+--342fe054-H--
+Message: Warning. Match of &quot;within %{tx.allowed_methods}&quot; against
+&quot;REQUEST_METHOD&quot; required. [file
+&quot;/etc/httpd/conf/modsecurity/rules/base_rules/modsecurity_crs_30_http_policy
+.conf&quot;] [line &quot;30&quot;] [id &quot;960032&quot;] [msg &quot;Method is not allowed by policy&quot;]
+[data &quot;GET&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;POLICY/METHOD_NOT_ALLOWED&quot;] [tag
+&quot;WASCTC/WASC-15&quot;] [tag &quot;OWASP_TOP_10/A6&quot;] [tag &quot;OWASP_AppSensor/RE1&quot;] [tag
+&quot;PCI/12.1&quot;]
+Message: Warning. Match of &quot;within %{tx.allowed_http_versions}&quot; against
+&quot;REQUEST_PROTOCOL&quot; required. [file
+&quot;/etc/httpd/conf/modsecurity/rules/base_rules/modsecurity_crs_30_http_policy
+.conf&quot;] [line &quot;77&quot;] [id &quot;960034&quot;] [msg &quot;HTTP protocol version is not allowed
+by policy&quot;] [data &quot;HTTP/1.1&quot;] [severity &quot;CRITICAL&quot;] [tag
+&quot;POLICY/PROTOCOL_NOT_ALLOWED&quot;] [tag &quot;WASCTC/WASC-21&quot;] [tag
+&quot;OWASP_TOP_10/A6&quot;] [tag &quot;PCI/6.5.10&quot;]
+Apache-Handler: jakarta-servlet
+Stopwatch: 1300213436407586 8794 (450 5600 -)
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>).
+Server: Apache/2.2.3 (CentOS)
+
+--342fe054-K--
+SecRule &quot;REQUEST_METHOD&quot; &quot;@rx ^(?:GET|HEAD)$&quot;
+&quot;phase:1,log,auditlog,chain,rev:2.1.1,t:none,block,msg:'GET or HEAD requests
+with
+bodies',severity:2,id:960011,tag:PROTOCOL_VIOLATION/EVASION,tag:WASCTC/WASC-
+21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,tag:<A HREF="http://www.w3.org/Protocols/rfc261">http://www.w3.org/Protocols/rfc261</A>
+6/rfc2616-sec4.html#sec4.3&quot;
+SecRule &quot;REQUEST_METHOD&quot; &quot;!@rx ^OPTIONS$&quot;
+&quot;phase:2,log,auditlog,chain,rev:2.1.1,t:none,block,msg:'Request Missing an
+Accept
+Header',severity:2,id:960015,tag:PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT,ta
+g:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10&quot;
+SecRule &quot;&amp;REQUEST_HEADERS:Content-Type&quot; &quot;@eq 0&quot;
+&quot;phase:2,log,auditlog,chain,rev:2.1.1,t:none,block,msg:'Request Containing
+Content, but Missing Content-Type header',id:960904,severity:5&quot;
+SecRule &quot;REQUEST_METHOD&quot; &quot;!@within %{tx.allowed_methods}&quot;
+&quot;phase:2,log,auditlog,t:none,block,msg:'Method is not allowed by
+policy',severity:2,id:960032,tag:POLICY/METHOD_NOT_ALLOWED,tag:WASCTC/WASC-1
+5,tag:OWASP_TOP_10/A6,tag:OWASP_AppSensor/RE1,tag:PCI/12.1,logdata:%{matched
+_var},setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+%{tx.warning_anomal
+y_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.%{rul
+e.id}-POLICY/METHOD_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+SecRule &quot;REQUEST_PROTOCOL&quot; &quot;!@within %{tx.allowed_http_versions}&quot;
+&quot;phase:2,log,auditlog,t:none,block,msg:'HTTP protocol version is not allowed
+by
+policy',severity:2,id:960034,tag:POLICY/PROTOCOL_NOT_ALLOWED,tag:WASCTC/WASC
+-21,tag:OWASP_TOP_10/A6,tag:PCI/6.5.10,logdata:%{matched_var},setvar:tx.msg=
+%{rule.msg},setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.p
+olicy_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-POLICY/PROTOCO
+L_NOT_ALLOWED-%{matched_var_name}=%{matched_var}&quot;
+SecRule &quot;REQUEST_BASENAME&quot; &quot;@rx \\.(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,capture,setvar:tx.extension=.%{tx.1}/,t:none,t:u
+rlDecodeUni,t:lowercase,block,msg:'URL file extension is restricted by
+policy',severity:2,id:960035,tag:POLICY/EXT_RESTRICTED,tag:WASCTC/WASC-15,ta
+g:OWASP_TOP_10/A7,tag:PCI/6.5.10,logdata:%{TX.0}&quot;
+SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;REQUEST_HEADERS_NAMES&quot; &quot;@rx ^(.*)$&quot;
+&quot;phase:2,log,auditlog,chain,t:none,block,msg:'HTTP header is restricted by
+policy',id:960038,tag:POLICY/HEADER_RESTRICTED,tag:POLICY/FILES_NOT_ALLOWED,
+tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/12.1,tag:WASCTC/WASC-15,tag:O
+WASP_TOP_10/A7,tag:PCI/12.1,severity:4,logdata:%{matched_var},capture,setvar
+:<i>tx.header_name='/%{tx.0}/'&quot;
+</I>SecRule &quot;RESPONSE_BODY&quot; &quot;!@pm iframe&quot;
+&quot;phase:4,auditlog,rev:2.1.1,t:none,capture,t:urlDecodeUni,t:htmlEntityDecode
+,t:lowercase,nolog,skipAfter:END_IFRAME_CHECK&quot;
+SecRule &quot;RESPONSE_BODY&quot; &quot;!@pmFromFile modsecurity_50_outbound.data&quot;
+&quot;phase:4,auditlog,rev:2.1.1,t:none,capture,t:urlDecodeUni,t:htmlEntityDecode
+,nolog,skipAfter:END_OUTBOUND_CHECK&quot;
+
+--342fe054-Z--
+
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000646.html">[Owasp-modsecurity-core-rule-set] Call for	Assistance:	ModSecurity/CRS Event Data Statistics
+</A></li>
+	<LI>Next message: <A HREF="000649.html">[Owasp-modsecurity-core-rule-set] Questions about modsecurity rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#648">[ date ]</a>
+              <a href="thread.html#648">[ thread ]</a>
+              <a href="subject.html#648">[ subject ]</a>
+              <a href="author.html#648">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

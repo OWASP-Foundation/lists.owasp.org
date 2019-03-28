@@ -1,0 +1,202 @@
+<tt>
+Jim,&nbsp;&lt;br&gt;Not&nbsp;sure&nbsp;I&nbsp;agree&nbsp;with&nbsp;#1&nbsp;-&nbsp;not&nbsp;sure&nbsp;why&nbsp;we&nbsp;need&nbsp;to&nbsp;stop&nbsp;using&nbsp;ESAPI. &nbsp;I&amp;#39;m&nbsp;not&nbsp;sure&nbsp;how&nbsp;maven&nbsp;deals&nbsp;w/&nbsp;circular&nbsp;dependencies,&nbsp;but&nbsp;ESAPI&amp;#39;s&nbsp;interaction&nbsp;w/&nbsp;appsensor&nbsp;for&nbsp;the&nbsp;most&nbsp;part&nbsp;would&nbsp;be&nbsp;through&nbsp;the&nbsp;intrusion&nbsp;detector&nbsp;mechanism&nbsp;...&nbsp;ESAPI.intrusionDetector().addException(this),&nbsp;which&nbsp;is&nbsp;already&nbsp;implemented&nbsp;in&nbsp;the&nbsp;EnterpriseSecurityException&nbsp;constructor&nbsp;and&nbsp;maybe&nbsp;1&nbsp;or&nbsp;2&nbsp;other&nbsp;exceptions. &nbsp;I&nbsp;admit,&nbsp;though,&nbsp;I&amp;#39;m&nbsp;not&nbsp;sure&nbsp;how&nbsp;maven&nbsp;deals&nbsp;w/&nbsp;the&nbsp;dependencies&nbsp;so&nbsp;that&nbsp;could&nbsp;certainly&nbsp;be&nbsp;an&nbsp;issue&nbsp;-&nbsp;any&nbsp;maven&nbsp;experts&nbsp;can&nbsp;you&nbsp;chime&nbsp;in?&lt;br&gt;<br>
+<br>
+&lt;br&gt;We&nbsp;do&nbsp;use&nbsp;a&nbsp;few&nbsp;of&nbsp;the&nbsp;esapi&nbsp;classes. &nbsp;&lt;br&gt;-&nbsp;IntrusionDetector&nbsp;interface&lt;br&gt;-&nbsp;SecurityConfiguration&nbsp;class&nbsp;&lt;br&gt;-&nbsp;I&nbsp;think&nbsp;we&nbsp;might&nbsp;use&nbsp;the&nbsp;StringUtilities&nbsp;in&nbsp;a&nbsp;place&nbsp;or&nbsp;2,&nbsp;but&nbsp;we&nbsp;could&nbsp;remove&nbsp;these&nbsp;if&nbsp;need&nbsp;be&lt;br&gt;-&nbsp;use&nbsp;the&nbsp;logger&nbsp;through&nbsp;an&nbsp;adapter&lt;br&gt;<br>
+<br>
+-&nbsp;use&nbsp;the&nbsp;authenticator&nbsp;through&nbsp;an&nbsp;adapter.&lt;br&gt;&lt;br&gt;We&amp;#39;ve&nbsp;planned&nbsp;ahead&nbsp;for&nbsp;integration&nbsp;w/&nbsp;ESAPI&nbsp;or&nbsp;w/&nbsp;other&nbsp;frameworks. &nbsp;In&nbsp;the&nbsp;current&nbsp;incarnation&nbsp;of&nbsp;AppSensor,&nbsp;we&nbsp;do&nbsp;depend&nbsp;on&nbsp;ESAPI,&nbsp;but&nbsp;you&nbsp;don&amp;#39;t&nbsp;have&nbsp;to&nbsp;&lt;b&gt;use&lt;/b&gt;&nbsp;ESAPI. &nbsp;You&nbsp;can&nbsp;use&nbsp;a&nbsp;different&nbsp;mechanism&nbsp;for&nbsp;all&nbsp;the&nbsp;controls&nbsp;that&nbsp;ESAPI&nbsp;would&nbsp;normally&nbsp;cover,&nbsp;but&nbsp;if&nbsp;you&nbsp;use&nbsp;AppSensor,&nbsp;we&amp;#39;re&nbsp;still&nbsp;gonna&nbsp;use&nbsp;some&nbsp;ESAPI&nbsp;code&nbsp;behind&nbsp;the&nbsp;scenes. &nbsp;Having&nbsp;said&nbsp;that,&nbsp;our&nbsp;only&nbsp;implementations&nbsp;for&nbsp;certain&nbsp;pieces&nbsp;are&nbsp;written&nbsp;for&nbsp;ESAPI&nbsp;integration&nbsp;(logger/authenticator),&nbsp;but&nbsp;an&nbsp;app&nbsp;could&nbsp;easily&nbsp;implement&nbsp;their&nbsp;own.&lt;br&gt;<br>
+<br>
+&lt;br&gt;I&amp;#39;m&nbsp;also&nbsp;curious&nbsp;about&nbsp;what&nbsp;&amp;quot;ESAPI&nbsp;can&nbsp;build&nbsp;a&nbsp;AppSensor&nbsp;implementation&amp;quot;&nbsp;means&nbsp;from&nbsp;your&nbsp;perspective? &nbsp;Are&nbsp;you&nbsp;saying&nbsp;...&lt;br&gt;1.&nbsp;use&nbsp;our&nbsp;code,&nbsp;and&nbsp;implement&nbsp;your&nbsp;own&nbsp;detection&nbsp;points&nbsp;and&nbsp;threshold&nbsp;configurations&lt;br&gt;<br>
+<br>
+2.&nbsp;implement&nbsp;your&nbsp;own&nbsp;ground-up&nbsp;code/detection/response&nbsp;engine,&nbsp;as&nbsp;well&nbsp;as&nbsp;the&nbsp;detection&nbsp;points&nbsp;and&nbsp;threshold&nbsp;configs&nbsp;-or-&lt;br&gt;3.&nbsp;something&nbsp;else&lt;br&gt;?&lt;br&gt;&lt;br&gt;Thanks,&lt;br&gt;John&lt;br&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Mon,&nbsp;Nov&nbsp;1,&nbsp;2010&nbsp;at&nbsp;2:58&nbsp;AM,&nbsp;Jim&nbsp;Manico&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&amp;lt;&lt;a&nbsp;href=&quot;mailto:jim.manico@owasp.org&quot;&gt;jim.manico@owasp.org&lt;/a&gt;&amp;gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:&nbsp;0pt&nbsp;0pt&nbsp;0pt&nbsp;0.8ex;&nbsp;border-left:&nbsp;1px&nbsp;solid&nbsp;rgb(204,&nbsp;204,&nbsp;204);&nbsp;padding-left:&nbsp;1ex;&quot;&gt;<br>
+<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&lt;div&nbsp;text=&quot;#000000&quot;&nbsp;bgcolor=&quot;#ffffff&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;I&amp;#39;d&nbsp;like&nbsp;to&nbsp;include&nbsp;AppSensor&nbsp;as&nbsp;the&nbsp;default&nbsp;intrusion&nbsp;detector&nbsp;for<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ESAPI&nbsp;via&nbsp;maven&nbsp;integration.&nbsp;It&amp;#39;s&nbsp;way&nbsp;more&nbsp;powerful&nbsp;that&nbsp;our&nbsp;WAF.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;But&nbsp;the&nbsp;two&nbsp;do&nbsp;not&nbsp;complete,&nbsp;they&nbsp;are&nbsp;complimentary.&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;think&nbsp;we&nbsp;also&nbsp;want&nbsp;AppSensor&nbsp;to&nbsp;use&nbsp;the&nbsp;ESAPI&nbsp;logging&nbsp;methodology<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;we&nbsp;choose.&nbsp;This&nbsp;is&nbsp;difficult,&nbsp;and&nbsp;a&nbsp;little&nbsp;out&nbsp;of&nbsp;my&nbsp;league.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(Circular&nbsp;dependency&nbsp;injection?).&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;So&nbsp;I&nbsp;think...&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;1)&nbsp;AppSensor&nbsp;first&nbsp;stops&nbsp;using&nbsp;ESAPI...&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;2)&nbsp;AppSensor&nbsp;provides&nbsp;a&nbsp;pluggable&nbsp;logging&nbsp;mechanism&nbsp;so&nbsp;we&nbsp;can&nbsp;still<br>
+&nbsp;&nbsp;&nbsp;&nbsp;force&nbsp;it&nbsp;to&nbsp;use&nbsp;ESAPI&nbsp;logging...&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;3)&nbsp;THEN&nbsp;ESAPI&nbsp;can&nbsp;build&nbsp;a&nbsp;AppSensor&nbsp;implementation&nbsp;and&nbsp;include&nbsp;it&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;project&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Does&nbsp;this&nbsp;make&nbsp;sense?&nbsp;Any&nbsp;thoughts&nbsp;Chris/August&nbsp;-&nbsp;I&nbsp;know&nbsp;you&nbsp;both<br>
+&nbsp;&nbsp;&nbsp;&nbsp;have&nbsp;a&nbsp;lot&nbsp;more&nbsp;experience&nbsp;with&nbsp;this&nbsp;kind&nbsp;of&nbsp;integration.&lt;br&gt;&lt;font&nbsp;color=&quot;#888888&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;Jim&lt;/font&gt;&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&nbsp;type=&quot;cite&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kevin,&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hi,&nbsp;Glad&nbsp;you&nbsp;are&nbsp;considering&nbsp;AppSensor. &nbsp;I&nbsp;attempted&nbsp;answers<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inline&nbsp;-&nbsp;if&nbsp;you&nbsp;have&nbsp;further&nbsp;questions,&nbsp;let&nbsp;me&nbsp;know. &nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Thanks,&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;John&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;On&nbsp;Sun,&nbsp;Oct&nbsp;31,&nbsp;2010&nbsp;at&nbsp;1:23&nbsp;PM,&nbsp;Michael&nbsp;Coates&nbsp;&lt;span&gt;&amp;lt;&lt;a&nbsp;href=&quot;mailto:michael.coates@owasp.org&quot;&nbsp;target=&quot;_blank&quot;&gt;michael.coates@owasp.org&lt;/a&gt;&amp;gt;&lt;/span&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wrote:&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;&nbsp;Forwarding&nbsp;to&nbsp;AppSensor&nbsp;mailing&nbsp;list. &nbsp;I&nbsp;think&nbsp;John&nbsp;will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;have&nbsp;the&nbsp;most&nbsp;current&nbsp;info&nbsp;for&nbsp;several&nbsp;of&nbsp;these&nbsp;questions.&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;But,&nbsp;we&nbsp;do&nbsp;need&nbsp;to&nbsp;get&nbsp;the&nbsp;appsensor.jar&nbsp;as&nbsp;a&nbsp;feature<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;download. &nbsp;We&nbsp;don&amp;#39;t&nbsp;want&nbsp;people&nbsp;to&nbsp;build&nbsp;from&nbsp;scratch&nbsp;if<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;they&nbsp;don&amp;#39;t&nbsp;want&nbsp;to.&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--------&nbsp;Original&nbsp;Message&nbsp;--------<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;table&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tbody&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&nbsp;valign=&quot;BASELINE&quot;&nbsp;align=&quot;RIGHT&quot;&gt;Subject:&nbsp;&lt;/th&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;AppSensor&nbsp;&amp;amp;&nbsp;ESAPI&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&nbsp;valign=&quot;BASELINE&quot;&nbsp;align=&quot;RIGHT&quot;&gt;Date:&nbsp;&lt;/th&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Sun,&nbsp;31&nbsp;Oct&nbsp;2010&nbsp;09:37:31&nbsp;-0400&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&nbsp;valign=&quot;BASELINE&quot;&nbsp;align=&quot;RIGHT&quot;&gt;From:&nbsp;&lt;/th&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Kevin&nbsp;W.&nbsp;Wall&nbsp;&lt;a&nbsp;href=&quot;mailto:kevin.w.wall@gmail.com&quot;&nbsp;target=&quot;_blank&quot;&gt;&amp;lt;kevin.w.wall@gmail.com&amp;gt;&lt;/a&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&nbsp;valign=&quot;BASELINE&quot;&nbsp;align=&quot;RIGHT&quot;&gt;Organization:&nbsp;&lt;/th&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Qwest&nbsp;IT&nbsp;-&nbsp;Application&nbsp;Security&nbsp;Team&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&nbsp;valign=&quot;BASELINE&quot;&nbsp;align=&quot;RIGHT&quot;&gt;To:&nbsp;&lt;/th&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Michael&nbsp;Coates&nbsp;&lt;a&nbsp;href=&quot;mailto:michael.coates@owasp.org&quot;&nbsp;target=&quot;_blank&quot;&gt;&amp;lt;michael.coates@owasp.org&amp;gt;&lt;/a&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/tbody&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/table&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;Michael,<br>
+<br>
+I&nbsp;just&nbsp;watched&nbsp;your&nbsp;AppSec&nbsp;USA&nbsp;2010&nbsp;video&nbsp;presentation&nbsp;about&nbsp;AppSensor&nbsp;&amp;amp;&nbsp;ESAPI<br>
+yesterday.&nbsp;(Thanks&nbsp;for&nbsp;the&nbsp;credit&nbsp;as&nbsp;contributor&nbsp;BTW.&nbsp;Totally&nbsp;unexpected.)<br>
+<br>
+In&nbsp;it,&nbsp;you&nbsp;mentioned&nbsp;that&nbsp;it&nbsp;was&nbsp;planned&nbsp;to&nbsp;have&nbsp;appsensor.jar&nbsp;bundled&nbsp;with<br>
+ESAPI&nbsp;as&nbsp;of&nbsp;ESAPI&nbsp;2.0rc8.&nbsp;Since&nbsp;I&nbsp;don&amp;#39;t&nbsp;see&nbsp;it&nbsp;in&nbsp;ESAPI&nbsp;even&nbsp;in&nbsp;2.0rc10,<br>
+I&amp;#39;m&nbsp;guessing&nbsp;that&nbsp;there&nbsp;was&nbsp;a&nbsp;delay&nbsp;for&nbsp;some&nbsp;reason.<br>
+&lt;/pre&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;I&nbsp;copied&nbsp;Jim&nbsp;on&nbsp;this&nbsp;email&nbsp;b/c&nbsp;he&nbsp;was&nbsp;discussing&nbsp;this&nbsp;with<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;us. &nbsp;I&nbsp;personally&nbsp;am&nbsp;not&nbsp;sure&nbsp;what&amp;#39;s&nbsp;required&nbsp;on&nbsp;the&nbsp;ESAPI<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;side&nbsp;to&nbsp;get&nbsp;AppSensor&nbsp;bundled.&nbsp;I&nbsp;can&nbsp;say&nbsp;AppSensor&nbsp;depends&nbsp;on<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ESAPI&nbsp;in&nbsp;some&nbsp;of&nbsp;it&amp;#39;s&nbsp;code&nbsp;(ESAPI&nbsp;is&nbsp;a&nbsp;maven&nbsp;dependency&nbsp;of<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AppSensor). &nbsp;I&nbsp;would&nbsp;be&nbsp;happy&nbsp;to&nbsp;do&nbsp;whatever&nbsp;I&nbsp;can&nbsp;to&nbsp;get&nbsp;it<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;included&nbsp;in&nbsp;the&nbsp;bundle. &nbsp;Jim,&nbsp;any&nbsp;thoughts?&nbsp; &nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;So&nbsp;then&nbsp;I&nbsp;go&nbsp;to&nbsp;look&nbsp;for&nbsp;the&nbsp;AppSensor&nbsp;tutorial&nbsp;and&nbsp;the&nbsp;AppSensor&nbsp;jar&nbsp;file<br>
+at&nbsp;the&nbsp;AppSensor&nbsp;Google&nbsp;Code&nbsp;site&nbsp;and&nbsp;I&nbsp;don&amp;#39;t&nbsp;find&nbsp;either.&nbsp;(The&nbsp;tutorial&nbsp;is<br>
+under&nbsp;&amp;#39;/&amp;#39;&nbsp;of&nbsp;the&nbsp;trunk&nbsp;under&nbsp;the&nbsp;svn/trunk&nbsp;though,&nbsp;so&nbsp;I&nbsp;did&nbsp;get&nbsp;it.)&nbsp;But<br>
+surprisingly&nbsp;(to&nbsp;me,&nbsp;at&nbsp;least)&nbsp;was&nbsp;the&nbsp;fact&nbsp;that&nbsp;I&nbsp;could&nbsp;not&nbsp;find&nbsp;appsensor.jar<br>
+anywhere&nbsp;under&nbsp;the&nbsp;featured&nbsp;or&nbsp;previous&nbsp;Downloads.&nbsp;(Do&nbsp;you&nbsp;expect&nbsp;people&nbsp;to<br>
+build&nbsp;it&nbsp;from&nbsp;scratch?)<br>
+&lt;/pre&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;Right&nbsp;now,&nbsp;there&nbsp;are&nbsp;3&nbsp;ways&nbsp;to&nbsp;get&nbsp;the&nbsp;jar,&nbsp;and&nbsp;I&nbsp;agree<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;should&nbsp;be&nbsp;reorganized&nbsp;...&nbsp;we&nbsp;all&nbsp;admit&nbsp;documentation&nbsp;is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;our&nbsp;next&nbsp;hurdle. &nbsp;The&nbsp;first&nbsp;is&nbsp;to&nbsp;build&nbsp;from&nbsp;scratch&nbsp;as&nbsp;you<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mentioned,&nbsp;unpalatable&nbsp;to&nbsp;most. &nbsp;The&nbsp;second&nbsp;is&nbsp;to&nbsp;grab&nbsp;the&nbsp;jar<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;the&nbsp;link&nbsp;on&nbsp;&lt;a&nbsp;href=&quot;http://www.owasp.org/index.php/AppSensor_Developer_Guide&quot;&nbsp;target=&quot;_blank&quot;&gt;http://www.owasp.org/index.php/AppSensor_Developer_Guide&lt;/a&gt;. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;third&nbsp;is&nbsp;to&nbsp;add&nbsp;it&nbsp;as&nbsp;a&nbsp;maven&nbsp;dependency&nbsp;-&nbsp;AppSensor&nbsp;is&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maven&nbsp;central&nbsp;(same&nbsp;as&nbsp;ESAPI&nbsp;as&nbsp;of&nbsp;2.0RC10. &nbsp;We&nbsp;really&nbsp;do&nbsp;need<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to&nbsp;move&nbsp;towards&nbsp;producing&nbsp;a&nbsp;deliverable&nbsp;similar&nbsp;to&nbsp;ESAPI&nbsp;that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;a&nbsp;zip&nbsp;w/&nbsp;the&nbsp;jar/dependencies/javadoc/config&nbsp;files,&nbsp;etc.&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;zip&nbsp;or&nbsp;something&nbsp;like&nbsp;that,&nbsp;but&nbsp;we&amp;#39;re&nbsp;not&nbsp;there&nbsp;yet.&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;Anyway,&nbsp;the&nbsp;reason&nbsp;that&nbsp;I&nbsp;am&nbsp;bringing&nbsp;this&nbsp;up&nbsp;is&nbsp;that&nbsp;I&nbsp;am&nbsp;about&nbsp;ready&nbsp;to<br>
+start&nbsp;working&nbsp;on&nbsp;the&nbsp;ESAPI&nbsp;crypto&nbsp;for&nbsp;the&nbsp;2.1&nbsp;branch&nbsp;and&nbsp;I&nbsp;see&nbsp;many&nbsp;places<br>
+where&nbsp;I&amp;#39;d&nbsp;like&nbsp;to&nbsp;wire-in&nbsp;AppSensor&nbsp;detection&nbsp;points&nbsp;into&nbsp;either&nbsp;JavaEncryptor<br>
+or&nbsp;perhaps&nbsp;even&nbsp;EncryptionException.&nbsp;If&nbsp;AppSensor&nbsp;was&nbsp;truly&nbsp;bundled&nbsp;as&nbsp;part&nbsp;of<br>
+ESAPI&nbsp;that&nbsp;would&nbsp;be&nbsp;fairly&nbsp;easy&nbsp;to&nbsp;do.&nbsp;OTOH,&nbsp;if&nbsp;it&nbsp;is&nbsp;not,&nbsp;I&nbsp;may&nbsp;need&nbsp;to<br>
+rethink&nbsp;this&nbsp;because&nbsp;I&nbsp;don&amp;#39;t&nbsp;want&nbsp;to&nbsp;create&nbsp;yet&nbsp;another&nbsp;dependency&nbsp;on&nbsp;an<br>
+external&nbsp;class&nbsp;library.&nbsp;(ESAPI&nbsp;already&nbsp;has&nbsp;something&nbsp;like&nbsp;30+&nbsp;jars&nbsp;that&nbsp;it<br>
+is&nbsp;dependent&nbsp;upon.)<br>
+&lt;/pre&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;Glad&nbsp;you&amp;#39;re&nbsp;thinking&nbsp;of&nbsp;going&nbsp;this&nbsp;way,&nbsp;again,&nbsp;I&amp;#39;d&nbsp;need&nbsp;to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;talk&nbsp;to&nbsp;Jim&nbsp;about&nbsp;bundling.&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;Lastly,&nbsp;from&nbsp;your&nbsp;AppSec&nbsp;USA&nbsp;2010&nbsp;video,&nbsp;I&nbsp;recall&nbsp;you&nbsp;stating&nbsp;that&nbsp;that&nbsp;the<br>
+way&nbsp;that&nbsp;AppSensor&nbsp;would&nbsp;be&nbsp;enabled&nbsp;in&nbsp;ESAPI&nbsp;would&nbsp;be&nbsp;to&nbsp;set<br>
+<br>
+ESAPI.IntrusionDetector=org.owasp.appsensor.intrusiondetection.AppSensorIntrusionDetector<br>
+<br>
+in&nbsp;the&nbsp;ESAPI.properties&nbsp;file.&nbsp;However,&nbsp;I&nbsp;also&nbsp;vaguely&nbsp;recall&nbsp;discussion<br>
+as&nbsp;to&nbsp;how&nbsp;that&nbsp;property&nbsp;should&nbsp;not&nbsp;be&nbsp;used&nbsp;as&nbsp;that&nbsp;would&nbsp;disable<br>
+ESAPI&amp;#39;s&nbsp;built-in&nbsp;WAF&nbsp;and&nbsp;I&nbsp;thought&nbsp;that&nbsp;I&nbsp;remember&nbsp;Jeff&nbsp;Williams&nbsp;arguing&nbsp;that<br>
+AppSensor&nbsp;and&nbsp;the&nbsp;ESAPI&nbsp;WAF&nbsp;were&nbsp;_complimentary_&nbsp;rather&nbsp;than&nbsp;_competing_<br>
+technologies&nbsp;so&nbsp;therefore&nbsp;they&nbsp;should&nbsp;use&nbsp;different&nbsp;properties&nbsp;in&nbsp;ESAPI.<br>
+Anyway,&nbsp;I&nbsp;am&nbsp;not&nbsp;sure&nbsp;that&nbsp;this&nbsp;has&nbsp;been&nbsp;resolved&nbsp;or&nbsp;not,&nbsp;so&nbsp;would&nbsp;appreciate<br>
+an&nbsp;update&nbsp;in&nbsp;this&nbsp;area&nbsp;as&nbsp;well.<br>
+&lt;/pre&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;This&nbsp;will&nbsp;probably&nbsp;have&nbsp;to&nbsp;be&nbsp;cleared&nbsp;up&nbsp;with&nbsp;Jeff&nbsp;and/or<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Jim. &nbsp;I&nbsp;haven&amp;#39;t&nbsp;seen&nbsp;anything&nbsp;in&nbsp;the&nbsp;intrusion&nbsp;detector&nbsp;code<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that&nbsp;says&nbsp;anything&nbsp;about&nbsp;the&nbsp;WAF,&nbsp;but&nbsp;I&nbsp;could&nbsp;be&nbsp;wrong. &nbsp;I<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;agree&nbsp;with&nbsp;Jeff&amp;#39;s&nbsp;core&nbsp;point,&nbsp;but&nbsp;if&nbsp;that&nbsp;configuration&nbsp;is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true,&nbsp;then&nbsp;I&nbsp;think&nbsp;the&nbsp;current&nbsp;setup&nbsp;is&nbsp;confusing. &nbsp;The&nbsp;WAF<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;should&nbsp;have&nbsp;separate&nbsp;configuration. &nbsp;I&nbsp;wouldn&amp;#39;t&nbsp;necessarily<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hook&nbsp;the&nbsp;WAF&nbsp;into&nbsp;the&nbsp;intrusion&nbsp;detection&nbsp;config,&nbsp;since&nbsp;some<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;folks&nbsp;would&nbsp;want&nbsp;to&nbsp;use&nbsp;one&nbsp;or&nbsp;the&nbsp;other.&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Also&nbsp;wanted&nbsp;to&nbsp;point&nbsp;out&nbsp;that&nbsp;in&nbsp;addition&nbsp;to&nbsp;changing&nbsp;that<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1-line&nbsp;config,&nbsp;you&nbsp;do&nbsp;need&nbsp;to&nbsp;add&nbsp;the&nbsp;appsensor.properties<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;file&nbsp;(goes&nbsp;in&nbsp;the&nbsp;same&nbsp;folder&nbsp;as&nbsp;the&nbsp;esapi.properties),&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make&nbsp;sure&nbsp;the&nbsp;config&nbsp;is&nbsp;right&nbsp;there. &nbsp;That&nbsp;config&nbsp;file&nbsp;is&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svn.&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;Thanks,<br>
+-kevin<br>
+P.S.-&nbsp;If&nbsp;you&nbsp;wish&nbsp;to&nbsp;reply&nbsp;to&nbsp;the&nbsp;OWASP-AppSensor-Project&nbsp;mailing&nbsp;list,&nbsp;that&amp;#39;s<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fine&nbsp;as&nbsp;I&nbsp;subscribe&nbsp;to&nbsp;that.&nbsp;Just&nbsp;wasn&amp;#39;t&nbsp;sure&nbsp;if&nbsp;this&nbsp;was&nbsp;to&nbsp;appropriate<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to&nbsp;ask&nbsp;this&nbsp;there&nbsp;as&nbsp;I&amp;#39;m&nbsp;not&nbsp;sure&nbsp;if&nbsp;that&amp;#39;s&nbsp;a&nbsp;developers&nbsp;list&nbsp;or&nbsp;a&nbsp;users<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.<br>
+--&nbsp;<br>
+Kevin&nbsp;W.&nbsp;Wall<br>
+&amp;quot;The&nbsp;most&nbsp;likely&nbsp;way&nbsp;for&nbsp;the&nbsp;world&nbsp;to&nbsp;be&nbsp;destroyed,&nbsp;most&nbsp;experts&nbsp;agree,<br>
+is&nbsp;by&nbsp;accident.&nbsp;That&amp;#39;s&nbsp;where&nbsp;we&nbsp;come&nbsp;in;&nbsp;we&amp;#39;re&nbsp;computer&nbsp;professionals.<br>
+We&nbsp;cause&nbsp;accidents.&amp;quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;Nathaniel&nbsp;Borenstein,&nbsp;co-creator&nbsp;of&nbsp;MIME<br>
+&lt;/pre&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_______________________________________________&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Owasp-appsensor-project&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a&nbsp;href=&quot;mailto:Owasp-appsensor-project@lists.owasp.org&quot;&nbsp;target=&quot;_blank&quot;&gt;Owasp-appsensor-project@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project&lt;/a&gt;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/blockquote&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;br&gt;<br>
+&nbsp;&nbsp;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;<br>
+<br>
+&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;<br>
+
+</tt>

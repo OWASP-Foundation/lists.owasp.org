@@ -1,0 +1,1483 @@
+From stephen.e.canell at jpl.nasa.gov  Tue Mar  5 18:20:21 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Tue, 5 Mar 2013 18:20:21 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+Message-ID: <CD5B7763.6523C%scanell@jpl.nasa.gov>
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+I am seeing a large number of these from different IP addresses.
+
+Any thoughts
+
+-=Steve
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/a10b4069/attachment.html>
+
+From chris at jwall.org  Tue Mar  5 18:57:44 2013
+From: chris at jwall.org (Christian Bockermann)
+Date: Tue, 5 Mar 2013 19:57:44 +0100
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <CD5B7763.6523C%scanell@jpl.nasa.gov>
+References: <CD5B7763.6523C%scanell@jpl.nasa.gov>
+Message-ID: <B03BEA74-A2D4-413F-82EB-774A781C7544@jwall.org>
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov>:
+
+> The following in ARGS: is being identified as SQL Injection:
+> TAOP01U10RhvxuuKxxempg01U10monamzy1
+> 
+> Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+> between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+> x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+> /extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+> obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+
+From stephen.e.canell at jpl.nasa.gov  Tue Mar  5 19:10:12 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Tue, 5 Mar 2013 19:10:12 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <B03BEA74-A2D4-413F-82EB-774A781C7544@jwall.org>
+Message-ID: <CD5B81EA.6528D%scanell@jpl.nasa.gov>
+
+Thank you Chris?
+
+As I looked further at this I came to the same conclusion on the ARG NAME and the data field though didn't quite get the finding in the data field.
+I'll have to go back and look at the previous section for the complete message.
+
+Again,
+Thank you
+-=Steve
+-
+From: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>
+Date: Tuesday, March 5, 2013 10:57 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>:
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/32f8e38b/attachment.html>
+
+From RBarnett at trustwave.com  Tue Mar  5 19:25:51 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 5 Mar 2013 19:25:51 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <CD5B81EA.6528D%scanell@jpl.nasa.gov>
+References: <B03BEA74-A2D4-413F-82EB-774A781C7544@jwall.org>,
+	<CD5B81EA.6528D%scanell@jpl.nasa.gov>
+Message-ID: <F4D3427E-943E-4D97-9C6A-B72E7055F4D6@trustwave.com>
+
+Also it looks like you are running an old CRS version as the newer ones list the version in the alerts and include more data about matches.
+
+Can you upgrade.
+
+--
+Ryan Barnett
+
+
+On Mar 5, 2013, at 2:21 PM, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>> wrote:
+
+Thank you Chris?
+
+As I looked further at this I came to the same conclusion on the ARG NAME and the data field though didn't quite get the finding in the data field.
+I'll have to go back and look at the previous section for the complete message.
+
+Again,
+Thank you
+-=Steve
+-
+From: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>
+Date: Tuesday, March 5, 2013 10:57 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>:
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/75765663/attachment-0001.html>
+
+From stephen.e.canell at jpl.nasa.gov  Tue Mar  5 22:55:25 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Tue, 5 Mar 2013 22:55:25 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <F4D3427E-943E-4D97-9C6A-B72E7055F4D6@trustwave.com>
+Message-ID: <CD5BB729.6538B%scanell@jpl.nasa.gov>
+
+I presume that to upgrade the CRS will probably require an upgrade to ModSecurity as well? or at least a good idea :-)
+
+I'll have to plan a project on that one and work against our DEV box in prep to move to production.
+
+Also Ryan, I had sent you  a question on the other group in hope you might have some perils of wisdom to share there.
+
+Thank you
+-=Steve
+
+From: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Date: Tuesday, March 5, 2013 11:25 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Also it looks like you are running an old CRS version as the newer ones list the version in the alerts and include more data about matches.
+
+Can you upgrade.
+
+--
+Ryan Barnett
+
+
+On Mar 5, 2013, at 2:21 PM, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>> wrote:
+
+Thank you Chris?
+
+As I looked further at this I came to the same conclusion on the ARG NAME and the data field though didn't quite get the finding in the data field.
+I'll have to go back and look at the previous section for the complete message.
+
+Again,
+Thank you
+-=Steve
+-
+From: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>
+Date: Tuesday, March 5, 2013 10:57 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>:
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/d16c13d6/attachment.html>
+
+From RBarnett at trustwave.com  Tue Mar  5 23:01:16 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 5 Mar 2013 23:01:16 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <CD5BB729.6538B%scanell@jpl.nasa.gov>
+Message-ID: <01987910BF74B341B5890120BCCE77DF35EE42@SKYMB1.trustwave.com>
+
+What version of ModSecurity are you running?  You might not need to upgrade.
+
+What other email thread are you referring to?  This one? "Modsecurity and known bad IP address filter"  If so, I already responded.  Perhaps you missed it.
+http://article.gmane.org/gmane.comp.apache.mod-security.user/10051
+
+--
+Ryan Barnett
+
+
+From: <Canell>, "Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>
+Date: Tuesday, March 5, 2013 5:55 PM
+To: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+I presume that to upgrade the CRS will probably require an upgrade to ModSecurity as well? or at least a good idea :-)
+
+I'll have to plan a project on that one and work against our DEV box in prep to move to production.
+
+Also Ryan, I had sent you  a question on the other group in hope you might have some perils of wisdom to share there.
+
+Thank you
+-=Steve
+
+From: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Date: Tuesday, March 5, 2013 11:25 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Also it looks like you are running an old CRS version as the newer ones list the version in the alerts and include more data about matches.
+
+Can you upgrade.
+
+--
+Ryan Barnett
+
+
+On Mar 5, 2013, at 2:21 PM, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>> wrote:
+
+Thank you Chris?
+
+As I looked further at this I came to the same conclusion on the ARG NAME and the data field though didn't quite get the finding in the data field.
+I'll have to go back and look at the previous section for the complete message.
+
+Again,
+Thank you
+-=Steve
+-
+From: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>
+Date: Tuesday, March 5, 2013 10:57 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>:
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/6db435cf/attachment-0001.html>
+
+From stephen.e.canell at jpl.nasa.gov  Tue Mar  5 23:15:26 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Tue, 5 Mar 2013 23:15:26 +0000
+Subject: [Owasp-modsecurity-core-rule-set] SQL Injection
+In-Reply-To: <01987910BF74B341B5890120BCCE77DF35EE42@SKYMB1.trustwave.com>
+Message-ID: <CD5BBC71.653B1%scanell@jpl.nasa.gov>
+
+Version 2.6.5
+
+-=Steve
+
+From: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Date: Tuesday, March 5, 2013 3:01 PM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+What version of ModSecurity are you running?  You might not need to upgrade.
+
+What other email thread are you referring to?  This one? "Modsecurity and known bad IP address filter"  If so, I already responded.  Perhaps you missed it.
+http://article.gmane.org/gmane.comp.apache.mod-security.user/10051
+
+--
+Ryan Barnett
+
+
+From: <Canell>, "Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>
+Date: Tuesday, March 5, 2013 5:55 PM
+To: Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+I presume that to upgrade the CRS will probably require an upgrade to ModSecurity as well? or at least a good idea :-)
+
+I'll have to plan a project on that one and work against our DEV box in prep to move to production.
+
+Also Ryan, I had sent you  a question on the other group in hope you might have some perils of wisdom to share there.
+
+Thank you
+-=Steve
+
+From: Ryan Barnett <RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>>
+Date: Tuesday, March 5, 2013 11:25 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>, Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Also it looks like you are running an old CRS version as the newer ones list the version in the alerts and include more data about matches.
+
+Can you upgrade.
+
+--
+Ryan Barnett
+
+
+On Mar 5, 2013, at 2:21 PM, "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>> wrote:
+
+Thank you Chris?
+
+As I looked further at this I came to the same conclusion on the ARG NAME and the data field though didn't quite get the finding in the data field.
+I'll have to go back and look at the previous section for the complete message.
+
+Again,
+Thank you
+-=Steve
+-
+From: Christian Bockermann <chris at jwall.org<mailto:chris at jwall.org>>
+Date: Tuesday, March 5, 2013 10:57 AM
+To: Stephen Canell <Stephen.E.Canell at jpl.nasa.gov<mailto:Stephen.E.Canell at jpl.nasa.gov>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] SQL Injection
+
+Hi Steve!
+
+Am 05.03.2013 um 19:20 schrieb "Canell, Stephen E (1734)" <stephen.e.canell at jpl.nasa.gov<mailto:stephen.e.canell at jpl.nasa.gov>>:
+
+The following in ARGS: is being identified as SQL Injection:
+TAOP01U10RhvxuuKxxempg01U10monamzy1
+Message: Access denied with code 403 (phase 2). Pattern match "(?i:(?:(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)\\s*(x?or|div|like|
+between|and)\\s*(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\x98)?\\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x80\
+x98)$)|(?:(?:^[(\"|'|`|\xc2\xb4|\xe2\x80\x99|\xe2\x ..." at ARGS:TAOP01U10RhvxuuKxxempg01U10monamzy1. [file "/usr/local/apache2/conf
+/extra/modsecurity/modsecurity_crs_41_sql_injection_attacks.conf"] [line "565"] [id "981242"] [msg "Detects classic SQL injection pr
+obings 1/2"] [data "7 Andr"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+
+
+The "TAOP01U10RhvxuuKxxempg01U10monamzy1" string is NOT detected as SQL injection, but simply
+the name of the PARAMETER that contains the malicious data. The data that triggers your rule
+is
+       "7 Andr"
+
+which you can see in the   [data "7 Andr"]   part of the rule message.
+
+The problem is probably, that the regex of the rule has something like
+
+     ...|div|like|between|and)\\s*...
+
+which says "something with 'and' followed by ANY number of whitespaces". Unfortunately "ANY"
+also includes 0. So "andr" matches "and" followed by 0 whitespaces and the "r" probably matches
+some of the rest of the complex regex.
+
+I hope that makes sence :-)
+
+Best regards,
+    Chris
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130305/92c6f7a1/attachment.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0001.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0002.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0003.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0004.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0005.html>
+
+From conn.zhang at dbappsecurity.com.cn  Thu Mar  7 01:54:26 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Thu, 7 Mar 2013 09:54:26 +0800
+Subject: [Owasp-modsecurity-core-rule-set] How to defense cookies
+Message-ID: <201303070954248110242@dbappsecurity.com.cn>
+
+Hi, guys!
+    I want to prevent cookie hijacking ,cookie tamper and encode cookie in modsecurity.
+    How can I write the rules? Please help. Thank Q.
+
+
+
+conn.zhang
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130307/fdaff4d4/attachment-0006.html>
+
+From ryan.barnett at owasp.org  Thu Mar  7 19:18:58 2013
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Thu, 07 Mar 2013 14:18:58 -0500
+Subject: [Owasp-modsecurity-core-rule-set] AppSensor cross-referencing
+In-Reply-To: <CAAxdBBnDkZcxj25ZoS0B9dZYoVvi-zfc-m5UjNrUjAJNT__5aA@mail.gmail.com>
+Message-ID: <CD5E5239.78F1D%ryan.barnett@owasp.org>
+
+FYI - I have updated the reference links in the CRS -
+https://github.com/SpiderLabs/owasp-modsecurity-crs/commit/40b2c758ce5f105c
+45e8523c74c94a9d11ce1add
+
+
+-Ryan
+
+On 2/22/13 11:09 AM, "Colin Watson" <colin.watson at owasp.org> wrote:
+
+>I have updated the AppSensor Detection Point wiki page to reflect what
+>is tagged in CRS v2.2.7:
+>
+>  https://www.owasp.org/index.php/AppSensor_DetectionPoints
+>
+>Note this OWASP page now also has new IDs added like:
+>
+>   RE
+>   RE1
+>   RE2
+>   ...
+>   RP3
+>   RP4
+>
+>and so the embedded links in the CRS such as:
+>
+>  
+>...tag:'OWASP_AppSensor/RP3',tag:'https://www.owasp.org/index.php/AppSenso
+>r_DetectionPoints#RP3:_Suspicious_Client-Side_Behavior'"
+>
+>could optionally be changed to the additional shorter code like:
+>
+> 
+>...tag:'OWASP_AppSensor/RP3',tag:'https://www.owasp.org/index.php/AppSenso
+>r_DetectionPoints#RP3'"
+>
+>This would mean that any changes to the names of the AppSensor
+>detection points wouldn't affect the links in CRS. But there are no
+>name changes planned by me!
+>
+>Colin
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+
+From leonardo at lbasolutions.com  Tue Mar 12 12:04:20 2013
+From: leonardo at lbasolutions.com (Leonardo Bacha Abrantes)
+Date: Tue, 12 Mar 2013 09:04:20 -0300
+Subject: [Owasp-modsecurity-core-rule-set] impact to update modsecurity
+Message-ID: <CAG+8EEbQcaSyiTs-b41UqMHtc_+X7eh9CMr+R40hryeX138OHg@mail.gmail.com>
+
+Hi guys,
+good morning!!
+
+My apache server is working with modsecurity 2.7.0-rc2 and I thinking to
+update it to crs-2.2.7-13-g40b2c75.
+I created a file modsecurity_crs_15_custom_rules.conf with some rules about
+false positives as:
+
+
+SecRule REQUEST_URI "^/admin/settings/ckeditor"
+id:30,phase:1,chain,log,t:none,allow
+  SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:ruleEngine=off
+
+<Location "/">
+        SecRuleRemoveById 960017
+</Location>
+
+I would like to know what is the impact if I migrate to the new version of
+modsecurity, I mean, will the rules below work, etc ?
+
+*->>  second question*
+
+
+SecRule REQUEST_URI "^/admin/settings/ckeditor"
+id:30,phase:1,chain,log,t:none,allow
+  SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:*ruleEngine=off*
+
+why if I replace *ruleEngine=off *by* **SecRuleRemoveById=960017*, for
+example, it will fail ?
+
+
+many thanks!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130312/291c1797/attachment.html>
+
+From RBarnett at trustwave.com  Tue Mar 12 16:13:30 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 12 Mar 2013 16:13:30 +0000
+Subject: [Owasp-modsecurity-core-rule-set] impact to update modsecurity
+In-Reply-To: <CAG+8EEbQcaSyiTs-b41UqMHtc_+X7eh9CMr+R40hryeX138OHg@mail.gmail.com>
+References: <CAG+8EEbQcaSyiTs-b41UqMHtc_+X7eh9CMr+R40hryeX138OHg@mail.gmail.com>
+Message-ID: <01987910BF74B341B5890120BCCE77DF368802@SKYMB1.trustwave.com>
+
+Comments inline below.
+
+________________________________
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] on behalf of Leonardo Bacha Abrantes [leonardo at lbasolutions.com]
+Sent: Tuesday, March 12, 2013 8:04 AM
+To: OWASP Mod Security
+Subject: [Owasp-modsecurity-core-rule-set] impact to update modsecurity
+
+Hi guys,
+good morning!!
+
+My apache server is working with modsecurity 2.7.0-rc2 and I thinking to update it to crs-2.2.7-13-g40b2c75.
+
+Are you also able to update ModSecurity itself?  Our current stable release is v2.7.2 and we will be releasing v2.7.3 later this month.  I always recommend updating the current versions as we fix bugs and add new important features.
+
+I created a file modsecurity_crs_15_custom_rules.conf with some rules about false positives as:
+
+
+SecRule REQUEST_URI "^/admin/settings/ckeditor" id:30,phase:1,chain,log,t:none,allow
+  SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:ruleEngine=off
+
+<Location "/">
+        SecRuleRemoveById 960017
+</Location>
+
+I would like to know what is the impact if I migrate to the new version of modsecurity, I mean, will the rules below work, etc ?
+
+Updating to newer ModSecurity version should not impact your rules.  One note about doing these types of exceptions:
+
+  1.  For your first rule - I would recommend using the @ipMatch operator as it was created specifiecally to handle IP addresses.  There are many errors that could be made when using @rx to analyze IP addresses.
+  2.  For your second rule - you do not need to place this within Apache scope containers (Location).  You can just specify it on its own.  One recommendation however, when you are using these types of "explicit" rule removals (mean that they are not contingent upon run time data) you should move them to run *after* the normal CRS rules in a file called - modsecurity_crs_60_custom_rules.conf.  When using SecRuleRemoveById, the rule it is disabling has to have already been read at startup.  If you define the SecRuleRemoveById *before* the rule it is disabling, it will not work as the rule ID data is not yet in memory.
+
+->>  second question
+
+
+SecRule REQUEST_URI "^/admin/settings/ckeditor" id:30,phase:1,chain,log,t:none,allow
+  SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:ruleEngine=off
+
+why if I replace ruleEngine=off by SecRuleRemoveById=960017, for example, it will fail ?
+
+The reason is that SecRuleRemoveByID is a directive.  You can not include it within the SecRule action line.  You can use ctl:ruleRemoveById=960017 instead.
+
+-Ryan
+
+many thanks!
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130312/87315898/attachment.html>
+
+From ryan.barnett at owasp.org  Tue Mar 12 16:24:40 2013
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Tue, 12 Mar 2013 12:24:40 -0400
+Subject: [Owasp-modsecurity-core-rule-set] OWASP Cheat Sheet: Virtual
+	Patching
+Message-ID: <CABir4Dta0CieBnw6ncfZBjWumBOWNJst+aeCHSDvGek3bcuuqA@mail.gmail.com>
+
+For those of you who are using ModSecurity as a virtual patching tool, this
+new cheat sheet will be of interest to you:
+
+https://www.owasp.org/index.php/Virtual_Patching_Cheat_Sheet
+
+Comments welcome.
+
+--
+Ryan Barnett
+OWASP Defender Community
+OWASP ModSecurity CRS Project Lead
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130312/fce72bef/attachment.html>
+
+From leonardo at lbasolutions.com  Tue Mar 12 16:24:14 2013
+From: leonardo at lbasolutions.com (Leonardo Bacha Abrantes)
+Date: Tue, 12 Mar 2013 13:24:14 -0300
+Subject: [Owasp-modsecurity-core-rule-set] impact to update modsecurity
+In-Reply-To: <01987910BF74B341B5890120BCCE77DF368802@SKYMB1.trustwave.com>
+References: <CAG+8EEbQcaSyiTs-b41UqMHtc_+X7eh9CMr+R40hryeX138OHg@mail.gmail.com>
+	<01987910BF74B341B5890120BCCE77DF368802@SKYMB1.trustwave.com>
+Message-ID: <CAG+8EEYzBGECZawTRxZ6VMWm4dwiOcNrcZ4OOB38jD5vyuXRXQ@mail.gmail.com>
+
+Hi Ryan,
+
+Many thanks for the explanation!!!!
+
+:)
+
+
+On Tue, Mar 12, 2013 at 1:13 PM, Ryan Barnett <RBarnett at trustwave.com>wrote:
+
+>   Comments inline below.
+>
+>   ------------------------------
+>  *From:* owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] on behalf of
+> Leonardo Bacha Abrantes [leonardo at lbasolutions.com]
+> *Sent:* Tuesday, March 12, 2013 8:04 AM
+> *To:* OWASP Mod Security
+> *Subject:* [Owasp-modsecurity-core-rule-set] impact to update modsecurity
+>
+>  Hi guys,
+> good morning!!
+>
+> My apache server is working with modsecurity 2.7.0-rc2 and I thinking to
+> update it to crs-2.2.7-13-g40b2c75.
+>
+>  Are you also able to update ModSecurity itself?  Our current stable
+> release is v2.7.2 and we will be releasing v2.7.3 later this month.  I
+> always recommend updating the current versions as we fix bugs and add new
+> important features.
+>
+> I created a file modsecurity_crs_15_custom_rules.conf with some rules
+> about false positives as:
+>
+>
+> SecRule REQUEST_URI "^/admin/settings/ckeditor"
+> id:30,phase:1,chain,log,t:none,allow
+>   SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:ruleEngine=off
+>
+> <Location "/">
+>         SecRuleRemoveById 960017
+> </Location>
+>
+> I would like to know what is the impact if I migrate to the new version of
+> modsecurity, I mean, will the rules below work, etc ?
+>
+>  Updating to newer ModSecurity version should not impact your rules.  One
+> note about doing these types of exceptions:
+>
+>    1. For your first rule - I would recommend using the @ipMatch operator
+>    as it was created specifiecally to handle IP addresses.  There are many
+>    errors that could be made when using @rx to analyze IP addresses.
+>    2. For your second rule - you do not need to place this within Apache
+>    scope containers (Location).  You can just specify it on its own.  One
+>    recommendation however, when you are using these types of "explicit" rule
+>    removals (mean that they are not contingent upon run time data) you should
+>    move them to run *after* the normal CRS rules in a file called -
+>    modsecurity_crs_60_custom_rules.conf.  When using SecRuleRemoveById, the
+>    rule it is disabling has to have already been read at startup.  If you
+>    define the SecRuleRemoveById *before* the rule it is disabling, it will not
+>    work as the rule ID data is not yet in memory.
+>
+>
+> *->>  second question*
+>
+>
+> SecRule REQUEST_URI "^/admin/settings/ckeditor"
+> id:30,phase:1,chain,log,t:none,allow
+>   SecRule REMOTE_ADDR "@rx ^10\.21\.12\.150" t:none,ctl:*ruleEngine=off*
+>
+> why if I replace *ruleEngine=off *by* *
+> *SecRuleRemoveById=960017*, for example, it will fail ?
+>
+> The reason is that SecRuleRemoveByID is a directive.  You can not include
+> it within the SecRule action line.  You can use ctl:ruleRemoveById=960017
+> instead.
+>
+>  -Ryan
+>
+> many thanks!
+>
+>
+> ------------------------------
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130312/0a0ae720/attachment-0001.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment-0001.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment-0002.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment-0003.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment-0004.html>
+
+From conn.zhang at dbappsecurity.com.cn  Wed Mar 13 01:37:56 2013
+From: conn.zhang at dbappsecurity.com.cn (conn.zhang)
+Date: Wed, 13 Mar 2013 09:37:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+	SecHashMethodRx set  cookie token
+Message-ID: <201303130937565273296@dbappsecurity.com.cn>
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+
+
+
+DBAppSecurity
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/faf8e9d3/attachment-0005.html>
+
+From jamuse at owasp.org  Wed Mar 13 08:20:30 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Wed, 13 Mar 2013 10:20:30 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+ SecHashMethodRx set cookie token
+In-Reply-To: <201303130937565273296@dbappsecurity.com.cn>
+References: <201303130937565273296@dbappsecurity.com.cn>
+Message-ID: <CAC+O4mGdgNpJBS4XNimdPy5+MqkvsqfG0W6sEu8Kv2QGYM6e3g@mail.gmail.com>
+
+On Wed, Mar 13, 2013 at 3:37 AM, conn.zhang <conn.zhang at dbappsecurity.com.cn
+> wrote:
+
+> **
+> Hello,all!
+> Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the
+> cookies token.
+> My rule looks like this:
+>
+> SecHashEngine On
+> SecHashParam cookie_token
+> SecHashKey Rand SessionID
+> SecHashMethodRx HashLocation "Set-Cookie2?"
+> SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+>
+> "phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+>
+> I don't see the token was set in cookie header.
+>
+
+Hi,
+
+While this question isn't related to the core rule set, the
+HashLocation SecHashMethodRx type can only be used to sign the Location
+header in the response (not the Set-Cookie header). One way to sign the
+cookie would be to send the cookie value you want to sign to a Lua script
+that creates the hash, then use mod_headers to inject the hash back into
+the Set-Cookie header. You could then use a similar process to validate the
+hash value when the cookie is submitted by the client. For a somewhat
+similar example used to protect hidden input fields see:
+http://blog.spiderlabs.com/2012/07/reducing-web-apps-attack-surface.html
+
+--
+ - Josh
+
+
+>
+> ------------------------------
+> DBAppSecurity
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/bee6f28e/attachment-0001.html>
+
+From klaubert at gmail.com  Wed Mar 13 20:31:23 2013
+From: klaubert at gmail.com (Klaubert Herr da Silveira)
+Date: Wed, 13 Mar 2013 17:31:23 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Activating XML parsing on
+	multipart/related
+Message-ID: <CAFoCuZrJEtweN40FObSmUVWER2f2Row91p=Vb60ux7AneyByDA@mail.gmail.com>
+
+Hi,
+
+I get an error (XML parsing error: XML: Failed parsing document) when
+mod_security is checking a multipart/related request.
+
+
+-----------------------
+POST /ws/services/ServiceHttpSoap11Endpoint/? HTTP/1.0
+Content-Type: multipart/related; type="text/xml";
+start="<BC681B2A92FBD6F218D4FAE416142A33>";
+boundary="----=_Part_543_922960639.1363199273019"
+Accept: application/soap+xml, application/dime, multipart/related, text/*
+...
+
+------=_Part_543_922960639.1363199273019
+Content-Type: text/xml; charset=UTF-8
+Content-Transfer-Encoding: binary
+Content-Id: <BC681B2A92FBD6F218D4FAE416142A33>
+
+<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="
+http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="
+http://www.w3.org/2001/XMLSchema" xmlns:xsi="
+http://www.w3.org/2001/XMLSchema-instance
+"><soapenv:Body>...</soapenv:Body></soapenv:Envelope>
+------=_Part_543_922960639.1363199273019
+Content-Type: text/plain
+Content-Transfer-Encoding: binary
+Content-Id: <D0A3A1A7FED986556394EFA1A63EB597>
+<binary content>
+
+----------------------
+
+To me, the problem is that rule 900017 is matching any "text/xml" doesnt
+matter where in the Content-Type value. I think that change it to match
+"^text/xml" will be better. Like:
+
+SecRule REQUEST_HEADERS:Content-Type "^text/xml" \
+  "id:'900017', \
+  phase:1, \
+  t:none,t:lowercase, \
+  nolog, \
+  pass, \
+  chain"
+        SecRule REQBODY_PROCESSOR "!@streq XML" \
+          "ctl:requestBodyProcessor=XML"
+
+
+This sounds correct to you?
+
+best regards,
+
+Klaubert Herr
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130313/883abd0f/attachment.html>
+
+From RBarnett at trustwave.com  Mon Mar 18 12:57:30 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 18 Mar 2013 12:57:30 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam,
+ SecHashMethodRx set  cookie token
+In-Reply-To: <201303130937565273296@dbappsecurity.com.cn>
+Message-ID: <01987910BF74B341B5890120BCCE77DF36EFA2@SKYMB1.trustwave.com>
+
+
+From: "conn.zhang" <conn.zhang at dbappsecurity.com.cn<mailto:conn.zhang at dbappsecurity.com.cn>>
+Reply-To: "conn.zhang" <conn.zhang at dbappsecurity.com.cn<mailto:conn.zhang at dbappsecurity.com.cn>>
+Date: Tuesday, March 12, 2013 9:37 PM
+To: owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>, owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>, owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>, owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>, owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>, owasp-modsecurity-core-rule-set <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Using SecHashKey, SecParam, SecHashMethodRx set cookie token
+
+Hello,all!
+Now, I'm using SecHashKey SecParam and SecHashMethodRx variables set the cookies token.
+My rule looks like this:
+
+SecHashEngine On
+SecHashParam cookie_token
+SecHashKey Rand SessionID
+SecHashMethodRx HashLocation "Set-Cookie2?"
+SecRule REQUEST_HEADERS "@validate Hash Cookie" \
+"phase:2,capture,t:none,block,ctl:HashEnforcement=On,log,auitlog,status:403,id:'999900'"
+
+I don't see the token was set in cookie header.
+
+________________________________
+DBAppSecurity
+
+The SecHashEngine does not protect Cookies at this point.  We have plans to add this capability.  In the meantime, there are some options using SecRules.  In "Chapter 8: Defending Session State: of my book - http://www.wiley.com/WileyCDA/WileyTitle/productCd-1118362187.html ? I cover this in Recipe 82-: Detecting Cookie Tampering.
+
+If you have already activated the OWASP CRS rules to create the Session Collection, you can use this rule to save the Set-Cookie data to the Session Collection -
+
+#
+# -=[ Save Set-Cookie Name/Value Pairs ]=-
+#
+SecRule RESPONSE_HEADERS:/Set-Cookie2?/ "^(.*?)=(.*?);" "chain,phase:3,id:'981063',t:none,nolog,pass,capture,setvar:tx.cookie_name_counter=+1,setvar:tx.cookie_name_%{tx.cookie_name_counter}=/%{tx.1}/,setvar:'session.cookie_list=%{session.cookie_list} %{tx.0}'"
+SecRule SESSION:COOKIE_LIST ".*" "t:trimLeft,setvar:session.cookie_list=%{matched_var}"
+
+You can then validate Request Cookies with this rule -
+
+SecRule REQUEST_COOKIES ".*" "chain,phase:1,id:'958233',t:none,block,msg:'Invalid Cookie Data Submitted.',logdata:'Cookie Data: %{matched_var}',tag:'OWASP_AppSensor/SE1',setvar:'tx.req_cookie_%{matched_var_name}=%{matched_var};'"
+SecRule TX:/REQ_COOKIE_/ "!@within %{session.cookie_list}" "setvar:tx.cookie_name=%{tx.1},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/INVALID_SESSIONID-%{matched_var_name}=%{tx.0}"
+
+Keep in mind that you may run into false positives if you site uses JS to create/modify Cookies.
+
+-Ryan
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130318/361565e9/attachment.html>
+
+From Pavel.Volkov at nuance.com  Wed Mar 20 20:22:34 2013
+From: Pavel.Volkov at nuance.com (Volkov, Pavel)
+Date: Wed, 20 Mar 2013 20:22:34 +0000
+Subject: [Owasp-modsecurity-core-rule-set] not running rules in phase 1
+	and phase 2
+In-Reply-To: <C0368B68439C654081F4C4385327A716031DA0A7@SOM-EXCH04.nuance.com>
+References: <C0368B68439C654081F4C4385327A716031DA0A7@SOM-EXCH04.nuance.com>
+Message-ID: <C0368B68439C654081F4C4385327A716031DA1B0@SOM-EXCH04.nuance.com>
+
+
+
+From: Volkov, Pavel [mailto:Pavel.Volkov at nuance.com]
+Sent: Wednesday, March 20, 2013 4:20 PM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: not running rules in phase 1 and phase 2
+
+Hi,
+
+I have Basic Authentication setup for Apache. I am trying to configure rules to block user after 3 consecutive unsuccessful login. The problem for me is that rules are not executed in phase1,2 unless authentication succeeds. It looks like request is being handled by Apache before it gets to mod_security. I am using Apache 2.2.3 on CentOS 5.4, mod_security version is 2.6.8. In the debug log I don't see any sign of why phase1 and 2 are skipped.
+
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][4] Initialising transaction (txid -m-PDH8AAAEAAB33iMYAAAAA).
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][4] Transaction context created (dcfg 8900888).
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][4] Hook insert_error_filter: Adding output filter (r 89874a8).
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][9] Output filter: Receiving output (f 8989398, r 89874a8).
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][4] Starting phase RESPONSE_HEADERS.
+[20/Mar/2013:10:25:29 --0400] [10.1.82.164/sid#8977c10][rid#89874a8][/escription/mypage.html][9] This phase consists of 7 rule(s).
+
+Does anyone have any ideas?
+
+Thanks,
+Pavel
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130320/04466131/attachment.html>
+
+From shaifful at joomla.my  Sun Mar 24 23:55:24 2013
+From: shaifful at joomla.my (Shaiffulnizam Mohamad)
+Date: Mon, 25 Mar 2013 07:55:24 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Tired of getting Error on Found
+	another rule with the same id
+Message-ID: <CAHc6GbGtfLpTRg83RhtS+NWifT0BoOen75DHBF0tTT76YBFtbQ@mail.gmail.com>
+
+Hi Everyone, I'm new and I'm not very good at mod_security,
+I have mod_security 2.7.2 in my centos 6.4, and trying to use the CRS from
+the github, I'm tired of getting error Found another rule with the same id,
+how to solve this ASAP? most errors are found in slr_rules. Can anyone help
+find compatible crs for mod_security 2.7.2?
+Thanks
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130325/00b8776f/attachment.html>
+
+From stephen.e.canell at jpl.nasa.gov  Tue Mar 26 22:06:32 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Tue, 26 Mar 2013 22:06:32 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Gaza Hacker Center
+Message-ID: <CD7769F6.6F9F3%scanell@jpl.nasa.gov>
+
+
+
+I am getting the following:
+
+%22%3E%3Ccenter%3E%3Ch1%3EGaza%20HaCKeR%20Team%3C%2Fh1%3E%3C%2Fcenter%3E%3Ccenter%3E%3CIMG+SRC%3D%22http%3A//www.hebergeur-images.fr/images/1132327819.jpg%22%3E
+
+How can I filter on this, no matter what the ARG NAME is?
+
+The IP address bounces all over the place.
+
+-=Steve
+--
+
+Stephen Canell
+IT Security Engineer 4, EBIS Security
+Enterprise Business Information Services
+EBIS Security - 1734
+Jet Propulsion Laboratory
+4800 Oak Grove Drive
+Pasadena, California 91109
+Phone: 818-354-1731
+
+Procrastination is the thief of time!
+
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: PGP 8.0.3
+
+mQGiBEKTRBkRBAD2QUiPAuj1uMh0NdynTY8uV1vyDd89/1+Zcs1SX+CZiaFAJ6y0
+ELBBoXQJ/CM9SYrouGC81NyB2A/w+ttB+uUj/penJQ0nvXtYK7GmEVJgFFSUEryS
+FOoPNo+ZGY4JrQe8HpptoovwEwxTT5cjWy6FUpmgSPxllR+DiyZBWbSugwCg/xXe
+qylX5HpJFg8gVOzCZsPNhOED/2csfvCfFnu9LQm9GMIS72TtGc4qldjJCBmYqW/c
+zq/h8Paj0jRfz1g+Eo/LrV4ViIukc6OTLL4CYT8hQu88YzyPHPxRmagIJKTbYjwZ
+MOgud9Kj61BbRB2eyl2wC114M8/B6byKHqf85SrstOQCX+4BfAOLR4dywiM5TTpz
+Mih5A/9eOHoFJ+FLmwio4rVq22dE7R3TtsY0FB2234uIdgsj+hdmZLpDJfJheKvx
+vBdWK3oAqZaborjid+PzxlBxSThUOhZe/UjQbauSXzLhoNkqEEZY8eeulszyT6NW
+zVHOHZU0kiyvwQIVBp1v1BshMImjRwXavCuHUAeOiOH2LmZV4rQnU3RlcGhlbiBF
+IENhbmVsbCA8c2NhbmVsbEBqcGwubmFzYS5nb3Y+iQBXBBARAgAXBQJCk0QZBwsJ
+CAcDAgoCGQEFGwMAAAAACgkQaUvAMvtD8t0ioACfSPsU3wo+vqxTCkxOreCYNFF3
+oB8An3dEmj8lt1wYe2tKJl0qEePhRr0LuQINBEKTRBkQCAD2Qle3CH8IF3Kiutap
+QvMF6PlTETlPtvFuuUs4INoBp1ajFOmPQFXz0AfGy0OplK33TGSGSfgMg71l6RfU
+odNQ+PVZX9x2Uk89PY3bzpnhV5JZzf24rnRPxfx2vIPFRzBhznzJZv8V+bv9kV7H
+AarTW56NoKVyOtQa8L9GAFgr5fSI/VhOSdvNILSd5JEHNmszbDgNRR0PfIizHHxb
+LY7288kjwEPwpVsYjY67VYy4XTjTNP18F1dDox0YbN4zISy1Kv884bEpQBgRjXyE
+pwpy1obEAxnIByl6ypUM2Zafq9AKUJsCRtMIPWakXUGfnHy9iUsiGSa6q6Jew1Xp
+Mgs7AAICCACaG3547RkJTEAcx+6YjaviN3erEh/EYYpxcinWulkU5i928RgxWVAt
+P/7XiEJtq2TiovOFvpvyX2V1CycTCACzqftG5Q2KSzVdEOiixm98/k44vm6JHL2K
+4JuclI7KFt7pCzPJGsySDn2i7t3PQXDa7K8jBAE2S4LB7ZTVzetzoCDKQMi4Xei3
+bz7zovMrF8qGzkkSWKM9eZYMfDBZm++SUbTpq1IhIufcbTUMdSZC85/BU1LtZz22
+mfA2nViQyLQjEa3R8Y1HdLaaU7GxafZDPCpJjoaIXwhyplbHeM3DfHTgud7ZcB83
+CrlYRIkN5rE9JCpuXNY7LGzwBh9+xJJviQBMBBgRAgAMBQJCk0QZBRsMAAAAAAoJ
+EGlLwDL7Q/LdLM0An0uyV06R65S+tFq7UijE0tz49VZiAJ9dIRu54sVtNS8hWTTH
+ZXVJw6u9yA==
+=Z1Fa
+-----END PGP PUBLIC KEY BLOCK-----
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130326/40442b3a/attachment.html>
+
+From jamuse at owasp.org  Wed Mar 27 21:28:07 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Wed, 27 Mar 2013 23:28:07 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Gaza Hacker Center
+In-Reply-To: <CD7769F6.6F9F3%scanell@jpl.nasa.gov>
+References: <CD7769F6.6F9F3%scanell@jpl.nasa.gov>
+Message-ID: <CAC+O4mGFrPAq2vJMu90upXAb-ECpkgkEEjEAQTpyhy1suVQutg@mail.gmail.com>
+
+On Wed, Mar 27, 2013 at 12:06 AM, Canell, Stephen E (1734) <
+stephen.e.canell at jpl.nasa.gov> wrote:
+
+>
+>
+>  I am getting the following:
+>
+>
+> %22%3E%3Ccenter%3E%3Ch1%3EGaza%20HaCKeR%20Team%3C%2Fh1%3E%3C%2Fcenter%3E%3Ccenter%3E%3CIMG+SRC%3D%22http%3A//
+> www.hebergeur-images.fr/images/1132327819.jpg%22%3E
+>
+>  How can I filter on this, no matter what the ARG NAME is?
+>
+>
+Hi Stephen,
+
+Search for that string in the ARGS collection.
+
+--
+ - Josh
+
+
+>  The IP address bounces all over the place.
+>
+>  -=Steve
+>  --
+>
+> Stephen Canell
+> IT Security Engineer 4, EBIS Security
+> Enterprise Business Information Services
+> EBIS Security - 1734
+> Jet Propulsion Laboratory
+> 4800 Oak Grove Drive
+> Pasadena, California 91109
+> Phone: 818-354-1731
+>
+> Procrastination is the thief of time!
+>
+>
+> -----BEGIN PGP PUBLIC KEY BLOCK-----
+> Version: PGP 8.0.3
+>
+> mQGiBEKTRBkRBAD2QUiPAuj1uMh0NdynTY8uV1vyDd89/1+Zcs1SX+CZiaFAJ6y0
+> ELBBoXQJ/CM9SYrouGC81NyB2A/w+ttB+uUj/penJQ0nvXtYK7GmEVJgFFSUEryS
+> FOoPNo+ZGY4JrQe8HpptoovwEwxTT5cjWy6FUpmgSPxllR+DiyZBWbSugwCg/xXe
+> qylX5HpJFg8gVOzCZsPNhOED/2csfvCfFnu9LQm9GMIS72TtGc4qldjJCBmYqW/c
+> zq/h8Paj0jRfz1g+Eo/LrV4ViIukc6OTLL4CYT8hQu88YzyPHPxRmagIJKTbYjwZ
+> MOgud9Kj61BbRB2eyl2wC114M8/B6byKHqf85SrstOQCX+4BfAOLR4dywiM5TTpz
+> Mih5A/9eOHoFJ+FLmwio4rVq22dE7R3TtsY0FB2234uIdgsj+hdmZLpDJfJheKvx
+> vBdWK3oAqZaborjid+PzxlBxSThUOhZe/UjQbauSXzLhoNkqEEZY8eeulszyT6NW
+> zVHOHZU0kiyvwQIVBp1v1BshMImjRwXavCuHUAeOiOH2LmZV4rQnU3RlcGhlbiBF
+> IENhbmVsbCA8c2NhbmVsbEBqcGwubmFzYS5nb3Y+iQBXBBARAgAXBQJCk0QZBwsJ
+> CAcDAgoCGQEFGwMAAAAACgkQaUvAMvtD8t0ioACfSPsU3wo+vqxTCkxOreCYNFF3
+> oB8An3dEmj8lt1wYe2tKJl0qEePhRr0LuQINBEKTRBkQCAD2Qle3CH8IF3Kiutap
+> QvMF6PlTETlPtvFuuUs4INoBp1ajFOmPQFXz0AfGy0OplK33TGSGSfgMg71l6RfU
+> odNQ+PVZX9x2Uk89PY3bzpnhV5JZzf24rnRPxfx2vIPFRzBhznzJZv8V+bv9kV7H
+> AarTW56NoKVyOtQa8L9GAFgr5fSI/VhOSdvNILSd5JEHNmszbDgNRR0PfIizHHxb
+> LY7288kjwEPwpVsYjY67VYy4XTjTNP18F1dDox0YbN4zISy1Kv884bEpQBgRjXyE
+> pwpy1obEAxnIByl6ypUM2Zafq9AKUJsCRtMIPWakXUGfnHy9iUsiGSa6q6Jew1Xp
+> Mgs7AAICCACaG3547RkJTEAcx+6YjaviN3erEh/EYYpxcinWulkU5i928RgxWVAt
+> P/7XiEJtq2TiovOFvpvyX2V1CycTCACzqftG5Q2KSzVdEOiixm98/k44vm6JHL2K
+> 4JuclI7KFt7pCzPJGsySDn2i7t3PQXDa7K8jBAE2S4LB7ZTVzetzoCDKQMi4Xei3
+> bz7zovMrF8qGzkkSWKM9eZYMfDBZm++SUbTpq1IhIufcbTUMdSZC85/BU1LtZz22
+> mfA2nViQyLQjEa3R8Y1HdLaaU7GxafZDPCpJjoaIXwhyplbHeM3DfHTgud7ZcB83
+> CrlYRIkN5rE9JCpuXNY7LGzwBh9+xJJviQBMBBgRAgAMBQJCk0QZBRsMAAAAAAoJ
+> EGlLwDL7Q/LdLM0An0uyV06R65S+tFq7UijE0tz49VZiAJ9dIRu54sVtNS8hWTTH
+> ZXVJw6u9yA==
+> =Z1Fa
+> -----END PGP PUBLIC KEY BLOCK-----
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130327/afeecbc5/attachment.html>
+

@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]	IP Reputation
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%5BRule%20Update%20-%20Discussion%20Thread%5D%0A%09IP%20Reputation&In-Reply-To=%3CCB7522B5.44C15%25rbarnett%40trustwave.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001025.html">
+   <LINK REL="Next"  HREF="001023.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]	IP Reputation</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%5BRule%20Update%20-%20Discussion%20Thread%5D%0A%09IP%20Reputation&In-Reply-To=%3CCB7522B5.44C15%25rbarnett%40trustwave.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] [Rule Update - Discussion Thread]	IP Reputation">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Mar  1 17:57:25 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001025.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's
+</A></li>
+        <LI>Next message: <A HREF="001023.html">[Owasp-modsecurity-core-rule-set] IP White-list Best Practice
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1020">[ date ]</a>
+              <a href="thread.html#1020">[ thread ]</a>
+              <a href="subject.html#1020">[ subject ]</a>
+              <a href="author.html#1020">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The first bit of data that we have about the client is their IP address (either directly or through X-Forwarded-For headers).  Before processing any actual HTTP data, we should apply some IP Reputation Checks.  I am thinking of adding in a template rules file that will be executed before the normal modsecurity_crs_20_protocol_violations.conf file.  This file will hold the various @rbl checks and the user can select which remote RBL they want to query.
+
+We do have 1 @rbl check in the optional_rules/modsecurity_crs_42_comment_spam.conf file but I believe that this should be expanded to query other public RBLs for web-attacker traffic.
+
+###############################
+SecRule IP:PREVIOUS_RBL_CHECK &quot;@eq 1&quot; &quot;phase:1,id:'981137',t:none,pass,nolog,skipAfter:END_RBL_LOOKUP&quot;
+  SecRule REMOTE_ADDR &quot;@rbl sbl-xbl.spamhaus.org&quot; &quot;phase:1,id:'981138',t:none,pass,nolog,auditlog,msg:'RBL Match for SPAM Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule.msg}',setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/MALICIOUS-%{matched_var_name}=%{matched_var},setvar:ip.spammer=1,expirevar:ip.spammer=86400,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400,skipAfter:END_RBL_CHECK&quot;
+
+  SecAction &quot;phase:1,id:'981139',t:none,nolog,pass,setvar:ip.previous_rbl_check=1,expirevar:ip.previous_rbl_check=86400&quot;
+SecMarker END_RBL_LOOKUP
+###############################
+
+These rules will query one of the spamhaus RBLs and it will then save the results in the IP persistent storage so it only does an actual DNS lookup once/day to help reduce any perf  hit.
+
+How many people are currently using @rbl checks with ModSecurity?
+Would you be interested in using it if this feature was added to the CRS?
+
+Let me know what you think.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120301/26025b93/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120301/26025b93/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001025.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's
+</A></li>
+	<LI>Next message: <A HREF="001023.html">[Owasp-modsecurity-core-rule-set] IP White-list Best Practice
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1020">[ date ]</a>
+              <a href="thread.html#1020">[ thread ]</a>
+              <a href="subject.html#1020">[ subject ]</a>
+              <a href="author.html#1020">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

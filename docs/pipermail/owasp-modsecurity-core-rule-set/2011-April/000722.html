@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not	behaving as expected
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%09behaving%20as%20expected&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000731.html">
+   <LINK REL="Next"  HREF="000723.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not	behaving as expected</H1>
+    <B>Guillaume Bilodeau</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Slow%20HTTP%20DOS%20protection%20not%0A%09behaving%20as%20expected&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not	behaving as expected">guillaume.bilodeau at gmail.com
+       </A><BR>
+    <I>Thu Apr 14 13:33:52 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000731.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response
+</A></li>
+        <LI>Next message: <A HREF="000723.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#722">[ date ]</a>
+              <a href="thread.html#722">[ thread ]</a>
+              <a href="subject.html#722">[ subject ]</a>
+              <a href="author.html#722">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+We are trying to setup the OWASP Core Rule Set to protect our application
+from Slow HTTP DOS attacks.
+
+We have setup ModSecurity 2.5.13 on our Apache 2.2.17 instance, loaded the
+module, and included all CRS base rules plus
+modsecurity_crs_11_slow_dos_protection.conf.  We didn't change the settings
+defined in the conf file, so SecReadStateLimit is set to 5 and
+RequestReadTimeout is set to body=30.  We are using the http_dos_cli command
+line tool to do our tests, with the connection parameter set to 500.
+
+When running the slow-headers test, ModSecurity seems to be protecting the
+application correctly, dropping most (all?) requests from the tester's IP
+and allowing requests from a different IP to be served.  However, when
+running the slow-post test, ModSecurity doesn't seem to be doing anything.
+ From what I understand, the test successfully creates the 500 connections
+and keeps them open; none of them are dropped.  Requests coming from a
+different IP are not served and eventually time out.  A tail -f error_log
+shows nothing except the eventual message on MaxClients (set to 300 now)
+being reached.  Interestingly, when we kill the http_dos_cli process, the
+error_log is then flooded with hundreds of entries such as this:
+
+[Mon Nov 22 17:44:46 2010] [warn] ModSecurity: Access denied with code 400.
+Too many connections [6] of 5 allowed in READ state from 211.144.112.20 -
+Possible DoS Consumption Attack [Rejected]
+
+(this has been taken from the SpiderLabs blog entry, dates and IPs are
+obviously different)
+
+Any idea on why this isn't behaving like we're expecting it to be?
+
+Thanks!
+GB
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110414/e892693c/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20110414/e892693c/attachment-0001.html</A> 
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000731.html">[Owasp-modsecurity-core-rule-set] Seeking Feedback - New Approach for XSS Detection/Response
+</A></li>
+	<LI>Next message: <A HREF="000723.html">[Owasp-modsecurity-core-rule-set] Slow HTTP DOS protection not behaving as expected
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#722">[ date ]</a>
+              <a href="thread.html#722">[ thread ]</a>
+              <a href="subject.html#722">[ subject ]</a>
+              <a href="author.html#722">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

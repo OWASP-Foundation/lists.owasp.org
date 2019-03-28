@@ -1,0 +1,340 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20DOS_Protection%20Problem%3A%20Could%0A%20not%20set%20variable%20%22ip.dos_counter%22%20as%20the%20collection%20does%20not%20exist.&In-Reply-To=%3CCC273D29.AA19%25powster%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001121.html">
+   <LINK REL="Next"  HREF="001123.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.</H1>
+    <B>JPow (powster)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20DOS_Protection%20Problem%3A%20Could%0A%20not%20set%20variable%20%22ip.dos_counter%22%20as%20the%20collection%20does%20not%20exist.&In-Reply-To=%3CCC273D29.AA19%25powster%40gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.">powster at gmail.com
+       </A><BR>
+    <I>Sat Jul 14 07:19:15 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001121.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+        <LI>Next message: <A HREF="001123.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1122">[ date ]</a>
+              <a href="thread.html#1122">[ thread ]</a>
+              <a href="subject.html#1122">[ subject ]</a>
+              <a href="author.html#1122">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ryan,
+
+Tried that and still getting the same error.
+I tried another approach where I changed all the PHASE 5 DOS PROTECTION
+rules to PHASE 4.  So far, that seems to work! Any potential drawbacks of
+shifting from Phase 5 to Phase 4?
+
+Separately, I understand that BLOCK actions are typically deny + status:XXX,
+or redirects.
+
+I am using AJAX quite extensively in my site, and trying to figure out a way
+for the AJAX request to error-out (assuming it is blocked by mod security)
+gracefully via a prompt on the user's screen.
+
+Currently, the ajax loading indicator will just load forever if the request
+is blocked my mod security.
+
+I tried setting the block action to &quot;Redirect&quot; to a &quot;throwexception.php&quot;
+file which throws an exception, but the function calling the ajax request
+doesn't receive the exception (I don't think exception information can get
+passed through via a redirect).
+
+Appreciate the guidance!
+
+Thanks,
+JPow
+
+
+
+From:  Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+Date:  Saturday, July 14, 2012 1:19 AM
+To:  Jingxun Pow &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;,
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject:  Re: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem:
+Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+
+Update the rules to use the ctl action to disable the SecRuleEngine -
+
+
+SecRule REQUEST_LINE &quot;^(GET /|OPTIONS \*) HTTP/1.0$&quot;
+&quot;phase:1,allow,nolog,chain,t:none&quot;
+        SecRule REMOTE_ADDR &quot;^(127\.0\.0\.|\:\:)1$&quot; &quot;chain, t:none&quot;
+                SecRule REQUEST_HEADERS:User-Agent &quot;^Apache.*\(internal
+dummy connection\)$&quot; &quot;ctl:ruleEngine=Off&quot;
+
+
+-Ryan
+
+From: &quot;JPow (powster)&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;
+Date: Fri, 13 Jul 2012 12:17:03 -0500
+To: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;,
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject: Re: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could
+not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+
+&gt;<i> Hi Ryan,
+</I>&gt;<i> 
+</I>&gt;<i> Sorry to bother again. After leaving the server running for awhile, I realized
+</I>&gt;<i> I was facing the same problem even after incorporating suggestions below.
+</I>&gt;<i> 
+</I>&gt;<i> I realized the problem after looking through debug level 9 logs:
+</I>&gt;<i> 
+</I>&gt;<i> modsecurity_crs_11_dos_protection.conf has rules that are in PHASE:5. These
+</I>&gt;<i> Phase 5 rules are the ones that increase the ip.dos counters.
+</I>&gt;<i> 
+</I>&gt;<i> Since these rules are in Phase 5, they will be run regardless of whether the
+</I>&gt;<i> ALLOW action is provided for apache internal relay transactions.
+</I>&gt;<i> 
+</I>&gt;<i> Since the &quot;allow&quot; method doesn't work for Phase 5, is there anyway to provide
+</I>&gt;<i> exceptions for these cases?
+</I>&gt;<i> 
+</I>&gt;<i> Thanks,
+</I>&gt;<i> JPow
+</I>&gt;<i> 
+</I>&gt;<i> From: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;<i> Date: Friday, July 13, 2012 11:44 PM
+</I>&gt;<i> To: Jingxun Pow &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;,
+</I>&gt;<i> &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could
+</I>&gt;<i> not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> From: &quot;JPow (powster)&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;
+</I>&gt;<i> Date: Fri, 13 Jul 2012 10:39:21 -0500
+</I>&gt;<i> To: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;,
+</I>&gt;<i> &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could
+</I>&gt;<i> not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Hi Ryan,
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks for the tip. I tried adding this to the end of the 10_setup.conf:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> SecRule REQUEST_LINE &quot;^(GET /|OPTIONS \*) HTTP/1.0$&quot;
+</I>&gt;&gt;<i> &quot;phase:1,allow,nolog,chain,t:none&quot;
+</I>&gt;&gt;<i>         SecRule REMOTE_ADDR &quot;^(127\.0\.0\.|\:\:)1$&quot; &quot;chain, t:none&quot;
+</I>&gt;&gt;<i>                 SecRule REQUEST_HEADERS:User-Agent &quot;^Apache.*\(internal dummy
+</I>&gt;&gt;<i> connection\)$&quot;
+</I>&gt;<i> 
+</I>&gt;<i> I would add this before the [[ Global and IP Collections ]] rules.
+</I>&gt;<i> 
+</I>&gt;<i> Also &#173; is your SecRuleEngine set to On?  It needs to be to use the allow
+</I>&gt;<i> action.
+</I>&gt;<i> 
+</I>&gt;<i> -Ryan
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Restarted apache and still kept getting:
+</I>&gt;&gt;<i> DEBUG: [13/Jul/2012:15:34:13 +0000]
+</I>&gt;&gt;<i> [ip-10-128-81-72.ap-southeast-1.compute.internal/sid#7f5fdc6a0370][rid#7f5fdf
+</I>&gt;&gt;<i> 6310a0][*][3] Could not set variable &quot;ip.dos_counter&quot; as the collection does
+</I>&gt;&gt;<i> not exist.
+</I>&gt;&gt;<i> AUDIT:
+</I>&gt;&gt;<i> --fe256340-A--
+</I>&gt;&gt;<i> [13/Jul/2012:15:34:14 +0000] UAA-9gqAUUgAAB9cIOwAAAAH 127.0.0.1 34888
+</I>&gt;&gt;<i> 127.0.0.1 80
+</I>&gt;&gt;<i> --fe256340-B--
+</I>&gt;&gt;<i> OPTIONS * HTTP/1.0
+</I>&gt;&gt;<i> User-Agent: Apache (internal dummy connection)
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> --fe256340-F--
+</I>&gt;&gt;<i> HTTP/1.1 200 OK
+</I>&gt;&gt;<i> Content-Length: 0
+</I>&gt;&gt;<i> Connection: close
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> --fe256340-H--
+</I>&gt;&gt;<i> Message: Could not set variable &quot;ip.dos_counter&quot; as the collection does not
+</I>&gt;&gt;<i> exist.
+</I>&gt;&gt;<i> Stopwatch: 1342193654146888 832 (- - -)
+</I>&gt;&gt;<i> Stopwatch2: 1342193654146888 832; combined=275, p1=0, p2=0, p3=0, p4=0,
+</I>&gt;&gt;<i> p5=274, sr=0, sw=1, l=0, gc=0
+</I>&gt;&gt;<i> Producer: ModSecurity for Apache/2.6.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;&gt;<i> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+</I>&gt;&gt;<i> Server: Apache
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> --fe256340-Z--
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thinking that maybe the &quot;chaining&quot; of the rules was preventing a match, I
+</I>&gt;&gt;<i> tried the following rules, all UNCHAINED (again, appended at the end of
+</I>&gt;&gt;<i> 10_setup.conf)
+</I>&gt;&gt;<i> SecRule REQUEST_LINE &quot;^(GET /|OPTIONS \*) HTTP/1.0$&quot; &quot;phase:1,allow,nolog&quot;
+</I>&gt;&gt;<i>         SecRule REMOTE_ADDR &quot;^(127\.0\.0\.|\:\:)1$&quot; &quot;phase:1,allow,nolog&quot;
+</I>&gt;&gt;<i>                 SecRule REQUEST_HEADERS:User-Agent &quot;^Apache.*\(internal dummy
+</I>&gt;&gt;<i> connection\)$&quot; &quot;phase:1,allow,nolog&quot;
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Result: Still kept getting the same errors.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Am I doing something wrongly? Is appending the rules to 10_setup.conf wrong?
+</I>&gt;&gt;<i> Is there something wrong with the rules, which inadvertently allows the
+</I>&gt;&gt;<i> apache internal dummy connection through?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thank you so much.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> JPow
+</I>&gt;&gt;<i> From: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+</I>&gt;&gt;<i> Date: Friday, July 13, 2012 10:11 PM
+</I>&gt;&gt;<i> To: Jingxun Pow &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;,
+</I>&gt;&gt;<i> &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could
+</I>&gt;&gt;<i> not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> The rules in the 47 common exceptions file will only adjust the anomaly
+</I>&gt;&gt;<i> scores.  You could take these rules and place them into local 15 files and
+</I>&gt;&gt;<i> add the &quot;alllow&quot; action to them.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -- 
+</I>&gt;&gt;<i> Ryan Barnett
+</I>&gt;&gt;<i> Trustwave SpiderLabs
+</I>&gt;&gt;<i> ModSecurity Project Leader
+</I>&gt;&gt;<i> OWASP ModSecurity CRS Project Leader
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> From: &quot;JPow (powster)&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">powster at gmail.com</A>&gt;
+</I>&gt;&gt;<i> Date: Fri, 13 Jul 2012 09:01:11 -0500
+</I>&gt;&gt;<i> To: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not
+</I>&gt;&gt;<i> set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Hi there,
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> I am facing a problem where I get &quot;Could not set variable &quot;ip.dos_counter&quot;
+</I>&gt;&gt;&gt;<i> as the collection does not exist.&quot; debug output when using the
+</I>&gt;&gt;&gt;<i> dos_protection rule set ( &quot;modsecurity_crs_11_dos_protection.conf&quot;).
+</I>&gt;&gt;&gt;<i> * DOS_Protection works as it should, so no issues with that (I have
+</I>&gt;&gt;&gt;<i> uncommented the relevant lines in the crs_10_setup.conf, as well as properly
+</I>&gt;&gt;&gt;<i> linked up the crs_11_dos_protection.conf
+</I>&gt;&gt;&gt;<i> * However, I find that the debug is littered with &quot;Could not set variable
+</I>&gt;&gt;&gt;<i> &quot;ip.dos_counter&quot; as the collection does not exist.&quot;
+</I>&gt;&gt;&gt;<i> * I've realized that this is NOT a problem with INITCOL:IP not being called
+</I>&gt;&gt;&gt;<i> in the setup conf file --&gt; This works properly (I am using the default
+</I>&gt;&gt;&gt;<i> crs_10_setup.conf)
+</I>&gt;&gt;&gt;<i> * The issue ONLY occurs with Apache (internal dummy connection) (see below
+</I>&gt;&gt;&gt;<i> debug / audit output)
+</I>&gt;&gt;&gt;&gt;<i> * If you see below Audit Output, it is not a standard &quot;GET&quot; request.
+</I>&gt;&gt;&gt;&gt;<i> * From my understanding, Apache's internal dummy connections are just done
+</I>&gt;&gt;&gt;&gt;<i> by Apache to wake up its child processes.
+</I>&gt;&gt;&gt;<i> * I am puzzled why this happens, because I thought there already is an
+</I>&gt;&gt;&gt;<i> exception for Apache internal dummy connections in 47
+</I>&gt;&gt;&gt;<i> common_exceptions.conf?
+</I>&gt;&gt;&gt;<i> Any reason why these dummy connections are still causing the error messages
+</I>&gt;&gt;&gt;<i> in the debug? And if so, how to solve this issue?
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Thanks!
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> My system:
+</I>&gt;&gt;&gt;<i> -Ubuntu 12.04 on Amazon EC2
+</I>&gt;&gt;&gt;<i> -Apache 2.6.3 Mod_Security
+</I>&gt;&gt;&gt;<i> -OWASP_CRS/2.2.5.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Debug output:
+</I>&gt;&gt;&gt;<i> [13/Jul/2012:13:29:46 +0000]
+</I>&gt;&gt;&gt;<i> [ip-XX-XXX-XX-XX.ap-southeast-1.compute.internal/sid#7f40d4a48370][rid#7f40d
+</I>&gt;&gt;&gt;<i> 64c60a0][*][3] Could not set variable &quot;ip.dos_counter&quot; as the collection
+</I>&gt;&gt;&gt;<i> does not exist.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Audit Output:
+</I>&gt;&gt;&gt;<i> --695eef13-A--
+</I>&gt;&gt;&gt;<i> [13/Jul/2012:13:29:46 +0000] UAAiygqAUUgAABqMEm0AAAAE 127.0.0.1 34716
+</I>&gt;&gt;&gt;<i> 127.0.0.1 80
+</I>&gt;&gt;&gt;<i> --695eef13-B--
+</I>&gt;&gt;&gt;<i> OPTIONS * HTTP/1.0
+</I>&gt;&gt;&gt;<i> User-Agent: Apache (internal dummy connection)
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> --695eef13-F--
+</I>&gt;&gt;&gt;<i> HTTP/1.1 200 OK
+</I>&gt;&gt;&gt;<i> Content-Length: 0
+</I>&gt;&gt;&gt;<i> Connection: close
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> --695eef13-H--
+</I>&gt;&gt;&gt;<i> Message: Could not set variable &quot;ip.dos_counter&quot; as the collection does not
+</I>&gt;&gt;&gt;<i> exist.
+</I>&gt;&gt;&gt;<i> Stopwatch: 1342186186315250 284 (- - -)
+</I>&gt;&gt;&gt;<i> Stopwatch2: 1342186186315250 284; combined=119, p1=0, p2=0, p3=0, p4=0,
+</I>&gt;&gt;&gt;<i> p5=118, sr=0, sw=1, l=0, gc=0
+</I>&gt;&gt;&gt;<i> Producer: ModSecurity for Apache/2.6.3 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;&gt;&gt;<i> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+</I>&gt;&gt;&gt;<i> Server: Apache
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> --695eef13-Z--
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> This transmission may contain information that is privileged, confidential,
+</I>&gt;&gt;<i> and/or exempt from disclosure under applicable law. If you are not the
+</I>&gt;&gt;<i> intended recipient, you are hereby notified that any disclosure, copying,
+</I>&gt;&gt;<i> distribution, or use of the information contained herein (including any
+</I>&gt;&gt;<i> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+</I>&gt;&gt;<i> in error, please immediately contact the sender and destroy the material in
+</I>&gt;&gt;<i> its entirety, whether in electronic or hard copy format.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> This transmission may contain information that is privileged, confidential,
+</I>&gt;<i> and/or exempt from disclosure under applicable law. If you are not the
+</I>&gt;<i> intended recipient, you are hereby notified that any disclosure, copying,
+</I>&gt;<i> distribution, or use of the information contained herein (including any
+</I>&gt;<i> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in
+</I>&gt;<i> error, please immediately contact the sender and destroy the material in its
+</I>&gt;<i> entirety, whether in electronic or hard copy format.
+</I>
+
+This transmission may contain information that is privileged, confidential,
+and/or exempt from disclosure under applicable law. If you are not the
+intended recipient, you are hereby notified that any disclosure, copying,
+distribution, or use of the information contained herein (including any
+reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+in error, please immediately contact the sender and destroy the material in
+its entirety, whether in electronic or hard copy format.
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120714/8183992b/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120714/8183992b/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001121.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+	<LI>Next message: <A HREF="001123.html">[Owasp-modsecurity-core-rule-set] DOS_Protection Problem: Could not set variable &quot;ip.dos_counter&quot; as the collection does not exist.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1122">[ date ]</a>
+              <a href="thread.html#1122">[ thread ]</a>
+              <a href="subject.html#1122">[ subject ]</a>
+              <a href="author.html#1122">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

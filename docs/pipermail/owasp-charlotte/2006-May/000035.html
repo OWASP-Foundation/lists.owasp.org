@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-charlotte] Message Thread: Risk Rating on REGEX violations
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-charlotte%40lists.owasp.org?Subject=%5BOwasp-charlotte%5D%20Message%20Thread%3A%20Risk%20Rating%20on%20REGEX%20violations&In-Reply-To=d36d3d90605300914p25b87a13xb9c2ba15619355d5%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000034.html">
+   <LINK REL="Next"  HREF="000036.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations</H1>
+    <B>William Stranathan</B> 
+    <A HREF="mailto:owasp-charlotte%40lists.owasp.org?Subject=%5BOwasp-charlotte%5D%20Message%20Thread%3A%20Risk%20Rating%20on%20REGEX%20violations&In-Reply-To=d36d3d90605300914p25b87a13xb9c2ba15619355d5%40mail.gmail.com"
+       TITLE="[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations">will at thestranathans.com
+       </A><BR>
+    <I>Tue May 30 12:47:29 EDT 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000034.html">[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations
+</A></li>
+        <LI>Next message: <A HREF="000036.html">[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#35">[ date ]</a>
+              <a href="thread.html#35">[ thread ]</a>
+              <a href="subject.html#35">[ subject ]</a>
+              <a href="author.html#35">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My sentiments exactly.  There's no such thing as &quot;malicious
+characters&quot;.  However, control characters for the presentation layer
+need to be properly escaped at the point of presentation.  For
+example, HTML Injection (cross-site scripting) is PROPERLY remediated
+by performing output filtering (who knows how the data got there?)
+SQL Injection is PROPERLY remediated by using prepared
+statements/parameterized queries.  My rationale for this is this:
+
+1) There are a million different ways to encode the rotten characters
+going into the application, all of which need to be considered, but
+only ONE way to properly encode them going to whatever downstream
+presentation is next.
+2) (This is probably most important), when using input validation to
+stop &quot;malicious&quot; characters, you have a blacklist, but then every
+input you have to make exceptons to the blacklist.  So you truly have
+as many different fixes as you do inputs into the application.  When
+you use output filtering, you have exactly ONE fix for each
+presentation layer (SQL is one fix, HTML is one fix, LDAP is one fix,
+etc.)  This makes the life of the programmer simpler and more
+consistent.  We can actually give programmers ONE rule that works 100%
+of the time, but we can't ever seem to give them ONE blacklist they
+can use 100% of the time.
+3) &quot;Malicious&quot; characters could be completely legitimate in the
+application (for example, if my last name was O'Neil, or if I'm
+designing a math forum where I need &lt; and &gt;)
+4) &quot;Malicious&quot; characters may not be &quot;malicious&quot; in every presentation
+downstream - &lt; and &gt; don't do anything rotten to a PDF, but stripping
+them or encoding them before storage would cause them to render
+improperly in the resulting document.
+5) There's no telling where the data got INTO the application.
+Consider persisted cross-site scripting - if the application does
+input validation all over the place, it doesn't stop a DBA from
+putting malicious HTML or script code directly into the database.
+
+I'm not saying NEVER do input validation.  But I highly recommend
+BUSINESS RULE INPUT VALIDATION and ALWAYS use output filtering.  (Most
+English surnames do not have digits in them, for example.)
+
+All of this leads me to my biggest gripe against the OWASP Top-10.
+SQL Injection is a subset of Command Injection (properly, IMO), but
+Cross-site Scripting is documented as a separate type of
+vulnerability, but ultimately, it's just another form of command
+injection.
+
+On 5/30/06, Fredrick DeQuan Lee &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-charlotte">fredrick.lee at gmail.com</A>&gt; wrote:
+&gt;<i> My first inclination is to say that there is no issue -- this is an OUTPUT
+</I>&gt;<i> VALIDATION problem. The downstream application should do the filtering. I'll
+</I>&gt;<i> write more later.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 5/30/06, Steve Taylor &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-charlotte">stillio at bellsouth.net</A>&gt; wrote:
+</I>&gt;<i> &gt; I thought I'd start a message thread regarding risk rating on
+</I>&gt;<i> &gt; apparent input validation errors that an application doesn't filter
+</I>&gt;<i> &gt; and yet doesn't appear to be (or just isn't) susceptible to from an
+</I>&gt;<i> &gt; injection perspective.  For example, a web application whose form
+</I>&gt;<i> &gt; fields and POST method will allow any number of special characters
+</I>&gt;<i> &gt; such as: *, ', %, !,|, \x,... and these characters are just accepted
+</I>&gt;<i> &gt; by the application and stored in the backend rdbms.  For instance,
+</I>&gt;<i> &gt; the user's name might appear now as: &quot;Name= '1=1 OR SELECT * FROM
+</I>&gt;<i> &gt; DICT&quot; and &quot;Street Address = %2a%20&quot;, etc.  Because the application
+</I>&gt;<i> &gt; uses java.sql.PreparedStatements or rdbms StoredProcedures, the data
+</I>&gt;<i> &gt; is passed as precompiled binary or parametric data before it reaches
+</I>&gt;<i> &gt; the rdbms and is therefore not interpreted as a normal SQL string
+</I>&gt;<i> &gt; would be, essentially rendering the site immune, to some degree, from
+</I>&gt;<i> &gt; these types of data and command injections.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; That's not to say it's a no-risk scenario.  There is still a
+</I>&gt;<i> &gt; vulnerability that would only be realized when the records are
+</I>&gt;<i> &gt; read... imagine a &quot;Name=&lt;script language=javascript&gt;alert
+</I>&gt;<i> &gt; (document.cookie)&lt;/script&gt;&quot; which was stored on the backend, and
+</I>&gt;<i> &gt; everytime some one views this record their session mgmt token is
+</I>&gt;<i> &gt; displayed as a popup, or another example, a similar string is pushed
+</I>&gt;<i> &gt; into an internal logging mechanism like Log4J/NET using a similar
+</I>&gt;<i> &gt; technique that will now display the admin's session credential when
+</I>&gt;<i> &gt; she reviews the log files for the previous business day (heh,
+</I>&gt;<i> &gt; assuming this ever happens in the real world).  One could redirect
+</I>&gt;<i> &gt; this information from the DOM to another site where the credentials
+</I>&gt;<i> &gt; could be harvested (but only if the field length was sufficiently
+</I>&gt;<i> &gt; long to allow for this).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I've always considered this type of vulnerability as low, and would
+</I>&gt;<i> &gt; be curious as to how you guys would think about it.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -sgt
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -------------------------------------------------------
+</I>&gt;<i> &gt; All the advantages of Linux Managed Hosting--Without the Cost and Risk!
+</I>&gt;<i> &gt; Fully trained technicians. The highest number of Red Hat certifications in
+</I>&gt;<i> &gt; the hosting industry. Fanatical Support. Click to learn more
+</I>&gt;<i> &gt;
+</I>&gt;<i> <A HREF="http://sel.as-us.falkag.net/sel?cmd=lnk&amp;kid=107521&amp;bid=248729&amp;dat=121642">http://sel.as-us.falkag.net/sel?cmd=lnk&amp;kid=107521&amp;bid=248729&amp;dat=121642</A>
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-charlotte mailing list
+</I>&gt;<i> &gt; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-charlotte">Owasp-charlotte at lists.sourceforge.net</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> <A HREF="https://lists.sourceforge.net/lists/listinfo/owasp-charlotte">https://lists.sourceforge.net/lists/listinfo/owasp-charlotte</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Fredrick
+</I>
+
+-- 
+
+&#8734; Unicode Ribbon Campaign &#8212; No ASCII, anywhere &#8734;
+&#8734; &lt;<A HREF="http://ithink.ch/unicode">http://ithink.ch/unicode</A>&gt;                   &#8734;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000034.html">[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations
+</A></li>
+	<LI>Next message: <A HREF="000036.html">[Owasp-charlotte] Message Thread: Risk Rating on REGEX violations
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#35">[ date ]</a>
+              <a href="thread.html#35">[ thread ]</a>
+              <a href="subject.html#35">[ subject ]</a>
+              <a href="author.html#35">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-charlotte">More information about the Owasp-charlotte
+mailing list</a><br>
+</body></html>

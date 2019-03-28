@@ -1,0 +1,432 @@
+From Kamil.Golombek at bdo-it.com  Wed Jun 14 07:42:28 2006
+From: Kamil.Golombek at bdo-it.com (Kamil.Golombek at bdo-it.com)
+Date: Wed, 14 Jun 2006 13:42:28 +0200
+Subject: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+Message-ID: <25F9916710FF404DAD2B96B14F66AB4904DE6C@posta.bdoit.bdo-it.prag>
+
+Hello, 
+
+firstly, thanks for this interesting education application. Secondly, I
+tried to find some "all in one" documentation (Google, package etc.) and
+I've found only few fragments. So did my friends. So I'm sorry if my
+comments are little bit off topic because RTFM problem :-). 
+
+Anyway I have a bunch of "little troubles" either with WebGoat itself or
+with individual tests. So I will try to make some list:
+
+
+
+1) At the beginning I just overlooked
+http://www.owasp.org/index.php/WebGoat_Getting_Started (it's definitely
+not the first bullet) and also
+http://www.owasp.org/index.php/WebGoat_User_and_Install_Guide_Table_of_C
+ontents. I can't see because of my eyes :-). 
+
+Finally I type http://127.0.0.1/WebGoat/attack and I can see password
+prompt. I don't know tomcat-users.xml yet, so I'm guessing few ones -
+with admin/admin I can see "HTTP Status 403 - Access to the requested
+resource has been denied". With webgoat/webgoat or guest/guest it is
+o.k.  
+
+An interesting "bug" is, when you do the following sequence of URL -
+http://127.0.0.1/WebGoat (with any account) ... code 404,
+http://127.0.0.1/WebGoat/main.jsp (with 500 - internal error) and
+http://127.0.0.1/WebGoat/webgoat.jsp (you are in). (it's "discovered"
+just by chance, because I firstly overlooked getting started.)  I think
+that just http://127.0.0.1/WebGoat is more obvious and the
+"getting_started" should be more visible. 
+
+
+2) Documentation says "application running on default port 8080" - but
+in fact it's just 80. I'm speaking about windows WebGoat 4.0 release run
+and play release, not the UNIX one.
+
+3) general tests - little troubles with "timing", but the java source
+says 1500 thread sleep - in this moment it's clear :-)
+
+4) unvalidated parameters - everything clear 
+
+5) remote admin access - I have some clues, but still didn't finished
+:-) (i'm a lame :-)
+
+6) LAB - role based access control - little bit of playing with password
+(obvious "name", but focus is on defeating RBAC, not trying to guess
+what's the password - it could be written there), I can delete any
+account. I'm moved to 2nd and 3rd stage, test is not finished and I
+probably don't understand the task " Implement access control in the
+Businesses Layer to verify authorization to use the Delete function
+before actually executing it." I should change the source to improve
+this function?
+
+7) path based - everything clear
+
+8) access control matrix - clear
+
+9) forgotten password - clear
+
+10) authentication cookie - clear (and nice :-)
+
+11) how to hijack the session - mechanism is clear, webscarab sessionID
+analysis works well, incrementation of one part and timestamp of the
+second part of the weak cookie is obvious, but I have to improve the
+final technique - I'm little bit lame :-)
+
+12) basic authentication - very easy, but there is a little mistake in
+the second field - even I'm using basic:basic or my custom id, required
+answer is webgoat:webgoat, which doesn't correspond with actual id (e.g.
+YnVyZ2hpOmJ1cmdoaQ== is burghi:burghi, but I can see "* Basic
+Authentication header value is incorrect.". 
+
+There is another error - the second stage wants me to reautenticate as
+basic basic. But I'm logged as burghi:burghi or later I changed it to
+basic:basic or webgoat:webgoat. But the application still
+reports:"You're almost there! You've modified the Authorization header
+but you are still logged in as burghi.". But I'm in this moment
+webgoab:webgoat, as is clear from headers "Authorization: Basic
+d2ViZ29hdDp3ZWJnb2F0 
+Cookie: JSESSIONID=4B40F9585857E8CBFE52996C8521842E". 
+
+I finished this task at the end, but I don't have a score in "burghi"
+account, only for webgoat account. 
+
+13) XSS jumped over (I will play with it later)
+
+14) buffer overflow - I just clicked on it and I saw congratulations
+...? Probably the magic is in " This lesson needs a creator." 
+
+15) command injection - clear
+
+16) parameter injection - same as buffer overflow
+
+
+
+to be continued - sorry, it's little bit longer, so I will try to
+continue later. I guess that some of my failures are just my lack of
+skills, but some of them I hope are really errors. I will try to find
+some time to help to fulfill some articles in wikipedia. 
+
+best regards
+
+Kamil Golombek
+
+
+
+
+From bruce.mayhew at aspectsecurity.com  Wed Jun 14 09:32:26 2006
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Wed, 14 Jun 2006 09:32:26 -0400
+Subject: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+References: <25F9916710FF404DAD2B96B14F66AB4904DE6C@posta.bdoit.bdo-it.prag>
+Message-ID: <021c01c68fb6$f9d2f610$ce04a8c0@intranet.aspectsecurity.com>
+
+Hi Kamal
+
+Thank you for your feedback! You are correct, the main README file is 
+missing from the Windows_WebGoat-4.0_*.zip distributions.  I will add the 
+README to the distribution lists as soon as possible.  This is a HUGE 
+oversight on my part.
+
+There are some simple instructions for adding WebGoat user accounts to 
+Tomcat  in the Standalone distribution.   The developer version has a "HOW 
+TO create the WebGoat workspace.txt" which includes some basic instructions 
+for setting up the IDE and running WebGoat but all the releases are missing 
+the basic README file.
+
+We are actively working on the WebGoat user guide 
+(http://www.owasp.org/index.php/WebGoat_User_Guide_Table_of_Contents)  and 
+hope to have that completed soon.  WebGoat is a community effort and the 
+user guide work is often the hardest to complete.  We certainly would 
+appreciate your help in updating this guide.
+
+
+The lessons that specify "This lesson needs a creator" are lessons that I 
+would like to get built but haven't had the time.  It would also be nice to 
+have a forced browsing lesson :)
+
+Regarding the basic authentication lesson... After you have entered your new 
+credentials, the OLD JSESSIONID is sent with your NEW request which contains 
+your NEW credentials.  This OLD JESSIONID is still a valid session id and 
+therefore your new credentials are ignored.  You have to delete the OLD 
+JSESSIONID when the request is sent with your new credentials...
+
+I will work on improving the LAB instructions.
+
+
+Bruce
+
+
+
+
+----- Original Message ----- 
+From: <Kamil.Golombek at bdo-it.com>
+To: <owasp-webgoat at lists.sourceforge.net>
+Sent: Wednesday, June 14, 2006 7:42 AM
+Subject: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+
+
+> Hello,
+>
+> firstly, thanks for this interesting education application. Secondly, I
+> tried to find some "all in one" documentation (Google, package etc.) and
+> I've found only few fragments. So did my friends. So I'm sorry if my
+> comments are little bit off topic because RTFM problem :-).
+>
+> Anyway I have a bunch of "little troubles" either with WebGoat itself or
+> with individual tests. So I will try to make some list:
+>
+>
+>
+> 1) At the beginning I just overlooked
+> http://www.owasp.org/index.php/WebGoat_Getting_Started (it's definitely
+> not the first bullet) and also
+> http://www.owasp.org/index.php/WebGoat_User_and_Install_Guide_Table_of_C
+> ontents. I can't see because of my eyes :-).
+>
+> Finally I type http://127.0.0.1/WebGoat/attack and I can see password
+> prompt. I don't know tomcat-users.xml yet, so I'm guessing few ones -
+> with admin/admin I can see "HTTP Status 403 - Access to the requested
+> resource has been denied". With webgoat/webgoat or guest/guest it is
+> o.k.
+>
+> An interesting "bug" is, when you do the following sequence of URL -
+> http://127.0.0.1/WebGoat (with any account) ... code 404,
+> http://127.0.0.1/WebGoat/main.jsp (with 500 - internal error) and
+> http://127.0.0.1/WebGoat/webgoat.jsp (you are in). (it's "discovered"
+> just by chance, because I firstly overlooked getting started.)  I think
+> that just http://127.0.0.1/WebGoat is more obvious and the
+> "getting_started" should be more visible.
+>
+>
+> 2) Documentation says "application running on default port 8080" - but
+> in fact it's just 80. I'm speaking about windows WebGoat 4.0 release run
+> and play release, not the UNIX one.
+>
+> 3) general tests - little troubles with "timing", but the java source
+> says 1500 thread sleep - in this moment it's clear :-)
+>
+> 4) unvalidated parameters - everything clear
+>
+> 5) remote admin access - I have some clues, but still didn't finished
+> :-) (i'm a lame :-)
+>
+> 6) LAB - role based access control - little bit of playing with password
+> (obvious "name", but focus is on defeating RBAC, not trying to guess
+> what's the password - it could be written there), I can delete any
+> account. I'm moved to 2nd and 3rd stage, test is not finished and I
+> probably don't understand the task " Implement access control in the
+> Businesses Layer to verify authorization to use the Delete function
+> before actually executing it." I should change the source to improve
+> this function?
+>
+> 7) path based - everything clear
+>
+> 8) access control matrix - clear
+>
+> 9) forgotten password - clear
+>
+> 10) authentication cookie - clear (and nice :-)
+>
+> 11) how to hijack the session - mechanism is clear, webscarab sessionID
+> analysis works well, incrementation of one part and timestamp of the
+> second part of the weak cookie is obvious, but I have to improve the
+> final technique - I'm little bit lame :-)
+>
+> 12) basic authentication - very easy, but there is a little mistake in
+> the second field - even I'm using basic:basic or my custom id, required
+> answer is webgoat:webgoat, which doesn't correspond with actual id (e.g.
+> YnVyZ2hpOmJ1cmdoaQ== is burghi:burghi, but I can see "* Basic
+> Authentication header value is incorrect.".
+>
+> There is another error - the second stage wants me to reautenticate as
+> basic basic. But I'm logged as burghi:burghi or later I changed it to
+> basic:basic or webgoat:webgoat. But the application still
+> reports:"You're almost there! You've modified the Authorization header
+> but you are still logged in as burghi.". But I'm in this moment
+> webgoab:webgoat, as is clear from headers "Authorization: Basic
+> d2ViZ29hdDp3ZWJnb2F0
+> Cookie: JSESSIONID=4B40F9585857E8CBFE52996C8521842E".
+>
+> I finished this task at the end, but I don't have a score in "burghi"
+> account, only for webgoat account.
+>
+> 13) XSS jumped over (I will play with it later)
+>
+> 14) buffer overflow - I just clicked on it and I saw congratulations
+> ...? Probably the magic is in " This lesson needs a creator."
+>
+> 15) command injection - clear
+>
+> 16) parameter injection - same as buffer overflow
+>
+>
+>
+> to be continued - sorry, it's little bit longer, so I will try to
+> continue later. I guess that some of my failures are just my lack of
+> skills, but some of them I hope are really errors. I will try to find
+> some time to help to fulfill some articles in wikipedia.
+>
+> best regards
+>
+> Kamil Golombek
+>
+>
+>
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> 
+
+
+
+
+From bruce.mayhew at aspectsecurity.com  Thu Jun 15 21:17:49 2006
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Thu, 15 Jun 2006 21:17:49 -0400
+Subject: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+References: <F01E4499C4EC5842A8AB7198141AC72F02327E3B@mailfac1.hh.nku.edu>
+Message-ID: <004601c690e2$b0c50b70$6664a8c0@intranet.aspectsecurity.com>
+
+Thanks James
+
+The automated build process has changed significantly since the last release 
+and the quality control department has not done an adequate job! :)
+
+I will address these issues in the next release.
+
+Bruce
+
+
+----- Original Message ----- 
+From: "James Walden" <waldenj1 at nku.edu>
+To: "Bruce Mayhew" <bruce.mayhew at aspectsecurity.com>; 
+<Kamil.Golombek at bdo-it.com>; <owasp-webgoat at lists.sourceforge.net>
+Sent: Thursday, June 15, 2006 5:42 PM
+Subject: RE: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+
+
+On the UNIX version of WebGoat 4, none of the shell scripts can be run
+directly.  All scripts produce the error "/bin/sh^M bad interpreter".
+The scripts can be fixed with dos2unix.
+
+I also did not find a README file from the UNIX distribution
+(Unix_WebGoat-4.0_Release.zip).
+
+James Walden
+http://www.nku.edu/~waldenj1
+
+
+
+
+From waldenj1 at nku.edu  Thu Jun 15 17:42:39 2006
+From: waldenj1 at nku.edu (James Walden)
+Date: Thu, 15 Jun 2006 17:42:39 -0400
+Subject: [OWASP-WEBGOAT] comments and impressions - WebGoat 4
+Message-ID: <F01E4499C4EC5842A8AB7198141AC72F02327E3B@mailfac1.hh.nku.edu>
+
+On the UNIX version of WebGoat 4, none of the shell scripts can be run
+directly.  All scripts produce the error "/bin/sh^M bad interpreter".
+The scripts can be fixed with dos2unix.
+
+I also did not find a README file from the UNIX distribution
+(Unix_WebGoat-4.0_Release.zip).
+
+James Walden
+http://www.nku.edu/~waldenj1
+
+
+
+From johnccr at yahoo.com  Wed Jun 28 00:53:23 2006
+From: johnccr at yahoo.com (Juan C Calderon)
+Date: Tue, 27 Jun 2006 23:53:23 -0500 (CDT)
+Subject: [OWASP-WEBGOAT] International WebGoat
+Message-ID: <20060628045323.39082.qmail@web54311.mail.yahoo.com>
+
+Hello Guys
+
+I'm coordinator for OWASP-Spanish project/mailing
+list, in a personal level, I've taken the challenge of
+internationalizing WebGoat. It was easier tha I though
+so, soon, I'll be sending you a beta release for you
+to help me test and eventually integrate in current
+development.
+
+Hope this helps to easily translate the Software to
+many languages and fast-track it's spread across the
+word.
+
+Cheers
+Juan Carlos
+
+__________________________________________________
+Correo Yahoo!
+Espacio para todos tus mensajes, antivirus y antispam ?gratis! 
+Reg?strate ya - http://correo.espanol.yahoo.com/ 
+
+
+
+From johnccr at yahoo.com  Thu Jun 29 00:38:30 2006
+From: johnccr at yahoo.com (Juan C Calderon)
+Date: Wed, 28 Jun 2006 23:38:30 -0500 (CDT)
+Subject: [OWASP-WEBGOAT] International WebGoat
+In-Reply-To: <20060628045323.39082.qmail@web54311.mail.yahoo.com>
+Message-ID: <20060629043830.28036.qmail@web54313.mail.yahoo.com>
+
+Hi again
+
+Could you please provide me WebGoat images in pst or
+similar format? images translation is missing
+
+Thank you,
+Juan Carlos
+
+
+ --- Juan C Calderon <johnccr at yahoo.com> escribi?:
+
+> Hello Guys
+> 
+> I'm coordinator for OWASP-Spanish project/mailing
+> list, in a personal level, I've taken the challenge
+> of
+> internationalizing WebGoat. It was easier tha I
+> though
+> so, soon, I'll be sending you a beta release for you
+> to help me test and eventually integrate in current
+> development.
+> 
+> Hope this helps to easily translate the Software to
+> many languages and fast-track it's spread across the
+> word.
+> 
+> Cheers
+> Juan Carlos
+> 
+> __________________________________________________
+> Correo Yahoo!
+> Espacio para todos tus mensajes, antivirus y
+> antispam ?gratis! 
+> Reg?strate ya - http://correo.espanol.yahoo.com/ 
+> 
+> Using Tomcat but need to do more? Need to support
+> web services, security?
+> Get stuff done quickly with pre-integrated
+> technology to make your job easier
+> Download IBM WebSphere Application Server v.1.0.1
+> based on Apache Geronimo
+>
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+>
+https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> 
+
+
+__________________________________________________
+Correo Yahoo!
+Espacio para todos tus mensajes, antivirus y antispam ?gratis! 
+Reg?strate ya - http://correo.espanol.yahoo.com/ 
+
+
+

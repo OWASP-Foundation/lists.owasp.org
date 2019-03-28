@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] CRS-2.2.9 - Duplicates found for	rules 2011257 and 2011258
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20CRS-2.2.9%20-%20Duplicates%20found%20for%0A%09rules%202011257%20and%202011258&In-Reply-To=%3CCAJK8jKFn%3DjjRP508DchZ61b2hw49TBc91pMKoT9Na%3DbgP6y67Q%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001541.html">
+   <LINK REL="Next"  HREF="001543.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] CRS-2.2.9 - Duplicates found for	rules 2011257 and 2011258</H1>
+    <B>Anoop Saldanha</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20CRS-2.2.9%20-%20Duplicates%20found%20for%0A%09rules%202011257%20and%202011258&In-Reply-To=%3CCAJK8jKFn%3DjjRP508DchZ61b2hw49TBc91pMKoT9Na%3DbgP6y67Q%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] CRS-2.2.9 - Duplicates found for	rules 2011257 and 2011258">anoopsaldanha at gmail.com
+       </A><BR>
+    <I>Mon May 12 09:14:35 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001541.html">[Owasp-modsecurity-core-rule-set] RES: Need help with Joomla websites rules and SlowHttp Attacks
+</A></li>
+        <LI>Next message: <A HREF="001543.html">[Owasp-modsecurity-core-rule-set] CRS-2.2.9 - Duplicates found	for rules 2011257 and 2011258
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1542">[ date ]</a>
+              <a href="thread.html#1542">[ thread ]</a>
+              <a href="subject.html#1542">[ subject ]</a>
+              <a href="author.html#1542">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Under CRS-2.2.9, under the &quot;slr_rules&quot; directory, each of these 2
+files have the above 2 rules but with different subsequent chains in 2
+different files.
+
+Filename: modsecurity_crs_46_slr_et_wordpress_attacks.conf
+
+# (2011257) SpiderLabs Research (SLR) Public Vulns: ET
+WEB_SPECIFIC_APPS FireStats window-add-excluded-url.php Cross Site Sc\
+ripting Attempt
+SecRule REQUEST_LINE &quot;@contains
+/wp-content/plugins/firestats/php/window-add-excluded-url.php&quot;
+&quot;chain,phase:2,block,t:none,t\
+:<i>urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,logdata:'%{TX.0}',severity:'2',id:2011257,rev:2,msg:'SLR:
+</I>ET WEB\
+_SPECIFIC_APPS FireStats window-add-excluded-url.php Cross Site
+Scripting Attempt',tag:'web-application-attack'&quot;
+
+SecRule ARGS:edit
+&quot;(?i:edit\x3d.+(script|onmouse[a-z]+|onkey[a-z]+|onload|onunload|ondragdrop|onblur|onfocus|onclick|ondblcl\
+ick|onsubmit|onreset|onselect|onchange|style\x3D))&quot;
+&quot;ctl:auditLogParts=+E,setvar:'tx.msg=ET WEB_SPECIFIC_APPS FireStats
+wind\
+ow-add-excluded-url.php Cross Site Scripting
+Attempt',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{rul\
+e.id}-WEB_ATTACK/WORDPRESS-%{matched_var_name}=%{matched_var}'&quot;
+
+Filename: modsecurity_crs_46_slr_et_xss_attacks.conf
+
+# (2011257) SpiderLabs Research (SLR) Public Vulns: ET
+WEB_SPECIFIC_APPS FireStats window-add-excluded-url.php Cross Site Sc\
+ripting Attempt
+SecRule REQUEST_LINE &quot;@contains
+/wp-content/plugins/firestats/php/window-add-excluded-url.php&quot;
+&quot;chain,phase:2,block,t:none,t\
+:<i>urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,logdata:'%{TX.0}',severity:'2',id:2011257,rev:2,msg:'SLR:
+</I>ET WEB\
+_SPECIFIC_APPS FireStats window-add-excluded-url.php Cross Site
+Scripting Attempt',tag:'web-application-attack'&quot;
+
+SecRule &amp;TX:'/XSS.*ARGS:edit/' &quot;@gt 0&quot;
+&quot;ctl:auditLogParts=+E,setvar:'tx.msg=ET WEB_SPECIFIC_APPS FireStats
+window-add-exclud\
+ed-url.php Cross Site Scripting
+Attempt',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:'tx.%{rule.id}-WEB_ATT\
+ACK/XSS-%{matched_var_name}=%{matched_var}'&quot;
+
+-----
+
+Similarly for rule with id: 2011258.
+
+Is this behaviour intentional, or do we have a id numbering bug?
+
+-- 
+-------------------------------
+Anoop Saldanha
+<A HREF="http://www.poona.me">http://www.poona.me</A>
+-------------------------------
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001541.html">[Owasp-modsecurity-core-rule-set] RES: Need help with Joomla websites rules and SlowHttp Attacks
+</A></li>
+	<LI>Next message: <A HREF="001543.html">[Owasp-modsecurity-core-rule-set] CRS-2.2.9 - Duplicates found	for rules 2011257 and 2011258
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1542">[ date ]</a>
+              <a href="thread.html#1542">[ thread ]</a>
+              <a href="subject.html#1542">[ subject ]</a>
+              <a href="author.html#1542">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

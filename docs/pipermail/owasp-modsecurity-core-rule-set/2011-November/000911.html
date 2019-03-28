@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Performance issues
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Performance%20issues&In-Reply-To=CAD8035D.393FC%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000909.html">
+   <LINK REL="Next"  HREF="000910.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Performance issues</H1>
+    <B>Younes JAAIDI</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Performance%20issues&In-Reply-To=CAD8035D.393FC%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Performance issues">yjaaidi at gmail.com
+       </A><BR>
+    <I>Thu Nov  3 10:43:36 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000909.html">[Owasp-modsecurity-core-rule-set] Performance issues
+</A></li>
+        <LI>Next message: <A HREF="000910.html">[Owasp-modsecurity-core-rule-set] unsubscribe me please
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#911">[ date ]</a>
+              <a href="thread.html#911">[ thread ]</a>
+              <a href="subject.html#911">[ subject ]</a>
+              <a href="author.html#911">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Great! Thank you!
+
+On Thu, Nov 3, 2011 at 1:46 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+
+&gt;<i>
+</I>&gt;<i> From: rm4dillo D &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&gt;&gt;
+</I>&gt;<i> Date: Thu, 3 Nov 2011 06:39:09 -0500
+</I>&gt;<i> To: Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>&gt;&gt;
+</I>&gt;<i> Cc: &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; &lt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt;
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Performance issues
+</I>&gt;<i>
+</I>&gt;<i> Hi Ryan,
+</I>&gt;<i>
+</I>&gt;<i> Even by disabling the &quot;initcol&quot; rules the problem was still there but
+</I>&gt;<i> after some deeper analysis, I finally found the reason and a solution.
+</I>&gt;<i>
+</I>&gt;<i> Almost all the rules in &quot;modsecurity_crs_40_generic_attacks.conf&quot;,
+</I>&gt;<i> &quot;modsecurity_crs_41_sql_injection_attacks.conf&quot; and
+</I>&gt;<i> &quot;modsecurity_crs_41_xss_attacks.conf&quot; are applied to the &quot;REQUEST_COOKIES&quot;
+</I>&gt;<i> and &quot;REQUEST_COOKIES_NAMES&quot; variables, making ModSecurity execute about 500
+</I>&gt;<i> rules on every cookie's name and every cookie's value which means 10000 (2
+</I>&gt;<i> * 10 * 500) additional operator calls for each request because every
+</I>&gt;<i> request I receive contains around 10 cookies.
+</I>&gt;<i> By applying those rules to the whole &quot;Cookie&quot; header instead of every
+</I>&gt;<i> cookie's name and value, ModSecurity will only perform 500 additional
+</I>&gt;<i> operator calls instead of 10000.
+</I>&gt;<i>
+</I>&gt;<i> I solved the problem by replacing &quot;REQUEST_COOKIES|REQUEST_COOKIES_NAMES&quot;
+</I>&gt;<i> by &quot;REQUEST_HEADERS:Cookie&quot;.
+</I>&gt;<i>
+</I>&gt;<i> May this change be included in the next CoreRuleSet release?
+</I>&gt;<i>
+</I>&gt;<i> Understood.  This is the whole &quot;Performance vs. Security&quot; debate.  We will
+</I>&gt;<i> need to think a bit as to the best options.  Here is the short background -
+</I>&gt;<i>
+</I>&gt;<i>  1.  We added the REQUEST_COOKIES variables as a result of the SQL
+</I>&gt;<i> Injection Challenge -
+</I>&gt;<i> <A HREF="http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html&#8211;">http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html&#8211;</A> as our SQLi rules were not inspecting Cookie values and these are
+</I>&gt;<i> obviously a valid injection point as many DBs are using this data in
+</I>&gt;<i> queries.
+</I>&gt;<i>  2.  We added the REQUEST_COOKIES variables vs. REQUEST_HEADERS:Cookie due
+</I>&gt;<i> to false positives.  If you inspect the entire Cookie data as one payloads
+</I>&gt;<i> instead of parsing it into cookie name = cookie value pairs, you will get a
+</I>&gt;<i> higher number of false positives due to many of the SQL Tautology attack
+</I>&gt;<i> rules ( 1 = 1, etc&#8230;).
+</I>&gt;<i>
+</I>&gt;<i> I think that he best option will be to re-architect the &quot;Paranoid Mode&quot;
+</I>&gt;<i> concept and have a different directory of rules that is very aggressive in
+</I>&gt;<i> the variables that it inspects.  Those people that want to be aggressive to
+</I>&gt;<i> minimize the chance of false negatives and are willing to deal with false
+</I>&gt;<i> positives and make exceptions can then activate those rules.
+</I>&gt;<i>
+</I>&gt;<i> -Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i>
+</I>&gt;<i> Rm4dillo
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Mon, Oct 24, 2011 at 8:45 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;&gt; wrote:
+</I>&gt;<i> My guess is that it is related to the initcol at the end of the 10 config
+</I>&gt;<i> file. This is used to setup the IP collection for other rules to use. While
+</I>&gt;<i> this is helpful, I think it is causing these types of perf issues on high
+</I>&gt;<i> traffic sites as it is forcing ModSec to create a persistent collection for
+</I>&gt;<i> ALL request.
+</I>&gt;<i>
+</I>&gt;<i> Try commenting out the final initcol SecRule at the end of the 10 file and
+</I>&gt;<i> see if it helps.
+</I>&gt;<i>
+</I>&gt;<i> We will think of a better approach.
+</I>&gt;<i>
+</I>&gt;<i> Ryan
+</I>&gt;<i>
+</I>&gt;<i> On Oct 24, 2011, at 2:30 PM, &quot;rm4dillo D&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rm4dillo at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I recently installed ModSecurity with CRS 2.2.2 (base rules only,
+</I>&gt;<i> paranoid mode set to off and SecResponseBodyAccess to off too) on a high
+</I>&gt;<i> traffic server and the CPU usage almost reached 100% while it's usually
+</I>&gt;<i> around 2 to 5% and I have no errors.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; By disabling mod_security_crs_4[01]* rules (generic, xss, sqli) it's way
+</I>&gt;<i> better but not really useful :).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Any clues? Does someone benchmark the rules before every release?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Rm4dillo
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you
+</I>&gt;<i> are not the intended recipient, you are hereby notified that any
+</I>&gt;<i> disclosure, copying, distribution, or use of the information contained
+</I>&gt;<i> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+</I>&gt;<i> received this transmission in error, please immediately contact the sender
+</I>&gt;<i> and destroy the material in its entirety, whether in electronic or hard
+</I>&gt;<i> copy format.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;<i> confidential, and/or exempt from disclosure under applicable law. If you
+</I>&gt;<i> are not the intended recipient, you are hereby notified that any
+</I>&gt;<i> disclosure, copying, distribution, or use of the information contained
+</I>&gt;<i> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+</I>&gt;<i> received this transmission in error, please immediately contact the sender
+</I>&gt;<i> and destroy the material in its entirety, whether in electronic or hard
+</I>&gt;<i> copy format.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111103/8f464041/attachment-0001.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20111103/8f464041/attachment-0001.html</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000909.html">[Owasp-modsecurity-core-rule-set] Performance issues
+</A></li>
+	<LI>Next message: <A HREF="000910.html">[Owasp-modsecurity-core-rule-set] unsubscribe me please
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#911">[ date ]</a>
+              <a href="thread.html#911">[ thread ]</a>
+              <a href="subject.html#911">[ subject ]</a>
+              <a href="author.html#911">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

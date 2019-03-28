@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-turkey] Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-turkey%5D%0A%09%3D%3Futf-8%3Fq%3FDrupageddon_%3D28_CVE-2014-3704_%3D29_ve_Key%3F%3D%0A%09%3D%3Futf-8%3Fq%3F/Value_Pair_Payloadlar%3DC4%3DB1%3F%3D&In-Reply-To=%3CCALNZ6-LqhAgx1PWO2i%3D9DbYogGBNjQ55Vp9ECDXRoAzrmV%2BtbQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001772.html">
+   <LINK REL="Next"  HREF="001773.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-turkey] Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;</H1>
+    <B>Bedirhan Urgun</B> 
+    <A HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-turkey%5D%0A%09%3D%3Futf-8%3Fq%3FDrupageddon_%3D28_CVE-2014-3704_%3D29_ve_Key%3F%3D%0A%09%3D%3Futf-8%3Fq%3F/Value_Pair_Payloadlar%3DC4%3DB1%3F%3D&In-Reply-To=%3CCALNZ6-LqhAgx1PWO2i%3D9DbYogGBNjQ55Vp9ECDXRoAzrmV%2BtbQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-turkey] Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;">bedirhanurgun at gmail.com
+       </A><BR>
+    <I>Sun Oct 19 13:13:38 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001772.html">[Owasp-turkey] Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;
+</A></li>
+        <LI>Next message: <A HREF="001773.html">[Owasp-turkey] CVP:  Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1775">[ date ]</a>
+              <a href="thread.html#1775">[ thread ]</a>
+              <a href="subject.html#1775">[ subject ]</a>
+              <a href="author.html#1775">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Gonderdigin icin tesekkurler Mehmet.
+
+&#199;ok orjinal. Bir araba dolusu laf edilebilir ama prepared statement
+kullan&#305;rken b&#246;ylesi bir zaafiyet... Ancak PHP ile yap&#305;labilirdi herhalde :)
+Demin advisory'i ve patch'i inceledim. Hem statik hem de dinamik, hem
+otomatik hem de manual analiz a&#231;&#305;lar&#305;ndan bak&#305;ld&#305;&#287;&#305;nda bulunmas&#305; zor
+g&#246;z&#252;k&#252;yor.
+
+Dinamik analiz ile bulunmas&#305; i&#231;in a&#351;a&#287;&#305;daki &#246;rnekte array &#351;eklinde
+parametre de&#287;eri alan web uygulamalar&#305;n&#305;n nadir olmas&#305;ni bir yana biraksak,
+otomatik araclarin oncelikle parametre ismini de&#287;i&#351;tirip b&#252;t&#252;n sald&#305;r&#305;
+vekt&#246;rlerini denemeleri laz&#305;m. Hatta bu yetmeyecek, injection point olarak
+array index'i hedef almalari gerekecekti...
+
+&lt;input type=&quot;text&quot; name=&quot;blogtitle[0]&quot; value=&quot;xyz&quot;&gt;
+&lt;input type=&quot;text&quot; name=&quot;blogtitle[1]&quot; value=&quot;def&quot;&gt;
+
+Ayn&#305; &#351;ekilde dinamik analiz yapan pentester'in de &#246;rnek olarak Burp'te
+yakalay&#305;p injection point koymas&#305; yetmeyecek &#231;&#252;nk&#252; itiraf edelim genelde
+parametre isimlerine pek injection point koymuyoruz. Kald&#305; ki yine burda
+index'e koymak gerekecekti....
+
+Bir de i&#351;in statik analiz kismi var... Drupal'e (open source olmas&#305;ndan
+dolay&#305; daha avantajl&#305; sanirim) statik kod analizi uygulanm&#305;&#351;t&#305;r diye
+d&#252;&#351;&#252;n&#252;yorum. Ama orda da data flow analizi kolay olmuyor demek ki...
+
+Son olarak vulnerable fonksiyondan kopyalad&#305;&#287;&#305;m a&#351;a&#287;&#305;daki k&#305;sma bakt&#305;&#287;&#305;mda
+g&#246;rd&#252;&#287;&#252;m &#351;ey e&#351;itli&#287;in sol taraf&#305;nda $query ve sag tarafinda string concat
+islemi. Tabi bu zafiyet aciga cikmamis olsaydi ve statik analiz surecinde
+dusuk seviyede bir bulgu olarak bu karsima ciksaydi detayina ne kadar inme
+azmini ve zamanini bulabilirdim bilemiyorum.
+
+$query = preg_replace('#' . $key . '\b#', implode(', ',
+array_keys($new_keys)), $query);
+
+bedirhan
+
+17 Ekim 2014 23:02 tarihinde Mehmet Dursun Ince &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">mehmet at mehmetince.net</A>&gt;
+yazd&#305;:
+
+&gt;<i> Merhaba
+</I>&gt;<i>
+</I>&gt;<i> Drupal 7.x versiyonunda &#231;&#305;kan Sql Injection zafiyetine bakt&#305;&#287;&#305;m&#305;zda
+</I>&gt;<i> payload'&#305;n array'in indisine yerle&#351;tirildi&#287;ini g&#246;rmekteyiz.
+</I>&gt;<i>
+</I>&gt;<i> Tart&#305;&#351;maya a&#231;mak istedi&#287;im konu &#351;udur ki; otomatize ara&#231;lara bu t&#252;r
+</I>&gt;<i> testlerin implemente edilmesi gerekir mi ? Benim ki&#351;isel g&#246;r&#252;&#351;&#252;me g&#246;re
+</I>&gt;<i> Drupal case'i olduk&#231;a nadir olan durumlardan bir tanesi. Herhangi bir
+</I>&gt;<i> penetration testte kar&#351;&#305;la&#351;&#305;lmas&#305;n&#305;n g&#252;&#231; olaca&#287;&#305;n&#305; d&#252;&#351;&#252;n&#252;yorum.
+</I>&gt;<i>
+</I>&gt;<i> &#214;rne&#287;in sqlmap'te injection point olarak i&#351;aretlenmedi&#287;i s&#252;rece bu test
+</I>&gt;<i> ger&#231;ekle&#351;tirilmiyor. Spesifik olarak sizin * (y&#305;ld&#305;z) ile belirtmeniz
+</I>&gt;<i> gerekmekte.
+</I>&gt;<i>
+</I>&gt;<i> Te&#351;ekk&#252;rler.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Sr. Information Security Engineer
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-turkey mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">Owasp-turkey at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">https://lists.owasp.org/mailman/listinfo/owasp-turkey</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+
+bedirhan urgun
+-------------- sonraki b&#65533;l&#65533;m --------------
+Bir HTML eklentisi temizlendi...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-turkey/attachments/20141019/fa32233b/attachment.html">http://lists.owasp.org/pipermail/owasp-turkey/attachments/20141019/fa32233b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001772.html">[Owasp-turkey] Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;
+</A></li>
+	<LI>Next message: <A HREF="001773.html">[Owasp-turkey] CVP:  Drupageddon ( CVE-2014-3704 ) ve Key/Value Pair Payloadlar&#305;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1775">[ date ]</a>
+              <a href="thread.html#1775">[ thread ]</a>
+              <a href="subject.html#1775">[ subject ]</a>
+              <a href="author.html#1775">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-turkey">More information about the Owasp-turkey
+mailing list</a><br>
+</body></html>

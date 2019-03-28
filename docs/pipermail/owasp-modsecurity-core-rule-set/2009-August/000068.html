@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Fix blocking issue
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Fix%20blocking%20issue&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000067.html">
+   <LINK REL="Next"  HREF="000069.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Fix blocking issue</H1>
+    <B>OSSEC junkie</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Fix%20blocking%20issue&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Fix blocking issue">ossec.junkie at gmail.com
+       </A><BR>
+    <I>Tue Aug 25 15:39:53 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000067.html">[Owasp-modsecurity-core-rule-set] disable one rule
+</A></li>
+        <LI>Next message: <A HREF="000069.html">[Owasp-modsecurity-core-rule-set] Fix blocking issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#68">[ date ]</a>
+              <a href="thread.html#68">[ thread ]</a>
+              <a href="subject.html#68">[ subject ]</a>
+              <a href="author.html#68">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I was wondering if I could get some help here, I cant seem to figure out why
+I'm getting blocked..well it's not really blocking but I know this is a
+false positive but can't get the rule to work correctly:
+
+&gt;<i>From the audit log:
+</I>--bec3cc26-A--
+[21/Aug/2009:23:38:56 --0700] <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">So at SgAoBBH0AAEt9FWoAAAAE</A> 72.93.69.185 48517
+10.1.4.125 80
+--bec3cc26-B--
+POST /sell/CheesePizza HTTP/1.1
+Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg,
+application/x-shockwave-flash, */*
+Referer: <A HREF="http://web.farm.org/sell/CheesePizza?topping=8&amp;sauce=ONE&amp;method=23">http://web.farm.org/sell/CheesePizza?topping=8&amp;sauce=ONE&amp;method=23</A>
+Accept-Language: en-us
+Content-Type: application/x-www-form-urlencoded
+UA-CPU: x86
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR
+1.1.4322)
+Host: web.farm.org
+Content-Length: 461
+Connection: Keep-Alive
+Cache-Control: no-cache
+Cookie:
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+
+
+--bec3cc26-C--
+prevtrxstate=8&amp;user_preference=S_tomcat_wfarm02_1247457979602_378637%7CS%7Ctomcat_wfarm02%
+7Cweb.farm.org
+%7Cen%7CUS%7Cnull%7CMLB%7C&amp;=&amp;topping=&amp;sauce=&amp;method=&amp;area=23&amp;=&amp;comments=all&amp;discount=6&amp;year=2009&amp;appetizer=&amp;desert=RSAL&amp;error_check=null&amp;pasta=null&amp;sandwich=null&amp;cheesetype=false&amp;wid=8323416&amp;complete=0
+--bec3cc26-F--
+HTTP/1.1 200 OK
+Vary: Accept-Encoding,User-Agent
+Content-Encoding: gzip
+Connection: close
+Transfer-Encoding: chunked
+Content-Type: text/html;charset=UTF-8
+
+--bec3cc26-H--
+Message: Warning. Unconditional match in SecAction. [file
+&quot;/web/root/apache/conf.d/modsecurity/modsecurity_crs_41_xss_attacks.conf&quot;]
+[line &quot;15&quot;]
+Apache-Handler: jakarta-servlet
+Stopwatch: 1250923136064289 175742 (338* 6749 166779)
+Producer: ModSecurity for Apache/2.5.9 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); core
+ruleset/2.0.1.
+Server: Apache/2.2.11 (Unix)
+
+--bec3cc26-K--
+SecAction
+&quot;phase:1,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecRule
+&quot;REQUEST_FILENAME|ARGS|ARGS_NAMES|REQUEST_HEADERS|XML:/*|!REQUEST_HEADERS:Referer&quot;
+&quot;@pmFromFile modsecurity_40_generic_attacks.data&quot;
+&quot;phase:2,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:compressWhiteSpace,t:lowercase,nolog,pass,setvar:tx.pm_score=+1,setvar:tx.pm_data_%{matched_var_name}=%{matched_var}&quot;
+SecAction &quot;phase:2,log,skipAfter:END_XSS_REGEX&quot;
+
+--bec3cc26-Z--
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090825/63b3c856/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20090825/63b3c856/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000067.html">[Owasp-modsecurity-core-rule-set] disable one rule
+</A></li>
+	<LI>Next message: <A HREF="000069.html">[Owasp-modsecurity-core-rule-set] Fix blocking issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#68">[ date ]</a>
+              <a href="thread.html#68">[ thread ]</a>
+              <a href="subject.html#68">[ subject ]</a>
+              <a href="author.html#68">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

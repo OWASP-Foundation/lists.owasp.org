@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] rules match despite	updated	target list
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20rules%20match%20despite%0A%09updated%09target%20list&In-Reply-To=%3CDUB406-EAS518BF223BF3B6788EBE0BC82630%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002115.html">
+   <LINK REL="Next"  HREF="002119.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] rules match despite	updated	target list</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20rules%20match%20despite%0A%09updated%09target%20list&In-Reply-To=%3CDUB406-EAS518BF223BF3B6788EBE0BC82630%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] rules match despite	updated	target list">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Tue Apr 26 20:42:07 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002115.html">[Owasp-modsecurity-core-rule-set] rules match despite	updated	target list
+</A></li>
+        <LI>Next message: <A HREF="002119.html">[Owasp-modsecurity-core-rule-set] Execution error - PCRE limits	exceeded (-8)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2116">[ date ]</a>
+              <a href="thread.html#2116">[ thread ]</a>
+              <a href="subject.html#2116">[ subject ]</a>
+              <a href="author.html#2116">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ok well then to Christian's point: Are you specifying this exception AFTER the rule itself is defined? At the moment it looks like your whitelist.conf file is loaded BEFORE the rules themselves. Annoyingly some exceptions (using ctl) do need specified before but this one needs specified after so it's a little confusing. I usually have the following:
+
+Include modsecurity.conf
+Include modsecurity_crs_10_setup.conf
+Include whitelist_before.conf
+Include owasp_crs\base_rules\*.conf
+Include whitelist_after.conf
+
+And in this case the exception needs to be in whitelist_after.conf file.
+
+Also are you sure that it's still blocking on rule 981318 and not another rule? Can you include the full log line?
+
+You can also turn on debug logging and you'll find a detailed log in there which might help you figure it out.
+
+I also presume you did restart your webserver to pick up the new config?
+
+Thanks,
+Barry
+
+&gt;<i> On 26 Apr 2016, at 21:28, Colin MacAllister &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cmacallister at probono.net</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> Thanks for the explanation. So it&#8217;s always assumed you are talking about the REQUEST_COOKIE_NAME, and the REQUEST_COOKIES part just tells you what to ignore. Cool.
+</I>&gt;<i>  
+</I>&gt;<i> However, it&#8217;s still not working. Now I have
+</I>&gt;<i>  
+</I>&gt;<i>                 SecRuleUpdateTargetById 981318 &quot;!REQUEST_COOKIES:CFAUTHORIZATION_cfadmin&quot;
+</I>&gt;<i>  
+</I>&gt;<i> The logs show everything starting up fine, and only one block &#8211; the first time it runs into that cookie.
+</I>&gt;<i>  
+</I>&gt;<i> Sent from Mail for Windows 10
+</I>&gt;<i>  
+</I>&gt;<i> From: Barry Pollard
+</I>&gt;<i> Sent: Tuesday, April 26, 2016 3:51 PM
+</I>&gt;<i> To: Colin MacAllister
+</I>&gt;<i> Cc: OWASP CRS Mailing List
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] rules match despite updated target list
+</I>&gt;<i>  
+</I>&gt;<i> Understand that.
+</I>&gt;<i> 
+</I>&gt;<i> My version of the exception means &quot;exclude rule 981318 from checking the value of the cookie which has the name CFAUTH...&quot;
+</I>&gt;<i> 
+</I>&gt;<i> You're version of the rule means  &quot;exclude rule 981318 from checking the name of the cookie which has the name CFAUTH...&quot;
+</I>&gt;<i> 
+</I>&gt;<i> Both versions of the exclude config are specific to that cookie name.
+</I>&gt;<i> 
+</I>&gt;<i> The log you've shown suggests it's the cookie value (for cookie CFAUTH..) which is triggering the rule not the cookie NAME itself. This makes sense if the cookie value contains double quotes as that is basically what rule 981318 checks for.
+</I>&gt;<i> 
+</I>&gt;<i> There's rarely a need to check the cookie name, so mostly you want to check the value. However if your cookie name included an SQL word (e.g. if your cookie was called abcTRUNCATE123 for example) then you might want to exclude the cookie name from SQL injection rules.
+</I>&gt;<i> 
+</I>&gt;<i> Thanks,
+</I>&gt;<i> Barry
+</I>&gt;<i> 
+</I>&gt;<i> On 26 Apr 2016, at 20:38, Colin MacAllister &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cmacallister at probono.net</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I'm trying to remove the rule when the cookie *name* is that CFAUTH... The cookie value changes with each session. What the have in common are enclosing double quotes, but I only wish to whitelist them when the cookie name is as above.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> from my phone
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> On Apr 26, 2016 3:10 PM, Barry Pollard &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> You are whitelisting the cookie name and not its value.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Try this:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     SecRuleUpdateTargetById 981318 &quot;!REQUEST_COOKIES:CFAUTHORIZATION_cfadmin&quot;
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks,
+</I>&gt;&gt;<i> Barry
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &gt; On 26 Apr 2016, at 19:47, Colin MacAllister &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">cmacallister at probono.net</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; SecRuleUpdateTargetById 981318 &quot;!REQUEST_COOKIES_NAMES:CFAUTHORIZATION_cfadmin&quot;
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160426/70effb3a/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160426/70effb3a/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002115.html">[Owasp-modsecurity-core-rule-set] rules match despite	updated	target list
+</A></li>
+	<LI>Next message: <A HREF="002119.html">[Owasp-modsecurity-core-rule-set] Execution error - PCRE limits	exceeded (-8)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2116">[ date ]</a>
+              <a href="thread.html#2116">[ thread ]</a>
+              <a href="subject.html#2116">[ subject ]</a>
+              <a href="author.html#2116">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

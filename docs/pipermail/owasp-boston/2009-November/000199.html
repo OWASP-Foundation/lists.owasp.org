@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-boston] Checking file types on upload
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-boston%40lists.owasp.org?Subject=%5BOwasp-boston%5D%20Checking%20file%20types%20on%20upload&In-Reply-To=4AFC28CC.7020505%40zsquad.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000197.html">
+   <LINK REL="Next"  HREF="000201.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-boston] Checking file types on upload</H1>
+    <B>Kozlov, Paul</B> 
+    <A HREF="mailto:owasp-boston%40lists.owasp.org?Subject=%5BOwasp-boston%5D%20Checking%20file%20types%20on%20upload&In-Reply-To=4AFC28CC.7020505%40zsquad.com"
+       TITLE="[Owasp-boston] Checking file types on upload">paul_kozlov at harvard.edu
+       </A><BR>
+    <I>Thu Nov 12 10:39:10 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000197.html">[Owasp-boston] Checking file types on upload
+</A></li>
+        <LI>Next message: <A HREF="000201.html">[Owasp-boston] Spear Phishing attacks on the rise?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#199">[ date ]</a>
+              <a href="thread.html#199">[ thread ]</a>
+              <a href="subject.html#199">[ subject ]</a>
+              <a href="author.html#199">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On some Linux flavors you can use file command to test the file types.
+It will recognize php scripts even if files do not have the right
+extension. Here is a sample output I have on RHEL 4 system:
+
+ 
+
+$ file testfile.php
+
+testfile.php: PHP script text
+
+$ mv  testfile.php testfile.jpg
+
+$ file testfile.jpg
+
+testfile.jpg: PHP script text
+
+ 
+
+To automate that find + grep may be used as follows, and these files can
+be singled out for manual examination or be deleted right away if you
+wish.
+
+ 
+
+$ find . -name '*.jpg' -exec file {} \; | grep PHP
+
+./testfile.jpg: PHP script text
+
+ 
+
+----------------------------------------------------
+
+Paul Kozlov, CISSP
+
+Operations Manager, IT Infrastructure Services
+
+Harvard University UIS
+
+________________________________
+
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">owasp-boston-bounces at lists.owasp.org</A>
+[mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">owasp-boston-bounces at lists.owasp.org</A>] On Behalf Of Javed Ikbal
+Sent: Thursday, November 12, 2009 10:25 AM
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">owasp-boston at lists.owasp.org</A>
+Subject: Re: [Owasp-boston] Checking file types on upload
+
+ 
+
+Yes,  &quot;&lt;?&quot; may exist in an image file.
+
+But:
+Given the upload dirs may have hundreds, if not thousands of files,
+finding the suspicious files would be a chore--hence my recommendation.
+
+grep will narrow down the list of suspects very quickly for the manual
+examination, or the output of the grep could be piped to the php syntax
+check as you suggested.
+
+Javed
+
+Stephane Corlosquet wrote: 
+
+	I guess you can run grep in the upload dirs to catch misnamed
+php files
+	that have already been upload, something like:
+	
+	grep -R &quot;&lt;?&quot; *.jpg *.gif *.png
+
+
+An image file could contain &quot;&lt;?&quot; but that does not mean it's a PHP file.
+Maybe you could run php --syntax-check on the command line to check the
+syntax of a suspicious file.
+
+Steph.
+
+On Thu, Nov 12, 2009 at 9:57 AM, Javed Ikbal &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">javed at zsquad.com</A>&gt; wrote:
+
+The most common (and error-prone) method is to use the $_FILES array.
+The browser supplies this information to the server, and IE is notorious
+for using the extension to tell the server what the filetype is.
+
+As it uses the filename extension, it is easy to fool (or make the
+mistake)
+
+With PHP 5.3 or above, you can use fileinfo
+
+<A HREF="http://www.php.net/manual/en/function.finfo-file.php">http://www.php.net/manual/en/function.finfo-file.php</A>
+
+For older versions, fileinfo is a loadable module.
+
+I guess you can run grep in the upload dirs to catch misnamed php files
+that have already been upload, something like:
+
+grep -R &quot;&lt;?&quot; *.jpg *.gif *.png
+
+Regards
+
+Javed
+
+
+Laverty, Patrick wrote:
+&gt;<i> Sorry for all the questions lately, but I'm wondering if someone has
+</I>&gt;<i> come up with a reliable way to check actual file types when they get
+</I>&gt;<i> uploaded to a server, preferably with PHP.  We've had some issues
+</I>where
+&gt;<i> people uploaded php files with a .jpg or .gif extension, so they
+</I>slipped
+&gt;<i> by for a while.
+</I>&gt;<i>
+</I>&gt;<i> We are turning off php in upload directories, among other security
+</I>&gt;<i> steps, but I just wanted to see if I could do more than just checking
+</I>&gt;<i> the file extension.  Looking for that extra layer of security.
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i>
+</I>&gt;<i> Patrick Laverty
+</I>&gt;<i> Brown University
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-boston mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">Owasp-boston at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">https://lists.owasp.org/mailman/listinfo/owasp-boston</A>
+</I>&gt;<i>
+</I>
+_______________________________________________
+Owasp-boston mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">Owasp-boston at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">https://lists.owasp.org/mailman/listinfo/owasp-boston</A>
+
+
+
+
+
+ 
+
+
+
+________________________________
+
+
+
+ 
+_______________________________________________
+Owasp-boston mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">Owasp-boston at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">https://lists.owasp.org/mailman/listinfo/owasp-boston</A>
+  
+
+ 
+
+-- 
+
+Best regards 
+
+Javed
+-------------------------------------------------------------------
+Javed Ikbal, CISSP, CISM, CISA
+Principal
+www.zsquad.com | E: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-boston">javed at zsquad.com</A>
+P: 617 780 9052 | F: 781 723 0590
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-boston/attachments/20091112/a4d5c3eb/attachment.html">https://lists.owasp.org/pipermail/owasp-boston/attachments/20091112/a4d5c3eb/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000197.html">[Owasp-boston] Checking file types on upload
+</A></li>
+	<LI>Next message: <A HREF="000201.html">[Owasp-boston] Spear Phishing attacks on the rise?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#199">[ date ]</a>
+              <a href="thread.html#199">[ thread ]</a>
+              <a href="subject.html#199">[ subject ]</a>
+              <a href="author.html#199">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-boston">More information about the Owasp-boston
+mailing list</a><br>
+</body></html>

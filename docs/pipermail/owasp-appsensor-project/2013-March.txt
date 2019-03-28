@@ -1,0 +1,1167 @@
+From panosx13 at gmail.com  Fri Mar  8 23:21:29 2013
+From: panosx13 at gmail.com (panos)
+Date: Sat, 09 Mar 2013 01:21:29 +0200
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+	created and sone other questions
+Message-ID: <513A7279.3090005@gmail.com>
+
+Hello,
+
+I was wondering if there is a way to detect in my code if a detection 
+point is created.
+
+For example i have the code
+
+if ( checkIntrution() )
+{
+     new AppSensorException("AE8", "Providing Only the Username ", 
+"Provided Only the Username");
+}
+
+and I want in my code to check if the AE8 has been created is there any 
+solution using only the Appsensor API?
+
+alternatively I have thought I way with a boolean variable
+
+for example
+
+boolean isCreated=false;
+if ( checkIntrution() )
+{
+     new AppSensorException("AE8", "Providing Only the Username ", 
+"Provided Only the Username");
+     isCreated=true;
+}
+
+....
+
+if( isCreated )
+{
+....
+}
+
+
+Also I was wondering if there is a solution on detecting in which action 
+is a Detection Point
+
+for example lets say that in esapi.properties I have this:
+
+IntrusionDetector.AE8.actions=log,logout,disable
+
+is there a way to see in which action is a detection point in my source 
+code ? for example I want to check if the action is in logout.
+
+
+Also if a user in not authenticated as I have seen, Appsensor treats him 
+like anonymous and the only action that can be applied in an anonymous 
+is log.
+
+is there a solution if I want to disable access to an anonymous?
+
+Thanks in advance
+
+Panos
+
+From jtmelton at gmail.com  Sat Mar  9 01:53:50 2013
+From: jtmelton at gmail.com (John Melton)
+Date: Fri, 8 Mar 2013 20:53:50 -0500
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <513A7279.3090005@gmail.com>
+References: <513A7279.3090005@gmail.com>
+Message-ID: <CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+
+Panos,
+Great questions.
+
+There is no mechanism for checking if a detection point has been triggered.
+Depending on your needs, you could do it via the boolean setting you
+mentioned or possibly by wrapping the intrusion detector with your own
+custom class and attaching observers for notification if you wanted that
+feature. Note however that this only informs you that a detection point has
+been triggered. You'd have to determine the detection point by examining
+the "code", ie AE8. Also note this is not a GUID, ie. multiple of these
+could be fired.
+
+As for checking which was the last response action executed, you could do
+something like the following:
+
+APPSENSOR.intrusionStore().getIntrusionRecordForUser(yourUserHere).getLastResponseAction("AE8");
+
+As for working with anonymous users, there's currently only support for
+logging really. You could augment the system to do certain things based on
+IP or other identifiers, but it would require you to extend our system.
+This is one of the challenges I'm trying to tackle in version 2 of the
+code, which I'm currently working on.
+
+Thanks,
+John
+
+
+On Fri, Mar 8, 2013 at 6:21 PM, panos <panosx13 at gmail.com> wrote:
+
+> Hello,
+>
+> I was wondering if there is a way to detect in my code if a detection
+> point is created.
+>
+> For example i have the code
+>
+> if ( checkIntrution() )
+> {
+>     new AppSensorException("AE8", "Providing Only the Username ",
+> "Provided Only the Username");
+> }
+>
+> and I want in my code to check if the AE8 has been created is there any
+> solution using only the Appsensor API?
+>
+> alternatively I have thought I way with a boolean variable
+>
+> for example
+>
+> boolean isCreated=false;
+> if ( checkIntrution() )
+> {
+>     new AppSensorException("AE8", "Providing Only the Username ",
+> "Provided Only the Username");
+>     isCreated=true;
+> }
+>
+> ....
+>
+> if( isCreated )
+> {
+> ....
+> }
+>
+>
+> Also I was wondering if there is a solution on detecting in which action
+> is a Detection Point
+>
+> for example lets say that in esapi.properties I have this:
+>
+> IntrusionDetector.AE8.actions=**log,logout,disable
+>
+> is there a way to see in which action is a detection point in my source
+> code ? for example I want to check if the action is in logout.
+>
+>
+> Also if a user in not authenticated as I have seen, Appsensor treats him
+> like anonymous and the only action that can be applied in an anonymous is
+> log.
+>
+> is there a solution if I want to disable access to an anonymous?
+>
+> Thanks in advance
+>
+> Panos
+> ______________________________**_________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.**owasp.org<Owasp-appsensor-project at lists.owasp.org>
+> https://lists.owasp.org/**mailman/listinfo/owasp-**appsensor-project<https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130308/802a01a1/attachment.html>
+
+From panosx13 at gmail.com  Sun Mar 10 22:58:32 2013
+From: panosx13 at gmail.com (panos)
+Date: Mon, 11 Mar 2013 00:58:32 +0200
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+Message-ID: <513D1018.6020300@gmail.com>
+
+Actually I want to blog malicious users, who are trying for example 
+bruteforcing the login.
+
+I thought something and I would like to ask you to advice me.
+
+If in the login page when a user visits it, is it possible to create an 
+Appsensor user without the users who visits the login page do nothing 
+and knows about it?
+
+For example if I visit a page a random username is picked up and an 
+Appsensor user lets say bob is created.
+
+So the user that visits the login page is not anonymous but bob. So I 
+think that Appsensor can disable the access ?
+
+My questions mow:  Do you think that a scenario like this can work and 
+help me disabling access to anonymous?
+
+
+
+
+
+
+
+On 03/09/2013 03:53 AM, John Melton wrote:
+> Panos,
+> Great questions.
+>
+> There is no mechanism for checking if a detection point has been 
+> triggered. Depending on your needs, you could do it via the boolean 
+> setting you mentioned or possibly by wrapping the intrusion detector 
+> with your own custom class and attaching observers for notification if 
+> you wanted that feature. Note however that this only informs you that 
+> a detection point has been triggered. You'd have to determine the 
+> detection point by examining the "code", ie AE8. Also note this is not 
+> a GUID, ie. multiple of these could be fired.
+>
+> As for checking which was the last response action executed, you could 
+> do something like the following:
+>
+> APPSENSOR.intrusionStore().getIntrusionRecordForUser(yourUserHere).getLastResponseAction("AE8");
+>
+> As for working with anonymous users, there's currently only support 
+> for logging really. You could augment the system to do certain things 
+> based on IP or other identifiers, but it would require you to extend 
+> our system. This is one of the challenges I'm trying to tackle in 
+> version 2 of the code, which I'm currently working on.
+>
+> Thanks,
+> John
+>
+>
+> On Fri, Mar 8, 2013 at 6:21 PM, panos <panosx13 at gmail.com 
+> <mailto:panosx13 at gmail.com>> wrote:
+>
+>     Hello,
+>
+>     I was wondering if there is a way to detect in my code if a
+>     detection point is created.
+>
+>     For example i have the code
+>
+>     if ( checkIntrution() )
+>     {
+>         new AppSensorException("AE8", "Providing Only the Username ",
+>     "Provided Only the Username");
+>     }
+>
+>     and I want in my code to check if the AE8 has been created is
+>     there any solution using only the Appsensor API?
+>
+>     alternatively I have thought I way with a boolean variable
+>
+>     for example
+>
+>     boolean isCreated=false;
+>     if ( checkIntrution() )
+>     {
+>         new AppSensorException("AE8", "Providing Only the Username ",
+>     "Provided Only the Username");
+>         isCreated=true;
+>     }
+>
+>     ....
+>
+>     if( isCreated )
+>     {
+>     ....
+>     }
+>
+>
+>     Also I was wondering if there is a solution on detecting in which
+>     action is a Detection Point
+>
+>     for example lets say that in esapi.properties I have this:
+>
+>     IntrusionDetector.AE8.actions=log,logout,disable
+>
+>     is there a way to see in which action is a detection point in my
+>     source code ? for example I want to check if the action is in logout.
+>
+>
+>     Also if a user in not authenticated as I have seen, Appsensor
+>     treats him like anonymous and the only action that can be applied
+>     in an anonymous is log.
+>
+>     is there a solution if I want to disable access to an anonymous?
+>
+>     Thanks in advance
+>
+>     Panos
+>     _______________________________________________
+>     Owasp-appsensor-project mailing list
+>     Owasp-appsensor-project at lists.owasp.org
+>     <mailto:Owasp-appsensor-project at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/60a01b94/attachment.html>
+
+From jtmelton at gmail.com  Mon Mar 11 00:27:45 2013
+From: jtmelton at gmail.com (John Melton)
+Date: Sun, 10 Mar 2013 20:27:45 -0400
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <513D1018.6020300@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+Message-ID: <CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+
+This concept doesn't really make sense to me, but I suppose it could work.
+The important piece is having some way of ensuring the same "user" is
+assigned to Bob every time. If it's all in one session, that's probably not
+an issue, but on repeated visits, you'd need some method of correlation,
+like the IP address I mentioned earlier or some other mechanism. The other
+issue with using a random username is that you don't really know what that
+represents. You should try to use something identifiable.
+
+Thanks,
+John
+
+
+On Sun, Mar 10, 2013 at 6:58 PM, panos <panosx13 at gmail.com> wrote:
+
+> **
+> Actually I want to blog malicious users, who are trying for example
+> bruteforcing the login.
+>
+> I thought something and I would like to ask you to advice me.
+>
+> If in the login page when a user visits it, is it possible to create an
+> Appsensor user without the users who visits the login page do nothing and
+> knows about it?
+>
+> For example if I visit a page a random username is picked up and an
+> Appsensor user lets say bob is created.
+>
+> So the user that visits the login page is not anonymous but bob. So I
+> think that Appsensor can disable the access ?
+>
+> My questions mow:  Do you think that a scenario like this can work and
+> help me disabling access to anonymous?
+>
+>
+>
+>
+>
+>
+>
+>
+> On 03/09/2013 03:53 AM, John Melton wrote:
+>
+>   Panos,
+> Great questions.
+>
+>  There is no mechanism for checking if a detection point has been
+> triggered. Depending on your needs, you could do it via the boolean setting
+> you mentioned or possibly by wrapping the intrusion detector with your own
+> custom class and attaching observers for notification if you wanted that
+> feature. Note however that this only informs you that a detection point has
+> been triggered. You'd have to determine the detection point by examining
+> the "code", ie AE8. Also note this is not a GUID, ie. multiple of these
+> could be fired.
+>
+>  As for checking which was the last response action executed, you could do
+> something like the following:
+>
+> APPSENSOR.intrusionStore().getIntrusionRecordForUser(yourUserHere).getLastResponseAction("AE8");
+>
+>  As for working with anonymous users, there's currently only support for
+> logging really. You could augment the system to do certain things based on
+> IP or other identifiers, but it would require you to extend our system.
+> This is one of the challenges I'm trying to tackle in version 2 of the
+> code, which I'm currently working on.
+>
+> Thanks,
+> John
+>
+>
+> On Fri, Mar 8, 2013 at 6:21 PM, panos <panosx13 at gmail.com> wrote:
+>
+>> Hello,
+>>
+>> I was wondering if there is a way to detect in my code if a detection
+>> point is created.
+>>
+>> For example i have the code
+>>
+>> if ( checkIntrution() )
+>> {
+>>     new AppSensorException("AE8", "Providing Only the Username ",
+>> "Provided Only the Username");
+>> }
+>>
+>> and I want in my code to check if the AE8 has been created is there any
+>> solution using only the Appsensor API?
+>>
+>> alternatively I have thought I way with a boolean variable
+>>
+>> for example
+>>
+>> boolean isCreated=false;
+>> if ( checkIntrution() )
+>> {
+>>     new AppSensorException("AE8", "Providing Only the Username ",
+>> "Provided Only the Username");
+>>     isCreated=true;
+>> }
+>>
+>> ....
+>>
+>> if( isCreated )
+>> {
+>> ....
+>> }
+>>
+>>
+>> Also I was wondering if there is a solution on detecting in which action
+>> is a Detection Point
+>>
+>> for example lets say that in esapi.properties I have this:
+>>
+>> IntrusionDetector.AE8.actions=log,logout,disable
+>>
+>> is there a way to see in which action is a detection point in my source
+>> code ? for example I want to check if the action is in logout.
+>>
+>>
+>> Also if a user in not authenticated as I have seen, Appsensor treats him
+>> like anonymous and the only action that can be applied in an anonymous is
+>> log.
+>>
+>> is there a solution if I want to disable access to an anonymous?
+>>
+>> Thanks in advance
+>>
+>> Panos
+>> _______________________________________________
+>> Owasp-appsensor-project mailing list
+>> Owasp-appsensor-project at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130310/8dfec62f/attachment.html>
+
+From panosx13 at gmail.com  Mon Mar 11 01:14:17 2013
+From: panosx13 at gmail.com (panos)
+Date: Mon, 11 Mar 2013 03:14:17 +0200
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+Message-ID: <513D2FE9.5050104@gmail.com>
+
+Yes random username isn't so good idea actually is very bad idea.I 
+thought  of getting the IP and giving  it as username for example 
+"Ano192.168.1.1".  I think that something like this it will work. I'll 
+try it.
+
+Thanks,
+Panos
+
+
+
+On 03/11/2013 02:27 AM, John Melton wrote:
+> This concept doesn't really make sense to me, but I suppose it could 
+> work. The important piece is having some way of ensuring the same 
+> "user" is assigned to Bob every time. If it's all in one session, 
+> that's probably not an issue, but on repeated visits, you'd need some 
+> method of correlation, like the IP address I mentioned earlier or some 
+> other mechanism. The other issue with using a random username is that 
+> you don't really know what that represents. You should try to use 
+> something identifiable.
+>
+> Thanks,
+> John
+>
+>
+> On Sun, Mar 10, 2013 at 6:58 PM, panos <panosx13 at gmail.com 
+> <mailto:panosx13 at gmail.com>> wrote:
+>
+>     Actually I want to blog malicious users, who are trying for
+>     example bruteforcing the login.
+>
+>     I thought something and I would like to ask you to advice me.
+>
+>     If in the login page when a user visits it, is it possible to
+>     create an Appsensor user without the users who visits the login
+>     page do nothing and knows about it?
+>
+>     For example if I visit a page a random username is picked up and
+>     an Appsensor user lets say bob is created.
+>
+>     So the user that visits the login page is not anonymous but bob.
+>     So I think that Appsensor can disable the access ?
+>
+>     My questions mow:  Do you think that a scenario like this can work
+>     and help me disabling access to anonymous?
+>
+>
+>
+>
+>
+>
+>
+>
+>     On 03/09/2013 03:53 AM, John Melton wrote:
+>>     Panos,
+>>     Great questions.
+>>
+>>     There is no mechanism for checking if a detection point has been
+>>     triggered. Depending on your needs, you could do it via the
+>>     boolean setting you mentioned or possibly by wrapping the
+>>     intrusion detector with your own custom class and attaching
+>>     observers for notification if you wanted that feature. Note
+>>     however that this only informs you that a detection point has
+>>     been triggered. You'd have to determine the detection point by
+>>     examining the "code", ie AE8. Also note this is not a GUID, ie.
+>>     multiple of these could be fired.
+>>
+>>     As for checking which was the last response action executed, you
+>>     could do something like the following:
+>>
+>>     APPSENSOR.intrusionStore().getIntrusionRecordForUser(yourUserHere).getLastResponseAction("AE8");
+>>
+>>     As for working with anonymous users, there's currently only
+>>     support for logging really. You could augment the system to do
+>>     certain things based on IP or other identifiers, but it would
+>>     require you to extend our system. This is one of the challenges
+>>     I'm trying to tackle in version 2 of the code, which I'm
+>>     currently working on.
+>>
+>>     Thanks,
+>>     John
+>>
+>>
+>>     On Fri, Mar 8, 2013 at 6:21 PM, panos <panosx13 at gmail.com
+>>     <mailto:panosx13 at gmail.com>> wrote:
+>>
+>>         Hello,
+>>
+>>         I was wondering if there is a way to detect in my code if a
+>>         detection point is created.
+>>
+>>         For example i have the code
+>>
+>>         if ( checkIntrution() )
+>>         {
+>>             new AppSensorException("AE8", "Providing Only the
+>>         Username ", "Provided Only the Username");
+>>         }
+>>
+>>         and I want in my code to check if the AE8 has been created is
+>>         there any solution using only the Appsensor API?
+>>
+>>         alternatively I have thought I way with a boolean variable
+>>
+>>         for example
+>>
+>>         boolean isCreated=false;
+>>         if ( checkIntrution() )
+>>         {
+>>             new AppSensorException("AE8", "Providing Only the
+>>         Username ", "Provided Only the Username");
+>>             isCreated=true;
+>>         }
+>>
+>>         ....
+>>
+>>         if( isCreated )
+>>         {
+>>         ....
+>>         }
+>>
+>>
+>>         Also I was wondering if there is a solution on detecting in
+>>         which action is a Detection Point
+>>
+>>         for example lets say that in esapi.properties I have this:
+>>
+>>         IntrusionDetector.AE8.actions=log,logout,disable
+>>
+>>         is there a way to see in which action is a detection point in
+>>         my source code ? for example I want to check if the action is
+>>         in logout.
+>>
+>>
+>>         Also if a user in not authenticated as I have seen, Appsensor
+>>         treats him like anonymous and the only action that can be
+>>         applied in an anonymous is log.
+>>
+>>         is there a solution if I want to disable access to an anonymous?
+>>
+>>         Thanks in advance
+>>
+>>         Panos
+>>         _______________________________________________
+>>         Owasp-appsensor-project mailing list
+>>         Owasp-appsensor-project at lists.owasp.org
+>>         <mailto:Owasp-appsensor-project at lists.owasp.org>
+>>         https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>
+>>
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/007f240c/attachment-0001.html>
+
+From dennis.groves at gmail.com  Mon Mar 11 10:08:43 2013
+From: dennis.groves at gmail.com (Dennis Groves)
+Date: Mon, 11 Mar 2013 10:08:43 +0000
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <513D2FE9.5050104@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+Message-ID: <2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+
+On 11 Mar 2013, at 1:14, panos wrote:
+
+> Yes random username isn't so good idea actually is very bad idea.I 
+> thought  of getting the IP and giving  it as username for example 
+> "Ano192.168.1.1".  I think that something like this it will work. I'll 
+> try it.
+
+One of the issues is the concept of identity, it only takes [32 bits of 
+information to identify 
+somebody](https://www.eff.org/deeplinks/2010/01/primer-information-theory-and-privacy). 
+IP Address is certainly not enough and unsurprisingly you can easily 
+gather enough information to have very high confidence in identity 
+without any username or password.
+
+And you will most certainly you will have enough information to make a 
+Baysian decision (how likely is it this identity is being hostile?) 
+based on the behaviour of that identity (33 bits) for AppSensor. I 
+suggest that anybody who doesn't surrender the '33 bits' is perhaps 
+automatically suspect since they fall outside your standard deviation 
+model of users.
+
+
+
+Dennis
+
+-- 
+[Dennis Groves](http://about.me/dennis.groves), MSc
+[Email me](mailto:dennis.groves at owasp.org) or [schedule a 
+meeting](http://goo.gl/8sPIy).
+
+*This email is licensed under a [CC BY-ND 
+3.0](http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB) license.*
+
+**Please do not send me Microsoft Office/Apple iWork documents.**
+Send [OpenDocument](http://fsf.org/campaigns/opendocument/) instead!
+Stand up for your freedom to install [free 
+software](http://www.fsf.org/campaigns/secure-boot/statement).
+
+> The idea that some lives matter less is the root of all that?s wrong 
+> with the world. -- Paul Farmer
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/2639bf46/attachment.html>
+
+From dennis.groves at gmail.com  Mon Mar 11 10:26:36 2013
+From: dennis.groves at gmail.com (Dennis Groves)
+Date: Mon, 11 Mar 2013 10:26:36 +0000
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+Message-ID: <AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+
+On 11 Mar 2013, at 10:08, Dennis Groves wrote:
+
+> One of the issues is the concept of identity, it only takes [32 bits 
+> of information to identify 
+> somebody](https://www.eff.org/deeplinks/2010/01/primer-information-theory-and-privacy). 
+> IP Address is certainly not enough and unsurprisingly you can easily 
+> gather enough information to have very high confidence in identity 
+> without any username or password.
+
+A better link on [browser 
+uniqueness](https://panopticlick.eff.org/browser-uniqueness.pdf) that 
+will give you much better information about uniquely identifying 
+visitors without either username or password. Of course my browser only 
+gives 21.4 bits of the 33 required; however even that is information 
+that gives you a high degree of confidence about me. Also remember IP 
+addresses have origins; and origins have populations - information is 
+being leaked all over the place?
+
+
+
+Dennis
+
+-- 
+[Dennis Groves](http://about.me/dennis.groves), MSc
+[Email me](mailto:dennis.groves at owasp.org) or [schedule a 
+meeting](http://goo.gl/8sPIy).
+
+*This email is licensed under a [CC BY-ND 
+3.0](http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB) license.*
+
+**Please do not send me Microsoft Office/Apple iWork documents.**
+Send [OpenDocument](http://fsf.org/campaigns/opendocument/) instead!
+Stand up for your freedom to install [free 
+software](http://www.fsf.org/campaigns/secure-boot/statement).
+
+> The idea that some lives matter less is the root of all that?s wrong 
+> with the world. -- Paul Farmer
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/425c7e6f/attachment.html>
+
+From pydi.santu at gmail.com  Mon Mar 11 15:37:09 2013
+From: pydi.santu at gmail.com (santosh kumar)
+Date: Mon, 11 Mar 2013 21:07:09 +0530
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+	<AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+Message-ID: <CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+
+IP address information is not at all sufficient for user identification. Of
+course, an user may user different systems for accessing an application.
+Instead a two level security check can incorporated to give the access
+which can avoid unauthenticated entry into the application.
+
+
+Regards
+P.Santoshkumar
+JTO-NSOC
+BSNL.
+
+
+
+
+On Mon, Mar 11, 2013 at 3:56 PM, Dennis Groves <dennis.groves at gmail.com>wrote:
+
+> On 11 Mar 2013, at 10:08, Dennis Groves wrote:
+>
+> One of the issues is the concept of identity, it only takes 32 bits of
+> information to identify somebody<https://www.eff.org/deeplinks/2010/01/primer-information-theory-and-privacy>.
+> IP Address is certainly not enough and unsurprisingly you can easily gather
+> enough information to have very high confidence in identity without any
+> username or password.
+>
+> A better link on browser uniqueness<https://panopticlick.eff.org/browser-uniqueness.pdf>that will give you much better information about uniquely identifying
+> visitors without either username or password. Of course my browser only
+> gives 21.4 bits of the 33 required; however even that is information that
+> gives you a high degree of confidence about me. Also remember IP addresses
+> have origins; and origins have populations - information is being leaked
+> all over the place?
+>
+> Dennis
+> ------------------------------
+>
+> Dennis Groves <http://about.me/dennis.groves>, MSc
+> Email me <dennis.groves at owasp.org> or schedule a meeting<http://goo.gl/8sPIy>
+> .
+>
+> *This email is licensed under a CC BY-ND 3.0<http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB>license.
+> *
+>
+> *Please do not send me Microsoft Office/Apple iWork documents.*
+> Send OpenDocument <http://fsf.org/campaigns/opendocument/> instead!
+> Stand up for your freedom to install free software<http://www.fsf.org/campaigns/secure-boot/statement>
+> .
+>
+> The idea that some lives matter less is the root of all that?s wrong with
+> the world. -- Paul Farmer
+>
+>
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/9990af2e/attachment.html>
+
+From panosx13 at gmail.com  Mon Mar 11 15:47:45 2013
+From: panosx13 at gmail.com (panos)
+Date: Mon, 11 Mar 2013 17:47:45 +0200
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+References: <513A7279.3090005@gmail.com>	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>	<513D1018.6020300@gmail.com>	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>	<513D2FE9.5050104@gmail.com>	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>	<AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+	<CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+Message-ID: <513DFCA1.5030803@gmail.com>
+
+Thank you very much for your suggestions. Firstly I'll try to study 
+about these and secondly to implement them.
+
+
+Thanks
+Panos
+
+
+
+
+On 03/11/2013 05:37 PM, santosh kumar wrote:
+> IP address information is not at all sufficient for user 
+> identification. Of course, an user may user different systems for 
+> accessing an application. Instead a two level security check 
+> can incorporated to give the access which can avoid unauthenticated 
+> entry into the application.
+>
+>
+> Regards
+> P.Santoshkumar
+> JTO-NSOC
+> BSNL.
+>
+>
+>
+>
+> On Mon, Mar 11, 2013 at 3:56 PM, Dennis Groves 
+> <dennis.groves at gmail.com <mailto:dennis.groves at gmail.com>> wrote:
+>
+>     On 11 Mar 2013, at 10:08, Dennis Groves wrote:
+>
+>         One of the issues is the concept of identity, it only takes 32
+>         bits of information to identify somebody
+>         <https://www.eff.org/deeplinks/2010/01/primer-information-theory-and-privacy>.
+>         IP Address is certainly not enough and unsurprisingly you can
+>         easily gather enough information to have very high confidence
+>         in identity without any username or password.
+>
+>     A better link on browser uniqueness
+>     <https://panopticlick.eff.org/browser-uniqueness.pdf> that will
+>     give you much better information about uniquely identifying
+>     visitors without either username or password. Of course my browser
+>     only gives 21.4 bits of the 33 required; however even that is
+>     information that gives you a high degree of confidence about me.
+>     Also remember IP addresses have origins; and origins have
+>     populations - information is being leaked all over the place?
+>
+>     Dennis
+>
+>     ------------------------------------------------------------------------
+>
+>     Dennis Groves <http://about.me/dennis.groves>, MSc
+>     Email me <mailto:dennis.groves at owasp.org> or schedule a meeting
+>     <http://goo.gl/8sPIy>.
+>
+>     /This email is licensed under a CC BY-ND 3.0
+>     <http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB> license./
+>
+>     *Please do not send me Microsoft Office/Apple iWork documents.*
+>     Send OpenDocument <http://fsf.org/campaigns/opendocument/> instead!
+>     Stand up for your freedom to install free software
+>     <http://www.fsf.org/campaigns/secure-boot/statement>.
+>
+>         The idea that some lives matter less is the root of all that?s
+>         wrong with the world. -- Paul Farmer
+>
+>
+>     _______________________________________________
+>     Owasp-appsensor-project mailing list
+>     Owasp-appsensor-project at lists.owasp.org
+>     <mailto:Owasp-appsensor-project at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/f67dbcdd/attachment.html>
+
+From dennis.groves at gmail.com  Mon Mar 11 15:55:31 2013
+From: dennis.groves at gmail.com (Dennis Groves)
+Date: Mon, 11 Mar 2013 15:55:31 +0000
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+	<AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+	<CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+Message-ID: <CA634A28-98E4-4661-9AD9-788A2C7E553A@gmail.com>
+
+On 11 Mar 2013, at 15:37, santosh kumar wrote:
+
+> IP address information is not at all sufficient for user 
+> identification.
+
+This is the key requirement - **sufficient identification**
+
+> Of course, an user may user different systems for accessing an 
+> application.
+
+Of course!
+
+> Instead a two level security check can incorporated to give the access
+> which can avoid unauthenticated entry into the application.
+
+We are not doing authentication nor access control. What we are doing 
+does not require positive identification. All that is required is just 
+enough information for creating AppSensor 'detection points'
+
+For example - if you have the 33 bits of information about all 
+authenticated users; and you hashed that information and compared it to 
+a hash of of the 33 bits of information about anybody who is attempting 
+to log into the site - you now have enough information to know 
+statistically if you have a new user, or a returning user with a high 
+degree of certainty.
+
+Of course nothing is perfect; I myself travel the world and google 
+always fails to get my language settings correct despite my having 
+literally set them in my profile.
+
+Nevertheless, I have no doubt that my 21.4 bits of entropy give you far 
+more information about me as a person than any IP address ever would - 
+despite my changing localities all the time. And that information is 
+more than enough to make decisions about me with the OWASP AppSensor.
+
+E.g. If my 21.4 bits of entropy attempt to hack you with say a SQLi - 
+you can likely ban my 21.4 bits of entropy at the application for 4 
+hours with a great deal more success and less side effects than my IP 
+address (current 'best practice') and the entire point of the OWASP 
+AppSensor concept.
+
+Does this make sense to you Santosh?
+
+Dennis
+
+-- 
+[Dennis Groves](http://about.me/dennis.groves), MSc
+[Email me](mailto:dennis.groves at owasp.org) or [schedule a 
+meeting](http://goo.gl/8sPIy).
+
+*This email is licensed under a [CC BY-ND 
+3.0](http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB) license.*
+
+**Please do not send me Microsoft Office/Apple iWork documents.**
+Send [OpenDocument](http://fsf.org/campaigns/opendocument/) instead!
+Stand up for your freedom to install [free 
+software](http://www.fsf.org/campaigns/secure-boot/statement).
+
+> The idea that some lives matter less is the root of all that?s wrong 
+> with the world. -- Paul Farmer
+
+From ryan.barnett at owasp.org  Mon Mar 11 16:50:21 2013
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Mon, 11 Mar 2013 12:50:21 -0400
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+Message-ID: <CABir4DsVCkm6Ytt2WGe8FJBf2uih6froXV-Kwhc-UaFo61v=zQ@mail.gmail.com>
+
+On Mon, Mar 11, 2013 at 6:08 AM, Dennis Groves <dennis.groves at gmail.com>wrote:
+
+> On 11 Mar 2013, at 1:14, panos wrote:
+>
+> Yes random username isn't so good idea actually is very bad idea.I thought
+> of getting the IP and giving it as username for example "Ano192.168.1.1". I
+> think that something like this it will work. I'll try it.
+>
+> One of the issues is the concept of identity, it only takes 32 bits of
+> information to identify somebody<https://www.eff.org/deeplinks/2010/01/primer-information-theory-and-privacy>.
+> IP Address is certainly not enough and unsurprisingly you can easily gather
+> enough information to have very high confidence in identity without any
+> username or password.
+>
+> And you will most certainly you will have enough information to make a
+> Baysian decision (how likely is it this identity is being hostile?) based
+> on the behaviour of that identity (33 bits) for AppSensor. I suggest that
+> anybody who doesn't surrender the '33 bits' is perhaps automatically
+> suspect since they fall outside your standard deviation model of users.
+>
+> Dennis
+>
+>
+> I show some examples of similar approaches in Recipe 8-5: Detecting
+Browser Fingerprint Changes During Sessions of my book -
+http://www.wiley.com/WileyCDA/WileyTitle/productCd-1118362187,descCd-tableOfContents.html
+
+
+This uses JS code to send to the browser, it then calculates a hash of the
+browser fingerprint and then adds it as a cookie value.  This is then saved
+server side in the SessionID collection.  This way you can track the
+unauthenticated user by their browser fingerprint.
+
+-Ryan
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/ab39e290/attachment-0001.html>
+
+From pydi.santu at gmail.com  Mon Mar 11 16:24:47 2013
+From: pydi.santu at gmail.com (santosh kumar)
+Date: Mon, 11 Mar 2013 21:54:47 +0530
+Subject: [Owasp-appsensor-project] how to detect if a detection point is
+ created and sone other questions
+In-Reply-To: <CA634A28-98E4-4661-9AD9-788A2C7E553A@gmail.com>
+References: <513A7279.3090005@gmail.com>
+	<CAM8z=yJtrVRriNje=AHQ9sfu9Ri6RL8FC6ZU8+zE=5XO_qf7jg@mail.gmail.com>
+	<513D1018.6020300@gmail.com>
+	<CAM8z=yKCV_-bTUd0SGRi+gkrvh4SEEn4Mq9+6p2FL9n+iv0wWA@mail.gmail.com>
+	<513D2FE9.5050104@gmail.com>
+	<2C813BAD-F006-481F-BD7B-2F67DFDC55F0@gmail.com>
+	<AE9879DC-C996-4A6D-B4DE-121D76E4DE72@gmail.com>
+	<CABKYcOesPcN+_ifxnMkOQNncbVxd51ude1r6R=P3jdgBDmdt=A@mail.gmail.com>
+	<CA634A28-98E4-4661-9AD9-788A2C7E553A@gmail.com>
+Message-ID: <CABKYcOfuqNaSpZ2Qdm77MBqJw_pFZECXC2P0QsVdzoNqYv+e6A@mail.gmail.com>
+
+Yes Dennis..I understood...Instead of relying on IP address data, Its
+better to tackle with browser finger printing mechanism. Even though it may
+not provide 100% reliability on malicious user info, but it significantly
+improves your requirement criteria.
+
+
+
+
+
+
+On Mon, Mar 11, 2013 at 9:25 PM, Dennis Groves <dennis.groves at gmail.com>wrote:
+
+> On 11 Mar 2013, at 15:37, santosh kumar wrote:
+>
+>  IP address information is not at all sufficient for user identification.
+>>
+>
+> This is the key requirement - **sufficient identification**
+>
+>
+>  Of course, an user may user different systems for accessing an
+>> application.
+>>
+>
+> Of course!
+>
+>
+>  Instead a two level security check can incorporated to give the access
+>> which can avoid unauthenticated entry into the application.
+>>
+>
+> We are not doing authentication nor access control. What we are doing does
+> not require positive identification. All that is required is just enough
+> information for creating AppSensor 'detection points'
+>
+> For example - if you have the 33 bits of information about all
+> authenticated users; and you hashed that information and compared it to a
+> hash of of the 33 bits of information about anybody who is attempting to
+> log into the site - you now have enough information to know statistically
+> if you have a new user, or a returning user with a high degree of certainty.
+>
+> Of course nothing is perfect; I myself travel the world and google always
+> fails to get my language settings correct despite my having literally set
+> them in my profile.
+>
+> Nevertheless, I have no doubt that my 21.4 bits of entropy give you far
+> more information about me as a person than any IP address ever would -
+> despite my changing localities all the time. And that information is more
+> than enough to make decisions about me with the OWASP AppSensor.
+>
+> E.g. If my 21.4 bits of entropy attempt to hack you with say a SQLi - you
+> can likely ban my 21.4 bits of entropy at the application for 4 hours with
+> a great deal more success and less side effects than my IP address (current
+> 'best practice') and the entire point of the OWASP AppSensor concept.
+>
+> Does this make sense to you Santosh?
+>
+> Dennis
+>
+> --
+> [Dennis Groves](http://about.me/**dennis.groves<http://about.me/dennis.groves>),
+> MSc
+> [Email me](mailto:dennis.groves@**owasp.org <dennis.groves at owasp.org>) or
+> [schedule a meeting](http://goo.gl/8sPIy).
+>
+> *This email is licensed under a [CC BY-ND 3.0](http://creativecommons.**
+> org/licenses/by-nd/3.0/deed.**en_GB<http://creativecommons.org/licenses/by-nd/3.0/deed.en_GB>)
+> license.*
+>
+> **Please do not send me Microsoft Office/Apple iWork documents.**
+> Send [OpenDocument](http://fsf.org/**campaigns/opendocument/<http://fsf.org/campaigns/opendocument/>)
+> instead!
+> Stand up for your freedom to install [free software](http://www.fsf.org/**
+> campaigns/secure-boot/**statement<http://www.fsf.org/campaigns/secure-boot/statement>
+> ).
+>
+>
+>  The idea that some lives matter less is the root of all that?s wrong with
+>> the world. -- Paul Farmer
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130311/bbdadfc7/attachment.html>
+
+From colin.watson at owasp.org  Sat Mar 30 10:52:12 2013
+From: colin.watson at owasp.org (Colin Watson)
+Date: Sat, 30 Mar 2013 10:52:12 +0000
+Subject: [Owasp-appsensor-project] A message from the AppSensor PR
+	department
+In-Reply-To: <6DCCFD9F-1B06-465F-8338-811B9DE0598C@gmail.com>
+References: <CAAxdBBkO1HkayTvX5YoGwWt4HtZ2rV6B5qoGOCRRPkbzr5xU+A@mail.gmail.com>
+	<6DCCFD9F-1B06-465F-8338-811B9DE0598C@gmail.com>
+Message-ID: <CAAxdBBk14taYOkhS4xeqwEj396FhiHsnGYuBTL3aH1-FEXr4Fw@mail.gmail.com>
+
+Well, we are through to the final. I cannot make that day but will ask
+around if anyone nearby can attend.
+
+Colin
+
+===================
+
+Congratulations, you?re through to the final of ESET?s CyberSmart
+Awards! We would love you to join us for our awards ceremony which is
+taking place in the Birmingham Science Museum on April 12 at 12pm. We
+would like to offer you two invitations for the short ceremony, which
+also give you all-day access to the museum, lunch and a goody bag.
+
+We had a fantastic range of submissions showing how people up and down
+the country are working hard to educate others about online security.
+As the calibre of entries was so high, and a glitch in the voting
+system meant that not everyone was able to cast the votes they wanted
+to, we have decided to let our esteemed panel of judges look at all
+the entries and decide on our deserved winner and runners-up.  The
+event should be a great opportunity to network and share ideas among
+other organisations striving to help the UK become cyber-smart.
+
+Please RSVP by close of play on Wednesday April 3 to let us know who
+will be joining us on April 12 in Birmingham. There?s an RSVP form
+below. We look forward to seeing you there!
+
+Best wishes,
+
+The CyberSmart Team
+
+===================
+

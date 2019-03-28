@@ -1,0 +1,235 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20960009%20generates%20false%0A%20positives%20from%20my%20own%20server%20IP&In-Reply-To=%3CDUB116-W46D518CEEF6E96A6D43DFA82C70%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001741.html">
+   <LINK REL="Next"  HREF="001744.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20960009%20generates%20false%0A%20positives%20from%20my%20own%20server%20IP&In-Reply-To=%3CDUB116-W46D518CEEF6E96A6D43DFA82C70%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Fri May 15 15:39:54 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001741.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+        <LI>Next message: <A HREF="001744.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1742">[ date ]</a>
+              <a href="thread.html#1742">[ thread ]</a>
+              <a href="subject.html#1742">[ subject ]</a>
+              <a href="author.html#1742">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've no idea how your set up works to be honest.
+
+I presume something in your main httpd.conf apache file is loading modsecurity_crs_10_setup.conf file (either directly or by importing another file which imports this)?
+I also presume something else is loading your individual rules files. Perhaps all of the in the rules directory?
+So just sticking a new file in the same folder as&#160;modsecurity_crs_10_setup.conf file&#160;won't necessary cause apache to load it.
+
+So your choices are:
+1) Add that rule to&#160;modsecurity_crs_10_setup.conf file itself.
+2) Move your&#160;modsecurity_crs_15_customrules.conf file to your rules folder (assuming everything in this folder is loaded).
+3) Add another import to load&#160;modsecurity_crs_15_customrules.conf file from the current location.
+
+I would also suggest you take out the &quot;nolog&quot; bit initially, so you can see if your rule is actually firing.
+
+Could also turn on ModSecurity debug to see how the rules are being processed (WARNING: they will quickly log a lot of data in the log file, depending on what debug level you have, so don't suggest you do this in production).
+
+Thanks,
+Barry
+
+________________________________
+&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A> 
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>; 
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A> 
+</I>&gt;<i> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+</I>&gt;<i> false positives from my own server IP 
+</I>&gt;<i> Date: Fri, 15 May 2015 11:51:13 -0300 
+</I>&gt;<i> 
+</I>&gt;<i> Hi Barry! 
+</I>&gt;<i> Well, it didn't work... 
+</I>&gt;<i> This is what I did: 
+</I>&gt;<i> My mod_security conf and rules files are set up like this: 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> [<A HREF="https://dub116.afx.ms/att/GetInline.aspx?messageid=d22250f7-fb11-11e4-bebd-002264c248c8&amp;attindex=1&amp;cp=-1&amp;attdepth=1&amp;imgsrc=cid%3ainlineImage0&amp;cid=324504f792fde428&amp;hm__login=barry_pollard&amp;hm__domain=hotmail.com&amp;ip=10.211.96.8&amp;d=d1933&amp;mf=4&amp;hm__ts=Fri%2c%2015%20May%202015%2015%3a31%3a23%20GMT&amp;st=%28000117783B0E2E2B%29&amp;hm__ha=01_9a077cbe7d859370e3ee32f20340e92d0f18b5481315fdc64ae96640a7964c9c&amp;oneredir=1">https://dub116.afx.ms/att/GetInline.aspx?messageid=d22250f7-fb11-11e4-bebd-002264c248c8&amp;attindex=1&amp;cp=-1&amp;attdepth=1&amp;imgsrc=cid%3ainlineImage0&amp;cid=324504f792fde428&amp;hm__login=barry_pollard&amp;hm__domain=hotmail.com&amp;ip=10.211.96.8&amp;d=d1933&amp;mf=4&amp;hm__ts=Fri%2c%2015%20May%202015%2015%3a31%3a23%20GMT&amp;st=%28000117783B0E2E2B%29&amp;hm__ha=01_9a077cbe7d859370e3ee32f20340e92d0f18b5481315fdc64ae96640a7964c9c&amp;oneredir=1</A>] 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> modsecurity_crs_15_customrules.conf file has only this line: 
+</I>&gt;<i> 
+</I>&gt;<i> SecRule REMOTE_ADDR &quot;@ipMatch 999.99.99.99&quot; 
+</I>&gt;<i> &quot;id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009&quot; 
+</I>&gt;<i> 
+</I>&gt;<i> I restarted Apache, but rule 960009 still process that IP as source. 
+</I>&gt;<i> 
+</I>&gt;<i> What did I do wrong? 
+</I>&gt;<i> 
+</I>&gt;<i> There is also a file 
+</I>&gt;<i> named /usr/local/apache/conf/modsec2.whitelist.conf with just this on 
+</I>&gt;<i> it: 
+</I>&gt;<i> 
+</I>&gt;<i> # ConfigServer ModSecurity whitelist file 
+</I>&gt;<i> &lt;LocationMatch .*&gt; 
+</I>&gt;<i> &lt;/LocationMatch&gt; 
+</I>&gt;<i> 
+</I>&gt;<i> I'm confused, don't know in which files this directive should go or 
+</I>&gt;<i> what else should I have done. 
+</I>&gt;<i> Tks! 
+</I>&gt;<i> All the best! 
+</I>&gt;<i> Luiz 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A> 
+</I>&gt;&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A> 
+</I>&gt;&gt;<i> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+</I>&gt;<i> false positives from my own server IP 
+</I>&gt;&gt;<i> Date: Wed, 13 May 2015 10:07:24 +0100 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> That would work though I personally prefer to use @ipMatch which also 
+</I>&gt;<i> allows you to match multiple IPs: 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> SecRule REMOTE_ADDR &quot;@ipMatch XXX.YYY.Z.WWW 
+</I>&gt;<i> XXX.YYY.Z.VVVV&quot; &quot;id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009&quot; 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> A few other things to note: 
+</I>&gt;&gt;<i> 1) 960009 is a phase 2 rule and you have specified phase 1 in your 
+</I>&gt;<i> rule below. I'm pretty sure that rules cannot see other rules outside 
+</I>&gt;<i> of their phase so it needs to be in the same phase. So I've updated 
+</I>&gt;<i> this to phase 2 in my version above. 
+</I>&gt;&gt;<i> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've 
+</I>&gt;<i> given it an id of 1000. Make sure this doesn't clash with any existing 
+</I>&gt;<i> rule you have. Principal is anything less than 99,999 are your own use. 
+</I>&gt;<i> See here for more info: 
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id">https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id</A> 
+</I>&gt;&gt;<i> 3) You could disable ModSecurity completely for internal addresses 
+</I>&gt;<i> with a ctl:ruleEngine=off rule. Personally I don't like that as I want 
+</I>&gt;<i> them on for testing purposes so we're not caught out with a rule that 
+</I>&gt;<i> only runs in production so think just disabling the specific rules is a 
+</I>&gt;<i> better option. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> However I think it would be good to understand why you need to do 
+</I>&gt;<i> this at all. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Rule 960009 checks for requests missing a user agent. All decent 
+</I>&gt;<i> browsers send a user agent hence why this rule is in place as the lack 
+</I>&gt;<i> of a user agent is probably due to some script or such like, so it is a 
+</I>&gt;<i> good rule. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> So why are you getting so many requests from internal addresses 
+</I>&gt;<i> without a user agent and should you fix that rather than add the above 
+</I>&gt;<i> rule to get around that? 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I can think of two reasons: 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 1) Monitoring scripts or tools which are not quite as compliant as 
+</I>&gt;<i> web browsers. So perhaps change these to also report the user agent as 
+</I>&gt;<i> that could be useful information to know (though with third party tools 
+</I>&gt;<i> that might not always be possible). 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 2) Needlessly connecting to Apache. We use Apache to server up static 
+</I>&gt;<i> pages and also in proxy mode to pass dynamic requests on to an 
+</I>&gt;<i> application server. After installing mod security and noticing similar 
+</I>&gt;<i> to you, we investigated and discovered some of our dynamic applications 
+</I>&gt;<i> were needlessly making calls to Apache, just to connect back to the app 
+</I>&gt;<i> server again. It was actually better to change them to connect directly 
+</I>&gt;<i> to the app server, which resolved the issue, as well as saving network 
+</I>&gt;<i> traffic and a (admittedly small amount of) Apache load. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks, 
+</I>&gt;&gt;<i> Barry 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> ________________________________ 
+</I>&gt;&gt;&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">asiayaisa at hotmail.com</A> 
+</I>&gt;&gt;&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A> 
+</I>&gt;&gt;&gt;<i> Date: Tue, 12 May 2015 20:34:22 -0300 
+</I>&gt;&gt;&gt;<i> Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false 
+</I>&gt;&gt;&gt;<i> positives from my own server IP 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Hi! 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> I don't know if anyone experiences the same issue as us here, but I 
+</I>&gt;&gt;&gt;<i> suppose at least this might contribute to all. 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> I installed OWASP rules on a Centos running 2 Joomla sites with nearly 
+</I>&gt;&gt;&gt;<i> 5,000 unique visitors a day. 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> I was fortunate enough to identify and disable 12 rules that delivered 
+</I>&gt;&gt;&gt;<i> a bunch of false positives (one of them locked down the server when one 
+</I>&gt;&gt;&gt;<i> of us in the team submitted a security scan from CSF/LFD...). 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> So, now it is running fine but one rule still delivers near 1,000 false 
+</I>&gt;&gt;&gt;<i> positives a day and oddly enough having our own server IP as source! 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> And severity level for ALL of the hits are NOTICE. So, this is not so 
+</I>&gt;&gt;&gt;<i> much troublesome, except for the extra load on the server and the log 
+</I>&gt;&gt;&gt;<i> size. I rotate it automatically everynight but it comes out at nearly 
+</I>&gt;&gt;&gt;<i> 0,3 GB as standard size. 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> So, what I am trying to do but don't know exactly how is to implent 
+</I>&gt;&gt;&gt;<i> something like this in a file named modsecurity_crs_15_localrules.conf: 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> SecRule REMOTE_ADDR &quot;@streq XXX.YYY.Z.WWW&quot; 
+</I>&gt;&gt;&gt;&gt;<i> &quot;phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009&quot; 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> where XXX.YYY.Z.WWW is my server's IP address. 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Does anyone know if this is correct and if it can actually work to keep 
+</I>&gt;&gt;&gt;<i> my server out of this rule execution? 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> Tks a lot! 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> All the best! 
+</I>&gt;&gt;&gt;<i> Luiz Guilherme 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> _______________________________________________ 
+</I>&gt;&gt;&gt;<i> Owasp-modsecurity-core-rule-set mailing list 
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A> 
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A> 
+</I>&gt;&gt;<i> 
+</I> 		 	   		  
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: files.png
+Type: image/png
+Size: 14858 bytes
+Desc: not available
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/874ed3b0/attachment-0001.png">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/874ed3b0/attachment-0001.png</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001741.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+	<LI>Next message: <A HREF="001744.html">[Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1742">[ date ]</a>
+              <a href="thread.html#1742">[ thread ]</a>
+              <a href="subject.html#1742">[ subject ]</a>
+              <a href="author.html#1742">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

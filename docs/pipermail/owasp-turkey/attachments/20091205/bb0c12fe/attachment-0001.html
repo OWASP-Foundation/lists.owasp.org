@@ -1,0 +1,59 @@
+<tt>
+&lt;div&gt;evet&nbsp;soru&nbsp;biraz&nbsp;genel&nbsp;oldu.&nbsp;daha&nbsp;fazla&nbsp;aciklama&nbsp;yapmam&nbsp;gerekiyordu,&nbsp;hata&nbsp;benim.&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;bu&nbsp;bir&nbsp;j2ee&nbsp;web&nbsp;uygulamasi&nbsp;ve&nbsp;&lt;em&gt;session&lt;/em&gt;,&nbsp;HttpSession&nbsp;implementasyonunun&nbsp;instance&amp;#39;i.&nbsp;Yani&nbsp;klasik&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;&lt;em&gt;public&nbsp;void&nbsp;doPost&nbsp;(HttpServletRequest&nbsp;req,&nbsp;HttpServletResponse&nbsp;res)&nbsp;throws&nbsp;ServletException,&nbsp;IOException&nbsp;&lt;br&gt;{&lt;br&gt;  &nbsp;HttpSession&nbsp;&lt;strong&gt;session&lt;/strong&gt;&nbsp;=&nbsp;req.getSession(true);&lt;/em&gt;&lt;/div&gt;<br>
+&lt;div&gt;  &nbsp;...&lt;/div&gt;<br>
+&lt;div&gt;&lt;em&gt;  &nbsp;synchronized&nbsp;(session)&nbsp;{&lt;br&gt;     &nbsp;//&nbsp;...&nbsp;CS&lt;br&gt;  &nbsp;}&lt;/em&gt;&lt;/div&gt;<br>
+&lt;div&gt; &nbsp;...&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;developer&nbsp;boyle&nbsp;bir&nbsp;kod&nbsp;ile&nbsp;critical&nbsp;section&amp;#39;i&nbsp;senkronize&nbsp;etmeye&nbsp;calisiyor. Web&nbsp;uygulamalarinda&nbsp;HTTP&nbsp;istekleri&nbsp;thread&amp;#39;ler&nbsp;ile&nbsp;karsilaniyor&nbsp;genel&nbsp;olarak&nbsp;(&lt;a&nbsp;href=&quot;http://ASP.NET&quot;&gt;ASP.NET&lt;/a&gt;&nbsp;ve&nbsp;PHP&amp;#39;de&nbsp;de&nbsp;ayni,&nbsp;yanlissam&nbsp;duzeltin).&nbsp;Ayni&nbsp;kullanici&nbsp;ayni&nbsp;anda&nbsp;iki&nbsp;istek&nbsp;gonderdiginde,&nbsp;yukaridaki&nbsp;kodu&nbsp;calistiran&nbsp;iki&nbsp;thread&nbsp;olusturuluyor&nbsp;sunucu&nbsp;tarafinda.&nbsp;Ve&nbsp;bu&nbsp;iki&nbsp;thread&amp;#39;in&nbsp;yukaridaki&nbsp;critical&nbsp;section&amp;#39;a&nbsp;tek&nbsp;tek&nbsp;girmesi&nbsp;ve&nbsp;cikmasi&nbsp;isteniyor&nbsp;(mesela&nbsp;bir&nbsp;havale/eft&nbsp;islemi&nbsp;veya&nbsp;bilet&nbsp;alimi...).&lt;/div&gt;<br>
+<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;Senkronizasyonun&nbsp;saglanmasi&nbsp;icin&nbsp;degismeyen&nbsp;bir&nbsp;nesne&nbsp;lazim&nbsp;bize.&nbsp;Developer,&nbsp;hakli&nbsp;olarak,&nbsp;kullanicinin&nbsp;&lt;em&gt;session&nbsp;&lt;/em&gt;nesnesini&nbsp;kullaniyor&nbsp;cunku&nbsp;bu&nbsp;nesne&nbsp;istekler&nbsp;boyunca&nbsp;degismez.&nbsp;session&amp;#39;in&nbsp;mantigi&nbsp;bu.&lt;/div&gt;<br>
+<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;Ama&nbsp;gelin&nbsp;gorun&nbsp;ki,&nbsp;getSession()&nbsp;metodu&nbsp;iki&nbsp;ayri&nbsp;cagirista&nbsp;ayni&nbsp;session&nbsp;instance&amp;#39;ini&nbsp;donmeyebiliyormus.&nbsp;Yani&nbsp;icindeki&nbsp;bilgiler&nbsp;(kullanici&nbsp;ismi,&nbsp;profili,&nbsp;en&nbsp;onemlisi&nbsp;session&nbsp;id,&nbsp;v.b.)&nbsp;ayni&nbsp;ama&nbsp;instance&nbsp;farkli.&nbsp;Servlet&nbsp;specification&amp;#39;i&nbsp;boyle&nbsp;buyuruyormus.&nbsp;Ayni&nbsp;nesne&nbsp;donmeyince&nbsp;de,&nbsp;ayni&nbsp;nesne&nbsp;uzerine&nbsp;lock/unlock&nbsp;islemi&nbsp;yapilmayinca&nbsp;senkronizasyon&nbsp;calismiyor.&nbsp;Bu&nbsp;nedenle&nbsp;senkronizasyonu&nbsp;saglamak&nbsp;icin&nbsp;baska&nbsp;birsey&nbsp;lazim.&nbsp;O&nbsp;da&nbsp;&lt;/div&gt;<br>
+<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;&lt;em&gt;synchronized&nbsp;(&nbsp;session.getId().intern()&nbsp;)&nbsp;{&lt;br&gt; //&nbsp;CS&lt;br&gt;}&lt;/em&gt;&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;iste&nbsp;burasi&nbsp;derin&nbsp;geldi&nbsp;bana.&nbsp;getId()&nbsp;metodu&nbsp;istekler&nbsp;boyunca&nbsp;degismeyen&nbsp;bildigimiz&nbsp;sessionid&nbsp;(mesela,&nbsp;JSESSIONID=ab34126506708923j2).&nbsp;Bu&nbsp;bir&nbsp;Java&nbsp;string.&nbsp;Peki&nbsp;Java&nbsp;String&nbsp;sinifinin&nbsp;intern()&nbsp;metodu&nbsp;ne&nbsp;yapiyor?&nbsp;&lt;/div&gt;<br>
+<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;&lt;a&nbsp;href=&quot;http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#intern&quot;&gt;http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#intern&lt;/a&gt;()&lt;/div&gt;<br>
+&lt;div&gt;<br>
+&lt;p&gt;&lt;em&gt;A&nbsp;pool&nbsp;of&nbsp;strings,&nbsp;initially&nbsp;empty,&nbsp;is&nbsp;maintained&nbsp;privately&nbsp;by&nbsp;the&nbsp;class&nbsp;&lt;code&gt;String&lt;/code&gt;.&nbsp;&lt;/em&gt;<br>
+&lt;p&gt;&lt;em&gt;When&nbsp;the&nbsp;intern&nbsp;method&nbsp;is&nbsp;invoked,&nbsp;if&nbsp;the&nbsp;pool&nbsp;already&nbsp;contains&nbsp;a&nbsp;string&nbsp;equal&nbsp;to&nbsp;this&nbsp;&lt;code&gt;String&lt;/code&gt;&nbsp;object&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;&lt;/em&gt;&lt;a&nbsp;href=&quot;http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#equals(java.lang.Object)&quot;&gt;&lt;code&gt;&lt;em&gt;equals(Object)&lt;/em&gt;&lt;/code&gt;&lt;/a&gt;&lt;em&gt;&nbsp;method,&nbsp;then&nbsp;the&nbsp;string&nbsp;from&nbsp;the&nbsp;pool&nbsp;is&nbsp;returned.&nbsp;Otherwise,&nbsp;this&nbsp;&lt;code&gt;String&lt;/code&gt;&nbsp;object&nbsp;is&nbsp;added&nbsp;to&nbsp;the&nbsp;pool&nbsp;and&nbsp;a&nbsp;reference&nbsp;to&nbsp;this&nbsp;&lt;code&gt;String&lt;/code&gt;&nbsp;object&nbsp;is&nbsp;returned.&lt;/em&gt;&nbsp;&lt;/p&gt;<br>
+<br>
+&lt;p&gt;Yani&nbsp;&lt;em&gt;session&lt;/em&gt;&nbsp;ayni&nbsp;instance&nbsp;olmayabilir&nbsp;ama&nbsp;&lt;em&gt;String&lt;/em&gt;&nbsp;sinifi&nbsp;bir&nbsp;havuz&nbsp;tutuyormus&nbsp;ve&nbsp;eger&nbsp;bu&nbsp;string&nbsp;(JSESSIONID=...)&nbsp;bu&nbsp;havuzda&nbsp;varsa,&nbsp;yeniden&nbsp;olusturmayip&nbsp;burdan&nbsp;donuyormus.&nbsp;En&nbsp;azindan&nbsp;benim&nbsp;anladigim&nbsp;bu.&nbsp;Yani&nbsp;ayni&nbsp;String&nbsp;nesnesi.&nbsp;Boylece&nbsp;synchronized,&nbsp;iki&nbsp;istekte&nbsp;de&nbsp;ayni&nbsp;nesne&nbsp;kullanildigindan&nbsp;lock/unlock&nbsp;beklendigi&nbsp;gibi&nbsp;calisiyor.&lt;/p&gt;<br>
+<br>
+&lt;p&gt;Not:&nbsp;Soruyu&nbsp;gecen&nbsp;sene&nbsp;bir&nbsp;mail&nbsp;listesinde&nbsp;okumustum.&nbsp;Apache-Tomcat&nbsp;mail&nbsp;listesi&nbsp;olabilir,&nbsp;hatirlamiyorum.&lt;/p&gt;<br>
+&lt;p&gt;bedirhan&lt;/p&gt;&lt;/p&gt;&lt;/div&gt;<br>
+&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;04&nbsp;Aralık&nbsp;2009&nbsp;21:30&nbsp;tarihinde&nbsp;Mehmet&nbsp;Salih&nbsp;YILDIRIM&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&amp;lt;&lt;a&nbsp;href=&quot;mailto:linux@isadamlari.org&quot;&gt;linux@isadamlari.org&lt;/a&gt;&amp;gt;&lt;/span&gt;&nbsp;yazdı:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;PADDING-LEFT:&nbsp;1ex;&nbsp;MARGIN:&nbsp;0px&nbsp;0px&nbsp;0px&nbsp;0.8ex;&nbsp;BORDER-LEFT:&nbsp;#ccc&nbsp;1px&nbsp;solid&quot;&gt;<br>
+&lt;div&nbsp;text=&quot;#000000&quot;&nbsp;bgcolor=&quot;#ffffff&quot;&gt;Soru&nbsp;aşırı&nbsp;genel&nbsp;olmakla&nbsp;beraber,&nbsp;&lt;br&gt;&lt;br&gt;//sample&nbsp;critical&nbsp;section&nbsp;1&lt;br&gt;syncronized&nbsp;(session1){&lt;br&gt;   &nbsp;//&nbsp;...&lt;br&gt;   &nbsp;//&nbsp;..&lt;br&gt;   &nbsp;//&nbsp;.&lt;br&gt;   &nbsp;syncronized(session2){&lt;br&gt;   &nbsp;  &nbsp;//...&lt;br&gt;<br>
+   &nbsp;}&lt;br&gt;}&lt;br&gt;//sample&nbsp;critical&nbsp;section2&lt;br&gt;syncronized&nbsp;(session2){&lt;br&gt;   &nbsp;//&nbsp;...&lt;br&gt;   &nbsp;//&nbsp;..&lt;br&gt;   &nbsp;//&nbsp;.&lt;br&gt;   &nbsp;syncronized(session1){&lt;br&gt;   &nbsp;  &nbsp;//...&lt;br&gt;   &nbsp;}&lt;br&gt;}&lt;br&gt;&lt;br&gt;durumunda&nbsp;kullanılırsa,&nbsp;bir&nbsp;thread&nbsp;CS1&nbsp;e&nbsp;girip,&nbsp;bir&nbsp;başka&nbsp;thread&nbsp;aynı&nbsp;anda&nbsp;CS2&amp;#39;ye&nbsp;girerse,&nbsp;üzerine&nbsp;bunlar&nbsp;hold&nbsp;and&nbsp;wait&nbsp;yaparsa,&nbsp;bunun&nbsp;da&nbsp;üstüne&nbsp;işletim&nbsp;sisteminin&nbsp;scheduling&nbsp;management&nbsp;kısmı&nbsp;kalitesizse&nbsp;deadlock&nbsp;olur&nbsp;efendim.&nbsp;Muhtemelen&nbsp;aranan&nbsp;cevap&nbsp;bu&nbsp;değil&nbsp;ama&nbsp;soru&nbsp;çok&nbsp;genel&nbsp;olduğundan&nbsp;bu&nbsp;kadar&nbsp;yazabildim&nbsp;ancak.&lt;br&gt;<br>
+&lt;br&gt;Bu&nbsp;senaryoya&nbsp;göre&nbsp;çözüm&nbsp;bir&nbsp;kaç&nbsp;şekilde&nbsp;olabilir,&nbsp;birincisi&nbsp;thread&nbsp;lerden&nbsp;bir&nbsp;tanesini&nbsp;öldürmek&nbsp;:D&lt;br&gt;ikincisi&nbsp;nested&nbsp;syncronized&nbsp;kullanmamak&nbsp;olabilir.&nbsp;&lt;br&gt;Üçüncü&nbsp;çözüm&nbsp;en&nbsp;güzeli,&nbsp;bu&nbsp;iki&nbsp;critical&nbsp;section&amp;#39;ı&nbsp;aynı&nbsp;lock&nbsp;değişkeni&nbsp;koruyabilir.&nbsp;Böylece&nbsp;birisine&nbsp;bir&nbsp;process&nbsp;girdiğinde&nbsp;diğerine&nbsp;başka&nbsp;bir&nbsp;process&nbsp;giremeyecektir.&nbsp; &nbsp;&lt;br&gt;<br>
+&lt;br&gt;&lt;br&gt;&lt;br&gt;Bedirhan&nbsp;Urgun&nbsp;wrote:&nbsp;<br>
+&lt;blockquote&nbsp;type=&quot;cite&quot;&gt;<br>
+&lt;div&gt;<br>
+&lt;div&gt;&lt;/div&gt;<br>
+&lt;div&nbsp;class=&quot;h5&quot;&gt;<br>
+&lt;div&gt;&lt;br&nbsp;clear=&quot;all&quot;&gt;arizalara&nbsp;bi&nbsp;tane&nbsp;daha.&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;&lt;em&gt;synchronized&nbsp;(session)&nbsp;{&lt;br&gt; //&nbsp;...&lt;br&gt;}&lt;/em&gt;&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;yukaridaki&nbsp;Java&nbsp;kod&nbsp;parcasindaki&nbsp;muhtemel&nbsp;problem&nbsp;ne&nbsp;olabilir&nbsp;ve&nbsp;nasil&nbsp;duzeltilebilir?&lt;/div&gt;<br>
+&lt;div&gt; &lt;/div&gt;<br>
+&lt;div&gt;bedirhan&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;pre&gt;&lt;hr&nbsp;width=&quot;90%&quot;&nbsp;size=&quot;4&quot;&gt;<br>
+_______________________________________________<br>
+Owasp-turkey&nbsp;mailing&nbsp;list<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-turkey@lists.owasp.org&quot;&nbsp;target=&quot;_blank&quot;&gt;Owasp-turkey@lists.owasp.org&lt;/a&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-turkey&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-turkey&lt;/a&gt;<br>
+&nbsp;&nbsp;&lt;/pre&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;_______________________________________________&lt;br&gt;Owasp-turkey&nbsp;mailing&nbsp;list&lt;br&gt;&lt;a&nbsp;href=&quot;mailto:Owasp-turkey@lists.owasp.org&quot;&gt;Owasp-turkey@lists.owasp.org&lt;/a&gt;&lt;br&gt;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-turkey&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-turkey&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;br&nbsp;clear=&quot;all&quot;&gt;&lt;br&gt;--&nbsp;&lt;br&gt;Bedirhan&nbsp;Urgun&lt;br&gt;&lt;a&nbsp;href=&quot;http://www.webguvenligi.org&quot;&gt;http://www.webguvenligi.org&lt;/a&gt;&lt;br&gt;&lt;a&nbsp;href=&quot;http://www.owasp.org/index.php/Turkey&quot;&gt;http://www.owasp.org/index.php/Turkey&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;Türkçe&nbsp;Web&nbsp;Uygulama&nbsp;Güvenliği&nbsp;E-Posta&nbsp;Listesine&nbsp;üye&nbsp;olmak&nbsp;için:&nbsp;&lt;br&gt;&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-turkey&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-turkey&lt;/a&gt;&lt;br&gt;<br>
+
+</tt>

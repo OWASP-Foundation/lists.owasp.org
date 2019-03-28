@@ -1,0 +1,2239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Problem in using CSRF 3
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Problem%20in%20using%20CSRF%203&In-Reply-To=4D41DC2D.1030801%40owasp.org">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000033.html">
+   <LINK REL="Next"  HREF="000035.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Problem in using CSRF 3</H1>
+    <B>Eric Sheridan</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Problem%20in%20using%20CSRF%203&In-Reply-To=4D41DC2D.1030801%40owasp.org"
+       TITLE="[Owasp-csrfguard] Problem in using CSRF 3">eric.sheridan at owasp.org
+       </A><BR>
+    <I>Thu Jan 27 16:52:22 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000033.html">[Owasp-csrfguard] Problem in using CSRF 3
+</A></li>
+        <LI>Next message: <A HREF="000035.html">[Owasp-csrfguard] OWASP CSRFGuard 3.0.0.479 ALPHA Released!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#34">[ date ]</a>
+              <a href="thread.html#34">[ thread ]</a>
+              <a href="subject.html#34">[ subject ]</a>
+              <a href="author.html#34">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+&gt;&gt;<i> 1. Is your application running on localhost? If not, the
+</I>&gt;&gt;<i> JavaScriptServlet will not properly respond to your JavaScript requests
+</I>&gt;&gt;<i> as the referer header will not match .*localhost.* (see
+</I>&gt;&gt;<i> 'referer-pattern' in init-param). Now the referer header may not be sent
+</I>&gt;&gt;<i> with the request, either, which would cause problems. In this event, try
+</I>&gt;&gt;<i> removing the 'referer-pattern' init-param completely.
+</I>
+Actually I was wrong on the second half of that guidance. The
+'referer-pattern' is required. Removing it will break the servlet. I'm
+going to treat that as a bug and push an update. I don't think you
+should be forced to use that feature, especially given the inconsistency
+of sending the referer header in various browsers/channels.
+
+Testing code now and will push an updated ALPHA release within the next
+couple days.
+
+- -Eric
+
+On 1/27/11 3:57 PM, Eric Sheridan wrote:
+&gt;<i> Thanks for trying out CSRFGuard 3.0! I'm really in need of feedback and
+</I>&gt;<i> hope to push it to BETA status in late February. Here are a few comments
+</I>&gt;<i> that may address or help better identify your problem:
+</I>&gt;<i> 
+</I>&gt;<i> 1. Is your application running on localhost? If not, the
+</I>&gt;<i> JavaScriptServlet will not properly respond to your JavaScript requests
+</I>&gt;<i> as the referer header will not match .*localhost.* (see
+</I>&gt;<i> 'referer-pattern' in init-param). Now the referer header may not be sent
+</I>&gt;<i> with the request, either, which would cause problems. In this event, try
+</I>&gt;<i> removing the 'referer-pattern' init-param completely.
+</I>&gt;<i> 2. See if you are still having problems when setting
+</I>&gt;<i> org.owasp.csrfguard.TokenPerPage to false in Owasp.CsrfGuard.properties
+</I>&gt;<i> 3. See if you are still having problems when setting
+</I>&gt;<i> org.owasp.csrfguard.Ajax to false in Owasp.CsrfGuard.properties.
+</I>&gt;<i> 4. Does CsrfGuard try and redirect you to anywhere? I noticed you
+</I>&gt;<i> created a &quot;Redirect&quot; action but did not specify the page (i.e.
+</I>&gt;<i> &quot;Redirect.Page=/csrf.jsp&quot;).
+</I>&gt;<i> 
+</I>&gt;<i> Unfortunately this is a bit tough to debug remotely. I'd look at any
+</I>&gt;<i> console logs that may provide more info about the sequence of operations
+</I>&gt;<i> going on and corresponding traffic. Hook up a HTTP proxy. When you click
+</I>&gt;<i> the link, do you see a token sent in the request? Do you get any errors
+</I>&gt;<i> in your browser's JavaScript console (i.e. possible bug in JS code)?
+</I>&gt;<i> 
+</I>&gt;<i> I'll try to push another ALPHA release of CSRFGuard containing a few
+</I>&gt;<i> minor updates for you to try as well.
+</I>&gt;<i> 
+</I>&gt;<i> -Eric
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On 1/27/11 9:18 AM, <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">nikesh.chaturvedi at wipro.com</A> wrote:
+</I>&gt;&gt;<i> Hi All,
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I am trying to integrate CSRF 3 into my application on Spring
+</I>&gt;&gt;<i> Framework.Below are the steps which I done for configuring it:-
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 1)      Placed Owasp.CsrfGuard.js, Owasp.CsrfGuard.properties and
+</I>&gt;&gt;<i> CSRFGuard-2.0.jar files in respective folders.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 2)      Configure Web.xml
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;web-app id=&quot;WebApp_ID&quot; version=&quot;2.5&quot;
+</I>&gt;&gt;<i> xmlns=&quot;<A HREF="http://java.sun.com/xml/ns/javaee&quot;">http://java.sun.com/xml/ns/javaee&quot;</A>
+</I>&gt;&gt;<i> xmlns:xsi=&quot;<A HREF="http://www.w3.org/2001/XMLSchema-instance&quot;">http://www.w3.org/2001/XMLSchema-instance&quot;</A>
+</I>&gt;&gt;<i> xsi:schemaLocation=&quot;<A HREF="http://java.sun.com/xml/ns/javaee">http://java.sun.com/xml/ns/javaee</A>
+</I>&gt;&gt;<i> <A HREF="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot;">http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot;</A>&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;display-name&gt;FINGate&lt;/display-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;description&gt;FINGate Portal&lt;/description&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;context-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-name&gt;webAppRootKey&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-value&gt;FINGate.root&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/context-param&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;context-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;param-value&gt;/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+</I>&gt;&gt;<i> s&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/context-param&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;context-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   /WEB-INF/FINGate-portal-servlet.xml
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   /WEB-INF/FINGate-portal-service.xml
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/context-param&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;listener&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;listener-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   org.springframework.web.context.ContextLoaderListener
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/listener-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/listener&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;listener&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;listener-class&gt;org.springframework.web.context.request.RequestContextLi
+</I>&gt;&gt;<i> stener&lt;/listener-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>   &lt;/listener&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;listener&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;listener-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   org.springframework.web.util.Log4jConfigListener
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/listener-class&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/listener&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;servlet-name&gt;JavaScriptServlet&lt;/servlet-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;servlet-class&gt;org.owasp.csrfguard.servlet.JavaScriptServlet&lt;/servlet-cl
+</I>&gt;&gt;<i> ass&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-name&gt;source-file&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-value&gt;WEB-INF/Owasp.CsrfGuard.js&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-name&gt;inject-into-forms&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-value&gt;true&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-name&gt;inject-into-attributes&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-value&gt;true&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>           &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-name&gt;domain-strict&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-value&gt;false&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>           &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>           &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-name&gt;referer-pattern&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                &lt;param-value&gt;.*localhost.*&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>           &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/servlet&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;servlet-name&gt;FINGate-portal&lt;/servlet-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;servlet-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   org.springframework.web.servlet.DispatcherServlet
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/servlet-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;load-on-startup&gt;2&lt;/load-on-startup&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/servlet&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet-name&gt;InitLog&lt;/servlet-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet-class&gt;com.fiu.fingate.common.util.InitLog&lt;/servlet-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;param-name&gt;log4j-init-file&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;param-value&gt;/WEB-INF/classes/com/fiu/fingate/properties/log4j.propertie
+</I>&gt;&gt;<i> s&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>     &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>   &lt;/servlet&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;servlet-name&gt;JavaScriptServlet&lt;/servlet-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>            &lt;url-pattern&gt;/JavaScriptServlet&lt;/url-pattern&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/servlet-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;servlet-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;servlet-name&gt;FINGate-portal&lt;/servlet-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;url-pattern&gt;*.do&lt;/url-pattern&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/servlet-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;session-config&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;session-timeout&gt;15&lt;/session-timeout&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/session-config&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;welcome-file-list&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;welcome-file&gt;index.jsp&lt;/welcome-file&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/welcome-file-list&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;filter-name&gt;CSRFGuard&lt;/filter-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;filter-class&gt;org.owasp.csrfguard.CsrfGuardFilter&lt;/filter-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;param-name&gt;config&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;param-value&gt;WEB-INF/Owasp.CsrfGuard.properties&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;param-name&gt;print-config&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;param-value&gt;true&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/filter&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter-name&gt;Foo&lt;/filter-name&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;filter-class&gt;org.acegisecurity.util.FilterToBeanProxy&lt;/filter-class&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;param-name&gt;targetBean&lt;/param-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;param-value&gt;FingateFilter&lt;/param-value&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/init-param&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/filter&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;filter-name&gt;CSRFGuard&lt;/filter-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;url-pattern&gt;*.do&lt;/url-pattern&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/filter-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;filter-name&gt;Foo&lt;/filter-name&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;url-pattern&gt;*.do&lt;/url-pattern&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/filter-mapping&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;jsp-config&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;taglib&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;taglib-uri&gt;BreadCrumbTags&lt;/taglib-uri&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;taglib-location&gt;/WEB-INF/taglib37.tld&lt;/taglib-location&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>    &lt;/taglib&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/jsp-config&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/web-app&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 3)configure Owasp.CsrfGuard.properties  properties file
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The OWASP CSRFGuard Project, BSD License
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Eric Sheridan (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">eric.sheridan at owasp.org</A>), Copyright (c) 2010 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # All rights reserved.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Redistribution and use in source and binary forms, with or without
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # modification, are permitted provided that the following conditions are
+</I>&gt;&gt;<i> met:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #     1. Redistributions of source code must retain the above copyright
+</I>&gt;&gt;<i> notice,
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #        this list of conditions and the following disclaimer.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #     2. Redistributions in binary form must reproduce the above
+</I>&gt;&gt;<i> copyright
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #        notice, this list of conditions and the following disclaimer in
+</I>&gt;&gt;<i> the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #        documentation and/or other materials provided with the
+</I>&gt;&gt;<i> distribution.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #     3. Neither the name of OWASP nor the names of its contributors may
+</I>&gt;&gt;<i> be used
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #        to endorse or promote products derived from this software
+</I>&gt;&gt;<i> without specific
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #        prior written permission.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+</I>&gt;&gt;<i> &quot;AS IS&quot;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+</I>&gt;&gt;<i> THE
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+</I>&gt;&gt;<i> PURPOSE
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+</I>&gt;&gt;<i> BE LIABLE
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+</I>&gt;&gt;<i> CONSEQUENTIAL DAMAGES
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+</I>&gt;&gt;<i> SERVICES;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+</I>&gt;&gt;<i> CAUSED AND ON
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+</I>&gt;&gt;<i> TORT
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+</I>&gt;&gt;<i> OF THIS
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Logger
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The logger property (org.owasp.csrfguard.Logger) defines the qualified
+</I>&gt;&gt;<i> class name of 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the object responsible for processing all log messages produced by
+</I>&gt;&gt;<i> CSRFGuard. The default
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard logger is org.owasp.csrfguard.log.ConsoleLogger. This class
+</I>&gt;&gt;<i> logs all messages
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # to System.out which JavaEE application servers redirect to a vendor
+</I>&gt;&gt;<i> specific log file.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Developers can customize the logging behavior of CSRFGuard by
+</I>&gt;&gt;<i> implementing the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.log.ILogger interface and setting the logger
+</I>&gt;&gt;<i> property to the new
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # logger's qualified class name. The following configuration snippet
+</I>&gt;&gt;<i> instructs OWASP CSRFGuard
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # to capture all log messages to the console:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # New Token Landing Page
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The new token landing page property
+</I>&gt;&gt;<i> (org.owasp.csrfguard.NewTokenLandingPage) defines
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # where to send a user if the token is being generated for the first
+</I>&gt;&gt;<i> time. CSRFGuard will
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # redirect the user to the current page without any parameters if the
+</I>&gt;&gt;<i> property is not specified.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Preventing the protected application from consuming a request whose
+</I>&gt;&gt;<i> session does not yet
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # have a CSRF token through the use of a redirect prevents the execution
+</I>&gt;&gt;<i> of a one-time CSRF
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # attack. The following configuration snippet instructs OWASP CSRFGuard
+</I>&gt;&gt;<i> to redirect the user to
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # /Owasp.CsrfGuard.Test/index.html when they visit a protected resource
+</I>&gt;&gt;<i> without having a
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # corresponding CSRF token present in the HttpSession object:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> org.owasp.csrfguard.NewTokenLandingPage=/Owasp.CsrfGuard.Test/index.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.NewTokenLandingPage=/FINGate/newPassword.do
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Unique Per-Page Tokens
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The unique token per-page property (org.owasp.csrfguard.TokenPerPage)
+</I>&gt;&gt;<i> is a boolean value that
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # determines if CSRFGuard should make use of unique per-page (i.e. URI)
+</I>&gt;&gt;<i> prevention tokens as
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # opposed to unique per-session prevention tokens. When a user requests
+</I>&gt;&gt;<i> a protected resource,
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard will determine if a page specific token has been previously
+</I>&gt;&gt;<i> generated. If a page
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # specific token has not yet been previously generated, CSRFGuard will
+</I>&gt;&gt;<i> verify the request was
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # submitted with the per-session token intact. After verifying the
+</I>&gt;&gt;<i> presence of the per-session token,
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard will create a page specific token that is required for all
+</I>&gt;&gt;<i> subsequent requests to the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # associated resource. The per-session CSRF token can only be used when
+</I>&gt;&gt;<i> requesting a resource for
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the first time. All subsequent requests must have the per-page token
+</I>&gt;&gt;<i> intact or the request will
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # be treated as a CSRF attack. Use of the unique token per page property
+</I>&gt;&gt;<i> is currently experimental
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # but provides a significant amount of improved security. Consider the
+</I>&gt;&gt;<i> exposure of a CSRF token using
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the legacy unique per-session model. Exposure of this token
+</I>&gt;&gt;<i> facilitates the attacker's ability to
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # carry out a CSRF attack against the victim's active session for any
+</I>&gt;&gt;<i> resource exposed by the web
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # application. Now consider the exposure of a CSRF token using the
+</I>&gt;&gt;<i> experimental unique token per-page
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # model. Exposure of this token would only allow the attacker to carry
+</I>&gt;&gt;<i> out a CSRF attack against the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # victim's active session for a small subset of resources exposed by the
+</I>&gt;&gt;<i> web application. Use of the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # unique token per-page property is a strong defense in depth strategy
+</I>&gt;&gt;<i> significantly reducing the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # impact of exposed CSRF prevention tokens. The following configuration
+</I>&gt;&gt;<i> snippet instructs OWASP
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard to utilize the unique token per-page model:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.TokenPerPage=true
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.TokenPerPage=true
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Token Rotation
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The rotate token property (org.owasp.csrfguard.Rotate) is a boolean
+</I>&gt;&gt;<i> value that determines if
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard should generate and utilize a new token after verifying the
+</I>&gt;&gt;<i> previous token. Rotation
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # helps minimize the window of opportunity an attacker has to leverage
+</I>&gt;&gt;<i> the victim's stolen token
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # in a targeted CSRF attack. However, this functionality generally
+</I>&gt;&gt;<i> causes navigation problems in
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # most applications. Specifically, the 'Back' button in the browser will
+</I>&gt;&gt;<i> often cease to function
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # properly. When a user hits the 'Back' button and interacts with the
+</I>&gt;&gt;<i> HTML, the browser may submit
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # an old token causing CSRFGuard to incorrectly believe this request is
+</I>&gt;&gt;<i> a CSRF attack in progress
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # (i.e. a 'false positive'). Users can prevent this scenario by
+</I>&gt;&gt;<i> preventing the caching of HTML pages
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # containing FORM submissions using the cache-control header. However,
+</I>&gt;&gt;<i> this may also introduce
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # performance problems as the browser will have to request HTML on a
+</I>&gt;&gt;<i> more frequent basis. The following
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # configuration snippet disables token rotation:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.Rotate=false
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Ajax and XMLHttpRequest Support
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The Ajax property (org.owasp.csrfguard.Ajax) is a boolean value that
+</I>&gt;&gt;<i> indicates whether or not OWASP
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard should support the injection and verification of unique
+</I>&gt;&gt;<i> per-session prevention tokens for
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # XMLHttpRequests. To leverage Ajax support, the user must not only set
+</I>&gt;&gt;<i> this property to true but must
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # also reference the JavaScript DOM Manipulation code using a script
+</I>&gt;&gt;<i> element. This dynamic script will
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # override the send method of the XMLHttpRequest object to ensure the
+</I>&gt;&gt;<i> submission of an X-Requested-With
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # header name value pair coupled with the submission of a custom header
+</I>&gt;&gt;<i> name value pair for each request.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The name of the custom header is the value of the token name property
+</I>&gt;&gt;<i> and the value of the header is
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # always the unique per-session token value. This custom header is
+</I>&gt;&gt;<i> analogous to the HTTP parameter name
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # value pairs submitted via traditional GET and POST requests. If the
+</I>&gt;&gt;<i> X-Requested-With header was sent
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # in the HTTP request, then CSRFGuard will look for the presence and
+</I>&gt;&gt;<i> ensure the validity of the unique
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # per-session token in the custom header name value pair. Note that
+</I>&gt;&gt;<i> verification of these headers takes
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # precedence over verification of the CSRF token supplied as an HTTP
+</I>&gt;&gt;<i> parameter. More specifically,
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # CSRFGuard does not verify the presence of the CSRF token if the Ajax
+</I>&gt;&gt;<i> support property is enabled and
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the corresponding X-Requested-With and custom headers are embedded
+</I>&gt;&gt;<i> within the request. The following
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # configuration snippet instructs OWASP CSRFGuard to support Ajax
+</I>&gt;&gt;<i> requests by verifying the presence and
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # correctness of the X-Requested-With and custom headers:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.Ajax=true
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.Ajax=true
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Unprotected Pages:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The unprotected pages property (org.owasp.csrfguard.unprotected.*)
+</I>&gt;&gt;<i> defines a series of pages that
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # should not be protected by CSRFGuard. Such configurations are useful
+</I>&gt;&gt;<i> when the CsrfGuardFilter is
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # aggressively mapped (ex: /*). The syntax of the property name is
+</I>&gt;&gt;<i> org.owasp.csrfguard.unprotected.[PageName],
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # where PageName is some arbitrary identifier that can be used to
+</I>&gt;&gt;<i> reference a resource. The syntax of
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # defining the uri of unprotected pages is the same as the syntax used
+</I>&gt;&gt;<i> by the JavaEE container for uri mapping.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Specifically, CSRFGuard will identify the first match (if any) between
+</I>&gt;&gt;<i> the requested uri and an unprotected
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # page in order of declaration. Match criteria is as follows:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Case 1: exact match between request uri and unprotected page
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Case 2: longest path prefix match, beginning / and ending /*
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Case 3: extension match, beginning *.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Default: requested resource must be validated by CSRFGuard
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The following code snippet illustrates the three use cases over four
+</I>&gt;&gt;<i> examples. The first two examples
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # (Tag and JavaScriptServlet) look for direct URI matches. The third
+</I>&gt;&gt;<i> example (Html) looks for all resources
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # ending in a .html extension. The last example (Public) looks for all
+</I>&gt;&gt;<i> resources prefixed with the URI path /MySite/Public/*.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test/
+</I>&gt;&gt;<i> JavaScriptServlet
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.unprotected.Html=*.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.unprotected.Public=/FINGate/checkNewPassword.do
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.JavaScriptServlet=/Owasp.CsrfGuard.Test
+</I>&gt;&gt;<i> /JavaScriptServlet
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.Ajax=/Owasp.CsrfGuard.Test/ajax.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.Error=/Owasp.CsrfGuard.Test/error.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.Index=/Owasp.CsrfGuard.Test/index.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.JavaScript=/Owasp.CsrfGuard.Test/javasc
+</I>&gt;&gt;<i> ript.html
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.unprotected.Tag=/Owasp.CsrfGuard.Test/tag.jsp
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Actions: Responding to Attacks
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The actions directive (org.owasp.csrfguard.action.*) gives the user
+</I>&gt;&gt;<i> the ability to specify one or more
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # actions that should be invoked when a CSRF attack is detected. Every
+</I>&gt;&gt;<i> action must implement the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.action.IAction interface either directly or
+</I>&gt;&gt;<i> indirectly through the
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.action.AbstractAction helper class. Many actions
+</I>&gt;&gt;<i> accept parameters that can be specified
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # along with the action class declaration. These parameters are consumed
+</I>&gt;&gt;<i> at runtime and impact the behavior of
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the associated action.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The syntax for defining and configuring CSRFGuard actions is
+</I>&gt;&gt;<i> relatively straight forward. Let us assume we wish
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # to redirect the user to a default page when a CSRF attack is detected.
+</I>&gt;&gt;<i> A redirect action already exists within
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the CSRFGuard bundle and is available via the class name
+</I>&gt;&gt;<i> org.owasp.csrfguard.actions.Redirect. In order to enable
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # this action, we capture the following declaration in the
+</I>&gt;&gt;<i> Owasp.CsrfGuard.properties file:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # syntax: org.owasp.csrfguard.action.[actionName]=[className]
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.Cs
+</I>&gt;&gt;<i> rfController
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.class.Redirect=com.fiu.fingate.controller.com
+</I>&gt;&gt;<i> mon.CsrfController
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The aforementioned directive declares an action called &quot;Redirect&quot;
+</I>&gt;&gt;<i> (i.e. [actionName]) referencing the Java class
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # &quot;org.owasp.csrfguard.actions.Redirect&quot; (i.e. [className]). Anytime a
+</I>&gt;&gt;<i> CSRF attack is detected, the Redirect action
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # will be executed. You may be asking yourself, &quot;but how do I specify
+</I>&gt;&gt;<i> where the user is redirected?&quot;; this is where
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # action parameters come into play. In order to specify the redirect
+</I>&gt;&gt;<i> location, we capture the following declaration
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # in the Owasp.CsrfGuard.properties file:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # syntax:
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.[actionName].[parameterName]=[parameterValue]
+</I>&gt;<i> 
+</I>&gt;&gt;<i>    org.owasp.csrfguard.action.Redirect.ErrorPage=/FINGate/newPassword.do
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The aforementioned directive declares an action parameter called
+</I>&gt;&gt;<i> &quot;ErrorPage&quot; (i.e. [parameterName]) with the value
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # of &quot;/Owasp.CsrfGuard.Test/error.html&quot; (i.e. [parameterValue]) for the
+</I>&gt;&gt;<i> action &quot;Redirect&quot; (i.e. [actionName]). The
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Redirect action expects the &quot;ErrorPage&quot; parameter to be defined and
+</I>&gt;&gt;<i> will redirect the user to this location when
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # an attack is detected.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.Empty=org.owasp.csrfguard.action.Empty
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+</I>&gt;&gt;<i> forgery (CSRF) attack thwarted (user:%user, ip:%remote_ip,
+</I>&gt;&gt;<i> uri:%request_uri)
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invali
+</I>&gt;&gt;<i> date
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.class.Redirect=org.owasp.csrfguard.actions.R
+</I>&gt;&gt;<i> edirect
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.Redirect=com.fiu.fingate.controller.common.C
+</I>&gt;&gt;<i> srfController
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.Redirect.Page=/index.jsp
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.RequestAttribute=org.owasp.csrfguard.action.
+</I>&gt;&gt;<i> RequestAttribute
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.RequestAttribute.AttributeName=Owasp_CsrfGua
+</I>&gt;&gt;<i> rd_Exception_Key
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.SessionAttribute=org.owasp.csrfguard.action.
+</I>&gt;&gt;<i> SessionAttribute
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #org.owasp.csrfguard.action.SessionAttribute.AttributeName=Owasp_CsrfGua
+</I>&gt;&gt;<i> rd_Exception_Key
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Token Name
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The token name property (org.owasp.csrfguard.TokenName) defines the
+</I>&gt;&gt;<i> name of the HTTP parameter
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # to contain the value of the OWASP CSRFGuard token for each request.
+</I>&gt;&gt;<i> The following configuration
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # snippet sets the CSRFGuard token parameter name to the value
+</I>&gt;&gt;<i> OWASP_CSRFTOKEN:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Session Key
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The session key property (org.owasp.csrfguard.SessionKey) defines the
+</I>&gt;&gt;<i> string literal used to save
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # and lookup the CSRFGuard token from the session. This value is used by
+</I>&gt;&gt;<i> the filter and the tag
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # libraries to retrieve and set the token value in the session.
+</I>&gt;&gt;<i> Developers can use this key to
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # programmatically lookup the token within their own code. The following
+</I>&gt;&gt;<i> configuration snippet sets
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # the session key to the value OWASP_CSRFTOKEN:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Token Length
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The token length property (org.owasp.csrfguard.TokenLength) defines
+</I>&gt;&gt;<i> the number of characters that
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # should be found within the CSRFGuard token. Note that characters are
+</I>&gt;&gt;<i> delimited by dashes (-) in groups
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # of four. For cosmetic reasons, users are encourage to ensure the token
+</I>&gt;&gt;<i> length is divisible by four.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The following configuration snippet sets the token length property to
+</I>&gt;&gt;<i> 32 characters:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.TokenLength=32
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.TokenLength=32
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # Pseudo-random Number Generator
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # The pseudo-random number generator property (org.owasp.csrfguard.PRNG)
+</I>&gt;&gt;<i> defines what PRNG should be used
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # to generate the OWASP CSRFGuard token. Always ensure this value
+</I>&gt;&gt;<i> references a cryptographically strong
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # pseudo-random number generator algorithm. The following configuration
+</I>&gt;&gt;<i> snippet sets the pseudo-random number
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # generator to SHA1PRNG:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> #
+</I>&gt;<i> 
+</I>&gt;&gt;<i> # org.owasp.csrfguard.PRNG=SHA1PRNG
+</I>&gt;<i> 
+</I>&gt;&gt;<i> org.owasp.csrfguard.PRNG=SHA1PRNG
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 4)Inserted javascript tag in fingatehome.jsp
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;html&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;head&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;title&gt;Welcome to FIU-IND&lt;/title&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;meta http-equiv=&quot;PRAGMA&quot; content=&quot;NO-CACHE&quot; &gt;&lt;/meta&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;meta http-equiv=&quot;Expires&quot; content=&quot;-1&quot; &gt;&lt;/meta&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;
+</I>&gt;&gt;<i> /&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;%@ taglib prefix=&quot;spring&quot;
+</I>&gt;&gt;<i> uri=&quot;<A HREF="http://www.springframework.org/tags&quot;">http://www.springframework.org/tags&quot;</A> %&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;%@ taglib prefix=&quot;form&quot;
+</I>&gt;&gt;<i> uri=&quot;<A HREF="http://www.springframework.org/tags/form&quot;">http://www.springframework.org/tags/form&quot;</A> %&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;%@ taglib prefix=&quot;c&quot; uri=&quot;<A HREF="http://java.sun.com/jsp/jstl/core&quot;%">http://java.sun.com/jsp/jstl/core&quot;%</A>&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;%@ taglib prefix=&quot;fmt&quot; uri=&quot;<A HREF="http://java.sun.com/jsp/jstl/fmt&quot;%">http://java.sun.com/jsp/jstl/fmt&quot;%</A>&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;link href=&quot;${channelBean.context}/css/fiu.css&quot;
+</I>&gt;&gt;<i> rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;script language=&quot;JavaScript&quot;
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/js/pupdate.js&quot;&gt;&lt;/script&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;script language=&quot;JavaScript&quot;
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/js/fingate.js&quot;&gt;&lt;/script&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;script
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/JavaScriptServlet&quot;&gt;&lt;/script&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/head&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;body topmargin=&quot;0&quot; leftmargin=&quot;0&quot; bgcolor=&quot;#e1e1e1&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;TABLE cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot; border=&quot;0&quot;
+</I>&gt;&gt;<i> width=&quot;1003&quot; align=&quot;center&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;TD valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;jsp:include page=&quot;/jsp/common/fiuheader.jsp&quot;&gt;&lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;!-- Menu Starts here --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;jsp:include page=&quot;/jsp/common/fiumenu.jsp&quot;&gt;&lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;!-- Menu Ends here --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;td valign=&quot;top&quot; class=&quot;minheight&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;!-- Body Starts here --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;TABLE cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;
+</I>&gt;&gt;<i> width=&quot;1003&quot; align=&quot;center&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;jsp:include
+</I>&gt;&gt;<i> page=&quot;/jsp/common/loginWelcomeHeader.jsp&quot;&gt;&lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                    &lt;td class=&quot;leftpanel&quot; valign=&quot;middle&quot;&gt;&lt;span
+</I>&gt;&gt;<i> class=&quot;welcome&quot;&gt;Welcome,
+</I>&gt;&gt;<i> &lt;B&gt;${sessionBean.loggedInUserName}&lt;/B&gt;&lt;/span&gt;&lt;/td&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;td class=&quot;rightpanel&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;TABLE cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;
+</I>&gt;&gt;<i> border=&quot;0&quot; width=&quot;100%&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TD class=&quot;breadcrums&quot;&gt;&lt;B&gt;&amp;nbsp;&lt;/B&gt;
+</I>&gt;&gt;<i> &lt;span class=&quot;ornglink&quot;&gt;&amp;nbsp;&lt;/span&gt;&amp;nbsp;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;jsp:include
+</I>&gt;&gt;<i> page=&quot;/jsp/common/logoutHeader.jsp&quot;&gt;&lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                &lt;TD class=&quot;logindetails&quot;
+</I>&gt;&gt;<i> align=&quot;right&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                      &lt;span class=&quot;lastlogin&quot;&gt;Last
+</I>&gt;&gt;<i> Login: ${sessionBean.lastLogin} hrs&lt;/span&gt; |--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                      &lt;span class=&quot;logout&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;<A HREF="https://10.24.235.231/pkmslogout?filename=logout.html&quot;">https://10.24.235.231/pkmslogout?filename=logout.html&quot;</A>&gt;Logout&lt;/a&gt;&lt;
+</I>&gt;&gt;<i> /span&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                &lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;TD colspan=&quot;2&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;TABLE cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;
+</I>&gt;&gt;<i> bgcolor=&quot;#FFFFFF&quot; border=&quot;0&quot; width=&quot;100%&quot; align=&quot;center&quot;
+</I>&gt;&gt;<i> class=&quot;rlpadding&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TD valign=&quot;top&quot;&gt;&lt;!-- Column 1 --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TABLE cellpadding=&quot;0&quot;
+</I>&gt;&gt;<i> cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot; border=&quot;0&quot; width=&quot;100%&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;menutable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> colspan=&quot;2&quot;
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/menu_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/menu_heading.gif&quot; title=&quot;Message
+</I>&gt;&gt;<i> Inbox&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;messages&quot; width=&quot;150&quot;&gt;&lt;a href=&quot;#&quot;&gt;Messages&lt;/a&gt;&lt;span
+</I>&gt;&gt;<i> class=&quot;newmssg&quot;&gt;(Unread)&lt;/span&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;&gt;<i> &lt;a href=&quot;${channelBean.context}/messages/messageInbox.do&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                              &lt;c:if
+</I>&gt;&gt;<i> test=&quot;${(unreadHome!=null)&amp;&amp;(unreadHome!=0)}&quot; &gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                              &lt;span
+</I>&gt;&gt;<i> class=&quot;messages&quot;&gt;(${unreadHome})&lt;/span&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                              &lt;/c:if&gt;  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                              &lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;secmessages&quot;&gt;&lt;a href=&quot;#&quot;&gt;Secure Messages&lt;/a&gt;&lt;span
+</I>&gt;&gt;<i> class=&quot;newmssg&quot;&gt;(Unread)&lt;/span&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;&gt;<i> &lt;a href=&quot;${channelBean.context}/messages/secureMessageInbox.do&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                             &lt;c:if
+</I>&gt;&gt;<i> test=&quot;${(unreadSecureMessage1!=null)&amp;&amp;(unreadSecureMessage1!=0)}&quot; &gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                             &lt;span
+</I>&gt;&gt;<i> class=&quot;messages&quot;&gt;(${unreadSecureMessage1})&lt;/span&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                              &lt;/c:if&gt;  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                               &lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/spacer.gif&quot; height=&quot;4px&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;menutable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> colspan=&quot;2&quot;
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/menu_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/reports_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Reports&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot; width=&quot;150&quot;&gt;&lt;a href=&quot;#&quot;&gt;Rejected Reports&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;&lt;a href=&quot;#&quot;&gt;(1)&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot; width=&quot;150&quot;&gt;Overdue Reports&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;(2)&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot; width=&quot;150&quot;&gt;Additional Information&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;(2)&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/spacer.gif&quot; height=&quot;4px&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;menutable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> colspan=&quot;2&quot;
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/menu_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/approval_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Approvals Pending&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot; width=&quot;150&quot;&gt;&lt;a href=&quot;#&quot;&gt;New User&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;&lt;a href=&quot;#&quot;&gt;(2)&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;Profile Change&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;reports_link&quot;&gt;(2)&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TD valign=&quot;top&quot;&gt;&lt;!-- Column 2 --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TABLE cellpadding=&quot;0&quot;
+</I>&gt;&gt;<i> cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;alerttable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;
+</I>&gt;&gt;<i> width=&quot;240&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/alert_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/alert_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Alerts&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                            &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:forEach items=&quot;${UserDetailsCommand.alertList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;0&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;alertId&quot; scope=&quot;page&quot; value=&quot;${loginBean.alertId}&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;TD class=&quot;alertmssgbrickred&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:out value=&quot;${loginBean.alertMessage}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:forEach&gt;                                                            
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;alertmore&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;a href=&quot;resources/listAlerts.do&quot;&gt;more&lt;/a&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/spacer.gif&quot; height=&quot;4px&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;tiptable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;
+</I>&gt;&gt;<i> width=&quot;240&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/tip_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/tip_heading.gif&quot; title=&quot;Tips&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:forEach items=&quot;${UserDetailsCommand.tipList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;0&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;tipsId&quot; scope=&quot;page&quot; value=&quot;${loginBean.tipsId}&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;TD class=&quot;tipmssg&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:out value=&quot;${loginBean.tipsDetail}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;more&quot; valign=&quot;top&quot;&gt;&lt;a href=&quot;resources/listTips.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/spacer.gif&quot; height=&quot;4px&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> class=&quot;eventtable&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot;
+</I>&gt;&gt;<i> width=&quot;240&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> colspan=&quot;2&quot;
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/events_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/events_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Events&quot;&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.eventList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;c:set
+</I>&gt;&gt;<i> var=&quot;eventId&quot; scope=&quot;page&quot; value=&quot;${loginBean.eventId}&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;eventdatetop&quot; valign=&quot;top&quot;&gt;&lt;c:out
+</I>&gt;&gt;<i> value=&quot;${loginBean.eventStartDate}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;eventdateblue&quot;&gt;&lt;c:out value=&quot;${loginBean.eventName}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/TR&gt;&lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;more&quot; valign=&quot;top&quot; colspan=&quot;2&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;resources/listEvents.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;/table&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TD valign=&quot;top&quot;&gt;&lt;!-- Column 3 --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TABLE class=&quot;menutable&quot;
+</I>&gt;&gt;<i> cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot; width=&quot;275&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/resources_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/resources_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Resources&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;resource_subhead&quot;&gt;Downloads&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.colDownloadList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;resource_download_detail&quot;&gt;&lt;c:out value=&quot;${loginBean.topic}&quot;
+</I>&gt;&gt;<i> /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD
+</I>&gt;&gt;<i> class=&quot;res_more&quot; valign=&quot;top&quot; colspan=&quot;2&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;resources/listDownloads.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;resource_subhead&quot;&gt;FAQs&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.faqList}&quot; var=&quot;loginBean&quot; varStatus=&quot;status&quot;
+</I>&gt;&gt;<i> begin=&quot;0&quot; end=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;resource_download_detail&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;c:out
+</I>&gt;&gt;<i> value=&quot;${loginBean.topic}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD
+</I>&gt;&gt;<i> class=&quot;res_more&quot; valign=&quot;top&quot; colspan=&quot;2&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;resources/listFAQ.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;resource_subhead&quot;&gt;Problems &amp; Solutions&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.problemList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;resource_download_detail&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;c:out
+</I>&gt;&gt;<i> value=&quot;${loginBean.topic}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD
+</I>&gt;&gt;<i> class=&quot;res_more&quot; valign=&quot;top&quot; colspan=&quot;2&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;resources/listProblemSolution.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;resource_subhead&quot;&gt;Discussion Forums&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.discussionForumList}&quot; var=&quot;loginBean&quot;
+</I>&gt;&gt;<i> varStatus=&quot;status&quot; begin=&quot;0&quot; end=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;c:set
+</I>&gt;&gt;<i> var=&quot;categoryId&quot; scope=&quot;page&quot; value=&quot;${loginBean.forumCategoryName}&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TD
+</I>&gt;&gt;<i> class=&quot;resource_download_detail&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;c:out
+</I>&gt;&gt;<i> value=&quot;${loginBean.forumCategoryName}&quot; /&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;TD
+</I>&gt;&gt;<i> class=&quot;res_more&quot; valign=&quot;top&quot; colspan=&quot;2&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;resources/listDiscussionForumCategory.do&quot;&gt;more&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;/table&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TD valign=&quot;top&quot;&gt;&lt;!-- Column 4 --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TABLE class=&quot;menutable&quot;
+</I>&gt;&gt;<i> cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; bgcolor=&quot;#FFFFFF&quot; width=&quot;251&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/currentpoll_heading_bg.gif&quot;&gt;&lt;i
+</I>&gt;&gt;<i> mg src=&quot;${channelBean.context}/images/currentpoll_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Current Survey&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;currentpolls&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;jsp:include
+</I>&gt;&gt;<i> page=&quot;/jsp/common/fiuCurrentPoll.jsp&quot;&gt;&lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                        &lt;table
+</I>&gt;&gt;<i> cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot; border=&quot;0&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                        --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;td class=&quot;arrow&quot; valign=&quot;top&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/poll_arrow.gif&quot;&gt;&lt;/td&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;td colspan=&quot;6&quot; class=&quot;pollQ&quot; valign=&quot;top&quot;&gt;&lt;c:out
+</I>&gt;&gt;<i> value=&quot;${UserDetailsCommand.currentPollDetailsBean.pollQuestion}&quot;/&gt;&lt;/td&gt;
+</I>&gt;&gt;<i> --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.currentPollDetailsBean.optionList}&quot;
+</I>&gt;&gt;<i> var=&quot;pollOptionBean&quot; varStatus=&quot;status&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;td class=&quot;customPoll&quot; valign=&quot;top&quot;&gt;&amp;nbsp;&lt;/td&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;td class=&quot;customPoll&quot; valign=&quot;top&quot; width=&quot;10&quot;&gt;&lt;input type=&quot;radio&quot;
+</I>&gt;&gt;<i> name=&quot;optionId&quot; value=&quot;${pollOptionBean.optionId}&quot;&gt;&lt;c:out
+</I>&gt;&gt;<i> value=&quot;${pollOptionBean.option}&quot; /&gt;&lt;/td&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:forEach&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;td colspan=&quot;6&quot; style=&quot;padding-right:25px;&quot; align=&quot;right&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;#&quot;&gt;&lt;img src=&quot;${channelBean.context}/images/submit.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Submit&quot; border=&quot;0&quot;
+</I>&gt;&gt;<i> onclick=&quot;submitPolls('submitPoll.do')&quot;&gt;&lt;/a&gt;&lt;/td&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/tr&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                        &lt;/table&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td valign=&quot;top&quot;
+</I>&gt;&gt;<i> background=&quot;${channelBean.context}/images/prev_poll_heading_bg.gif&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/prev_poll_heading.gif&quot;
+</I>&gt;&gt;<i> title=&quot;Previous Survey Results&quot;&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td valign=&quot;top&quot;
+</I>&gt;&gt;<i> class=&quot;prev_poll&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;TABLE
+</I>&gt;&gt;<i> cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot; border=&quot;0&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${not empty
+</I>&gt;&gt;<i> UserDetailsCommand.previousPollDetailsBean.pollQuestion}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;td class=&quot;arrow&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;img src=&quot;${channelBean.context}/images/poll_arrow.gif&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;td colspan=&quot;2&quot; class=&quot;pollQ&quot; valign=&quot;top&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:out
+</I>&gt;&gt;<i> value=&quot;${UserDetailsCommand.previousPollDetailsBean.pollQuestion}&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;TD colspan=&quot;3&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${not empty
+</I>&gt;&gt;<i> UserDetailsCommand.previousPollDetailsBean.pollQuestion}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;img src=&quot;${channelBean.context}/images/pie.gif&quot; title=&quot;Result Pie
+</I>&gt;&gt;<i> Chart&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.previousPollDetailsBean.optionList}&quot;
+</I>&gt;&gt;<i> var=&quot;pollOptionBean&quot; varStatus=&quot;status&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;totalResponse&quot;
+</I>&gt;&gt;<i> value=&quot;${UserDetailsCommand.previousPollDetailsBean.totalResponse}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;pollResponse&quot; value=&quot;${pollOptionBean.optionResponseCount}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;val&quot; value=&quot;${(pollResponse*100)/totalResponse}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='1'}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramOption1&quot; value=&quot;${pollOptionBean.option}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramValue1&quot; value=&quot;${val}&quot; scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='2'}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramOption2&quot; value=&quot;${pollOptionBean.option}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramValue2&quot; value=&quot;${val}&quot; scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='3'}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramOption3&quot; value=&quot;${pollOptionBean.option}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramValue3&quot; value=&quot;${val}&quot; scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='4'}&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramOption4&quot; value=&quot;${pollOptionBean.option}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;c:set var=&quot;paramValue4&quot; value=&quot;${val}&quot; scope=&quot;page&quot;/&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:include page=&quot;/jsp/common/pieChart.jsp&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramOption1&quot; value=&quot;${paramOption1}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramValue1&quot; value=&quot;${paramValue1}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramOption2&quot; value=&quot;${paramOption2}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramValue2&quot; value=&quot;${paramValue2}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramOption3&quot; value=&quot;${paramOption3}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramValue3&quot; value=&quot;${paramValue3}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramOption4&quot; value=&quot;${paramOption4}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;jsp:param name=&quot;paramValue4&quot; value=&quot;${paramValue4}&quot; /&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/jsp:include&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/c:if&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; width=&quot;50%&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TABLE cellpadding=&quot;2&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; width=&quot;100%&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.previousPollDetailsBean.optionList}&quot;
+</I>&gt;&gt;<i> var=&quot;pollOptionBean&quot; varStatus=&quot;status&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TR&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='1'}&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; class=&quot;color&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/yes.gif&quot;&gt;&lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:if&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='2'}&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; class=&quot;color&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/no.gif&quot;&gt;&lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:if&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='3'}&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; class=&quot;color&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/mayb.gif&quot;&gt;&lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:if&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;c:if test=&quot;${status.count=='4'}&quot;&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; class=&quot;color&quot;&gt;&lt;img
+</I>&gt;&gt;<i> src=&quot;${channelBean.context}/images/idc.gif&quot;&gt;&lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:if&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;TD valign=&quot;top&quot; class=&quot;pollmarks&quot;&gt;&lt;c:out
+</I>&gt;&gt;<i> value=&quot;${pollOptionBean.option}&quot; /&gt;&lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/TR&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/c:forEach&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/TABLE&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--
+</I>&gt;&gt;<i> &lt;/TD&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                   &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                             &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;td
+</I>&gt;&gt;<i> class=&quot;results&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;c:forEach
+</I>&gt;&gt;<i> items=&quot;${UserDetailsCommand.previousPollDetailsBean.optionList}&quot;
+</I>&gt;&gt;<i> var=&quot;pollOptionBean&quot; varStatus=&quot;status&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;span
+</I>&gt;&gt;<i> class=&quot;title&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;c:out
+</I>&gt;&gt;<i> value=&quot;${pollOptionBean.option}&quot; /&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/span&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;c:set
+</I>&gt;&gt;<i> var=&quot;totalResponse&quot;
+</I>&gt;&gt;<i> value=&quot;${UserDetailsCommand.previousPollDetailsBean.totalResponse}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;c:set
+</I>&gt;&gt;<i> var=&quot;pollResponse&quot; value=&quot;${pollOptionBean.optionResponseCount}&quot;
+</I>&gt;&gt;<i> scope=&quot;page&quot;/&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;c:set var=&quot;val&quot;
+</I>&gt;&gt;<i> value=&quot;${(pollResponse*100)/totalResponse}&quot; /&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;fmt:setLocale
+</I>&gt;&gt;<i> value=&quot;en_US&quot;/&gt;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;!--                                                  &lt;span
+</I>&gt;&gt;<i> class=&quot;percentage&quot;&gt;&lt;fmt:formatNumber value=&quot;${val}&quot; type=&quot;number&quot;
+</I>&gt;&gt;<i> maxFractionDigits=&quot;0&quot;/&gt;%&lt;/span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;--&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/c:forEach&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                       &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                 &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;/table&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;td colspan=&quot;2&quot; class=&quot;data&quot;&gt;&lt;br&gt;&lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;td colspan=&quot;2&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;TABLE cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;
+</I>&gt;&gt;<i> bgcolor=&quot;#FFFFFF&quot; border=&quot;0&quot; width=&quot;1003&quot; align=&quot;center&quot;&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TD class=&quot;footerlinks&quot;&gt;&lt;a
+</I>&gt;&gt;<i> href=&quot;#&quot;&gt;Sitemap&lt;/a&gt; | &lt;a href=&quot;#&quot;&gt;Disclaimer&lt;/a&gt;&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                           &lt;TD
+</I>&gt;&gt;<i> class=&quot;footer&quot;&gt;&amp;copy;Copyright 2010 FIU-IND. All Rights Reserved.&lt;/TD&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                     &lt;/TR&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                               &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                         &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;/TABLE&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                   &lt;!-- Body Ends here --&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>             &lt;/td&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       &lt;/tr&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/table&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/body&gt;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> &lt;/html&gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> But the problem is when I click on any link in fingatehome.jsp it is
+</I>&gt;&gt;<i> giving potential cross-site request forgery (CSRF) attack thwarted.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Can anyone tell me what wrong I am doing as it is not allowing me to
+</I>&gt;&gt;<i> access any of my webpage.I want to apply security for all my application
+</I>&gt;&gt;<i> web pages.But I don't know how to use it.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Thanks and regards
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Nikesh
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Please do not print this email unless it is absolutely necessary. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> WARNING: Computer viruses can be transmitted via email. The recipient should check this email and any attachments for the presence of viruses. The company accepts no liability for any damage caused by any virus transmitted by this email. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> www.wipro.com
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>&gt;<i> 
+</I>-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.16 (Darwin)
+Comment: Using GnuPG with Mozilla - <A HREF="http://enigmail.mozdev.org/">http://enigmail.mozdev.org/</A>
+
+iQQcBAEBAgAGBQJNQekQAAoJEBWErF92qiG2Yn0gAJf1M24xF2I2tfLPU8L4fpvv
+5LVfYgUth9NWsZwfL/Xzv03ITws4SORPswn7N1UXINVTJJq24FD9G710j2cu5iHT
+Ik0wvzcPHk5bo9BN3YofjJJg44u3mjRJCAjY174P92IiTM5ZHNRs/k0TrYwXhJCO
+TRIgfbenKITC/7CFMaLObW2dYVfAIVGW1l6FZu5n7h2YXvnD8ETbSPdcDt4vajqa
+FY49FATmQofNxt5j+s7q2Bd49QzrsDy4JrBcxTuo4W5ebVmQWc+IP8gYmIzsCNUU
+qdLFMdkICkPQnYA483ShDbeDOiTV7POz28FS4X4as7IWfu+62P2rCmDb/Xax8f0a
+/6laZa9hDvB/NJG7RcNZldILzavJ+gy+FadWGdBGNOa/SnrrUT3RV8AkZmoKcOER
+i9Eku0iYuidBg5ucwaVNDlDHym5fg8BmPRNtFVzg0oCn5Ov+yBiGv52PlmLzj4qa
+bdznINw+hqy/i7HF11ohej3suBAZXgrHCFAPu9Ch/E38mC+Lf3ttxPMDcowm8yFT
+WLhQpbpj0IvbCzR6Pz57DeHQtnS1QjEZO/afbCMow2KDGk1W1kA3xlkGrtobSyOP
+WbttMKlZDuub5g9ELseBF6f00fnzyvq9WAIa/PA70Phog3xQ1S0Hv3WLg3WwuCMD
+yTpjSy8u2MsD/gPLeFYr8Q12eBGNDu7lNZ1Ib0dpeMg5PMzqLqJcgjmyNiEpgYO0
+/TeZ7Bc5KbmtGNWOzZNm9m6l9xzsg2omVhNgzZivhC6QYnn/D/OScN9fOLSEzw+i
+5/AQA06p/MyDKSWQ+FB6vB2H8NsDoVJhY5rVzelnhdM4Zy1Vj+2kXxoG4CyDxJBk
+T8mAG3tCXlyIBnwD3aXnrJ3R7pf4TcHYprrlzOjWlfC1z1hIFsTvbKBd2qH8iR7q
+0GcMHOuf4KnN2phkFfltzYTZbiOSAJcRnoKex8aLRsIcNBzhgwk/htGhvCoGF73J
+GHhHL596jXY79G47LjMdQKeltRs0p037eXwW6ubCpXNz08zZF7cTO4GXT8T2ZTRB
+fhieJ+WPrCGkWTzMCGJiND9p0BbUgwjIEPyB40eIWIYvmvRoC3hS2+T3lPLPOZ8h
+40ioUiVs8i7z9FMYJo7xplOeMW7DlwjRZvgb7SEQgIo/dbcO1HKzMIm+Ew33qgEX
+as9YZxZ4uzxhcr7FneSuK4NIXSR1b1CLW2sz3MSXcfT+9l4FbrCD1XpAyoyG87I8
+OQf9U7/18+wEv01+sHfkNDbDhmBL9h3ozDYOxlSWmE5lZ4tobo5lSl+F2q05M9ng
+VhbGEZEfp4Nfd76UiJIRb+cj/x7WQDSuAa/So2sNuE87WVPCQjHTtC0zKCAEo1w=
+=sEmL
+-----END PGP SIGNATURE-----
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000033.html">[Owasp-csrfguard] Problem in using CSRF 3
+</A></li>
+	<LI>Next message: <A HREF="000035.html">[Owasp-csrfguard] OWASP CSRFGuard 3.0.0.479 ALPHA Released!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#34">[ date ]</a>
+              <a href="thread.html#34">[ thread ]</a>
+              <a href="subject.html#34">[ subject ]</a>
+              <a href="author.html#34">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

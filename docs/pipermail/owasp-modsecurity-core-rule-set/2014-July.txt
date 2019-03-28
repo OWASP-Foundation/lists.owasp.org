@@ -1,0 +1,3264 @@
+From ilyassikai at gmail.com  Tue Jul  1 11:12:17 2014
+From: ilyassikai at gmail.com (Ilyass Kaouam)
+Date: Tue, 1 Jul 2014 11:12:17 +0000
+Subject: [Owasp-modsecurity-core-rule-set]
+	=?utf-8?q?Probl=C3=A8me_with_Fa?= =?utf-8?q?lse_Positives?=
+In-Reply-To: <CAMmziWfCNF4WodWmTsF+qe=gZh5UhukdMsi6+Oma=6JSMaQ45A@mail.gmail.com>
+References: <CAMmziWdzAndDGjMw4dJT=hVzf_=F-VpHwcUY-sXiuSCLjTW_pg@mail.gmail.com>
+	<CAC+O4mHTMrtVNjGtCJz9VOPaGw6V+c5kfaW-F+C0JnxoW=QE5Q@mail.gmail.com>
+	<CAMmziWcig-rwfQG9jubVVVJgcJjZDyhaaTHHG5w7_TOOq1n4ZQ@mail.gmail.com>
+	<CAC+O4mHwrUKygRHwxJW_vGs1Ff-zkysb9QFW3nqT06Xi7ehNAQ@mail.gmail.com>
+	<CAMmziWehsKi+0HpFX4ttepEndrJ=NRvHVWqjK0bynm=ufzeVSw@mail.gmail.com>
+	<CAC+O4mHMsXV7mRR7a6OVQ+zNR9W_j82VMn64G-tBzV3jXjHYVQ@mail.gmail.com>
+	<CAHno4i9a_8zbAWxhMH+tairqmvKbNCojXnVcaHtLoLnXAKAjxQ@mail.gmail.com>
+	<CAMmziWd0gp_7--z+vhA=N3k-FW8aOTu0HfM0rOzqe3uv_iByNg@mail.gmail.com>
+	<CFD30752.104236%ryan.barnett@owasp.org>
+	<CAMmziWfCNF4WodWmTsF+qe=gZh5UhukdMsi6+Oma=6JSMaQ45A@mail.gmail.com>
+Message-ID: <CAMmziWeon9hxkVvyh4mRLK=1o-xKaWhSx=Rm6KtOw7LvnmMHXw@mail.gmail.com>
+
+Hello,
+
+Our website is a directory that is to say we always have users who insert
+their data such as the URL of their website, t?lephonen, fax ...
+during validation by our team I noticed that the mo_security to prohibit
+the request because it contains URL: http://www.companyhacham.sitew.com/
+
+Do you have a solution (secure) to allow url
+
+log:
+
+codeAction=1&entid=395342&bilid=345129&idMkt=518&denomination=&capital=100+000+&activite=COMPANY+HACHAM+offre+des+produits+et+services+de+grande+qualit%C3%A9+dans+les+domaines+de+%3A+Menuiserie+Aluminium%2C+PVC%2C+Inox%2C+Vitrine+en+Verre%2C+Cloisons+aluminium%2C+Cuisine+Moderne+Sur+Mesure%2C+Tablier+en+lames+Micro+perfor%C3%A9es%2C+Habillage+de+Fa%C3%A7ade.+(ALUCOBOND)%2C+Faux+Plafonds%2C+Mur+Rideau%2C+Moustiquaire%2C+les+Stores%2C+Travaux+divers.&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=06%2F08%2F13+14%3A32&loginUser=sgh5%
+40hotmail.fr&emailUser=sgh5%40hotmail.fr
+&id=518&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_565=on&telfaxmailweb_565_validator=1&data_565=0618555477&type_565=1&idMktTelfaxmailweb_565=0&telfaxmailweb_566=on&telfaxmailweb_566_validator=1&data_566=companyhacham%
+40gmail.com
+&type_566=3&idMktTelfaxmailweb_566=0&telfaxmailweb_567=on&telfaxmailweb_567_validator=1&data_567=http%3A%2F%2F*www.companyhacham.sitew.com
+<http://www.companyhacham.sitew.com>%2F&type_567=4&i*
+dMktTelfaxmailweb_567=0&statut=1&remarque=
+
+--c307bc39-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 245
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+Message: Access denied with code 403 (phase 2). Match of "beginsWith
+%{request_headers.host}" against "TX:1" required. [file
+"/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"]
+[line "163"] [id "950120"] [rev "3"] [msg "Possible Remote File Inclusion
+(RFI) Attack: Off-Domain Reference/Link"] [data "Matched Data:
+http://www.companyhacham.sitew.com/ found within TX:1:
+www.companyhacham.sitew.com/"] [severity "CRITICAL"] [ver
+"OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag
+"OWASP_CRS/WEB_ATTACK/RFI"]
+
+
+
+Thank you
+
+
+2014-06-30 10:29 GMT+00:00 Ilyass Kaouam <ilyassikai at gmail.com>:
+
+> Hi Ryan,
+>
+> It's work.
+>
+> Thank you.
+>
+>
+> 2014-06-27 16:41 GMT+01:00 Ryan Barnett <ryan.barnett at owasp.org>:
+>
+>> This is what I recommend in these cases -
+>>
+>>    1. Create a positive security/input validation check against the
+>>    parameter that is causing the false positive. In this case it is the "code"
+>>    parameter.  If it matches the expected input format, then move to step 2.
+>>    2. Then use the "ctl:ruleRemoveTargetById" action to conditionally
+>>    remove ARGS:code from inspection for rule 981173
+>>
+>> The rule would look something like this (not tested)
+>>
+>> SecRule ARGS:code "@rx ^[a-zA-z0-9\-_]+$"
+>> "phase:request,id:12345,nolog,pass,ctl:ruleRemoveTargetById=981173;ARGS:code"
+>>
+>> Place this rule in a modsecurity_crs_00_custom.conf file so that it runs
+>> BEFORE the normal CRS rules.
+>>
+>> In general, this approach is more secure than just simply removing a
+>> variable from inspection when you encounter a false positive.
+>>
+>> -Ryan
+>>
+>> From: Ilyass Kaouam <ilyassikai at gmail.com>
+>> Reply-To: <ilyassikai at gmail.com>
+>> Date: Friday, June 27, 2014 11:21 AM
+>> To: Jamie Riden <jamie.riden at gmail.com>
+>> Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org" <
+>> owasp-modsecurity-core-rule-set at lists.owasp.org>
+>> Subject: Re: [Owasp-modsecurity-core-rule-set] Probl?me with False
+>> Positives
+>>
+>> Hi
+>>
+>> Thank you that work excellent   :) :)
+>>
+>> Now when i try connect with Facebook It's block 'false positive'
+>>
+>> log:
+>>
+>> *--be2b2979-H--*
+>>
+>> *Message: Access denied with code 403 (phase 2). Pattern match
+>> "([\\~\\!\\@\\#\\$\\%\\^\\&\\*\\(\\)\\-\\+\\=\\{\\}\\[\\]\\|\\:\\;\"\\'\\\xc2\xb4\\\xe2\x80\x99\\\xe2\x80\x98\\`\\<\\>].*?){4,}"
+>> at ARGS:code. [file
+>> "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+>> [line "159"] [id "981173"] [rev "2"] [msg "Restricted SQL Character Anomaly
+>> Detection Alert - Total # of special characters exceeded"] [data "Matched
+>> Data: - found within ARGS:code:
+>> AQAZzUllyzvnMFeI1YdJ7btTKpmdrAZ3VS-n5iyorHDhHpSzG6gpoRuEnzi9nNpX4RY8XP1O8W3WOea-4NjU0r4S1QkiCKwpCea-smSIVe2WxCTEIu4eN7S4YVSENbyes9tTF_dt890NN64DhShsI72t5fusquL_iK7SIfEo03eaYNxIIn0IGAyY0l2IMUusVd24RFBiPKowLjRJrXC4NL02Ine0VJU0Nm57anPrK6gsuzMZG41hHbtWiqsyPtRusewjOOUmTMk0OTrXtm67sOUpCW7emT5gUsGKPlJy_efQ-Q5QTgpl0xcwOffuu4ATeBA"]
+>> [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "8"] [tag
+>> "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]*
+>>
+>> *Action: Intercepted (phase 2)*
+>>
+>> *Apache-Handler: proxy-server*
+>>
+>> *Stopwatch: 1403881875314702 2150 (- - -)*
+>>
+>> *Stopwatch2: 1403881875314702 2150; combined=1886, p1=90, p2=1793, p3=0,
+>> p4=0, p5=3, sr=26, sw=0, l=0, gc=0*
+>>
+>> *Response-Body-Transformed: Dechunked*
+>>
+>> *Producer: ModSecurity for Apache/2.7.3 (http://www.modsecurity.org/
+>> <http://www.modsecurity.org/>); OWASP_CRS/2.2.9. <http://2.2.9.>*
+>>
+>> *Server: Apache*
+>>
+>> *Engine-Mode: "ENABLED"*
+>>
+>> I can use
+>> SecRuleUpdateTargetById 960024 !ARGS:/^code/
+>>
+>> OR it's dangerous ?
+>>
+>>
+>>
+>>
+>> 2014-06-27 16:08 GMT+01:00 Jamie Riden <jamie.riden at gmail.com>:
+>>
+>>> Would
+>>>
+>>> SecRuleUpdateTargetById 960024 !ARGS:/^telfaxmailweb/
+>>>
+>>> be better in this instance?  (ie. anchor the start of line.)
+>>>
+>>> cheers,
+>>>  Jamie
+>>>
+>>> On 27 June 2014 15:57, Josh Amishav-Zlatin <jamuse at owasp.org> wrote:
+>>> > On Fri, Jun 27, 2014 at 5:41 PM, Ilyass Kaouam <ilyassikai at gmail.com>
+>>> wrote:
+>>> >>
+>>> >> hi thank you for your replay
+>>> >> BUT the problem is that the number    telfaxmailweb_1_171833   /
+>>> >> telfaxmailweb_1_142609   .... changes (non-static).
+>>> >> have you an idea
+>>> >>
+>>> >
+>>> > Hi Ilyass,
+>>> >
+>>> > Try using a regex in your exception, e.g.:
+>>> > SecRuleUpdateTargetById 960024 !ARGS:/telfaxmailweb/
+>>> >
+>>> > --
+>>> >  - Josh
+>>> >
+>>> >>
+>>> >> thank you
+>>> >>
+>>> >>
+>>> >> 2014-06-27 8:04 GMT+01:00 Josh Amishav-Zlatin <jamuse at owasp.org>:
+>>> >>
+>>> >>> On Thu, Jun 26, 2014 at 5:43 PM, Ilyass Kaouam <ilyassikai at gmail.com
+>>> >
+>>> >>> wrote:
+>>> >>>>
+>>> >>>> Hi Josh.
+>>> >>>>
+>>> >>>> It's work very good thank you :) :) :)
+>>> >>>>
+>>> >>>> I have another block :(   please help me
+>>> >>>
+>>> >>>
+>>> >>> Hi Ilyass,
+>>> >>>
+>>> >>> In this case there is a hyphen in the telfaxmailweb_1_171833
+>>> parameter
+>>> >>> value. Try using the SecRuleUpdateTargetById directive, e.g.
+>>> >>> SecRuleUpdateTargetById 960024 !ARGS:telfaxmailweb_1_171833
+>>> >>>
+>>> >>> For details see:
+>>> >>>
+>>> >>>
+>>> http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+>>> >>>
+>>> >>> --
+>>> >>>  - Josh
+>>> >>>
+>>> >>>>
+>>> >>>> log:
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> >>>> --9b18757a-A--
+>>> >>>>
+>>> >>>> [26/Jun/2014:16:35:15 +0200] U6wvo38AAAEAAFCgA4AAAAAK
+>>> >>>>
+>>> >>>> --9b18757a-B--
+>>> >>>>
+>>> >>>> POST /beta/societe-contribEnt HTTP/1.1
+>>> >>>>
+>>> >>>> Host: www.
+>>> >>>>
+>>> >>>> xxxx
+>>> >>>> .
+>>> >>>> xxx
+>>> >>>>
+>>> >>>> User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:30.0)
+>>> >>>> Gecko/20100101 Firefox/30.0
+>>> >>>>
+>>> >>>> Accept: */*
+>>> >>>>
+>>> >>>> Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
+>>> >>>>
+>>> >>>> Accept-Encoding: gzip, deflate
+>>> >>>>
+>>> >>>> Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+>>> >>>>
+>>> >>>> X-Requested-With: XMLHttpRequest
+>>> >>>>
+>>> >>>> Referer: http://www.
+>>> >>>>
+>>> >>>> xxxx
+>>> >>>> .ma/beta/
+>>> >>>> xxxxx
+>>> >>>> ?action=edit
+>>> >>>>
+>>> >>>> Content-Length: 1735
+>>> >>>>
+>>> >>>> Cookie: JSESSIONID=2A3D8D47FE45427E1AAFC69A2FA48F7B;
+>>> >>>> __utma=111125463.1234468951.1403792976.1403792976.1403792976.1;
+>>> >>>> __utmb=111125463.7.10.1403792976; __utmc=111125463;
+>>> >>>>
+>>> __utmz=111125463.1403792976.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)
+>>> >>>>
+>>> >>>> Connection: keep-alive
+>>> >>>>
+>>> >>>> Pragma: no-cache
+>>> >>>>
+>>> >>>> Cache-Control: no-cache
+>>> >>>>
+>>> >>>>
+>>> >>>> --9b18757a-C--
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> codeAction=1&entid=151549&bilid=148614&idMkt=1628&denomination=INFORISK&denomination_dirty=&entrc=135529&entrc_dirty=&tribunal=12&tribunal_dirty=&fmj=Soci%C3%A9t%C3%A9+Anonyme&fmj_dirty=&capital=12+650+000+Dirhams&capital_dirty=&adresse=43%2C+Boulevard+D'anfa&adresse_dirty=&ville=1488&ville_dirty=&activite=+Collecte%2C+traitement+et+vente+des+informations+financi%C3%A8res%2C+l%C3%A9gales+et+commerciales&activite_dirty=&effectif_dirty=&effectif=30&segmentEffectif_dirty=&segmentEffectif=2&effectifCadre_dirty=&effectifCadre=0&telfaxmailweb_1_171833_dirty=&telfaxmailweb_1_171833=05-22-27-64-10&telfaxmailweb_1_142609_dirty=&telfaxmailweb_1_142609=05-22-42-90-87&telfaxmailweb_1_0_2_dirty=&telfaxmailweb_1_0_2=__-__-__-__-__&telfaxmailweb_1_0_3_dirty=&telfaxmailweb_1_0_3=__-__-__-__-__&telfaxmailweb_2_142611_dirty=&telfaxmailweb_2_142611=05-22-27-64-16&telfaxmailweb_2_0_1_dirty=&telfaxmailweb_2_0_1=__-__-__-__-__&telfaxmailweb_2_0_2_dirty=&telfaxmailweb_2_0_2=__-__-__-__-__&telfaxmailweb_2_0_3_dirty=&telfaxmailweb_2_0_3=__-__-__-__-__&telfaxmailweb_3_142612_dirty=&telfaxmailweb_3_142612=info%
+>>> 40inforisk.ma
+>>> &telfaxmailweb_3_0_1_dirty=&telfaxmailweb_3_0_1=&telfaxmailweb_3_0_2_dirty=&telfaxmailweb_3_0_2=&telfaxmailweb_3_0_3_dirty=&telfaxmailweb_3_0_3=&telfaxmailweb_4_142608_dirty=&telfaxmailweb_4_142608=
+>>> www.inforisk.ma
+>>> &telfaxmailweb_4_0_1_dirty=&telfaxmailweb_4_0_1=&telfaxmailweb_4_0_2_dirty=&telfaxmailweb_4_0_2=&telfaxmailweb_4_0_3_dirty=&telfaxmailweb_4_0_3=&idMktRefTypeContact_31241_dirty=&idMktRefTypeContact_31241=1&nom_31241=Ayouch&nom_31241_dirty=&prenom_31241=Khalid&prenom_31241_dirty=&tel_31241=__-__-__-__-__&tel_31241_dirty=&email_31241=test%
+>>> 40gmail.com&email_31241_dirty=1&contact_31241=1&contact_31241_dirty=1
+>>> >>>>
+>>> >>>> --9b18757a-F--
+>>> >>>>
+>>> >>>> HTTP/1.1 403 Forbidden
+>>> >>>>
+>>> >>>> Content-Length: 225
+>>> >>>>
+>>> >>>> Connection: close
+>>> >>>>
+>>> >>>> Content-Type: text/html; charset=iso-8859-1
+>>> >>>>
+>>> >>>>
+>>> >>>> --9b18757a-E--
+>>> >>>>
+>>> >>>>
+>>> >>>> --9b18757a-H--
+>>> >>>>
+>>> >>>> Message: Access denied with code 403 (phase 2). Pattern match
+>>> >>>>
+>>> "([\\~\\!\\@\\#\\$\\%\\^\\&\\*\\(\\)\\-\\+\\=\\{\\}\\[\\]\\|\\:\\;\"\\'\\\xc2\xb4\\\xe2\x80\x99\\\xe2\x80\x98\\`\\<\\>].*?){4,}"
+>>> >>>> at ARGS:telfaxmailweb_1_171833. [file
+>>> >>>>
+>>> "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+>>> >>>> [line "159"] [id "981173"] [rev "2"] [msg "Restricted SQL Character
+>>> Anomaly
+>>> >>>> Detection Alert - Total # of special characters exceeded"] [data
+>>> "Matched
+>>> >>>> Data: - found within ARGS:telfaxmailweb_1_171833: 05-22-27-64-10"]
+>>> [ver
+>>> >>>> "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "8"] [tag
+>>> >>>> "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"]
+>>> >>>>
+>>> >>>> Action: Intercepted (phase 2)
+>>> >>>>
+>>> >>>> Apache-Handler: proxy-server
+>>> >>>>
+>>> >>>> Stopwatch: 1403793315275899 22265 (- - -)
+>>> >>>>
+>>> >>>> Stopwatch2: 1403793315275899 22265; combined=9584, p1=187, p2=9377,
+>>> >>>> p3=0, p4=0, p5=20, sr=28, sw=0, l=0, gc=0
+>>> >>>>
+>>> >>>> Response-Body-Transformed: Dechunked
+>>> >>>>
+>>> >>>> Producer: ModSecurity for Apache/2.7.3 (http://www.modsecurity.org/
+>>> );
+>>> >>>> OWASP_CRS/2.2.9.
+>>> >>>>
+>>> >>>> Server: Apache
+>>> >>>>
+>>> >>>> Engine-Mode: "ENABLED"
+>>> >>>>
+>>> >>>>
+>>> >>>> --9b18757a-Z--
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> >>>> 2014-06-26 13:44 GMT+01:00 Josh Amishav-Zlatin <jamuse at owasp.org>:
+>>> >>>>
+>>> >>>>> On Thu, Jun 26, 2014 at 3:19 PM, Ilyass Kaouam <
+>>> ilyassikai at gmail.com>
+>>> >>>>> wrote:
+>>> >>>>>>
+>>> >>>>>> Hi guys.
+>>> >>>>>>
+>>> >>>>>> I not understand why modsecurity blocking my request with the
+>>> >>>>>> character "?" in french.
+>>> >>>>>> log:
+>>> >>>>>
+>>> >>>>>
+>>> >>>>> Hi Ilyass,
+>>> >>>>>
+>>> >>>>> Take a look at the SecUnicodeCodePage and SecUnicodeMapFile
+>>> directives.
+>>> >>>>> For more information see:
+>>> >>>>>
+>>> >>>>> http://blog.spiderlabs.com/2012/08/waf-normalization-and-i18n.html
+>>> >>>>>
+>>> >>>>> --
+>>> >>>>>  - Josh
+>>> >>>>>
+>>> >>>>>
+>>> >>>>>
+>>> >>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> --169a1612-A--
+>>> >>>>>>
+>>> >>>>>> [26/Jun/2014:11:48:57 +0200] U6vsiX8AAAEAAEkNI7cAAAAQ
+>>> >>>>>>
+>>> >>>>>> --169a1612-B--
+>>> >>>>>>
+>>> >>>>>> POST /beta/societe-xxxxxr HTTP/1.1
+>>> >>>>>>
+>>> >>>>>> Host: www.xxxx.xx
+>>> >>>>>>
+>>> >>>>>> User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64; rv:30.0)
+>>> >>>>>> Gecko/20100101 Firefox/30.0
+>>> >>>>>>
+>>> >>>>>> Accept: */*
+>>> >>>>>>
+>>> >>>>>> Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
+>>> >>>>>>
+>>> >>>>>> Accept-Encoding: gzip, deflate
+>>> >>>>>>
+>>> >>>>>> Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+>>> >>>>>>
+>>> >>>>>> X-Requested-With: XMLHttpRequest
+>>> >>>>>>
+>>> >>>>>> Referer: http://www.xxx.xxx/beta/societe-xxxx
+>>> >>>>>>
+>>> >>>>>> Content-Length: 760
+>>> >>>>>>
+>>> >>>>>> Cookie: JSESSIONID=DC9410B3998A7E973EDBA0ED638F5B40;
+>>> >>>>>> __utma=111125463.1374472637.1403014671.1403719512.1403772965.34;
+>>> >>>>>>
+>>> __utmz=111125463.1403435014.17.3.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided);
+>>> >>>>>> __utmb=111125463.24.10.1403772965; __utmc=111125463;
+>>> >>>>>> JSESSIONID=EB7E51CFBA0B811E9335731DA6A26A08
+>>> >>>>>>
+>>> >>>>>> Connection: keep-alive
+>>> >>>>>>
+>>> >>>>>> Pragma: no-cache
+>>> >>>>>>
+>>> >>>>>> Cache-Control: no-cache
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> --169a1612-C--
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> codeAction=1&entid=367928&bilid=321761&idMkt=672&denomination=&capital=10+000+&activite=PRODUCTION+DES+FILMS+CINEMATOGRAPHIQUES+ET+AUDIOVISEUL&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=17%2F08%2F13+%C3%A0+15%3A41&loginUser=nabilchant%
+>>> 40hotmail.fr&emailUser=nabilchant%40hotmail.fr
+>>> &id=672&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_734=on&telfaxmailweb_734_validator=1&data_734=0610357910&type_734=1&idMktTelfaxmailweb_734=0&telfaxmailweb_735=on&telfaxmailweb_735_validator=1&data_735=0633327850&type_735=1&idMktTelfaxmailweb_735=0&statut=1&remarque=
+>>> >>>>>>
+>>> >>>>>> --169a1612-F--
+>>> >>>>>>
+>>> >>>>>> HTTP/1.1 403 Forbidden
+>>> >>>>>>
+>>> >>>>>> Content-Length: 245
+>>> >>>>>>
+>>> >>>>>> Connection: close
+>>> >>>>>>
+>>> >>>>>> Content-Type: text/html; charset=iso-8859-1
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> --169a1612-E--
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> --169a1612-H--
+>>> >>>>>>
+>>> >>>>>> Message: Access denied with code 403 (phase 2). Pattern match
+>>> >>>>>> "\\W{4,}" at ARGS:dateContribution. [file
+>>> >>>>>>
+>>> "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"]
+>>> >>>>>> [line "37"] [id "960024"] [rev "2"] [msg "Meta-Character Anomaly
+>>> Detection
+>>> >>>>>> Alert - Repetative Non-Word Characters"] [data "Matched Data:
+>>>  \xc3\xa0
+>>> >>>>>> found within ARGS:dateContribution: 17/08/13 \xc3\xa0 15:41"] [ver
+>>> >>>>>> "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "8"]
+>>> >>>>>>
+>>> >>>>>> Action: Intercepted (phase 2)
+>>> >>>>>>
+>>> >>>>>> Apache-Handler: proxy-server
+>>> >>>>>>
+>>> >>>>>> Stopwatch: 1403776137380257 11043 (- - -)
+>>> >>>>>>
+>>> >>>>>> Stopwatch2: 1403776137380257 11043; combined=642, p1=224, p2=399,
+>>> >>>>>> p3=0, p4=0, p5=19, sr=37, sw=0, l=0, gc=0
+>>> >>>>>>
+>>> >>>>>> Response-Body-Transformed: Dechunked
+>>> >>>>>>
+>>> >>>>>> Producer: ModSecurity for Apache/2.7.3 (
+>>> http://www.modsecurity.org/);
+>>> >>>>>> OWASP_CRS/2.2.9.
+>>> >>>>>>
+>>> >>>>>> Server: Apache
+>>> >>>>>>
+>>> >>>>>> Engine-Mode: "ENABLED"
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> --169a1612-Z--
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> how to allow these types of characters.
+>>> >>>>>>
+>>> >>>>>> thank you.
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>>
+>>> >>>>>> _______________________________________________
+>>> >>>>>> Owasp-modsecurity-core-rule-set mailing list
+>>> >>>>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>> >>>>>>
+>>> >>>>>>
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>> >>>>>>
+>>> >>>>>
+>>> >>>>
+>>> >>>>
+>>> >>>>
+>>> >>>> --
+>>> >>>> Ilyass kaouam
+>>> >>>> Systems administrator at Inforisk Group Finaccess
+>>> >>>> European Masters in Information Technology
+>>> >>>> Portable : (212) 6 34 57 14 36
+>>> >>>> http://www.inforisk.ma
+>>> >>>
+>>> >>>
+>>> >>
+>>> >>
+>>> >>
+>>> >> --
+>>> >> Ilyass kaouam
+>>> >> Systems administrator at Inforisk Group Finaccess
+>>> >> European Masters in Information Technology
+>>> >> Portable : (212) 6 34 57 14 36
+>>> >> http://www.inforisk.ma
+>>> >
+>>> >
+>>> >
+>>> > _______________________________________________
+>>> > Owasp-modsecurity-core-rule-set mailing list
+>>> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>> >
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>> >
+>>>
+>>>
+>>>
+>>> --
+>>> Jamie Riden / jamie at honeynet.org / jamie.riden at gmail.com
+>>> http://uk.linkedin.com/in/jamieriden
+>>>
+>>
+>>
+>>
+>> --
+>> *Ilyass kaouam*
+>> *Systems administrator*
+>> * at Inforisk Group Finaccess  *
+>> *European Masters in Information Technology*
+>> *Portable : (212) *
+>> *6 34 57 14 36**http://www.inforisk.ma <http://www.inforisk.ma>*
+>>  _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>
+>>
+>
+>
+> --
+> *Ilyass kaouam*
+> *Systems administrator*
+> * at Inforisk Group Finaccess  *
+> *European Masters in Information Technology*
+> *Portable : (212) *
+> *6 34 57 14 36**http://www.inforisk.ma <http://www.inforisk.ma>*
+>
+
+
+
+-- 
+*Ilyass kaouam*
+*Systems administrator*
+* at Inforisk Group Finaccess  *
+*European Masters in Information Technology*
+*Portable : (212) *
+*6 34 57 14 36**http://www.inforisk.ma <http://www.inforisk.ma>*
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140701/fc12f464/attachment-0001.html>
+
+From ilyassikai at gmail.com  Wed Jul  2 10:07:51 2014
+From: ilyassikai at gmail.com (Ilyass Kaouam)
+Date: Wed, 2 Jul 2014 10:07:51 +0000
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+Message-ID: <CAMmziWchU1Z8MyAoGAYrwt7H9x0dfUD0PdbtsMqqb68iRdX_5g@mail.gmail.com>
+
+ Hello,
+
+Our website is a directory that is to say we always have users who insert
+their data such as the URL of their website, t?lephonen, fax ...
+during validation by our team I noticed that the mo_security to prohibit
+the request because it contains URL: http://www.companyhacham.sitew.com/
+
+Do you have a solution (secure) to allow url ?
+
+Thank you
+
+log:
+
+codeAction=1&entid=395342&bilid=345129&idMkt=518&denomination=&capital=100+000+&activite=COMPANY+HACHAM+offre+des+produits+et+services+de+grande+qualit%C3%A9+dans+les+domaines+de+%3A+Menuiserie+Aluminium%2C+PVC%2C+Inox%2C+Vitrine+en+Verre%2C+Cloisons+aluminium%2C+Cuisine+Moderne+Sur+Mesure%2C+Tablier+en+lames+Micro+perfor%C3%A9es%2C+Habillage+de+Fa%C3%A7ade.+(ALUCOBOND)%2C+Faux+Plafonds%2C+Mur+Rideau%2C+Moustiquaire%2C+les+Stores%2C+Travaux+divers.&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=06%2F08%2F13+14%3A32&loginUser=sgh5%
+40hotmail.fr&emailUser=sgh5%40hotmail.fr
+&id=518&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_565=on&telfaxmailweb_565_validator=1&data_565=0618555477&type_565=1&idMktTelfaxmailweb_565=0&telfaxmailweb_566=on&telfaxmailweb_566_validator=1&data_566=companyhacham%
+40gmail.com
+&type_566=3&idMktTelfaxmailweb_566=0&telfaxmailweb_567=on&telfaxmailweb_567_validator=1&data_567=http%3A%2F%2F*www.companyhacham.sitew.com
+<http://www.companyhacham.sitew.com/>%2F&type_567=4&i*
+dMktTelfaxmailweb_567=0&statut=1&remarque=
+
+--c307bc39-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 245
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+Message: Access denied with code 403 (phase 2). Match of "beginsWith
+%{request_headers.host}" against "TX:1" required. [file
+"/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"]
+[line "163"] [id "950120"] [rev "3"] [msg "Possible Remote File Inclusion
+(RFI) Attack: Off-Domain Reference/Link"] [data "Matched Data:
+http://www.companyhacham.sitew.com/ found within TX:1:
+www.companyhacham.sitew.com/"] [severity "CRITICAL"] [ver
+"OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag
+"OWASP_CRS/WEB_ATTACK/RFI"]
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140702/216c0b65/attachment.html>
+
+From sthayyilekan at BarclaycardUS.com  Wed Jul  2 14:57:21 2014
+From: sthayyilekan at BarclaycardUS.com (Thayyilekandy, Subin : Barclaycard US)
+Date: Wed, 2 Jul 2014 14:57:21 +0000
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+In-Reply-To: <CAMmziWchU1Z8MyAoGAYrwt7H9x0dfUD0PdbtsMqqb68iRdX_5g@mail.gmail.com>
+References: <CAMmziWchU1Z8MyAoGAYrwt7H9x0dfUD0PdbtsMqqb68iRdX_5g@mail.gmail.com>
+Message-ID: <C310131DD0004743B2508B65C77B66314024D82C@PMEXGMB04.juniper.com>
+
+If data_567 will always have the Url data you can do in your custom rules file (AFTER the CRS rules)
+
+SecRuleUpdateTargetById 950120!ARGS: data_567
+
+Or conditionally check the url particular to this request and allow the parameter in your custom rules file (BRFORE the CRS rules)
+
+
+SecRule REQUEST_FILENAME "@rx /XXX/Register\.action" "id:999008,phase:2,t:none,nolog,pass,ctl:ruleRemoveTargetById=950120;ARGS: data_567 "
+
+
+
+Thanks
+
+Subin
+Application Security consultant | GISTR
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Ilyass Kaouam
+Sent: Wednesday, July 02, 2014 6:08 AM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+
+Hello,
+
+Our website is a directory that is to say we always have users who insert their data such as the URL of their website, t?lephonen, fax ...
+during validation by our team I noticed that the mo_security to prohibit the request because it contains URL: http://www.companyhacham.sitew.com/
+
+Do you have a solution (secure) to allow url ?
+
+Thank you
+
+log:
+
+
+codeAction=1&entid=395342&bilid=345129&idMkt=518&denomination=&capital=100+000+&activite=COMPANY+HACHAM+offre+des+produits+et+services+de+grande+qualit%C3%A9+dans+les+domaines+de+%3A+Menuiserie+Aluminium%2C+PVC%2C+Inox%2C+Vitrine+en+Verre%2C+Cloisons+aluminium%2C+Cuisine+Moderne+Sur+Mesure%2C+Tablier+en+lames+Micro+perfor%C3%A9es%2C+Habillage+de+Fa%C3%A7ade.+(ALUCOBOND)%2C+Faux+Plafonds%2C+Mur+Rideau%2C+Moustiquaire%2C+les+Stores%2C+Travaux+divers.&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=06%2F08%2F13+14%3A32&loginUser=sgh5%40hotmail.fr<http://40hotmail.fr/>&emailUser=sgh5%40hotmail.fr<http://40hotmail.fr/>&id=518&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_565=on&telfaxmailweb_565_validator=1&data_565=0618555477&type_565=1&idMktTelfaxmailweb_565=0&telfaxmailweb_566=on&telfaxmailweb_566_validator=1&data_566=companyhacham%40gmail.com<http://40gmail.com/>&type_566=3&idMktTelfaxmailweb_566=0&telfaxmailweb_567=on&telfaxmailweb_567_validator=1&data_567=http%3A%2F%2Fwww.companyhacham.sitew.com<http://www.companyhacham.sitew.com/>%2F&type_567=4&idMktTelfaxmailweb_567=0&statut=1&remarque=
+
+--c307bc39-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 245
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+
+Message: Access denied with code 403 (phase 2). Match of "beginsWith %{request_headers.host}" against "TX:1" required. [file "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"] [line "163"] [id "950120"] [rev "3"] [msg "Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link"] [data "Matched Data: http://www.companyhacham.sitew.com/ found within TX:1:www.companyhacham.sitew.com/<http://www.companyhacham.sitew.com/>"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/WEB_ATTACK/RFI"]
+
+Barclaycard
+www.barclaycardus.com 
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140702/7711c572/attachment.html>
+
+From sthayyilekan at BarclaycardUS.com  Wed Jul  2 16:31:14 2014
+From: sthayyilekan at BarclaycardUS.com (Thayyilekandy, Subin : Barclaycard US)
+Date: Wed, 2 Jul 2014 16:31:14 +0000
+Subject: [Owasp-modsecurity-core-rule-set]  Reg modsecurity_35_bad_robots
+Message-ID: <C310131DD0004743B2508B65C77B66314024D88F@PMEXGMB04.juniper.com>
+
+Anyone using the modsecurity_35_bad_robots ?
+There is keyword ?Via? in the data file which matches for browsers like ?Whitehat Aviator? and requests coming  off these browsers get blocked ,just wondering if its ok to remove the keyword ?via? off the list or conditionally handle it with a positive rule to allow this browser, there may be other browser/devices that can have ?via? in  user agents as part of some word as in this case.
+
+Also not sure if this is the intended behavior, though the user agent have ?Whitehat Aviator? present in in all the requests from this browser , only requests with ARGS seems to be working for the rules in modsecurity_35_bad_robots.conf
+
+1.GET request ? User comes to home page ( not blocked by Mod Security as there are no ARGS /parameters  )
+2.POST request ? user logs in ( blocked by Mod security ? with POST parameters)
+3.GET Request ? any navigation with ARGS  ( blocked by Mod security - with GET parameters)
+
+
+Thanks
+Subin
+
+
+
+
+
+Barclaycard
+www.barclaycardus.com 
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140702/132e669f/attachment-0001.html>
+
+From ilyassikai at gmail.com  Thu Jul  3 10:54:24 2014
+From: ilyassikai at gmail.com (Ilyass Kaouam)
+Date: Thu, 3 Jul 2014 10:54:24 +0000
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+In-Reply-To: <C310131DD0004743B2508B65C77B66314024D82C@PMEXGMB04.juniper.com>
+References: <CAMmziWchU1Z8MyAoGAYrwt7H9x0dfUD0PdbtsMqqb68iRdX_5g@mail.gmail.com>
+	<C310131DD0004743B2508B65C77B66314024D82C@PMEXGMB04.juniper.com>
+Message-ID: <CAMmziWe3Pjit-1pz1AiH=2jsvqdZavfdbSpr7X+zcp0Nm2O4yA@mail.gmail.com>
+
+Hi Subin,
+I have 2 question :
+
+1) for :  SecRuleUpdateTargetById 950120!ARGS: data_567             data_576
+ data is static but not the number, are there any solution for that
+2) I don't understand  /XXX/Register\.action
+
+thank you.
+
+
+2014-07-02 14:57 GMT+00:00 Thayyilekandy, Subin : Barclaycard US <
+sthayyilekan at barclaycardus.com>:
+
+>  If data_567 will always have the Url data you can do in your custom
+> rules file (AFTER the CRS rules)
+>
+>
+>
+> SecRuleUpdateTargetById 950120!ARGS: data_567
+>
+>
+>
+> Or conditionally check the url particular to this request and allow the
+> parameter in your custom rules file (BRFORE the CRS rules)
+>
+>
+>
+>
+>
+> SecRule REQUEST_FILENAME "@rx /XXX/Register\.action"
+> "id:999008,phase:2,t:none,nolog,pass,ctl:ruleRemoveTargetById=950120;ARGS:
+> data_567 "
+>
+>
+>
+>
+>
+>
+>
+> Thanks
+>
+>
+>
+> *Subin *
+>
+> *Application Security consultant | GISTR*
+>
+>
+>
+> *From:* owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] *On Behalf Of *Ilyass
+> Kaouam
+> *Sent:* Wednesday, July 02, 2014 6:08 AM
+> *To:* owasp-modsecurity-core-rule-set at lists.owasp.org
+> *Subject:* [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+>
+>
+>
+> Hello,
+>
+>
+>
+> Our website is a directory that is to say we always have users who insert
+> their data such as the URL of their website, t?lephonen, fax ...
+>
+> during validation by our team I noticed that the mo_security to prohibit
+> the request because it contains URL: http://www.companyhacham.sitew.com/
+>
+>
+>
+> Do you have a solution (secure) to allow url ?
+>
+> Thank you
+>
+>
+>
+> log:
+>
+>
+>
+>
+> codeAction=1&entid=395342&bilid=345129&idMkt=518&denomination=&capital=100+000+&activite=COMPANY+HACHAM+offre+des+produits+et+services+de+grande+qualit%C3%A9+dans+les+domaines+de+%3A+Menuiserie+Aluminium%2C+PVC%2C+Inox%2C+Vitrine+en+Verre%2C+Cloisons+aluminium%2C+Cuisine+Moderne+Sur+Mesure%2C+Tablier+en+lames+Micro+perfor%C3%A9es%2C+Habillage+de+Fa%C3%A7ade.+(ALUCOBOND)%2C+Faux+Plafonds%2C+Mur+Rideau%2C+Moustiquaire%2C+les+Stores%2C+Travaux+divers.&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=06%2F08%2F13+14%3A32&loginUser=sgh5%
+> 40hotmail.fr&emailUser=sgh5%40hotmail.fr
+> &id=518&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_565=on&telfaxmailweb_565_validator=1&data_565=0618555477&type_565=1&idMktTelfaxmailweb_565=0&telfaxmailweb_566=on&telfaxmailweb_566_validator=1&data_566=companyhacham%
+> 40gmail.com
+> &type_566=3&idMktTelfaxmailweb_566=0&telfaxmailweb_567=on&telfaxmailweb_567_validator=1&data_567=http%3A%2F%2F*www.companyhacham.sitew.com
+> <http://www.companyhacham.sitew.com/>%2F&type_567=4&i*
+> dMktTelfaxmailweb_567=0&statut=1&remarque=
+>
+> --c307bc39-F--
+>
+> HTTP/1.1 403 Forbidden
+>
+> Content-Length: 245
+>
+> Connection: close
+>
+> Content-Type: text/html; charset=iso-8859-1
+>
+>
+>
+> Message: Access denied with code 403 (phase 2). Match of "beginsWith
+> %{request_headers.host}" against "TX:1" required. [file
+> "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"]
+> [line "163"] [id "950120"] [rev "3"] [msg "Possible Remote File Inclusion
+> (RFI) Attack: Off-Domain Reference/Link"] [data "Matched Data:
+> http://www.companyhacham.sitew.com/ found within TX:1:
+> www.companyhacham.sitew.com/"] [severity "CRITICAL"] [ver
+> "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag
+> "OWASP_CRS/WEB_ATTACK/RFI"]
+>
+> Barclaycard
+>
+> www.barclaycardus.com
+>
+> This email and any files transmitted with it may contain confidential
+> and/or proprietary information. It is intended solely for the use of the
+> individual or entity who is the intended recipient. Unauthorized use of
+> this information is prohibited. If you have received this in error, please
+> contact the sender by replying to this message and delete this material
+> from any system it may be on.
+>
+
+
+
+-- 
+*Ilyass kaouam*
+*Systems administrator*
+* at Inforisk Group Finaccess  *
+*European Masters in Information Technology*
+*Portable : (212) *
+*6 34 57 14 36**http://www.inforisk.ma <http://www.inforisk.ma>*
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140703/5cb146c2/attachment.html>
+
+From sthayyilekan at BarclaycardUS.com  Thu Jul  3 19:12:02 2014
+From: sthayyilekan at BarclaycardUS.com (Thayyilekandy, Subin : Barclaycard US)
+Date: Thu, 3 Jul 2014 19:12:02 +0000
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+In-Reply-To: <CAMmziWe3Pjit-1pz1AiH=2jsvqdZavfdbSpr7X+zcp0Nm2O4yA@mail.gmail.com>
+References: <CAMmziWchU1Z8MyAoGAYrwt7H9x0dfUD0PdbtsMqqb68iRdX_5g@mail.gmail.com>
+	<C310131DD0004743B2508B65C77B66314024D82C@PMEXGMB04.juniper.com>
+	<CAMmziWe3Pjit-1pz1AiH=2jsvqdZavfdbSpr7X+zcp0Nm2O4yA@mail.gmail.com>
+Message-ID: <C310131DD0004743B2508B65C77B66314024EDA0@PMEXGMB04.juniper.com>
+
+
+
+
+1) for :  SecRuleUpdateTargetById 950120!ARGS: data_567             data_576  data is static but not the number, are there any solution for that
+
+                -              Are you saying that any of your parameters data_000 ? data _999 can have a url data and you want to allow that ? This rule is meant for file inclusion attempts and will look for URL patterns so if you want to allow urls in any/all of your parameters for this particular request alone you might just want to conditionally remove the rule itself for this request
+SecRule REQUEST_FILENAME "@rx /XXX/your request url" "id:999008,phase:2,t:none,nolog,pass,ctl:removeRuleById =950120 "
+
+
+
+2) I don't understand  /XXX/Register\.action
+
+                        This was just an example for an URL , you should substitute it with your request url
+
+
+
+
+
+2014-07-02 14:57 GMT+00:00 Thayyilekandy, Subin : Barclaycard US <sthayyilekan at barclaycardus.com<mailto:sthayyilekan at barclaycardus.com>>:
+If data_567 will always have the Url data you can do in your custom rules file (AFTER the CRS rules)
+
+SecRuleUpdateTargetById 950120!ARGS: data_567
+
+Or conditionally check the url particular to this request and allow the parameter in your custom rules file (BRFORE the CRS rules)
+
+
+SecRule REQUEST_FILENAME "@rx /XXX/Register\.action" "id:999008,phase:2,t:none,nolog,pass,ctl:ruleRemoveTargetById=950120;ARGS: data_567 "
+
+
+
+Thanks
+
+Subin
+Application Security consultant | GISTR
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org>] On Behalf Of Ilyass Kaouam
+Sent: Wednesday, July 02, 2014 6:08 AM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [Owasp-modsecurity-core-rule-set] FALSE POSITIVE
+
+Hello,
+
+Our website is a directory that is to say we always have users who insert their data such as the URL of their website, t?lephonen, fax ...
+during validation by our team I noticed that the mo_security to prohibit the request because it contains URL: http://www.companyhacham.sitew.com/
+
+Do you have a solution (secure) to allow url ?
+
+Thank you
+
+log:
+
+
+codeAction=1&entid=395342&bilid=345129&idMkt=518&denomination=&capital=100+000+&activite=COMPANY+HACHAM+offre+des+produits+et+services+de+grande+qualit%C3%A9+dans+les+domaines+de+%3A+Menuiserie+Aluminium%2C+PVC%2C+Inox%2C+Vitrine+en+Verre%2C+Cloisons+aluminium%2C+Cuisine+Moderne+Sur+Mesure%2C+Tablier+en+lames+Micro+perfor%C3%A9es%2C+Habillage+de+Fa%C3%A7ade.+(ALUCOBOND)%2C+Faux+Plafonds%2C+Mur+Rideau%2C+Moustiquaire%2C+les+Stores%2C+Travaux+divers.&effectif=0&effectifCadre=0&segmentEffectif=1&dateContribution=06%2F08%2F13+14%3A32&loginUser=sgh5%40hotmail.fr<http://40hotmail.fr/>&emailUser=sgh5%40hotmail.fr<http://40hotmail.fr/>&id=518&denomination_validator=&rc_validator=&tribunal_validator=&fmj_validator=&capital_validator=&adresse_validator=&ville_validator=&activite_validator=&effectif_validator=&segmentEffectif_validator=&effectifCadre_validator=&telfaxmailweb_565=on&telfaxmailweb_565_validator=1&data_565=0618555477&type_565=1&idMktTelfaxmailweb_565=0&telfaxmailweb_566=on&telfaxmailweb_566_validator=1&data_566=companyhacham%40gmail.com<http://40gmail.com/>&type_566=3&idMktTelfaxmailweb_566=0&telfaxmailweb_567=on&telfaxmailweb_567_validator=1&data_567=http%3A%2F%2Fwww.companyhacham.sitew.com<http://www.companyhacham.sitew.com/>%2F&type_567=4&idMktTelfaxmailweb_567=0&statut=1&remarque=
+
+--c307bc39-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 245
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+
+Message: Access denied with code 403 (phase 2). Match of "beginsWith %{request_headers.host}" against "TX:1" required. [file "/etc/httpd/modsecurity-crs/base_rules/modsecurity_crs_40_generic_attacks.conf"] [line "163"] [id "950120"] [rev "3"] [msg "Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link"] [data "Matched Data: http://www.companyhacham.sitew.com/ found within TX:1:www.companyhacham.sitew.com/<http://www.companyhacham.sitew.com/>"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/WEB_ATTACK/RFI"]
+
+
+Barclaycard
+
+www.barclaycardus.com<http://www.barclaycardus.com>
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+
+
+
+--
+Ilyass kaouam
+Systems administrator at Inforisk Group Finaccess
+European Masters in Information Technology
+Portable : (212) 6 34 57 14 36
+http://www.inforisk.ma
+
+Barclaycard
+
+www.barclaycardus.com<http://www.barclaycardus.com>
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140703/caf33b11/attachment-0001.html>
+
+From ilyassikai at gmail.com  Wed Jul  9 10:51:52 2014
+From: ilyassikai at gmail.com (Ilyass Kaouam)
+Date: Wed, 9 Jul 2014 10:51:52 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Remove some rules for sub domain
+Message-ID: <CAMmziWdOOFkgey=Yw2hyuuW4AJHr=Mx2w_dfA9BxcSCadxsxNQ@mail.gmail.com>
+
+Hi
+
+We have a sub-site www.abcdef.com / Bilbo
+
+We want to remove some roles for this subdomain only
+/ Bilbo
+
+(this website is made by java)
+
+How I can do that, thank you
+
+-- 
+*Ilyass kaouam*
+*Systems administrator*
+* at Inforisk Group Finaccess  *
+*European Masters in Information Technology*
+*Portable : (212) *
+*6 34 57 14 36*
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140709/88fa75fa/attachment.html>
+
+From craig.lawson at secarma.co.uk  Wed Jul  9 11:16:39 2014
+From: craig.lawson at secarma.co.uk (Craig Lawson)
+Date: Wed, 9 Jul 2014 11:16:39 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Remove some rules for sub
+ domain
+In-Reply-To: <CAMmziWdOOFkgey=Yw2hyuuW4AJHr=Mx2w_dfA9BxcSCadxsxNQ@mail.gmail.com>
+References: <CAMmziWdOOFkgey=Yw2hyuuW4AJHr=Mx2w_dfA9BxcSCadxsxNQ@mail.gmail.com>
+Message-ID: <0C6A9AFC1EFB524BB9854A8B5C7FC649B6734452@MBX2.office.ukfast>
+
+Insert the following into your virtual host file
+
+e.g. to remove specific rules:
+
+<LocationMatch /Bilbo>
+SecRuleRemoveByID 123456
+</LocationMatch>
+
+Does this cover what you are requesting?
+
+C
+
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Ilyass Kaouam
+Sent: 09 July 2014 11:52
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Remove some rules for sub domain
+
+Hi
+
+We have a sub-site www.abcdef.com<http://www.abcdef.com> / Bilbo
+
+We want to remove some roles for this subdomain only
+/ Bilbo
+
+(this website is made by java)
+
+How I can do that, thank you
+
+--
+Ilyass kaouam
+Systems administrator at Inforisk Group Finaccess
+European Masters in Information Technology
+Portable : (212) 6 34 57 14 36
+
+________________________________
+
+NOTICE AND DISCLAIMER
+This e-mail (including any attachments) is intended for the above-named person(s). If you are not the intended recipient, notify the sender immediately, delete this email from your system and do not disclose or use for any purpose. We may monitor all incoming and outgoing emails in line with current legislation. We have taken steps to ensure that this email and attachments are free from any virus, but it remains your responsibility to ensure that viruses do not adversely affect you
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140709/a7a94d2e/attachment.html>
+
+From ilyassikai at gmail.com  Wed Jul  9 14:17:56 2014
+From: ilyassikai at gmail.com (Ilyass Kaouam)
+Date: Wed, 9 Jul 2014 14:17:56 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Remove some rules for sub
+	domain
+In-Reply-To: <0C6A9AFC1EFB524BB9854A8B5C7FC649B67375D1@MBX2.office.ukfast>
+References: <CAMmziWdOOFkgey=Yw2hyuuW4AJHr=Mx2w_dfA9BxcSCadxsxNQ@mail.gmail.com>
+	<0C6A9AFC1EFB524BB9854A8B5C7FC649B6734452@MBX2.office.ukfast>
+	<CAMmziWeffs5vz58dSx34Wcqbuj9tOhpkw5ow0GOACfi0Qpks6w@mail.gmail.com>
+	<0C6A9AFC1EFB524BB9854A8B5C7FC649B67375D1@MBX2.office.ukfast>
+Message-ID: <CAMmziWcmev13VHpCFR1VsCL+6MuQe78S2=_Hx5uAv1j41OtR8g@mail.gmail.com>
+
+hi :)
+it's very clair thank you
+Last thing,
+
+from what I understand I have to insert
+
+
+*<LocationMatch /Bilbo>*
+
+*SecRuleRemoveByID 123456*
+
+*</LocationMatch>*
+
+
+after the virtual host ?
+
+Thank you
+
+
+2014-07-09 14:07 GMT+00:00 Craig Lawson <craig.lawson at secarma.co.uk>:
+
+>  An example of one of my anonymized configs which has a number of rules
+> turned off for the whole site hence <LocationMatch .*> instead of the
+> earlier example of <LocationMatch /Bilbo>, we separate virtual hosts into
+> individual domain.com.conf files, we also use mod_security as a reverse
+> proxy not on the actual webservers:
+>
+>
+>
+> <VirtualHost 111.222.333.444:443>
+>
+>         ServerName blah.com
+>
+>         ServerAlias blah.com
+>
+>         ErrorLog "/var/log/httpd/blah.com-ssl_error_log"
+>
+>         CustomLog "/var/log/httpd/blah.com-ssl_access_log" \
+>
+>                   "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %s %b"
+>
+>
+>
+>         SSLEngine On
+>
+>         SSLProxyEngine on
+>
+>         SSLCertificateFile /etc/httpd/conf/ssl/blah.com.crt
+>
+>         SSLCertificateKeyFile /etc/httpd/conf/ssl/blah.com.key
+>
+>         SSLCACertificateFile /etc/httpd/conf/ssl/blah.com.ca.crt
+>
+>
+>
+>         SSLProtocol -ALL +SSLv3 +TLSv1
+>
+>         SSLHonorCipherOrder on
+>
+>         SSLCipherSuite
+> ALL:!MD5:!ADH:!NULL:!EXP:!SSLv2:!LOW:!MEDIUM:RC4+RSA:+HIGH
+>
+>
+>
+>         ProxyRequests Off
+>
+>         ProxyPass / http://internalip/
+>
+>         ProxyPassReverse / http://internalip/
+>
+>         ProxyPreserveHost On
+>
+>
+>
+>         RequestHeader set X-Forwarded-Proto "https"
+>
+>
+>
+>         SetEnv force-proxy-request-1.0 1
+>
+>         SetEnv proxy-nokeepalive 1
+>
+> </VirtualHost>
+>
+>
+>
+> <LocationMatch .*>
+>
+> SecRuleRemoveById 111111 222222 333333
+>
+> </LocationMatch>
+>
+>
+>
+> *From:* Ilyass Kaouam [mailto:ilyassikai at gmail.com]
+> *Sent:* 09 July 2014 12:42
+> *To:* Craig Lawson
+> *Subject:* Re: [Owasp-modsecurity-core-rule-set] Remove some rules for
+> sub domain
+>
+>
+>
+> Hi lawson,
+>
+>
+>
+> Thank you for your replay :)
+>
+>
+>
+> I use Virtual host and mod_proxy
+>
+>
+>
+> who i can add this LocationMatch  ?
+>
+>
+>
+> thank you
+>
+> conf file :
+>
+>
+>
+>
+>
+> *<VirtualHost *:80>*
+>
+> *    ServerAdmin admin at abcdef.com <admin at abcdef.com>*
+>
+> *    ServerName abcdef.com <http://abcdef.com>*
+>
+> *    ServerAlias abcdef.com <http://abcdef.com> *. abcdef.com
+> <http://abcdef.com>*
+>
+> *    ProxyRequests Off*
+>
+> *    ProxyPreserveHost On*
+>
+> *    <Proxy *>*
+>
+> *       Order allow,deny*
+>
+> *       Allow from all*
+>
+> *    </Proxy>*
+>
+> *    ProxyPass / http://172.27.248.4:8080/ <http://172.27.248.4:8080/>
+> retry=60  keepalive=on*
+>
+> *    ProxyPassReverse / http://172.27.248.4:8080/
+> <http://172.27.248.4:8080/> retry=60*
+>
+> *    ErrorLog logs/abcdef.com <http://abcdef.com>-error_log*
+>
+> *    CustomLog logs/i abcdef.com <http://abcdef.com>-access_log common*
+>
+> *</VirtualHost>*
+>
+>
+>
+> 2014-07-09 11:16 GMT+00:00 Craig Lawson <craig.lawson at secarma.co.uk>:
+>
+> Insert the following into your virtual host file
+>
+>
+>
+> e.g. to remove specific rules:
+>
+>
+>
+> <LocationMatch /Bilbo>
+>
+> SecRuleRemoveByID 123456
+>
+> </LocationMatch>
+>
+>
+>
+> Does this cover what you are requesting?
+>
+>
+>
+> C
+>
+>
+>
+>
+>
+> *From:* owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] *On Behalf Of *Ilyass
+> Kaouam
+> *Sent:* 09 July 2014 11:52
+> *To:* owasp-modsecurity-core-rule-set at lists.owasp.org
+> *Subject:* [Owasp-modsecurity-core-rule-set] Remove some rules for sub
+> domain
+>
+>
+>
+> Hi
+>
+>
+>
+> We have a sub-site www.abcdef.com / Bilbo
+>
+>
+>
+> We want to remove some roles for this subdomain only
+>
+> / Bilbo
+>
+>
+>
+> (this website is made by java)
+>
+>
+>
+> How I can do that, thank you
+>
+>
+>
+> --
+>
+> *Ilyass kaouam*
+>
+>
+> *Systems administrator at Inforisk Group Finaccess  European Masters in
+> Information Technology*
+>
+> *Portable : (212) 6 34 57 14 36*
+>
+>
+>  ------------------------------
+>
+>
+> NOTICE AND DISCLAIMER
+> This e-mail (including any attachments) is intended for the above-named
+> person(s). If you are not the intended recipient, notify the sender
+> immediately, delete this email from your system and do not disclose or use
+> for any purpose. We may monitor all incoming and outgoing emails in line
+> with current legislation. We have taken steps to ensure that this email and
+> attachments are free from any virus, but it remains your responsibility to
+> ensure that viruses do not adversely affect you
+>
+>
+>
+>
+>
+> --
+>
+> *Ilyass kaouam*
+>
+>
+> *Systems administrator at Inforisk Group Finaccess  European Masters in
+> Information Technology*
+>
+> *Portable : (212) 6 34 57 14 36*
+>
+> ------------------------------
+>
+> NOTICE AND DISCLAIMER
+> This e-mail (including any attachments) is intended for the above-named
+> person(s). If you are not the intended recipient, notify the sender
+> immediately, delete this email from your system and do not disclose or use
+> for any purpose. We may monitor all incoming and outgoing emails in line
+> with current legislation. We have taken steps to ensure that this email and
+> attachments are free from any virus, but it remains your responsibility to
+> ensure that viruses do not adversely affect you
+>
+
+
+
+-- 
+*Ilyass kaouam*
+*Systems administrator*
+* at Inforisk Group Finaccess  *
+*European Masters in Information Technology*
+*Portable : (212) *
+*6 34 57 14 36**http://www.inforisk.ma <http://www.inforisk.ma>*
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140709/cf4ed79c/attachment-0001.html>
+
+From aniyan.rajan6 at gmail.com  Fri Jul 11 02:56:43 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Fri, 11 Jul 2014 08:26:43 +0530
+Subject: [Owasp-modsecurity-core-rule-set] proxy
+Message-ID: <53BF526B.7000009@gmail.com>
+
+Hello,
+
+I have set up a new VPS. I haven't install mod_security yet. I am seeing 
+the following lines in /var/log/apache2/access.log
+
+37.187.44.90 - - [11/Jul/2014:01:13:44 +0000] "HEAD 
+http://128.111.222.22:80/phpMyAdmin3/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:44 +0000] "HEAD 
+http://128.111.222.22:80/phpMyAdmin-3/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD 
+http://128.111.222.22:80/php-my-admin/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD 
+http://128.111.222.22:80/PMA2012/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD 
+http://128.111.222.22:80/pma2012/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD 
+http://128.111.222.22:80/PMA2011/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD 
+http://128.111.222.22:80/pma2011/ HTTP/1.1" 404 202 "-" "Jorgee"
+37.187.44.90 - - [11/Jul/2014:01:13:46 +0000] "HEAD 
+http://128.111.222.22:80/phpmanager/ HTTP/1.1" 404 202 "-" "Jorgee"
+
+I think these are some nasty requests. How can I avoid these kind of 
+requests ? Will installing mod_security help ?
+
+I can see: #ProxyVia Off in /etc/apache2/mods-available/proxy.conf. If I 
+uncomment this line, will it prevent the above requests ?
+
+
+Please suggest.
+Thanks.
+
+From aniyan.rajan6 at gmail.com  Fri Jul 11 04:41:23 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Fri, 11 Jul 2014 10:11:23 +0530
+Subject: [Owasp-modsecurity-core-rule-set] proxy
+In-Reply-To: <COL131-W69A942C4C724901A17264A9B090@phx.gbl>
+References: <53BF526B.7000009@gmail.com>
+	<COL131-W69A942C4C724901A17264A9B090@phx.gbl>
+Message-ID: <53BF6AF3.9080302@gmail.com>
+
+Yes, I understand that. I have a Company Website that displays a few 
+information pages (text and graphics) and a ContactUs form. Are there 
+any rules automatically enabled in modsecurity, to avoid the http 
+requests that I have shown ? I mean will it start doing the prevention 
+automatically for atleast some kind of http requests ?
+
+Thanks.
+
+On 07/11/2014 10:04 AM, Mr XYZ 123 wrote:
+> Hi,
+> You can prevent these types of fuzzes by using mod_security..
+> but using all rules can void functionality of web app.
+> So you have to configure / whitelist security rules manually.. 
+> according to access/error_log
+> or according to need of web application.
+>
+>
+>
+> > Date: Fri, 11 Jul 2014 08:26:43 +0530
+> > From: aniyan.rajan6 at gmail.com
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> > Subject: [Owasp-modsecurity-core-rule-set] proxy
+> >
+> > Hello,
+> >
+> > I have set up a new VPS. I haven't install mod_security yet. I am 
+> seeing
+> > the following lines in /var/log/apache2/access.log
+> >
+> > 37.187.44.90 - - [11/Jul/2014:01:13:44 +0000] "HEAD
+> > http://128.111.222.22:80/phpMyAdmin3/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:44 +0000] "HEAD
+> > http://128.111.222.22:80/phpMyAdmin-3/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD
+> > http://128.111.222.22:80/php-my-admin/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD
+> > http://128.111.222.22:80/PMA2012/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD
+> > http://128.111.222.22:80/pma2012/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD
+> > http://128.111.222.22:80/PMA2011/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:45 +0000] "HEAD
+> > http://128.111.222.22:80/pma2011/ HTTP/1.1" 404 202 "-" "Jorgee"
+> > 37.187.44.90 - - [11/Jul/2014:01:13:46 +0000] "HEAD
+> > http://128.111.222.22:80/phpmanager/ HTTP/1.1" 404 202 "-" "Jorgee"
+> >
+> > I think these are some nasty requests. How can I avoid these kind of
+> > requests ? Will installing mod_security help ?
+> >
+> > I can see: #ProxyVia Off in /etc/apache2/mods-available/proxy.conf. 
+> If I
+> > uncomment this line, will it prevent the above requests ?
+> >
+> >
+> > Please suggest.
+> > Thanks.
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140711/84948fea/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Fri Jul 11 06:37:55 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Fri, 11 Jul 2014 12:07:55 +0530
+Subject: [Owasp-modsecurity-core-rule-set] proxy
+In-Reply-To: <COL131-W43D3403F4A83D969044AC89B090@phx.gbl>
+References: <53BF526B.7000009@gmail.com>,
+	<COL131-W69A942C4C724901A17264A9B090@phx.gbl>,
+	<53BF6AF3.9080302@gmail.com>
+	<COL131-W43D3403F4A83D969044AC89B090@phx.gbl>
+Message-ID: <53BF8643.4060308@gmail.com>
+
+On 07/11/2014 11:38 AM, Mr XYZ 123 wrote:
+> If you have small website / static website of few web pages,, then you 
+> can secure that without mod_security also.
+> In small websites attacker aims at admin panel.. or database.
+>
+> So you can restrict its admin panel login with htaccess to your office 
+> IP only..
+> , redirect 403 to 404 error, etc
+>
+> because mod_security is using thousands of rules..
+
+Yes, I have a small website in a VPS. I am not using an admin panel like 
+cPanel. I use ssh with sshkeys from my office.
+
+> but if still you want to use mod_security
+>
+> you can try sample of rules which i've used for small purpose drupal 
+> based website
+>
+> /[root at xyz.abc ]# cat /etc/httpd/modsecurity.d/security.conf/
+>
+> ##Custom Rules
+> <IfModule mod_security2.c>
+> SecRuleEngine On
+> SecTmpDir /tmp
+> SecDataDir /tmp
+> SecAuditLog /var/log/httpd/modsec_audit_log
+>
+> #Showing Custom Server Name
+> SecServerSignature "Microsoft-IIS/5.0"
+>
+> #Allowing following objects
+> SecRule REQUEST_BASENAME "\.(jpg|gif|png|js|otf|woff|ttf|ico|css)$" 
+> id:1,phase:1,nolog,allow,ctl:ruleEngine=off
+>
+> #Blocking Basic XSS attempt in url
+> SecRule REQUEST_URI|ARGS|REQUEST_BODY "script%3E" 
+> "id:3,phase:1,log,deny,msg:'Script Tag XSS',status:404"
+> SecRule REQUEST_URI|ARGS|REQUEST_BODY "%73%63%72%69%70%74%3e" 
+> "id:5,phase:1,log,deny,msg:'Script Tag XSS',status:404"
+>
+> #Blocking Basic SQL Injection Attempt
+> SecRule REQUEST_URI "'" "id:6,phase:1,log,deny,msg:'Sql injection 
+> attempt',status:404"
+> SecRule REQUEST_URI "%27" "id:7,phase:1,log,deny,msg:'Sql injection 
+> attempt',status:404"
+> SecRule REQUEST_URI "sleep" "id:8,phase:1,log,deny,msg:'Sql injection 
+> attempt',status:404"
+>
+> </IfModule>
+>
+>
+> And also mod_security will restrict user with 403/404.. as same in 
+> your logs.. script kiddie is already facing error with 404.. so i 
+> think mod_security implementation is not neccessary for thi slittle issue.
+
+I had a domain which was spammed long ago. I was using fail2ban and 
+modsecurity together to catch the attacker. Like if the modsecurity 
+gives a 403 three times, then I will ban that IP using fail2ban.
+
+Now, this is my new domain and a new VPS. So as per your opinion, do you 
+want me to ignore these http requests as using modsecurity will also 
+give a 403/404 ?
+
+THanks.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140711/3c08df6f/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Sat Jul 12 15:18:51 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Sat, 12 Jul 2014 20:48:51 +0530
+Subject: [Owasp-modsecurity-core-rule-set] CONNECT
+Message-ID: <53C151DB.1050805@gmail.com>
+
+Hello,
+
+i have the following connects in /var/log/apache2/access.log. Are they 
+dangerous ? Do I have to prevent it by installing modsecurity ? Please 
+suggest. Thanks.
+
+61.228.25.63 - - [06/Jul/2014:12:27:57 +0000] "CONNECT 
+mx2.mail2000.com.tw:25 HTTP/1.0" 405 530 "-" "-"
+111.241.39.138 - - [08/Jul/2014:09:13:14 +0000] "CONNECT 
+mx0.mail2000.com.tw:25 HTTP/1.0" 405 530 "-" "-"
+1.163.195.80 - - [10/Jul/2014:02:21:53 +0000] "CONNECT 
+mx0.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+111.241.43.171 - - [10/Jul/2014:06:23:48 +0000] "CONNECT 
+mx2.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+1.163.196.31 - - [10/Jul/2014:07:34:14 +0000] "CONNECT 
+mx3.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+61.228.93.103 - - [10/Jul/2014:09:41:17 +0000] "CONNECT 
+mx2.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+61.231.95.197 - - [11/Jul/2014:19:11:02 +0000] "CONNECT 
+mx0.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+61.231.91.246 - - [11/Jul/2014:23:00:54 +0000] "CONNECT 
+mx2.mail2000.com.tw:25 HTTP/1.0" 301 275 "-" "-"
+
+
+From modsec at spam.lifeforms.nl  Sat Jul 12 18:57:11 2014
+From: modsec at spam.lifeforms.nl (Walter Hop)
+Date: Sat, 12 Jul 2014 20:57:11 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CONNECT
+In-Reply-To: <53C151DB.1050805@gmail.com>
+References: <53C151DB.1050805@gmail.com>
+Message-ID: <85391251-2A5D-4321-8982-CF63CBB3EB6C@spam.lifeforms.nl>
+
+On 12 Jul 2014, at 17:18, Aniyan Rajan <aniyan.rajan6 at gmail.com> wrote:
+
+> i have the following connects in /var/log/apache2/access.log. Are they dangerous ? Do I have to prevent it by installing modsecurity ? Please suggest. Thanks.
+> 
+> 61.228.25.63 - - [06/Jul/2014:12:27:57 +0000] "CONNECT mx2.mail2000.com.tw:25 HTTP/1.0" 405 530 "-" "-"
+
+
+It looks like somebody was scanning if your web server can be used as a proxy for delivering spam email. It?s pretty normal to see this.
+
+According to the status codes, it was unsuccessful. You?re likely not vulnerable to this type of attack.
+
+-- 
+Walter Hop | PGP key: https://lifeforms.nl/pgp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140712/21927a93/attachment.html>
+
+From think.sabin at gmail.com  Thu Jul 17 08:16:08 2014
+From: think.sabin at gmail.com (Sabin Ranjit)
+Date: Thu, 17 Jul 2014 14:01:08 +0545
+Subject: [Owasp-modsecurity-core-rule-set] changing default page
+Message-ID: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+
+hi, i want to change the default page that get displayed when modsecurity
+detects the sql injection attack or any other attacks like xss. how can i
+do that?
+
+thanks
+
+regards,
+sabin
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140717/dfd7f9fc/attachment.html>
+
+From jamuse at owasp.org  Thu Jul 17 09:14:23 2014
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Thu, 17 Jul 2014 12:14:23 +0300
+Subject: [Owasp-modsecurity-core-rule-set] changing default page
+In-Reply-To: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+References: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+Message-ID: <CAC+O4mGhO8vAqr4SE0C+sqx8V0X8b=CJ+ipnQv6jGkJ8NJ4W9w@mail.gmail.com>
+
+On Thu, Jul 17, 2014 at 11:16 AM, Sabin Ranjit <think.sabin at gmail.com>
+wrote:
+
+> hi, i want to change the default page that get displayed when modsecurity
+> detects the sql injection attack or any other attacks like xss. how can i
+> do that?
+>
+>
+Hi Sabin,
+
+ModSecurity does not display a page when a SQLi attack is detected, the
+response you see is defined in the underlying web server. For example, if
+you use Apache and define ModSec to block attacks using a 403 response, you
+could use the Apache ErrorDocument directive to customize the server
+response.
+
+--
+ - Josh
+
+
+> thanks
+>
+> regards,
+> sabin
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140717/14bf1ac3/attachment.html>
+
+From yersinia.spiros at gmail.com  Thu Jul 17 10:30:50 2014
+From: yersinia.spiros at gmail.com (yersinia)
+Date: Thu, 17 Jul 2014 12:30:50 +0200
+Subject: [Owasp-modsecurity-core-rule-set] changing default page
+In-Reply-To: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+References: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+Message-ID: <CAH5b-BWnz0yGTDDA6Y1M7deKn9_gxuYnE2D9s605kEOehxE48g@mail.gmail.com>
+
+Il 17/lug/2014 10:16 "Sabin Ranjit" <think.sabin at gmail.com> ha scritto:
+>
+> hi, i want to change the default page that get displayed when modsecurity
+detects the sql injection attack or any other attacks like xss. how can i
+do that?
+
+If you use the owasp crs this book can Tell you a possible configuration
+http://eu.wiley.com/WileyCDA/WileyTitle/productCd-1118362187.html
+( aside : worth reading anyway )
+
+Also the ivan mod security handbook speaking about this.
+
+In Short define in mod security an http redirect to some page or
+application. I had used this configuration many times.
+
+Hth
+>
+> regards,
+> sabin
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140717/c13940b2/attachment.html>
+
+From think.sabin at gmail.com  Thu Jul 17 10:51:09 2014
+From: think.sabin at gmail.com (Sabin Ranjit)
+Date: Thu, 17 Jul 2014 16:36:09 +0545
+Subject: [Owasp-modsecurity-core-rule-set] changing default page
+In-Reply-To: <CAH5b-BWnz0yGTDDA6Y1M7deKn9_gxuYnE2D9s605kEOehxE48g@mail.gmail.com>
+References: <CAE9Kp-bQ_j8qVrE00wA5Lo03pT3P=LfHVcrMmk7NMPJEiCdcYA@mail.gmail.com>
+	<CAH5b-BWnz0yGTDDA6Y1M7deKn9_gxuYnE2D9s605kEOehxE48g@mail.gmail.com>
+Message-ID: <CAE9Kp-bwbRRas8Fc+KEB+oeVb=bQKeUbdzAyqGGniSFtVtk5OQ@mail.gmail.com>
+
+thank, yersinia, i will go through both of those resources. :)
+
+regards
+
+
+On Thu, Jul 17, 2014 at 4:15 PM, yersinia <yersinia.spiros at gmail.com> wrote:
+
+>
+> Il 17/lug/2014 10:16 "Sabin Ranjit" <think.sabin at gmail.com> ha scritto:
+>
+> >
+> > hi, i want to change the default page that get displayed when
+> modsecurity detects the sql injection attack or any other attacks like xss.
+> how can i do that?
+>
+> If you use the owasp crs this book can Tell you a possible configuration
+> http://eu.wiley.com/WileyCDA/WileyTitle/productCd-1118362187.html
+> ( aside : worth reading anyway )
+>
+> Also the ivan mod security handbook speaking about this.
+>
+> In Short define in mod security an http redirect to some page or
+> application. I had used this configuration many times.
+>
+> Hth
+>
+> >
+> > regards,
+> > sabin
+> >
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> >
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140717/c432866c/attachment.html>
+
+From delia at teamwiztech.com  Thu Jul 17 18:26:12 2014
+From: delia at teamwiztech.com (Delia Lunsford)
+Date: Thu, 17 Jul 2014 14:26:12 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Percent signs in urls
+Message-ID: <CAKGs6wDS5Prys9S5ouKmFDwuy1JgipLDETgHYe-aoDRaM+d9QA@mail.gmail.com>
+
+I'm sure this has been asked many times before but I am having real
+difficulty finding an answer to a small problem for me - large problem
+for a hosting customer.
+
+I primarily host ZenCart websites which has a site search. One
+customer sells coffee - and he wants his customers to be able to
+search for "100% kona". That triggers mod security as the search
+parameters are passed to the url.
+
+The url becomes:
+domain.com/index.php?main_page=advanced_search_result&search_in_description=0&keyword=100%
+kona
+
+Obviously nothing I've tried can change the trigger - mod security
+just doesn't like that percent sign mixed into that keyword set.
+
+Is it possible to have exceptions to this rule at all? What do you
+recommend I do?
+
+Delia Wilson Lunsford
+WizTech, Inc., (formerly Delia Wilson Design, LLC.)
+434-202-4307
+Terms and Conditions for working with WizTech, Inc.
+(http://www.teamwiztech.com/terms-conditions.php)
+
+From delia at teamwiztech.com  Thu Jul 17 19:01:58 2014
+From: delia at teamwiztech.com (Delia Lunsford)
+Date: Thu, 17 Jul 2014 15:01:58 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Percent signs in urls
+In-Reply-To: <C310131DD0004743B2508B65C77B663140252080@PMEXGMB04.juniper.com>
+References: <CAKGs6wDS5Prys9S5ouKmFDwuy1JgipLDETgHYe-aoDRaM+d9QA@mail.gmail.com>
+	<C310131DD0004743B2508B65C77B663140252080@PMEXGMB04.juniper.com>
+Message-ID: <CAKGs6wARYyfXfdO+v1kaH85_Yf3V_Sm3kCF86_fo-pTOd+wRzg@mail.gmail.com>
+
+Okay, so this is my first email to this group and first time I've ever
+looked at mod security. Can you dumb that down some? or point me to
+information about how to do that?
+
+Custom file? before the CRS rules? There's obviously a lot I don't
+know. Where do I start?
+Delia Wilson Lunsford
+WizTech, Inc., (formerly Delia Wilson Design, LLC.)
+434-202-4307
+Terms and Conditions for working with WizTech, Inc.
+(http://www.teamwiztech.com/terms-conditions.php)
+
+
+On Thu, Jul 17, 2014 at 2:50 PM, Thayyilekandy, Subin : Barclaycard US
+<sthayyilekan at barclaycardus.com> wrote:
+> Try this in your custom before file (should execute before the CRS rules are executed)
+>
+> SecRule ARGS: keyword "@streq 100%" "id:999013,phase:2,t:none,t:lowercase,nolog,pass,ctl:ruleRemoveTargetById=950907; ARGS: keyword "
+>
+> Note : please replace the rule id with the actual rule id that  is being triggered in this scenario , the above rule id is just an example
+>
+> Thanks
+>
+> Subin
+> Application Security consultant | GISTR
+> Dryrock, DE | Cube# 4-060
+> Work: (302) 255-7709 | Cell: (214) 799 - 2769
+>
+> -----Original Message-----
+> From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Delia Lunsford
+> Sent: Thursday, July 17, 2014 2:26 PM
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: [Owasp-modsecurity-core-rule-set] Percent signs in urls
+>
+> I'm sure this has been asked many times before but I am having real difficulty finding an answer to a small problem for me - large problem for a hosting customer.
+>
+> I primarily host ZenCart websites which has a site search. One customer sells coffee - and he wants his customers to be able to search for "100% kona". That triggers mod security as the search parameters are passed to the url.
+>
+> The url becomes:
+> domain.com/index.php?main_page=advanced_search_result&search_in_description=0&keyword=100%
+> kona
+>
+> Obviously nothing I've tried can change the trigger - mod security just doesn't like that percent sign mixed into that keyword set.
+>
+> Is it possible to have exceptions to this rule at all? What do you recommend I do?
+>
+> Delia Wilson Lunsford
+> WizTech, Inc., (formerly Delia Wilson Design, LLC.)
+> 434-202-4307
+> Terms and Conditions for working with WizTech, Inc.
+> (http://www.teamwiztech.com/terms-conditions.php)
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> Barclaycard
+>
+> www.barclaycardus.com<http://www.barclaycardus.com>
+>
+> This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+
+From sthayyilekan at BarclaycardUS.com  Thu Jul 17 18:50:55 2014
+From: sthayyilekan at BarclaycardUS.com (Thayyilekandy, Subin : Barclaycard US)
+Date: Thu, 17 Jul 2014 18:50:55 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Percent signs in urls
+In-Reply-To: <CAKGs6wDS5Prys9S5ouKmFDwuy1JgipLDETgHYe-aoDRaM+d9QA@mail.gmail.com>
+References: <CAKGs6wDS5Prys9S5ouKmFDwuy1JgipLDETgHYe-aoDRaM+d9QA@mail.gmail.com>
+Message-ID: <C310131DD0004743B2508B65C77B663140252080@PMEXGMB04.juniper.com>
+
+Try this in your custom before file (should execute before the CRS rules are executed)
+
+SecRule ARGS: keyword "@streq 100%" "id:999013,phase:2,t:none,t:lowercase,nolog,pass,ctl:ruleRemoveTargetById=950907; ARGS: keyword "
+
+Note : please replace the rule id with the actual rule id that  is being triggered in this scenario , the above rule id is just an example
+
+Thanks
+
+Subin
+Application Security consultant | GISTR
+Dryrock, DE | Cube# 4-060
+Work: (302) 255-7709 | Cell: (214) 799 - 2769
+
+-----Original Message-----
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Delia Lunsford
+Sent: Thursday, July 17, 2014 2:26 PM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Percent signs in urls
+
+I'm sure this has been asked many times before but I am having real difficulty finding an answer to a small problem for me - large problem for a hosting customer.
+
+I primarily host ZenCart websites which has a site search. One customer sells coffee - and he wants his customers to be able to search for "100% kona". That triggers mod security as the search parameters are passed to the url.
+
+The url becomes:
+domain.com/index.php?main_page=advanced_search_result&search_in_description=0&keyword=100%
+kona
+
+Obviously nothing I've tried can change the trigger - mod security just doesn't like that percent sign mixed into that keyword set.
+
+Is it possible to have exceptions to this rule at all? What do you recommend I do?
+
+Delia Wilson Lunsford
+WizTech, Inc., (formerly Delia Wilson Design, LLC.)
+434-202-4307
+Terms and Conditions for working with WizTech, Inc.
+(http://www.teamwiztech.com/terms-conditions.php)
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+Barclaycard
+
+www.barclaycardus.com<http://www.barclaycardus.com>
+
+This email and any files transmitted with it may contain confidential and/or proprietary information. It is intended solely for the use of the individual or entity who is the intended recipient. Unauthorized use of this information is prohibited. If you have received this in error, please contact the sender by replying to this message and delete this material from any system it may be on.
+
+From aniyan.rajan6 at gmail.com  Fri Jul 18 11:12:06 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Fri, 18 Jul 2014 16:42:06 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Post with 200
+Message-ID: <53C90106.9060606@gmail.com>
+
+Hello,
+
+I am getting the following in my /var/log/apache2/access.log. It is an 
+attack I believe, as it has "http://". Please correct me if I am wrong. 
+They have correctly identified my domain name also. Is it possible to 
+prevent these by installing and configuring modsecurity ? Please 
+suggest. Thanks.
+
+146.0.72.182 - - [17/Jul/2014:23:37:27 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:29 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:31 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:32 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST 
+http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 
+(Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+
+
+From RBarnett at trustwave.com  Fri Jul 18 11:40:33 2014
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 18 Jul 2014 11:40:33 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Post with 200
+In-Reply-To: <53C90106.9060606@gmail.com>
+References: <53C90106.9060606@gmail.com>
+Message-ID: <91213E0A-9028-4C9D-9DB5-51AA3BBE3D10@trustwave.com>
+
+See this blog post -
+http://blog.spiderlabs.com/2013/04/defending-wordpress-logins-from-brute-force-attacks.html
+
+Ryan Barnett
+Senior Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+On Jul 18, 2014, at 7:31 AM, "Aniyan Rajan" <aniyan.rajan6 at gmail.com<mailto:aniyan.rajan6 at gmail.com>> wrote:
+
+Hello,
+
+I am getting the following in my /var/log/apache2/access.log. It is an attack I believe, as it has "http://". Please correct me if I am wrong. They have correctly identified my domain name also. Is it possible to prevent these by installing and configuring modsecurity ? Please suggest. Thanks.
+
+146.0.72.182 - - [17/Jul/2014:23:37:27 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:29 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:31 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:32 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140718/c5c08e1e/attachment-0001.html>
+
+From delia at teamwiztech.com  Fri Jul 18 13:12:01 2014
+From: delia at teamwiztech.com (Delia Lunsford)
+Date: Fri, 18 Jul 2014 09:12:01 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Post with 200
+In-Reply-To: <91213E0A-9028-4C9D-9DB5-51AA3BBE3D10@trustwave.com>
+References: <53C90106.9060606@gmail.com>
+	<91213E0A-9028-4C9D-9DB5-51AA3BBE3D10@trustwave.com>
+Message-ID: <CAKGs6wA-MDSheK4UJzaGpCX_R-2WcSB2YRdek9AZUdsffMX0wQ@mail.gmail.com>
+
+So this one rule will protect all wordpress sites on the server? If the
+forward slash is in front  of the wp-login.php - doesn't that mean in the
+root or is it any wp-login.php anywhere?
+
+SecRule REQUEST_METHOD "@streq POST"
+"chain,id:'1',phase:2,t:none,block,log,msg:'Warning: Direct Login
+Missing Referer.'"
+  SecRule REQUEST_FILENAME "@pm /wp-login.php /wp-admin/" "chain"
+    SecRule &REQUEST_HEADERS:Referer "@eq 0"
+
+
+Delia Wilson Lunsford
+WizTech, Inc., (formerly Delia Wilson Design, LLC.)
+434-202-4307
+Terms and Conditions for working with WizTech, Inc.
+(http://www.teamwiztech.com/terms-conditions.php)
+
+
+On Fri, Jul 18, 2014 at 7:40 AM, Ryan Barnett <RBarnett at trustwave.com>
+wrote:
+
+>  See this blog post -
+>
+> http://blog.spiderlabs.com/2013/04/defending-wordpress-logins-from-brute-force-attacks.html
+>
+> *Ryan Barnett*
+>
+> Senior Lead Security Researcher, SpiderLabs
+>
+>
+>
+> *Trustwave* | SMART SECURITY ON DEMAND
+>
+> www.trustwave.com
+>
+> On Jul 18, 2014, at 7:31 AM, "Aniyan Rajan" <aniyan.rajan6 at gmail.com>
+> wrote:
+>
+>  Hello,
+>
+> I am getting the following in my /var/log/apache2/access.log. It is an
+> attack I believe, as it has "http://". Please correct me if I am wrong.
+> They have correctly identified my domain name also. Is it possible to
+> prevent these by installing and configuring modsecurity ? Please suggest.
+> Thanks.
+>
+> 146.0.72.182 - - [17/Jul/2014:23:37:27 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:29 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:30 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:31 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:32 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+> 146.0.72.182 - - [17/Jul/2014:23:37:33 +0000] "POST
+> http://MY-DOMAIN.COM/wp-login.php/ HTTP/1.1" 200 3968 "-" "Mozilla/5.0
+> (Windows; U; Windows NT 5.1; ru; rv:1.9.0.2) Gecko/2008091620 Firefox/3.0.2"
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+> ------------------------------
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is strictly prohibited. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140718/8bbe1ce0/attachment.html>
+
+From aniyan.rajan6 at gmail.com  Sat Jul 19 13:19:20 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Sat, 19 Jul 2014 18:49:20 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Errors
+Message-ID: <53CA7058.40702@gmail.com>
+
+Hello,
+
+I am getting the following errors in /var/log/apache2/modsec_audit.log. 
+Please tell me how to fix this. Thanks.
+
+
+--1af2295a-A--
+[19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABVXBoEAAAAB 61.3.165.175 38386 
+128.222.122.22 80
+--1af2295a-B--
+GET /wp-includes/css/buttons.min.css?ver=3.9.1 HTTP/1.1
+Host: www.my-domain.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101 
+Firefox/30.0 Iceweasel/30.0
+Accept: text/css,*/*;q=0.1
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+Cookie: wp-settings-time-1=1404924481; 
+wp-settings-1=libraryContent%3Dbrowse; wordpress_test_cookie=WP+Cookie+check
+DNT: 1
+Connection: keep-alive
+If-Modified-Since: Tue, 25 Mar 2014 21:23:14 GMT
+If-None-Match: "411db-15bb-4f574f5b2f480"
+
+--1af2295a-F--
+HTTP/1.1 304 Not Modified
+Last-Modified: Tue, 25 Mar 2014 21:23:14 GMT
+ETag: "411db-15bb-4f574f5b2f480"
+Accept-Ranges: bytes
+Content-Length: 0
+Vary: Accept-Encoding
+Keep-Alive: timeout=5, max=91
+Connection: Keep-Alive
+Content-Type: text/css
+
+--1af2295a-E--
+
+--1af2295a-H--
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Stopwatch: 1405774272625367 8289 (- - -)
+Stopwatch2: 1405774272625367 8289; combined=7685, p1=238, p2=7371, p3=1, 
+p4=54, p5=21, sr=53, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/); 
+OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+Server: Apache
+
+--1af2295a-Z--
+
+--1af2295a-A--
+[19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABWEO4kAAAAF 61.3.165.175 38401 
+128.222.122.22 80
+--1af2295a-B--
+GET /wp-admin/css/login.min.css?ver=3.9.1 HTTP/1.1
+Host: www.my-domain.com
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101 
+Firefox/30.0 Iceweasel/30.0
+Accept: text/css,*/*;q=0.1
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+Cookie: wp-settings-time-1=1404924481; 
+wp-settings-1=libraryContent%3Dbrowse; wordpress_test_cookie=WP+Cookie+check
+DNT: 1
+Connection: keep-alive
+If-Modified-Since: Thu, 24 Apr 2014 22:05:16 GMT
+If-None-Match: "40f2c-47c8-4f7d10b42df00"
+
+--1af2295a-F--
+HTTP/1.1 304 Not Modified
+Last-Modified: Thu, 24 Apr 2014 22:05:16 GMT
+ETag: "40f2c-47c8-4f7d10b42df00"
+Accept-Ranges: bytes
+Content-Length: 0
+Vary: Accept-Encoding
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/css
+
+--1af2295a-E--
+
+--1af2295a-H--
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Message: Rule 7f14c7110280 [id "950901"][file 
+"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+"77"] - Execution error - PCRE limits exceeded (-8): (null).
+Stopwatch: 1405774272887666 13250 (- - -)
+Stopwatch2: 1405774272887666 13250; combined=12096, p1=289, p2=11727, 
+p3=2, p4=55, p5=23, sr=72, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/); 
+OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+Server: Apache
+
+--1af2295a-Z--
+
+
+From aniyan.rajan6 at gmail.com  Mon Jul 21 05:32:12 2014
+From: aniyan.rajan6 at gmail.com (Aniyan Rajan)
+Date: Mon, 21 Jul 2014 11:02:12 +0530
+Subject: [Owasp-modsecurity-core-rule-set] Errors
+In-Reply-To: <53CA7058.40702@gmail.com>
+References: <53CA7058.40702@gmail.com>
+Message-ID: <53CCA5DC.6050600@gmail.com>
+
+Anybody please help. What is this "Execution error - PCRE limits 
+exceeded (-8): (null). " ?
+
+I am getting this daily.
+
+Thanks.
+
+On 07/19/2014 06:49 PM, Aniyan Rajan wrote:
+> Hello,
+>
+> I am getting the following errors in 
+> /var/log/apache2/modsec_audit.log. Please tell me how to fix this. 
+> Thanks.
+>
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABVXBoEAAAAB 61.3.165.175 
+> 38386 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-includes/css/buttons.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101 
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481; 
+> wp-settings-1=libraryContent%3Dbrowse; 
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Tue, 25 Mar 2014 21:23:14 GMT
+> If-None-Match: "411db-15bb-4f574f5b2f480"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Tue, 25 Mar 2014 21:23:14 GMT
+> ETag: "411db-15bb-4f574f5b2f480"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=91
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Stopwatch: 1405774272625367 8289 (- - -)
+> Stopwatch2: 1405774272625367 8289; combined=7685, p1=238, p2=7371, 
+> p3=1, p4=54, p5=21, sr=53, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/); 
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABWEO4kAAAAF 61.3.165.175 
+> 38401 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-admin/css/login.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101 
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481; 
+> wp-settings-1=libraryContent%3Dbrowse; 
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Thu, 24 Apr 2014 22:05:16 GMT
+> If-None-Match: "40f2c-47c8-4f7d10b42df00"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Thu, 24 Apr 2014 22:05:16 GMT
+> ETag: "40f2c-47c8-4f7d10b42df00"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=100
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file 
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line 
+> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+> Stopwatch: 1405774272887666 13250 (- - -)
+> Stopwatch2: 1405774272887666 13250; combined=12096, p1=289, p2=11727, 
+> p3=2, p4=55, p5=23, sr=72, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/); 
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+
+
+From craig.lawson at secarma.co.uk  Mon Jul 21 07:01:52 2014
+From: craig.lawson at secarma.co.uk (Craig Lawson)
+Date: Mon, 21 Jul 2014 07:01:52 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Errors
+In-Reply-To: <53CCA5DC.6050600@gmail.com>
+References: <53CA7058.40702@gmail.com> <53CCA5DC.6050600@gmail.com>
+Message-ID: <0C6A9AFC1EFB524BB9854A8B5C7FC649B6765A3B@MBX1.office.ukfast>
+
+As long as you are sure you aren't actually under a DoS then have a look at the parameter "SecPcreMatchLimit" and "SecPcreMatchLimitRecursion", maybe look to increase these until the error goes away with normal traffic usage?
+
+The default is 1500, I have seen it set as high as 250000 for both.
+
+Craig
+
+
+-----Original Message-----
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Aniyan Rajan
+Sent: 21 July 2014 06:32
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Errors
+
+Anybody please help. What is this "Execution error - PCRE limits exceeded (-8): (null). " ?
+
+I am getting this daily.
+
+Thanks.
+
+On 07/19/2014 06:49 PM, Aniyan Rajan wrote:
+> Hello,
+>
+> I am getting the following errors in
+> /var/log/apache2/modsec_audit.log. Please tell me how to fix this.
+> Thanks.
+>
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABVXBoEAAAAB 61.3.165.175
+> 38386 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-includes/css/buttons.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481;
+> wp-settings-1=libraryContent%3Dbrowse;
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Tue, 25 Mar 2014 21:23:14 GMT
+> If-None-Match: "411db-15bb-4f574f5b2f480"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Tue, 25 Mar 2014 21:23:14 GMT
+> ETag: "411db-15bb-4f574f5b2f480"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=91
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Stopwatch: 1405774272625367 8289 (- - -)
+> Stopwatch2: 1405774272625367 8289; combined=7685, p1=238, p2=7371,
+> p3=1, p4=54, p5=21, sr=53, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABWEO4kAAAAF 61.3.165.175
+> 38401 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-admin/css/login.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481;
+> wp-settings-1=libraryContent%3Dbrowse;
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Thu, 24 Apr 2014 22:05:16 GMT
+> If-None-Match: "40f2c-47c8-4f7d10b42df00"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Thu, 24 Apr 2014 22:05:16 GMT
+> ETag: "40f2c-47c8-4f7d10b42df00"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=100
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Stopwatch: 1405774272887666 13250 (- - -)
+> Stopwatch2: 1405774272887666 13250; combined=12096, p1=289, p2=11727,
+> p3=2, p4=55, p5=23, sr=72, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+NOTICE AND DISCLAIMER
+This e-mail (including any attachments) is intended for the above-named person(s). If you are not the intended recipient, notify the sender immediately, delete this email from your system and do not disclose or use for any purpose. We may monitor all incoming and outgoing emails in line with current legislation. We have taken steps to ensure that this email and attachments are free from any virus, but it remains your responsibility to ensure that viruses do not adversely affect you
+
+From RBarnett at trustwave.com  Mon Jul 21 16:24:58 2014
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 21 Jul 2014 16:24:58 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Errors
+In-Reply-To: <53CCA5DC.6050600@gmail.com>
+References: <53CA7058.40702@gmail.com> <53CCA5DC.6050600@gmail.com>
+Message-ID: <CFF2B6E1.107FC8%rbarnett@trustwave.com>
+
+I woulud also suggest you updated your OWASP CRS.  Current version is
+2.2.9 and you are running 2.2.5.  We improved regexes to try and limit
+their greedines and triggering those messages.
+
+Ryan Barnett
+Senior Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com <http://www.trustwave.com/>
+
+
+
+
+On 7/21/14 1:32 AM, "Aniyan Rajan" <aniyan.rajan6 at gmail.com> wrote:
+
+>Anybody please help. What is this "Execution error - PCRE limits
+>exceeded (-8): (null). " ?
+>
+>I am getting this daily.
+>
+>Thanks.
+>
+>On 07/19/2014 06:49 PM, Aniyan Rajan wrote:
+>> Hello,
+>>
+>> I am getting the following errors in
+>> /var/log/apache2/modsec_audit.log. Please tell me how to fix this.
+>> Thanks.
+>>
+>>
+>> --1af2295a-A--
+>> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABVXBoEAAAAB 61.3.165.175
+>> 38386 128.222.122.22 80
+>> --1af2295a-B--
+>> GET /wp-includes/css/buttons.min.css?ver=3.9.1 HTTP/1.1
+>> Host: www.my-domain.com
+>> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+>> Firefox/30.0 Iceweasel/30.0
+>> Accept: text/css,*/*;q=0.1
+>> Accept-Language: en-US,en;q=0.5
+>> Accept-Encoding: gzip, deflate
+>> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+>> Cookie: wp-settings-time-1=1404924481;
+>> wp-settings-1=libraryContent%3Dbrowse;
+>> wordpress_test_cookie=WP+Cookie+check
+>> DNT: 1
+>> Connection: keep-alive
+>> If-Modified-Since: Tue, 25 Mar 2014 21:23:14 GMT
+>> If-None-Match: "411db-15bb-4f574f5b2f480"
+>>
+>> --1af2295a-F--
+>> HTTP/1.1 304 Not Modified
+>> Last-Modified: Tue, 25 Mar 2014 21:23:14 GMT
+>> ETag: "411db-15bb-4f574f5b2f480"
+>> Accept-Ranges: bytes
+>> Content-Length: 0
+>> Vary: Accept-Encoding
+>> Keep-Alive: timeout=5, max=91
+>> Connection: Keep-Alive
+>> Content-Type: text/css
+>>
+>> --1af2295a-E--
+>>
+>> --1af2295a-H--
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Stopwatch: 1405774272625367 8289 (- - -)
+>> Stopwatch2: 1405774272625367 8289; combined=7685, p1=238, p2=7371,
+>> p3=1, p4=54, p5=21, sr=53, sw=0, l=0, gc=0
+>> Response-Body-Transformed: Dechunked
+>> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+>> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+>> Server: Apache
+>>
+>> --1af2295a-Z--
+>>
+>> --1af2295a-A--
+>> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABWEO4kAAAAF 61.3.165.175
+>> 38401 128.222.122.22 80
+>> --1af2295a-B--
+>> GET /wp-admin/css/login.min.css?ver=3.9.1 HTTP/1.1
+>> Host: www.my-domain.com
+>> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+>> Firefox/30.0 Iceweasel/30.0
+>> Accept: text/css,*/*;q=0.1
+>> Accept-Language: en-US,en;q=0.5
+>> Accept-Encoding: gzip, deflate
+>> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+>> Cookie: wp-settings-time-1=1404924481;
+>> wp-settings-1=libraryContent%3Dbrowse;
+>> wordpress_test_cookie=WP+Cookie+check
+>> DNT: 1
+>> Connection: keep-alive
+>> If-Modified-Since: Thu, 24 Apr 2014 22:05:16 GMT
+>> If-None-Match: "40f2c-47c8-4f7d10b42df00"
+>>
+>> --1af2295a-F--
+>> HTTP/1.1 304 Not Modified
+>> Last-Modified: Thu, 24 Apr 2014 22:05:16 GMT
+>> ETag: "40f2c-47c8-4f7d10b42df00"
+>> Accept-Ranges: bytes
+>> Content-Length: 0
+>> Vary: Accept-Encoding
+>> Keep-Alive: timeout=5, max=100
+>> Connection: Keep-Alive
+>> Content-Type: text/css
+>>
+>> --1af2295a-E--
+>>
+>> --1af2295a-H--
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Message: Rule 7f14c7110280 [id "950901"][file
+>>
+>>"/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inject
+>>ion_attacks.conf"][line
+>> "77"] - Execution error - PCRE limits exceeded (-8): (null).
+>> Stopwatch: 1405774272887666 13250 (- - -)
+>> Stopwatch2: 1405774272887666 13250; combined=12096, p1=289, p2=11727,
+>> p3=2, p4=55, p5=23, sr=72, sw=0, l=0, gc=0
+>> Response-Body-Transformed: Dechunked
+>> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+>> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+>> Server: Apache
+>>
+>> --1af2295a-Z--
+>>
+>
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From craig.lawson at secarma.co.uk  Mon Jul 21 07:01:52 2014
+From: craig.lawson at secarma.co.uk (Craig Lawson)
+Date: Mon, 21 Jul 2014 00:01:52 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Errors
+In-Reply-To: <53CCA5DC.6050600@gmail.com>
+References: <53CA7058.40702@gmail.com> <53CCA5DC.6050600@gmail.com>
+Message-ID: <0C6A9AFC1EFB524BB9854A8B5C7FC649B6765A3B@MBX1.office.ukfast>
+
+As long as you are sure you aren't actually under a DoS then have a look at the parameter "SecPcreMatchLimit" and "SecPcreMatchLimitRecursion", maybe look to increase these until the error goes away with normal traffic usage?
+
+The default is 1500, I have seen it set as high as 250000 for both.
+
+Craig
+
+
+-----Original Message-----
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Aniyan Rajan
+Sent: 21 July 2014 06:32
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Errors
+
+Anybody please help. What is this "Execution error - PCRE limits exceeded (-8): (null). " ?
+
+I am getting this daily.
+
+Thanks.
+
+On 07/19/2014 06:49 PM, Aniyan Rajan wrote:
+> Hello,
+>
+> I am getting the following errors in
+> /var/log/apache2/modsec_audit.log. Please tell me how to fix this.
+> Thanks.
+>
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABVXBoEAAAAB 61.3.165.175
+> 38386 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-includes/css/buttons.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481;
+> wp-settings-1=libraryContent%3Dbrowse;
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Tue, 25 Mar 2014 21:23:14 GMT
+> If-None-Match: "411db-15bb-4f574f5b2f480"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Tue, 25 Mar 2014 21:23:14 GMT
+> ETag: "411db-15bb-4f574f5b2f480"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=91
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Stopwatch: 1405774272625367 8289 (- - -)
+> Stopwatch2: 1405774272625367 8289; combined=7685, p1=238, p2=7371,
+> p3=1, p4=54, p5=21, sr=53, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+> --1af2295a-A--
+> [19/Jul/2014:12:51:12 +0000] U8ppwH8AAAEAABWEO4kAAAAF 61.3.165.175
+> 38401 128.222.122.22 80
+> --1af2295a-B--
+> GET /wp-admin/css/login.min.css?ver=3.9.1 HTTP/1.1
+> Host: www.my-domain.com
+> User-Agent: Mozilla/5.0 (X11; Linux i686; rv:30.0) Gecko/20100101
+> Firefox/30.0 Iceweasel/30.0
+> Accept: text/css,*/*;q=0.1
+> Accept-Language: en-US,en;q=0.5
+> Accept-Encoding: gzip, deflate
+> Referer: http://www.my-domain.com/wp-login.php?loggedout=true
+> Cookie: wp-settings-time-1=1404924481;
+> wp-settings-1=libraryContent%3Dbrowse;
+> wordpress_test_cookie=WP+Cookie+check
+> DNT: 1
+> Connection: keep-alive
+> If-Modified-Since: Thu, 24 Apr 2014 22:05:16 GMT
+> If-None-Match: "40f2c-47c8-4f7d10b42df00"
+>
+> --1af2295a-F--
+> HTTP/1.1 304 Not Modified
+> Last-Modified: Thu, 24 Apr 2014 22:05:16 GMT
+> ETag: "40f2c-47c8-4f7d10b42df00"
+> Accept-Ranges: bytes
+> Content-Length: 0
+> Vary: Accept-Encoding
+> Keep-Alive: timeout=5, max=100
+> Connection: Keep-Alive
+> Content-Type: text/css
+>
+> --1af2295a-E--
+>
+> --1af2295a-H--
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Message: Rule 7f14c7110280 [id "950901"][file
+> "/usr/share/modsecurity-crs/activated_rules/modsecurity_crs_41_sql_inj
+> ection_attacks.conf"][line "77"] - Execution error - PCRE limits
+> exceeded (-8): (null).
+> Stopwatch: 1405774272887666 13250 (- - -)
+> Stopwatch2: 1405774272887666 13250; combined=12096, p1=289, p2=11727,
+> p3=2, p4=55, p5=23, sr=72, sw=0, l=0, gc=0
+> Response-Body-Transformed: Dechunked
+> Producer: ModSecurity for Apache/2.6.6 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.5; OWASP_CRS/2.2.5.
+> Server: Apache
+>
+> --1af2295a-Z--
+>
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+NOTICE AND DISCLAIMER
+This e-mail (including any attachments) is intended for the above-named person(s). If you are not the intended recipient, notify the sender immediately, delete this email from your system and do not disclose or use for any purpose. We may monitor all incoming and outgoing emails in line with current legislation. We have taken steps to ensure that this email and attachments are free from any virus, but it remains your responsibility to ensure that viruses do not adversely affect you
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From logg at certitrade.net  Wed Jul 23 09:02:50 2014
+From: logg at certitrade.net (Logg)
+Date: Wed, 23 Jul 2014 11:02:50 +0200
+Subject: [Owasp-modsecurity-core-rule-set] What is client doing to trigger
+	SQL Tautology?
+Message-ID: <53CF7A3A.8000801@certitrade.net>
+
+Hello
+
+We are running a payment system used by webshops. Now one new client 
+gets a 403, I want to find out why so I can help client to configure 
+their shop correctly.
+modsec logs tell me what rule is triggered, but I can't read out what 
+data the client sends in.
+This only happens to this new client, so I will not modify my ruleset. I 
+just need to assist our client who is obviously doing something wrong.
+
+    [22/Jul/2014:13:10:37 +0200] U85GrQpABwsAAGYtLgkAAAAC 10.64.7.5
+    49941 10.64.7.11 443
+    --ed091d42-B--
+    POST /webshophtml/e/auth.php HTTP/1.1
+    Host: our.payment.net
+    Connection: keep-alive
+    Content-Length: 951
+    Cache-Control: max-age=0
+    Accept:
+    text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+    Origin: http://client_webshop.se
+    User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36
+    (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36
+    Content-Type: application/x-www-form-urlencoded
+    Referer: http://client_webshop.se/checkout.php?sl=0&st=0
+    Accept-Encoding: gzip,deflate,sdch
+    Accept-Language: sv-SE,sv;q=0.8,en-US;q=0.6,en;q=0.4
+    Cookie: _jss_popform_1524_count=1;
+    _jss_pstor=id%3Dda15bb533c3296281a7a3bad96266f93%3Afi%3D1404769754%3Ali%3D1404770148%3Aic%3D5%3Avc%3D1%3Anc%3D9f3d16019cf6fe2b%3A19f22ab828ca19a9cac8b0eed51911c0;
+    __utma=188767033.1851339114.1404769702.1404769702.1404769702.1;
+    __utmz=188767033.1404769702.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)
+    X-Forwarded-For: #.#.#.#
+
+    --ed091d42-F--
+    HTTP/1.1 403 Forbidden
+    Content-Length: 224
+    Keep-Alive: timeout=5, max=100
+    Connection: Keep-Alive
+    Content-Type: text/html; charset=iso-8859-1
+
+    --ed091d42-E--
+
+    --ed091d42-H--
+    Message: Access denied with code 403 (phase 2). Pattern match
+    "(?i:([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)([\\d\\w]++)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)(?:(?:=|<=>|r?like|sounds\\s+like|regexp)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)\\2|(?:!=|<=|>=|<>|<|>|\\^|is\\s+not|not\\
+    ..." at REQUEST_COOKIES:_jss_pstor. [file
+    "sec_rules/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"] [line
+    "77"] [id "950901"] [rev "2"] [msg "SQL Injection Attack: SQL
+    Tautology Detected."] [data "Matched Data: d=d found within
+    REQUEST_COOKIES:_jss_pstor:
+    id=da15bb533c3296281a7a3bad96266f93:fi=1404769754:li=1404770148:ic=5:vc=1:nc=9f3d16019cf6fe2b:19f22ab828ca19a9cac8b0eed51911c0"]
+    [severity "CRITICAL"] [ver "OWASP_CRS/2.2.7"] [maturity "9"]
+    [accuracy "8"] [tag "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"] [tag
+    "WASCTC/WASC-19"] [tag "OWASP_TOP_10/A1"] [tag
+    "OWASP_AppSensor/CIE1"] [tag "PCI/6.5.2"]
+    Action: Intercepted (phase 2)
+    Apache-Handler: php5-script
+    Stopwatch: 1406027437541081 3150 (- - -)
+    Stopwatch2: 1406027437541081 3150; combined=1945, p1=330, p2=1581,
+    p3=0, p4=0, p5=33, sr=99, sw=1, l=0, gc=0
+    Response-Body-Transformed: Dechunked
+    Producer: ModSecurity for Apache/2.8.0
+    (http://www.modsecurity.org/); OWASP_CRS/2.2.7.
+    Server: Apache
+    Engine-Mode: "ENABLED"
+
+Regards
+Peter Haraldson
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140723/56a60763/attachment.html>
+
+From logg at certitrade.net  Wed Jul 23 09:48:28 2014
+From: logg at certitrade.net (Logg)
+Date: Wed, 23 Jul 2014 11:48:28 +0200
+Subject: [Owasp-modsecurity-core-rule-set] What is client doing to
+ trigger SQL Tautology?
+In-Reply-To: <CAC+O4mEL8uhD+BW4tBAuz9RqNqYuoZc_ffh9Z4oDCfJHFqDehg@mail.gmail.com>
+References: <53CF7A3A.8000801@certitrade.net>
+	<CAC+O4mEL8uhD+BW4tBAuz9RqNqYuoZc_ffh9Z4oDCfJHFqDehg@mail.gmail.com>
+Message-ID: <53CF84EC.8070401@certitrade.net>
+
+Thank you Josh, but I don't really want to create an exception.
+Since it's just one client that triggers this, it's better to help him 
+configure payment settings for his shop.
+So the question would be Where does that "d=d" come from, I can see it's 
+in a cookie but why?
+
+Regards
+Peter
+
+2014-07-23 11:41, Josh Amishav-Zlatin skrev:
+> On Wed, Jul 23, 2014 at 12:02 PM, Logg <logg at certitrade.net 
+> <mailto:logg at certitrade.net>> wrote:
+>
+>     Hello
+>
+>     We are running a payment system used by webshops. Now one new
+>     client gets a 403, I want to find out why so I can help client to
+>     configure their shop correctly.
+>     modsec logs tell me what rule is triggered, but I can't read out
+>     what data the client sends in.
+>     This only happens to this new client, so I will not modify my
+>     ruleset. I just need to assist our client who is obviously doing
+>     something wrong.
+>
+>
+> Hi,
+>
+> If you look at section H below, the _jss_pstor cookie contains the 
+> string d=d which created a false positive on rule 950901. You can use 
+> the SecRuleUpdateTargetById directive to create an exception 
+> (e.g. SecRuleUpdateTargetById 950901 !REQUEST_COOKIES:_jss_pstor).
+>
+> - Josh
+>
+>         [22/Jul/2014:13:10:37 +0200] U85GrQpABwsAAGYtLgkAAAAC
+>         10.64.7.5 49941 10.64.7.11 443
+>         --ed091d42-B--
+>         POST /webshophtml/e/auth.php HTTP/1.1
+>         Host: our.payment.net <http://our.payment.net>
+>         Connection: keep-alive
+>         Content-Length: 951
+>         Cache-Control: max-age=0
+>         Accept:
+>         text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+>         Origin: http://client_webshop.se
+>         User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64)
+>         AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125
+>         Safari/537.36
+>         Content-Type: application/x-www-form-urlencoded
+>         Referer: http://client_webshop.se/checkout.php?sl=0&st=0
+>         Accept-Encoding: gzip,deflate,sdch
+>         Accept-Language: sv-SE,sv;q=0.8,en-US;q=0.6,en;q=0.4
+>         Cookie: _jss_popform_1524_count=1;
+>         _jss_pstor=id%3Dda15bb533c3296281a7a3bad96266f93%3Afi%3D1404769754%3Ali%3D1404770148%3Aic%3D5%3Avc%3D1%3Anc%3D9f3d16019cf6fe2b%3A19f22ab828ca19a9cac8b0eed51911c0;
+>         __utma=188767033.1851339114.1404769702.1404769702.1404769702.1; __utmz=188767033.1404769702.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)
+>         X-Forwarded-For: #.#.#.#
+>
+>         --ed091d42-F--
+>         HTTP/1.1 403 Forbidden
+>         Content-Length: 224
+>         Keep-Alive: timeout=5, max=100
+>         Connection: Keep-Alive
+>         Content-Type: text/html; charset=iso-8859-1
+>
+>         --ed091d42-E--
+>
+>         --ed091d42-H--
+>         Message: Access denied with code 403 (phase 2). Pattern match
+>         "(?i:([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)([\\d\\w]++)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)(?:(?:=|<=>|r?like|sounds\\s+like|regexp)([\\s'\"`\xc2\xb4\xe2\x80\x99\xe2\x80\x98\\(\\)]*?)\\2|(?:!=|<=|>=|<>|<|>|\\^|is\\s+not|not\\
+>         ..." at REQUEST_COOKIES:_jss_pstor. [file
+>         "sec_rules/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+>         [line "77"] [id "950901"] [rev "2"] [msg "SQL Injection
+>         Attack: SQL Tautology Detected."] [data "Matched Data: d=d
+>         found within REQUEST_COOKIES:_jss_pstor:
+>         id=da15bb533c3296281a7a3bad96266f93:fi=1404769754:li=1404770148:ic=5:vc=1:nc=9f3d16019cf6fe2b:19f22ab828ca19a9cac8b0eed51911c0"]
+>         [severity "CRITICAL"] [ver "OWASP_CRS/2.2.7"] [maturity "9"]
+>         [accuracy "8"] [tag "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"] [tag
+>         "WASCTC/WASC-19"] [tag "OWASP_TOP_10/A1"] [tag
+>         "OWASP_AppSensor/CIE1"] [tag "PCI/6.5.2"]
+>         Action: Intercepted (phase 2)
+>         Apache-Handler: php5-script
+>         Stopwatch: 1406027437541081 3150 (- - -)
+>         Stopwatch2: 1406027437541081 3150; combined=1945, p1=330,
+>         p2=1581, p3=0, p4=0, p5=33, sr=99, sw=1, l=0, gc=0
+>         Response-Body-Transformed: Dechunked
+>         Producer: ModSecurity for Apache/2.8.0
+>         (http://www.modsecurity.org/); OWASP_CRS/2.2.7. <http://2.2.7.>
+>         Server: Apache
+>         Engine-Mode: "ENABLED"
+>
+>     Regards
+>     Peter Haraldson
+>
+>     _______________________________________________
+>     Owasp-modsecurity-core-rule-set mailing list
+>     Owasp-modsecurity-core-rule-set at lists.owasp.org
+>     <mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140723/543e0fff/attachment-0001.html>
+
+From ohansen at cisco.com  Fri Jul 25 23:12:23 2014
+From: ohansen at cisco.com (Ove Hansen -X (ohansen - TEKSYSTEMS at Cisco))
+Date: Fri, 25 Jul 2014 23:12:23 +0000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS: Request-method and
+	content-type rules don't work
+Message-ID: <3F9075CE4D11A944AA6207B4D0ADC578C67BC3@xmb-aln-x02.cisco.com>
+
+Hello all,
+
+I'm using mod_security 2.7.7 on nginx, and I have a problem with the OWASP CRS/2.2.9:
+
+The rules in modsecurity_crs_30_http_policy.conf that should allow GET, HEAD POST and options always triggers, even for a GET. Similarly, the rule for the Content-Type header won't allow "application/json", even though that should be allowed. These rules have not been edited from their default:
+
+SecAction \
+  "id:'900012', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json', \
+
+SecRule REQUEST_METHOD "!@within %{tx.allowed_methods}" "phase:1,t:none,block,msg:'Method is not allowed by policy',logdata:'%{matched_var}',severity:'2',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960032',tag:'OWASP_CRS/POLICY/METHOD_NOT_ALLOWED',tag:'WASCTC/WASC-15',tag:'OWASP_TOP_10/A6',tag:'OWASP_AppSensor/RE1',tag:'PCI/12.1',logdata:'%{matched_var}',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/METHOD_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$" "phase:1,chain,t:none,block,msg:'Request content type is not allowed by policy',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960010',tag:'OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'2',logdata:'%{matched_var}'"
+        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+                SecRule TX:0 "!^%{tx.allowed_request_content_type}$" "t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+If I try:
+
+curl -k https://nginx/v2.0
+
+I get:
+
+==> modsec_debug.log <==
+[25/Jul/2014:22:57:18 +0000] [/sid#1af8178][rid#1b1acf8][/v2.0][2] Warning. Match of "within %{tx.allowed_methods}" against "REQUEST_METHOD" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf"] [line "31"] [id "960032"] [rev "2"] [msg "Method is not allowed by policy"] [data "GET"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/METHOD_NOT_ALLOWED"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "OWASP_AppSensor/RE1"] [tag "PCI/12.1"]
+
+==> access.log <==
+10.154.96.140 - - [25/Jul/2014:22:57:18 +0000] "GET /v2.0 HTTP/1.1" 200 612 "-" "curl/7.33.0"
+
+==> modsec_audit.log <==
+10.154.96.140 -  [25/Jul/2014:22:57:18 +0000] "GET /v2.0 HTTP/1.1" 200 0 "-" "-" AcALAc5cA9ncAcAcucAcAcAc "-" /20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc 0 1231 md5:41b0733d42240146fc9df3f80ba8936d
+
+# more audit/20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc
+--b5d00648-A--
+[25/Jul/2014:22:57:18 +0000] AcALAc5cA9ncAcAcucAcAcAc 10.154.96.140 63740 127.0.0.1 80
+--b5d00648-B--
+GET /v2.0 HTTP/1.1
+Host: nginx
+User-Agent: curl/7.33.0
+Accept: */*
+
+--b5d00648-F--
+HTTP/1.1 200 OK
+Vary: X-Auth-Token
+Content-Type: application/json
+Content-Length: 612
+Connection: keep-alive
+
+--b5d00648-E--
+
+--b5d00648-H--
+Message: Warning. Match of "within %{tx.allowed_methods}" against "REQUEST_METHOD" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecu
+rity_crs_30_http_policy.conf"] [line "31"] [id "960032"] [rev "2"] [msg "Method is not allowed by policy"] [data "GET"] [severity "CRITICAL"] [ver "OWAS
+P_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/METHOD_NOT_ALLOWED"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "OWASP_AppSe
+nsor/RE1"] [tag "PCI/12.1"]
+Apache-Handler: IIS
+Stopwatch: 1406329038000190 555175 (- - -)
+Stopwatch2: 1406329038000190 555175; combined=1179, p1=365, p2=592, p3=5, p4=144, p5=73, sr=18, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for nginx (STABLE)/2.7.7 (http://www.modsecurity.org/); OWASP_CRS/2.2.9.
+Server: ModSecurity Standalone
+Engine-Mode: "ENABLED"
+
+--b5d00648-Z-
+
+
+If I try to request a content-tupe of application/json (which *should* be allowed), I get the following:
+
+[25/Jul/2014:23:04:05 +0000] [/sid#1af8178][rid#24f3f38][/v2.0/][2] Warning. Match of "rx ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not allowed by policy"] [data "application/json"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+
+If anyone has any idea then I would be very grateful!!!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/dca61563/attachment.html>
+
+From ohansen at cisco.com  Fri Jul 25 23:12:23 2014
+From: ohansen at cisco.com (Ove Hansen -X (ohansen - TEKSYSTEMS at Cisco))
+Date: Fri, 25 Jul 2014 16:12:23 -0700
+Subject: [Owasp-modsecurity-core-rule-set] Spam: OWASP CRS: Request-method
+ and	content-type rules don't work
+Message-ID: <3F9075CE4D11A944AA6207B4D0ADC578C67BC3@xmb-aln-x02.cisco.com>
+
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/dca61563/attachment-0003.html>
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: ATT00001.txt
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/dca61563/attachment-0001.txt>
+
+From RBarnett at trustwave.com  Fri Jul 25 23:35:34 2014
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 25 Jul 2014 23:35:34 +0000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP CRS: Request-method
+	and	content-type rules don't work
+In-Reply-To: <3F9075CE4D11A944AA6207B4D0ADC578C67BC3@xmb-aln-x02.cisco.com>
+References: <3F9075CE4D11A944AA6207B4D0ADC578C67BC3@xmb-aln-x02.cisco.com>
+Message-ID: <C3A9712F-85DF-4B11-B5AA-04AE4DDFFA28@trustwave.com>
+
+Debug log review time.
+
+You need to verify the your setvar values in the 10 setup file are being read/set properly and then see how those SecRules later on are processing with macro expansion.
+
+Ryan Barnett
+Senior Lead Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+On Jul 25, 2014, at 7:32 PM, "Ove Hansen -X (ohansen - TEKSYSTEMS at Cisco)" <ohansen at cisco.com<mailto:ohansen at cisco.com>> wrote:
+
+Hello all,
+
+I?m using mod_security 2.7.7 on nginx, and I have a problem with the OWASP CRS/2.2.9:
+
+The rules in modsecurity_crs_30_http_policy.conf that should allow GET, HEAD POST and options always triggers, even for a GET. Similarly, the rule for the Content-Type header won?t allow ?application/json?, even though that should be allowed. These rules have not been edited from their default:
+
+SecAction \
+  "id:'900012', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json', \
+
+SecRule REQUEST_METHOD "!@within %{tx.allowed_methods}" "phase:1,t:none,block,msg:'Method is not allowed by policy',logdata:'%{matched_var}',severity:'2',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960032',tag:'OWASP_CRS/POLICY/METHOD_NOT_ALLOWED',tag:'WASCTC/WASC-15',tag:'OWASP_TOP_10/A6',tag:'OWASP_AppSensor/RE1',tag:'PCI/12.1',logdata:'%{matched_var}',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/METHOD_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$" "phase:1,chain,t:none,block,msg:'Request content type is not allowed by policy',rev:'2',ver:'OWASP_CRS/2.2.9',maturity:'9',accuracy:'9',id:'960010',tag:'OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'2',logdata:'%{matched_var}'"
+        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+                SecRule TX:0 "!^%{tx.allowed_request_content_type}$" "t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+If I try:
+
+curl -k https://nginx/v2.0
+
+I get:
+
+==> modsec_debug.log <==
+[25/Jul/2014:22:57:18 +0000] [/sid#1af8178][rid#1b1acf8][/v2.0][2] Warning. Match of "within %{tx.allowed_methods}" against "REQUEST_METHOD" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf"] [line "31"] [id "960032"] [rev "2"] [msg "Method is not allowed by policy"] [data "GET"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/METHOD_NOT_ALLOWED"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "OWASP_AppSensor/RE1"] [tag "PCI/12.1"]
+
+==> access.log <==
+10.154.96.140 - - [25/Jul/2014:22:57:18 +0000] "GET /v2.0 HTTP/1.1" 200 612 "-" "curl/7.33.0"
+
+==> modsec_audit.log <==
+10.154.96.140 -  [25/Jul/2014:22:57:18 +0000] "GET /v2.0 HTTP/1.1" 200 0 "-" "-" AcALAc5cA9ncAcAcucAcAcAc "-" /20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc 0 1231 md5:41b0733d42240146fc9df3f80ba8936d
+
+# more audit/20140725/20140725-2257/20140725-225718-AcALAc5cA9ncAcAcucAcAcAc
+--b5d00648-A--
+[25/Jul/2014:22:57:18 +0000] AcALAc5cA9ncAcAcucAcAcAc 10.154.96.140 63740 127.0.0.1 80
+--b5d00648-B--
+GET /v2.0 HTTP/1.1
+Host: nginx
+User-Agent: curl/7.33.0
+Accept: */*
+
+--b5d00648-F--
+HTTP/1.1 200 OK
+Vary: X-Auth-Token
+Content-Type: application/json
+Content-Length: 612
+Connection: keep-alive
+
+--b5d00648-E--
+
+--b5d00648-H--
+Message: Warning. Match of "within %{tx.allowed_methods}" against "REQUEST_METHOD" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecu
+rity_crs_30_http_policy.conf"] [line "31"] [id "960032"] [rev "2"] [msg "Method is not allowed by policy"] [data "GET"] [severity "CRITICAL"] [ver "OWAS
+P_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/METHOD_NOT_ALLOWED"] [tag "WASCTC/WASC-15"] [tag "OWASP_TOP_10/A6"] [tag "OWASP_AppSe
+nsor/RE1"] [tag "PCI/12.1"]
+Apache-Handler: IIS
+Stopwatch: 1406329038000190 555175 (- - -)
+Stopwatch2: 1406329038000190 555175; combined=1179, p1=365, p2=592, p3=5, p4=144, p5=73, sr=18, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for nginx (STABLE)/2.7.7 (http://www.modsecurity.org/); OWASP_CRS/2.2.9.
+Server: ModSecurity Standalone
+Engine-Mode: "ENABLED"
+
+--b5d00648-Z?
+
+
+If I try to request a content-tupe of application/json (which *should* be allowed), I get the following:
+
+[25/Jul/2014:23:04:05 +0000] [/sid#1af8178][rid#24f3f38][/v2.0/][2] Warning. Match of "rx ^%{tx.allowed_request_content_type}$" against "TX:0" required. [file "/usr/local/nginx/conf/modsec/activated_rules/modsecurity_crs_30_http_policy.conf"] [line "64"] [id "960010"] [rev "2"] [msg "Request content type is not allowed by policy"] [data "application/json"] [severity "CRITICAL"] [ver "OWASP_CRS/2.2.9"] [maturity "9"] [accuracy "9"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+
+If anyone has any idea then I would be very grateful!!!
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140725/305e65f1/attachment.html>
+
+From soeren.christian.aarup at dibs.dk  Tue Jul 29 13:07:43 2014
+From: soeren.christian.aarup at dibs.dk (=?iso-8859-1?Q?S=F8ren_Christian_Aarup?=)
+Date: Tue, 29 Jul 2014 13:07:43 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Add header-field to response
+Message-ID: <CFFD696B.1790A1%scaa@dibs.dk>
+
+Hi guys.
+
+Is it possible to add a header-field to the response when using Nginx?
+
+I am asking since I have problems with a bug (https://github.com/SpiderLabs/ModSecurity/issues/735), that removes Content-Type from the response from the upstream server.
+
+
+Med venlig hilsen/Regards
+
+S?ren Christian Aarup
+DBA/System Administrator
+
+LinkedIn: www.linkedin.com/in/aarup<http://www.linkedin.com/in/aarup>
+[DIBS - Payments made easy]<http://www.dibs.dk/>
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140729/36d26305/attachment.html>
+

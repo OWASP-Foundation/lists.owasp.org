@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-TESTING] WAPT submission, revised
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20WAPT%20submission%2C%20revised&In-Reply-To=4381C022.8020104%40germinus.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001101.html">
+   <LINK REL="Next"  HREF="001103.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-TESTING] WAPT submission, revised</H1>
+    <B>Mauro Bregolin</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOWASP-TESTING%5D%20WAPT%20submission%2C%20revised&In-Reply-To=4381C022.8020104%40germinus.com"
+       TITLE="[OWASP-TESTING] WAPT submission, revised">mauro.bregolin at gmail.com
+       </A><BR>
+    <I>Tue Nov 22 04:07:09 EST 2005</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001101.html">[OWASP-TESTING] WAPT submission, revised
+</A></li>
+        <LI>Next message: <A HREF="001103.html">[OWASP-TESTING] WAPT submission, revised
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1102">[ date ]</a>
+              <a href="thread.html#1102">[ thread ]</a>
+              <a href="subject.html#1102">[ subject ]</a>
+              <a href="author.html#1102">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Javier,
+
+I realized I (dumbly) overlooked your previous message and failed to read
+your original txt attachment. That's why your input never made it to the
+revised version.
+
+Concerning your original comments regarding strategies to spot files, I do
+not completely agree.
+I wouldn't say that looking at access times is less FP-prone than the method
+I was writing about (finding files according to extensions). How much &quot;old&quot;
+is old enough to account for being unreferenced? One month? Three months?
+One week? Your method (which has its own merits) wouldn't notice the huge
+.tar file left yesterday by a careless sysadmin in the web server tree,
+until it &quot;ages&quot; up to the point of being considered &quot;old and unreferenced&quot;
+(provided it doesn't get accessed by an evil hacker in the interim... which
+would keep it &quot;legitimate&quot; for another while).
+Now, there are some file extensions which look definitely *wrong*, and would
+be easily identified by a simple file search (I'm not saying they are
+necessarily illegitimate; but many *usually* are: A &quot;login.jsp.old&quot; file
+looks definitely out of place, and while a web app may rely on .tar files,
+it rarely does...).
+In my opinion, there's no silver bullet in the form of a fully automatic
+solution, because all strategies are based on euristhics, and as such are
+always approximations. Looking via file extensions takes into account
+semantic information related to the purpose of the file (.tar, .tgz, .zip,
+... : backup files; .old, ...: evidence of out-of-date copies); usually this
+information is rather accurate. However, it fails to find unreferenced files
+having legitimate-looking extensions (for example, .jsp files left over
+after a broken software upgrade). On the other hand, looking at access times
+takes into account time, which is undoubtedly important. But it will find
+candidates only after a time delay, which leaves a window of exposure.
+Crawling may help solve this, but depending on the web app structure may be
+difficult to fully automatize (anyway, it's surely another source of input
+worth considering).
+A good approach would be to combine both search criteria (and possibly
+others that might be devised in addition).
+Best of all, however, is enforcing strong security policies. Spotting files
+means you are *late*, and did something wrong. Found a .old? Someone did
+in-place editing, what about your change management procedures? Found a .zip
+or a .tar in the wrong place? This denotes inappropriate behavior as well.
+After a software upgrade you find unused JSPs left over? You have some darn
+problem with your software upgrade procedure... etc. etc. But, of course,
+life is different and these things happen and will continue to happen, and
+we must have a way to check.
+
+I will reflect this in the chapter and go through your other comments as
+well.
+
+Thanks,
+
+Mauro
+
+P.S. btw, what happened to all other submissions? Did I miss something, or
+were some of them submitted off-list?
+
+
+-----Original Message-----
+From: Javier Fernandez-Sanguino [mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">jfernandez at germinus.com</A>] 
+Sent: luned&#236; 21 novembre 2005 13.40
+To: Mauro Bregolin
+Cc: 'Daniel Cuthbert'; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.sourceforge.net</A>
+Subject: Re: [OWASP-TESTING] WAPT submission, revised
+
+Mauro Bregolin wrote:
+&gt;<i> please find attached a revised version of my submission, which includes 
+</I>&gt;<i> comments and feedbacks.
+</I>&gt;<i> 
+</I>&gt;<i> The &quot;Old, backup and unreferenced files&quot; has been expanded to include 
+</I>&gt;<i> material written by Dafydd Stuttard (made available by Javier 
+</I>&gt;<i> Fernandez-Sanguino).
+</I>
+This section looks much better, however, I believe the &quot;White box&quot; 
+testing section of the &quot;Old, backup and unreferenced files&quot; should be 
+expanded. It only suggests looking at unreferenced files based on 
+extensions (i.e. 'naming conventions'). It seems you added Dafydd's 
+content but did not review my mail and include the comments I made.
+
+IMHO, there are some additional activities (besides doing a &quot;hard 
+review&quot; of the directory structure as suggested there) that might help 
+finding unreferenced files in the web server through white box 
+testing. Some of these can actually be automated through a cron job. 
+This is my proposal to expand that section with additional activities:
+
+-----------------------------------------------------------------------
+
+- Review the web server logs and generate a list of files demanded by 
+clients (optionally ordered by number of hits). The files that have 
+never been accessed by any client are a candidated for removal. Of 
+course, the number of false positives of this method depends on the 
+log history (if you review logs of a single month you might miss files 
+which have not been accessed that month, like season-based 
+promotions). In a web server farm, make sure you retrieve the logs of 
+all servers, not just one member of the farm.
+
+- Crawl the site fully (either automatic robot, an inline proxy 
+logging a person doing a manual navigation through the full website or 
+a combination of both) to generate a list of reference files in the 
+system. Compare this agains the directory tree and files on the server 
+to determine which files might not be reference and/or used any more. 
+This can also be combined with the above since this &quot;crawling&quot; session 
+should generate more hits than your average user connection and the 
+robot logs should be similar to the web server's logs.
+
+- Review the access time of the files in the web server tree.
+If this is a web server, most of the files will have their &quot;last 
+access&quot; timestamp modified everytime the web server reads them in to 
+provide them to an end-user or run them through an application engine. 
+  Review those files that have been accessed only a long time ago 
+(several months or a year) since those might be candidates for removal 
+as either backup files or unreference files. Typically, a the used 
+files of a web server will have a similar access timestamp range and 
+those files outside that range can be considered old files. Notice 
+that this method will fail to spot unreferenced files recently created.
+
+-----------------------------------------------------------------------
+
+And, let me post some of the comments I originally made which might be 
+worthwhile adding to that section too, there's an additional thread 
+there (old vulnerable applictions) and an additional &quot;black box&quot; test 
+(finding common files generated by third-party applications in web 
+server directories). Feel free to adapt any of these and include them too:
+
+&quot;Unreferenced application files are not only dangerous because they 
+provide you with internal source code but because they might be 
+vulnerable! Imagine the case of a web administrator taking a file that 
+has an SQL injection, making a backup copy of it, editing it to remove 
+the SQL injection present and leaving. If he forgets to remove the 
+backup file _And_ the backup file's extension will be executed by the 
+webserver (think: original: login.jsp, backup: login.old.jsp) then you 
+might think you are safe when you are actually just as vulnerable as 
+before (just that people don't know that the file exists).
+
+You also fail to mention files that do not belong in the web server 
+but are typically generated by upload tools (think WS_FTP.log files). 
+These files are &quot;unreferenced&quot; in the sense that they should not be 
+there, and contain sensitive information (like the user that ftp's in 
+the web server) that might be valuable to the user. &quot;
+
+Finally, as I commented in my last post, I think it's worthwhile 
+adding a mention to &quot;Archive.org&quot; in the &quot;Use of publicly available 
+information&quot; part. You are guaranteed to have more information there 
+than the one archived in Yahoo! or Google's cache. You can use the 
+&quot;Take me back!&quot; time machine there to browse server content which are 
+years old (this can be done programatically to generate a list of the 
+web server contents for a given period of time).
+
+Hope that helps improve the document.
+
+Regards
+
+Javier
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001101.html">[OWASP-TESTING] WAPT submission, revised
+</A></li>
+	<LI>Next message: <A HREF="001103.html">[OWASP-TESTING] WAPT submission, revised
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1102">[ date ]</a>
+              <a href="thread.html#1102">[ thread ]</a>
+              <a href="subject.html#1102">[ subject ]</a>
+              <a href="author.html#1102">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BBUG%20Report%5D%20Restricted%0A%09extensions%20rule%20bug&In-Reply-To=AANLkTimBpCy94gEQEhxw%2Btu4%3D3p1WFRoRu1oHEeN9oC5%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000576.html">
+   <LINK REL="Next"  HREF="000578.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20%5BBUG%20Report%5D%20Restricted%0A%09extensions%20rule%20bug&In-Reply-To=AANLkTimBpCy94gEQEhxw%2Btu4%3D3p1WFRoRu1oHEeN9oC5%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug">RBarnett at trustwave.com
+       </A><BR>
+    <I>Thu Dec 30 08:58:21 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000576.html">[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+</A></li>
+        <LI>Next message: <A HREF="000578.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.1.1	Released
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#577">[ date ]</a>
+              <a href="thread.html#577">[ thread ]</a>
+              <a href="subject.html#577">[ subject ]</a>
+              <a href="author.html#577">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+From:  dreamice &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dreamice.jiang at gmail.com</A>&gt;
+Date:  Wed, 29 Dec 2010 19:50:08 -0600
+To:  &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;, Ryan Barnett
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;
+Subject:  [BUG Report] Restricted extensions rule bug
+
+
+&gt;<i>Dear Ryan,
+</I>&gt;<i>I just find a bug of the Restricted extensions rule.
+</I>&gt;<i> 
+</I>&gt;<i>The original rule are:
+</I>&gt;<i>setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/
+</I>&gt;<i>.bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/
+</I>&gt;<i>.dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/
+</I>&gt;<i>.key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/
+</I>&gt;<i>.resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/
+</I>&gt;<i>.xsd/ .xsx/', \
+</I>&gt;<i> 
+</I>&gt;<i>SecRule REQUEST_BASENAME &quot;\.(.*)$&quot;
+</I>&gt;<i>&quot;chain,capture,setvar:tx.extension=&#338;.%{tx.1}/&#185;,phase:2,t:none,t:urlDecodeU
+</I>&gt;<i>ni,t:lowercase,deny,log,auditlog,msg:'URL file extension is restricted by
+</I>&gt;<i>policy', 
+</I>&gt;<i>severity:'2',id:'960035',tag:'POLICY/EXT_RESTRICTED',tag:'WASCTC/WASC-15',
+</I>&gt;<i>tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',logdata:'%{TX.0}'&quot;
+</I>&gt;<i>        SecRule TX:EXTENSION &quot;@within %{tx.restricted_extensions}&quot;
+</I>&gt;<i>&quot;t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_
+</I>&gt;<i>anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:
+</I>&gt;<i>tx.%{rule.id 
+</I>&gt;<i>&lt;<A HREF="http://rule.id">http://rule.id</A>&gt;}-POLICY/EXT_RESTRICTED-%{matched_var_name}=%{matched_var}
+</I>&gt;<i>&quot;
+</I>&gt;<i>
+</I>&gt;<i>I test and debug it but this rule does not work right. So I saw that the
+</I>&gt;<i>rule set tx.extension with two more single quote(''), but the setvar does
+</I>&gt;<i>not set the two single quote.
+</I>&gt;<i>For example, if you request the base name test.log, the rule sets the
+</I>&gt;<i>tx.extension with '.log/', but the restrcted_extensions is .log, They are
+</I>&gt;<i>not equal and the rule can not be matched.
+</I>&gt;<i> 
+</I>&gt;<i>Wish you do a test and update the rules. Thanks a lot.
+</I>
+Nice catch and thanks for notifying me.  Those single quotes are placed
+incorrectly.  As an FYI to those rule writers on the list, if you need to
+do a setvar and you want to include spaces, you can use the single quotes
+like this -
+
+...pass,nolog,setvar:'name_of_variable=foo bar baz',msg:'....
+
+I have updated the CRS code and will be updating SVN and releasing a bug
+fix CRS version today.
+
+Thanks again,
+Ryan
+
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000576.html">[Owasp-modsecurity-core-rule-set] [BUG Report] Restricted	extensions rule bug
+</A></li>
+	<LI>Next message: <A HREF="000578.html">[Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.1.1	Released
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#577">[ date ]</a>
+              <a href="thread.html#577">[ thread ]</a>
+              <a href="subject.html#577">[ subject ]</a>
+              <a href="author.html#577">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

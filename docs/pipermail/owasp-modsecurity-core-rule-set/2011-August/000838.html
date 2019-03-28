@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CAPrE0SYFrFRfGrCmiCV2vfYYPUatkMJJiMH1d%3DF4dpg-dFY63g%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000837.html">
+   <LINK REL="Next"  HREF="000841.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CAPrE0SYFrFRfGrCmiCV2vfYYPUatkMJJiMH1d%3DF4dpg-dFY63g%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?">RBarnett at trustwave.com
+       </A><BR>
+    <I>Wed Aug 17 08:36:20 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000837.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detectionfalse positives?
+</A></li>
+        <LI>Next message: <A HREF="000841.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#838">[ date ]</a>
+              <a href="thread.html#838">[ thread ]</a>
+              <a href="subject.html#838">[ subject ]</a>
+              <a href="author.html#838">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks for the feedback Paul.  FYI - you can review some of the reference
+links at the top of the file to see some example payloads that we
+referenced while creating these rules -
+
+
+#
+# References:
+#
+# SQL Injection Pocket Reference (via @LightOS) -
+# <A HREF="https://docs.google.com/Doc?docid=0AZNlBave77hiZGNjanptbV84Z25yaHJmMjk">https://docs.google.com/Doc?docid=0AZNlBave77hiZGNjanptbV84Z25yaHJmMjk</A>
+#
+# SQLi Filter Evasion Cheat Sheet -
+#
+<A HREF="http://websec.wordpress.com/2010/12/04/sqli-filter-evasion-cheat-sheet-mysq">http://websec.wordpress.com/2010/12/04/sqli-filter-evasion-cheat-sheet-mysq</A>
+l/
+#
+# SQL Injection Cheat Sheet -
+# <A HREF="http://ferruh.mavituna.com/sql-injection-cheatsheet-oku/">http://ferruh.mavituna.com/sql-injection-cheatsheet-oku/</A>
+#
+# SQLMap's Tamper Scripts (for evasions)
+# <A HREF="https://svn.sqlmap.org/sqlmap/trunk/sqlmap/tamper/">https://svn.sqlmap.org/sqlmap/trunk/sqlmap/tamper/</A>
+#
+
+For the specific rule you mentioned - 981242 - this is a converted phpids
+rule.  You can review example test payloads that they use here -
+<A HREF="https://dev.itratos.de/projects/php-ids/repository/entry/trunk/tests/IDS/Mo">https://dev.itratos.de/projects/php-ids/repository/entry/trunk/tests/IDS/Mo</A>
+nitorTest.php.  Look for the public function testSQLIList() sections.
+
+
+In reviewing your recommendations, I agree with #1 and we should probably
+group the AND operator group together.  This should fix the FP as it would
+require one of the leading quotes to be present.  I will do this in the
+next CRS release.
+
+-Ryan
+
+On 8/16/11 11:34 PM, &quot;Paul McGarry&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">paul at paulmcgarry.com</A>&gt; wrote:
+
+&gt;<i>Hi all,
+</I>&gt;<i>
+</I>&gt;<i>I am seeing quite a lot of false positives on SQL injection errors.
+</I>&gt;<i>
+</I>&gt;<i>On of them is rule 981242 which is objecting to a cookie:
+</I>&gt;<i>test=asfnsdh2fub9tl6gt0mand504
+</I>&gt;<i>with the regex:
+</I>&gt;<i>(\&quot;|'|`|&#180;|&#185;|&#338;)\s*x?or|div|like|between|and\s*(\&quot;|'|`|&#180;|&#185;|&#338;)?\d
+</I>&gt;<i>matching on &quot;and5&quot;
+</I>&gt;<i>
+</I>&gt;<i>1) Is the regex missing some grouping?
+</I>&gt;<i>As written it seems that (x)or is being treated differently than
+</I>&gt;<i>div/like/between/and, ie the (x)or case requires one of the quote
+</I>&gt;<i>characters before it while the others don't.
+</I>&gt;<i>Should that part of the regex be:
+</I>&gt;<i>(\&quot;|'|`|&#180;|&#185;|&#338;)\s*(?:x?or|div|like|between|and)\s*(\&quot;|'|`|&#180;|&#185;|&#338;)?\d
+</I>&gt;<i>
+</I>&gt;<i>2) Should &quot;and&quot; being followed directly by a number, without space or
+</I>&gt;<i>a quote, be a match?
+</I>&gt;<i>On my SQL server (Postgres) I think &quot;and5&quot; would be a syntax error (as
+</I>&gt;<i>opposed to &quot;and'5&quot; or &quot;and 5&quot;
+</I>&gt;<i>Would:
+</I>&gt;<i>(\&quot;|'|`|&#180;|&#185;|&#338;)\s*(?:x?or|div|like|between|and)(?:(\&quot;|'|`|&#180;|&#185;|&#338;)|\s+(\&quot;|'|`
+</I>&gt;|<i>&#180;|&#185;|&#338;)?)\d
+</I>&gt;<i>be a tighter match?
+</I>&gt;<i>
+</I>&gt;<i>Paul
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i><A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000837.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detectionfalse positives?
+</A></li>
+	<LI>Next message: <A HREF="000841.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#838">[ date ]</a>
+              <a href="thread.html#838">[ thread ]</a>
+              <a href="subject.html#838">[ subject ]</a>
+              <a href="author.html#838">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Lua nil value error
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Lua%20nil%20value%20error&In-Reply-To=CAE02797.39FC1%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000920.html">
+   <LINK REL="Next"  HREF="000918.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Lua nil value error</H1>
+    <B>Ross Lawrie</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Lua%20nil%20value%20error&In-Reply-To=CAE02797.39FC1%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Lua nil value error">ross at sentrypayments.com
+       </A><BR>
+    <I>Wed Nov  9 13:34:56 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000920.html">[Owasp-modsecurity-core-rule-set] Lua nil value error
+</A></li>
+        <LI>Next message: <A HREF="000918.html">[Owasp-modsecurity-core-rule-set] setvar:'tx.allowed_methods Problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#921">[ date ]</a>
+              <a href="thread.html#921">[ thread ]</a>
+              <a href="subject.html#921">[ subject ]</a>
+              <a href="author.html#921">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wed, 2011-11-09 at 11:55 -0600, Ryan Barnett wrote:
+&gt;<i> On 11/9/11 12:48 PM, &quot;Ross Lawrie&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ross at sentrypayments.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> &gt;On Wed, 2011-11-09 at 10:10 +0200, Josh Amishav-Zlatin wrote:
+</I>&gt;<i> &gt;&gt; On Tue, Nov 8, 2011 at 6:59 PM, Ross Lawrie &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ross at sentrypayments.com</A>&gt;
+</I>&gt;<i> &gt;&gt;wrote:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt; This did help a little, the path was in need of updating, so I made
+</I>&gt;<i> &gt;&gt;that
+</I>&gt;<i> &gt;&gt; &gt; change, but the problem persisted. This lead me to try running the lua
+</I>&gt;<i> &gt;&gt; &gt; scripts from the command line which resulted in &quot;module 'rex_pcre' not
+</I>&gt;<i> &gt;&gt; &gt; found&quot;. I'm wondering if anyone is aware of a Debian (lenny) rex_pcre
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Hi Ross,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Have you tried liblua5.1-rex-pcre0?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --
+</I>&gt;<i> &gt;&gt;  - Josh
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Josh,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Unfortunately that package doesn't exist for Debian Lenny (5.0.9). It
+</I>&gt;<i> &gt;looks like it exists for Squeeze and higher, but at this point I can't
+</I>&gt;<i> &gt;quite migrate this system to Squeeze. Thanks!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Ross.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Hey Ross,
+</I>&gt;<i> A couple points about the advaced_filter_converter.lua script -
+</I>&gt;<i> 
+</I>&gt;<i> 1) As you noted - there are Lua module dependencies.  You will need both
+</I>&gt;<i> rex (for extended regular expressions) and bitop.  These modules are
+</I>&gt;<i> needed in order to properly mimic the data conversion that PHPIDS'
+</I>&gt;<i> converter.php script
+</I>&gt;<i> (<A HREF="https://dev.itratos.de/projects/php-ids/repository/raw/trunk/lib/IDS/Conve">https://dev.itratos.de/projects/php-ids/repository/raw/trunk/lib/IDS/Conve</A>
+</I>&gt;<i> rter.php)  is doing.
+</I>&gt;<i> 
+</I>&gt;<i> 2) We ran into some issues with that Lua script during the SQL Injection
+</I>&gt;<i> Challenge
+</I>&gt;<i> (<A HREF="http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-les">http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-les</A>
+</I>&gt;<i> sons-learned.html) where certain payloads were actually causing the Lua
+</I>&gt;<i> script to abort... :(  This script needs more testing.
+</I>&gt;<i> 
+</I>&gt;<i> 3) Due to issue #2, we opted, in the latest CRS, to update the actual
+</I>&gt;<i> PHPIDS regex filters themselves to try and include the converter logic
+</I>&gt;<i> within the operator vs. requiring the Lua script to first normalize data.
+</I>&gt;<i> So, if you are running the latest CRS, you can use the
+</I>&gt;<i> modsecurity_crs_41_sql_injection_attack.conf file and not need to use the
+</I>&gt;<i> advanced filters conf.
+</I>&gt;<i> 
+</I>&gt;<i> Hope this info helps.
+</I>&gt;<i> 
+</I>&gt;<i> -Ryan
+</I>&gt;<i> 
+</I>
+Great, I'll try rolling out the latest CRS (v2.2.2 right?) and leave out
+the advanced_filters. Thanks so much for the help and advice!
+
+Ross.
+
+
+&gt;<i> 
+</I>&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000920.html">[Owasp-modsecurity-core-rule-set] Lua nil value error
+</A></li>
+	<LI>Next message: <A HREF="000918.html">[Owasp-modsecurity-core-rule-set] setvar:'tx.allowed_methods Problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#921">[ date ]</a>
+              <a href="thread.html#921">[ thread ]</a>
+              <a href="subject.html#921">[ subject ]</a>
+              <a href="author.html#921">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,2681 @@
+From paul at paulmcgarry.com  Thu Aug  9 01:16:28 2012
+From: paul at paulmcgarry.com (Paul McGarry)
+Date: Thu, 9 Aug 2012 11:16:28 +1000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5
+	Available
+In-Reply-To: <CC00BD1F.5269F%rbarnett@trustwave.com>
+References: <Ac1LAiK/YxL5BS68TfWf2wQ+4oLLuA==>
+	<CC00BD1F.5269F%rbarnett@trustwave.com>
+Message-ID: <CAPrE0Sa15=zPa0VEeN+B=JhogB2rFLjGS79=3FS+sN39ucLr8A@mail.gmail.com>
+
+On Sat, Jun 16, 2012 at 12:21 AM, Ryan Barnett <RBarnett at trustwave.com> wrote:
+> OWASP ModSecurity CRS v2.2.5 Available
+>
+> CHANGES:
+>
+> Improvements:
+>
+> Updated Content-Type check to fix possible evasion with @within (Identified
+> by Qualys Vulnerability & Malware Research Labs (VMRL))
+
+Firstly, does this change require a particular version of Modsecurity
+to work correctly?
+(I note the README says "The rules are compatible with ModSecurity 2.5").
+
+After deploying this ruleset I am seeing messages like:
+
+Message: Warning. Match of "rx ^%{tx.allowed_request_content_type}$"
+against "TX:0" required. [file
+"/etc/httpd/conf.d/modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_http_policy.conf"]
+[line "64"] [id "960010"] [msg "Request content type is not allowed by
+policy"] [data "application/x-www-form-urlencoded"] [severity
+"WARNING"] [tag "POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"]
+[tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+
+I am loading the config like:
+        Include conf.d/modsecurity-crs_2.2.5/*.conf
+        Include conf.d/modsecurity-crs_2.2.5/base_rules/*.conf
+
+modsecurity-crs_2.2.5/modsecurity_crs_10_config.conf
+contains
+======
+SecAction \
+  "id:'900012', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+  setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf',
+\
+  setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+  setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/
+.idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/
+.pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/
+.vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+  setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+/Content-Range/ /Translate/ /via/ /if/', \
+  nolog, \
+  pass"
+=======
+
+and 960010 in
+modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_http_policy.conf
+looks like
+=======
+SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+"phase:1,chain,t:none,block,msg:'Request content type is not allowed
+by policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'4',logdata:'%{matched_var}'"
+        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+                SecRule TX:0 "!^%{tx.allowed_request_content_type}$"
+"t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLOWED-%{matched_var_name}=%{matched_var}"
+
+=======
+
+
+Secondly, is there something odd with the svn repo (or Sourceforge)?
+This change doesn't seems to occur on the checkin with the changelog
+message:
+http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&revision=1937
+but on another revision:
+http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&revision=1922
+with the message "- Added Arachni Scanner Integration Lua script/rules files"
+
+
+Paul
+
+From Olga.Segarra at upc.edu  Thu Aug  9 14:04:05 2012
+From: Olga.Segarra at upc.edu (Olga Segarra/UPC)
+Date: Thu, 9 Aug 2012 16:04:05 +0200
+Subject: [Owasp-modsecurity-core-rule-set] =?iso-8859-1?q?Olga_Segarra_=E9?=
+	=?iso-8859-1?q?s_fora_de_l=27oficina=2E?=
+Message-ID: <OFE373D22F.1212C31F-ONC1257A55.004D4781-C1257A55.004D4781@upc.edu>
+
+
+
+Ser? fora de l'oficina a partir del  06/08/2012 i no tornar? fins al
+27/08/2012.
+
+Respondr? al vostre missatge quan torni.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120809/33fb3350/attachment.html>
+
+From RBarnett at trustwave.com  Thu Aug  9 14:13:15 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 9 Aug 2012 09:13:15 -0500
+Subject: [Owasp-modsecurity-core-rule-set] OWASP ModSecurity CRS v2.2.5
+ Available
+In-Reply-To: <CAPrE0Sa15=zPa0VEeN+B=JhogB2rFLjGS79=3FS+sN39ucLr8A@mail.gmail.com>
+Message-ID: <CC493D84.57CD6%rbarnett@trustwave.com>
+
+Good point. You need at least ModSecurity v2.6.2.  Per the CHANGES File -
+
+5 Sep 2011 - 2.6.2-rc1
+-------------------
+
+ * Added support to macro expansion for rx operator.
+
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+
+
+
+
+
+On 8/8/12 9:16 PM, "Paul McGarry" <paul at paulmcgarry.com> wrote:
+
+>On Sat, Jun 16, 2012 at 12:21 AM, Ryan Barnett <RBarnett at trustwave.com>
+>wrote:
+>> OWASP ModSecurity CRS v2.2.5 Available
+>>
+>> CHANGES:
+>>
+>> Improvements:
+>>
+>> Updated Content-Type check to fix possible evasion with @within
+>>(Identified
+>> by Qualys Vulnerability & Malware Research Labs (VMRL))
+>
+>Firstly, does this change require a particular version of Modsecurity
+>to work correctly?
+>(I note the README says "The rules are compatible with ModSecurity 2.5").
+>
+>After deploying this ruleset I am seeing messages like:
+>
+>Message: Warning. Match of "rx ^%{tx.allowed_request_content_type}$"
+>against "TX:0" required. [file
+>"/etc/httpd/conf.d/modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_htt
+>p_policy.conf"]
+>[line "64"] [id "960010"] [msg "Request content type is not allowed by
+>policy"] [data "application/x-www-form-urlencoded"] [severity
+>"WARNING"] [tag "POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"]
+>[tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"]
+>
+>I am loading the config like:
+>        Include conf.d/modsecurity-crs_2.2.5/*.conf
+>        Include conf.d/modsecurity-crs_2.2.5/base_rules/*.conf
+>
+>modsecurity-crs_2.2.5/modsecurity_crs_10_config.conf
+>contains
+>======
+>SecAction \
+>  "id:'900012', \
+>  phase:1, \
+>  t:none, \
+>  setvar:'tx.allowed_methods=GET HEAD POST OPTIONS', \
+>
+>setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|
+>multipart/form-data|text/xml|application/xml|application/x-amf',
+>\
+>  setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 HTTP/1.1', \
+>  setvar:'tx.restricted_extensions=.asa/ .asax/ .ascx/ .axd/ .backup/
+>.bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/
+>.csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/
+>.idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/
+>.pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/
+>.vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/', \
+>  setvar:'tx.restricted_headers=/Proxy-Connection/ /Lock-Token/
+>/Content-Range/ /Translate/ /via/ /if/', \
+>  nolog, \
+>  pass"
+>=======
+>
+>and 960010 in
+>modsecurity-crs_2.2.5/base_rules/modsecurity_crs_30_http_policy.conf
+>looks like
+>=======
+>SecRule REQUEST_METHOD "!^(?:GET|HEAD|PROPFIND|OPTIONS)$"
+>"phase:1,chain,t:none,block,msg:'Request content type is not allowed
+>by
+>policy',id:'960010',tag:'POLICY/ENCODING_NOT_ALLOWED',tag:'WASCTC/WASC-20'
+>,tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/EE2',tag:'PCI/12.1',severity:'
+>4',logdata:'%{matched_var}'"
+>        SecRule REQUEST_HEADERS:Content-Type "^([^;\s]+)" "chain,capture"
+>                SecRule TX:0 "!^%{tx.allowed_request_content_type}$"
+>"t:none,ctl:forceRequestBodyVariable=On,setvar:'tx.msg=%{rule.msg}',setvar
+>:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.policy_score=+%{t
+>x.warning_anomaly_score},setvar:tx.%{rule.id}-POLICY/CONTENT_TYPE_NOT_ALLO
+>WED-%{matched_var_name}=%{matched_var}"
+>
+>=======
+>
+>
+>Secondly, is there something odd with the svn repo (or Sourceforge)?
+>This change doesn't seems to occur on the checkin with the changelog
+>message:
+>http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&
+>revision=1937
+>but on another revision:
+>http://mod-security.svn.sourceforge.net/viewvc/mod-security?view=revision&
+>revision=1922
+>with the message "- Added Arachni Scanner Integration Lua script/rules
+>files"
+>
+>
+>Paul
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From stephen.e.canell at jpl.nasa.gov  Thu Aug  9 21:21:46 2012
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (2240))
+Date: Thu, 9 Aug 2012 21:21:46 +0000
+Subject: [Owasp-modsecurity-core-rule-set] OWASP rule logging consistency
+Message-ID: <CC4977F8.4247D%scanell@jpl.nasa.gov>
+
+I do not know if a standard exists for the OWASP rule configuration, but I would like to submit the following:
+
+I Currently use a SIEM system based on OSSIM.  There is a plugin module for modsecurity.  Since the processing of the mod security error logs can be sent to a SIEM system via apache error log and thus syslog, I am able to retrieve the 403 error messages.
+
+While setting up regex to process the error log data for mod security, I've noticed that I've created 3 different regex rules for processing.
+
+I would like to suggest a possible standard in log reporting to minimize the number of regex rules needed so that any new rules that are created will automatically fall into a regex standard for processing into as few rules as possible.  This will help to insure that all rules, when triggered and captured by a logging system should fall into a pre-defined set of rules to insure capture and data normalization into hopefully any SIEM system.
+
+-=Steve
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120809/90b6997d/attachment.html>
+
+From RBarnett at trustwave.com  Thu Aug  9 21:34:13 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 9 Aug 2012 16:34:13 -0500
+Subject: [Owasp-modsecurity-core-rule-set] OWASP rule logging consistency
+In-Reply-To: <CC4977F8.4247D%scanell@jpl.nasa.gov>
+References: <CC4977F8.4247D%scanell@jpl.nasa.gov>
+Message-ID: <8472F172-3CA4-47E3-A9E4-5E3B5EF26603@trustwave.com>
+
+Excellent points and I agree. I believe the key for us to look at is to standardize the ordering of the rule actions.
+
+Can you please send me some example alerts for your 3 regexes?
+
+--
+Ryan Barnett
+Researcher Lead
+Trustwave - SpiderLabs
+
+
+On Aug 9, 2012, at 5:30 PM, "Canell, Stephen E (2240)" <stephen.e.canell at jpl.nasa.gov> wrote:
+
+> I do not know if a standard exists for the OWASP rule configuration, but I would like to submit the following:
+>
+> I Currently use a SIEM system based on OSSIM.  There is a plugin module for modsecurity.  Since the processing of the mod security error logs can be sent to a SIEM system via apache error log and thus syslog, I am able to retrieve the 403 error messages.
+>
+> While setting up regex to process the error log data for mod security, I've noticed that I've created 3 different regex rules for processing.
+>
+> I would like to suggest a possible standard in log reporting to minimize the number of regex rules needed so that any new rules that are created will automatically fall into a regex standard for processing into as few rules as possible.  This will help to insure that all rules, when triggered and captured by a logging system should fall into a pre-defined set of rules to insure capture and data normalization into hopefully any SIEM system.
+>
+> -=Steve
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From consume_ at hotmail.com  Thu Aug  9 21:39:36 2012
+From: consume_ at hotmail.com (Bill Roemhild)
+Date: Thu, 9 Aug 2012 14:39:36 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS
+	along with modsecurity 2.7.0-RC2
+Message-ID: <COL002-W62E70D62E7E03ACC5265ADFCCC0@phx.gbl>
+
+
+
+
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given read access to 'Everyone' on the data files being read without success.  Anyone else run into this problem?    Rule:SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}" Crash:w3wp.exe 
+   7.5.7601.17514 
+   4ce7afa2 
+   libapr-1.dll 
+   1.4.5.0 
+   500eaf34 
+   c0000005 
+   00000000000099f8 
+   1e08 
+   01cd7675752af369 
+   c:\windows\system32\inetsrv\w3wp.exe 
+   C:\Windows\system32\inetsrv\libapr-1.dll 
+   b4147ab9-e268-11e1-82b3-4437e66c2115     		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120809/c522180c/attachment.html>
+
+From RBarnett at trustwave.com  Thu Aug  9 21:45:02 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 9 Aug 2012 16:45:02 -0500
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using
+ IIS along with modsecurity 2.7.0-RC2
+In-Reply-To: <COL002-W62E70D62E7E03ACC5265ADFCCC0@phx.gbl>
+References: <COL002-W62E70D62E7E03ACC5265ADFCCC0@phx.gbl>
+Message-ID: <F54DE268-E024-477E-8B8D-86C5B769E81A@trustwave.com>
+
+You might want to try and specify a full path to the .data file.
+
+--
+Ryan Barnett
+Researcher Lead
+Trustwave - SpiderLabs
+
+
+On Aug 9, 2012, at 5:39 PM, Bill Roemhild <consume_ at hotmail.com<mailto:consume_ at hotmail.com>> wrote:
+
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given read access to 'Everyone' on the data files being read without success. Anyone else run into this problem?
+
+
+Rule:
+SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}"
+
+Crash:
+w3wp.exe
+   7.5.7601.17514
+   4ce7afa2
+   libapr-1.dll
+   1.4.5.0
+   500eaf34
+   c0000005
+   00000000000099f8
+   1e08
+   01cd7675752af369
+   c:\windows\system32\inetsrv\w3wp.exe
+   C:\Windows\system32\inetsrv\libapr-1.dll
+   b4147ab9-e268-11e1-82b3-4437e66c2115
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120809/43640c4a/attachment-0001.html>
+
+From RBarnett at trustwave.com  Thu Aug  9 21:54:20 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 9 Aug 2012 16:54:20 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Considering Migration to GitHub
+Message-ID: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+
+We are considering a migration of our ModSecurity source code and the OWASP CRS from sourceforge (SVN) to GitHub (git).
+
+There are many reasons why we are considering it but the most relevant one is enabling community contributions. I had a number of people tell me in person at Blackhat that if the project was moved to GitHub they would more inclined to contribute.
+
+If you agree or disagree with this rationale then please let me know.
+
+Thanks.
+
+--
+Ryan Barnett
+Researcher Lead
+Trustwave - SpiderLabs
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From yersinia.spiros at gmail.com  Fri Aug 10 04:40:29 2012
+From: yersinia.spiros at gmail.com (yersinia)
+Date: Fri, 10 Aug 2012 06:40:29 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Considering Migration to
+	GitHub
+In-Reply-To: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+References: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+Message-ID: <CAH5b-BVFBgMCHJTBPm5aWqYNHWkT0yRJKpAvHJV_7XAssb5wig@mail.gmail.com>
+
+As a devops that follow most project, git included, i strongly agree.
+But imho the real reason is in using git in first place as a vcs.
+
+Regards
+
+2012/8/9, Ryan Barnett <RBarnett at trustwave.com>:
+> We are considering a migration of our ModSecurity source code and the OWASP
+> CRS from sourceforge (SVN) to GitHub (git).
+>
+> There are many reasons why we are considering it but the most relevant one
+> is enabling community contributions. I had a number of people tell me in
+> person at Blackhat that if the project was moved to GitHub they would more
+> inclined to contribute.
+>
+> If you agree or disagree with this rationale then please let me know.
+>
+> Thanks.
+>
+> --
+> Ryan Barnett
+> Researcher Lead
+> Trustwave - SpiderLabs
+>
+>
+> This transmission may contain information that is privileged, confidential,
+> and/or exempt from disclosure under applicable law. If you are not the
+> intended recipient, you are hereby notified that any disclosure, copying,
+> distribution, or use of the information contained herein (including any
+> reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+> in error, please immediately contact the sender and destroy the material in
+> its entirety, whether in electronic or hard copy format.
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+-- 
+Inviato dal mio dispositivo mobile
+
+From chris at jwall.org  Fri Aug 10 12:16:37 2012
+From: chris at jwall.org (Christian Bockermann)
+Date: Fri, 10 Aug 2012 14:16:37 +0200
+Subject: [Owasp-modsecurity-core-rule-set] [mod-security-users]
+	Considering Migration to GitHub
+In-Reply-To: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+References: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+Message-ID: <FB0CC908-1FA7-4C85-9142-D0F029BC2A0D@jwall.org>
+
+Hi Ryan,
+
+I very much appreciate a migration to git (whether it's github or bitbucket or the like). I believe I
+recommended that before. SVN+SF is sometimes just slow and the nature of git with support for forks is
+a big plus.
+
+Chris
+
+
+Am 09.08.2012 um 23:54 schrieb Ryan Barnett <rbarnett at trustwave.com>:
+
+> We are considering a migration of our ModSecurity source code and the OWASP CRS from sourceforge (SVN) to GitHub (git).
+> 
+> There are many reasons why we are considering it but the most relevant one is enabling community contributions. I had a number of people tell me in person at Blackhat that if the project was moved to GitHub they would more inclined to contribute.
+> 
+> If you agree or disagree with this rationale then please let me know.
+> 
+> Thanks.
+> 
+> --
+> Ryan Barnett
+> Researcher Lead
+> Trustwave - SpiderLabs
+> 
+> 
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> 
+> 
+> ------------------------------------------------------------------------------
+> Live Security Virtual Conference
+> Exclusive live event will cover all the ways today's security and 
+> threat landscape has changed and how IT managers can respond. Discussions 
+> will include endpoint security, mobile security and the latest in malware 
+> threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+> _______________________________________________
+> mod-security-users mailing list
+> mod-security-users at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/mod-security-users
+> Commercial ModSecurity Rules and Support from Trustwave's SpiderLabs:
+> http://www.modsecurity.org/projects/commercial/rules/
+> http://www.modsecurity.org/projects/commercial/support/
+
+
+From RBarnett at trustwave.com  Fri Aug 10 13:37:53 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 10 Aug 2012 08:37:53 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity
+	Versions
+Message-ID: <CC4A86F1.57E39%rbarnett@trustwave.com>
+
+Question for the lists ? if you are not running the latest version of ModSecurity (v.2.6.7), what are the reasons why you have not upgraded?
+
+I ask this question because we are constantly adding new features to ModSecurity that can then be leveraged with the OWASP ModSecurity CRS.  For example, we have added some new actions:
+
+ *   ver ? which will hold the rule package data.  Example - "id:'959901',ver:'OWASP_CRS/2.2.5',?"
+ *   maturity ? which will give the user a better idea of how well tested the rule is.  Example - "id:'959901',ver:'OWASP_CRS/2.2.5',maturity:'9'?"
+ *   accuracy ? which will give the user a better idea of the potential false positive/false negative rates.  Example - "id:'959901',ver:'OWASP_CRS/2.2.5',maturity:'9',accuracy:'9'?"
+
+These new features are valuable and I am looking to add them to the OWASP CRS however there is no good way to make this backward compatible.  If you are using an older version of ModSecurity then it will fail on an Apache restart as it won't recognize these new actions.
+
+So, I am looking to better understand why users are not always upgrading the latest versions.  One issue might be that many users simply use the OS repos to install ModSecurity rather than compiling from source.  If this is the case, then perhaps we can work better with these repo owners to get the latest/greatest versions out in the repos sooner.
+
+Thanks.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120810/23a30be0/attachment.html>
+
+From jeremy.b at infosend.com  Fri Aug 10 15:01:22 2012
+From: jeremy.b at infosend.com (Jeremy Brown)
+Date: Fri, 10 Aug 2012 15:01:22 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest
+	ModSecurity	Versions
+In-Reply-To: <CC4A86F1.57E39%rbarnett@trustwave.com>
+References: <CC4A86F1.57E39%rbarnett@trustwave.com>
+Message-ID: <4A12944D9F6AB24BB3423EEB6AED8860CEE3C82C@FUL-INF-MAIL-01.infosendmail.local>
+
+Hi Ryan,
+
++1 to the repo idea.  ModSecurity is the only software I maintain from source, because I fight to keep everything else installed from a repo.
+
+I would humbly suggest the ModSecurity team consider running their own yum repository and Debian/Ubuntu PPA.  I think it would definitely help keep people up to to date, and you wouldn't have to rely on upstream maintainers.
+
+Thanks,
+
+Jeremy Brown
+
+===========================================
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Ryan Barnett
+Sent: Friday, August 10, 2012 6:38 AM
+To: mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity Versions
+
+Question for the lists - if you are not running the latest version of ModSecurity (v.2.6.7), what are the reasons why you have not upgraded?
+
+I ask this question because we are constantly adding new features to ModSecurity that can then be leveraged with the OWASP ModSecurity CRS. ?For example, we have added some new actions:
+. ver - which will hold the rule package data. ?Example - "id:'959901',ver:'OWASP_CRS/2.2.5',."
+. maturity - which will give the user a better idea of how well tested the rule is. ?Example -?"id:'959901',ver:'OWASP_CRS/2.2.5',maturity:'9'."
+. accuracy - which will give the user a better idea of the potential false positive/false negative rates. ?Example -?"id:'959901',ver:'OWASP_CRS/2.2.5',maturity:'9',accuracy:'9'."
+These new features are valuable and I am looking to add them to the OWASP CRS however there is no good way to make this backward compatible. ?If you are using an older version of ModSecurity then it will fail on an Apache restart as it won't recognize these new actions.
+
+So, I am looking to better understand why users are not always upgrading the latest versions. ?One issue might be that many users simply use the OS repos to install ModSecurity rather than compiling from source. ?If this is the case, then perhaps we can work better with these repo owners to get the latest/greatest versions out in the repos sooner.
+
+Thanks.
+
+-- 
+Ryan Barnett
+Trustwave SpiderLabs 
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From yersinia.spiros at gmail.com  Fri Aug 10 15:21:27 2012
+From: yersinia.spiros at gmail.com (yersinia)
+Date: Fri, 10 Aug 2012 17:21:27 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Considering Migration to
+	GitHub
+In-Reply-To: <FB0CC908-1FA7-4C85-9142-D0F029BC2A0D@jwall.org>
+References: <ADFA2318-1ADC-41F4-945B-73803522BB48@trustwave.com>
+	<FB0CC908-1FA7-4C85-9142-D0F029BC2A0D@jwall.org>
+Message-ID: <CAH5b-BXquxrVebULA6HA5Q9k+SX0wYW-mBiZBvXnG2kRHxZouQ@mail.gmail.com>
+
+Right. I forget to tell that github, dunno bitbacket or sf, these days
+offer also the smart git http protocol, much more effcient of the old
+git http dumb protocol. Very nice for  anonymous access. What is more
+these git protocol are firewall and UTM friendly. Instead svn, without
+ssl, is not: many device filter webdav.
+
+Best
+
+2012/8/10, Christian Bockermann <chris at jwall.org>:
+> Hi Ryan,
+>
+> I very much appreciate a migration to git (whether it's github or bitbucket
+> or the like). I believe I
+> recommended that before. SVN+SF is sometimes just slow and the nature of git
+> with support for forks is
+> a big plus.
+>
+> Chris
+>
+>
+> Am 09.08.2012 um 23:54 schrieb Ryan Barnett <rbarnett at trustwave.com>:
+>
+>> We are considering a migration of our ModSecurity source code and the
+>> OWASP CRS from sourceforge (SVN) to GitHub (git).
+>>
+>> There are many reasons why we are considering it but the most relevant one
+>> is enabling community contributions. I had a number of people tell me in
+>> person at Blackhat that if the project was moved to GitHub they would more
+>> inclined to contribute.
+>>
+>> If you agree or disagree with this rationale then please let me know.
+>>
+>> Thanks.
+>>
+>> --
+>> Ryan Barnett
+>> Researcher Lead
+>> Trustwave - SpiderLabs
+>>
+>>
+>> This transmission may contain information that is privileged,
+>> confidential, and/or exempt from disclosure under applicable law. If you
+>> are not the intended recipient, you are hereby notified that any
+>> disclosure, copying, distribution, or use of the information contained
+>> herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+>> received this transmission in error, please immediately contact the sender
+>> and destroy the material in its entirety, whether in electronic or hard
+>> copy format.
+>>
+>>
+>> ------------------------------------------------------------------------------
+>> Live Security Virtual Conference
+>> Exclusive live event will cover all the ways today's security and
+>> threat landscape has changed and how IT managers can respond. Discussions
+>>
+>> will include endpoint security, mobile security and the latest in malware
+>>
+>> threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+>> _______________________________________________
+>> mod-security-users mailing list
+>> mod-security-users at lists.sourceforge.net
+>> https://lists.sourceforge.net/lists/listinfo/mod-security-users
+>> Commercial ModSecurity Rules and Support from Trustwave's SpiderLabs:
+>> http://www.modsecurity.org/projects/commercial/rules/
+>> http://www.modsecurity.org/projects/commercial/support/
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+-- 
+Inviato dal mio dispositivo mobile
+
+From consume_ at hotmail.com  Fri Aug 10 15:47:39 2012
+From: consume_ at hotmail.com (Bill Roemhild)
+Date: Fri, 10 Aug 2012 08:47:39 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using
+ IIS along with modsecurity 2.7.0-RC2
+In-Reply-To: <330E650B79FF8E4B8587D6597716CE631513C83A@BL2PRD0310MB349.namprd03.prod.outlook.com>
+References: <COL002-W62E70D62E7E03ACC5265ADFCCC0@phx.gbl>,
+	<F54DE268-E024-477E-8B8D-86C5B769E81A@trustwave.com>,
+	<330E650B79FF8E4B8587D6597716CE631513C83A@BL2PRD0310MB349.namprd03.prod.outlook.com>
+Message-ID: <COL002-W1903670804BE1DB619C98BFCB30@phx.gbl>
+
+There is not an entry listed in the event log for a missing file.   
+I gave "IIS AppPool\DefaultAppPool" full control over the data files as I'm using IIS 7.5.  Same result. 
+I also tried adding "Network Service", even through I'm pretty sure that is wrong.  Still no love.
+ 
+Bill
+
+ From: Greg.Wroblewski at microsoft.com
+To: RBarnett at trustwave.com; consume_ at hotmail.com
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+Date: Thu, 9 Aug 2012 23:21:55 +0000
+
+
+
+
+
+
+
+
+
+This is really an APR bug (we should report it or create a workaround), but the problem is in the file permissions. Read access to everyone is not enough, proper
+ ACLs must be set as well.
+ 
+When the file does not exist this error gets logged in the event log:
+ 
+Syntax error in config file c:\inetpub\wwwroot\test.conf, line 47: Error creating rule: Could not open phrase file "c:\inetpub\wwwroot\modsecurity_35_scanners.data":
+ The system cannot find the file specified.
+ 
+So you can see when it?s a permission issue or a path issue.
+ 
+Greg
+ 
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+
+
+Sent: Thursday, August 9, 2012 2:45 PM
+
+To: Bill Roemhild
+
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org; Greg Wroblewski (SPARROW)
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+ 
+
+You might want to try and specify a full path to the .data file. 
+
+--
+
+
+Ryan Barnett
+
+
+Researcher Lead
+
+
+Trustwave - SpiderLabs
+
+
+ 
+
+
+
+
+
+On Aug 9, 2012, at 5:39 PM, Bill Roemhild <consume_ at hotmail.com> wrote:
+
+
+
+
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given read access to 'Everyone' on the
+ data files being read without success. Anyone else run into this problem? 
+
+ 
+
+ 
+
+Rule:
+
+SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}"
+
+ 
+
+Crash:
+
+w3wp.exe 
+
+   7.5.7601.17514 
+
+   4ce7afa2 
+
+   libapr-1.dll 
+
+   1.4.5.0 
+
+   500eaf34 
+
+   c0000005 
+
+   00000000000099f8 
+
+   1e08 
+
+   01cd7675752af369 
+
+   c:\windows\system32\inetsrv\w3wp.exe 
+
+   C:\Windows\system32\inetsrv\libapr-1.dll 
+
+   b4147ab9-e268-11e1-82b3-4437e66c2115 
+
+ 
+
+ 
+
+ 
+
+
+
+
+
+_______________________________________________
+
+Owasp-modsecurity-core-rule-set mailing list
+
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+ 
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient,
+ you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy
+ the material in its entirety, whether in electronic or hard copy format.
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120810/d0b3aa0c/attachment-0001.html>
+
+From consume_ at hotmail.com  Fri Aug 10 16:38:29 2012
+From: consume_ at hotmail.com (Bill Roemhild)
+Date: Fri, 10 Aug 2012 09:38:29 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using
+ IIS along with modsecurity 2.7.0-RC2
+In-Reply-To: <COL002-W1903670804BE1DB619C98BFCB30@phx.gbl>
+References: <COL002-W62E70D62E7E03ACC5265ADFCCC0@phx.gbl>, ,
+	<F54DE268-E024-477E-8B8D-86C5B769E81A@trustwave.com>, ,
+	<330E650B79FF8E4B8587D6597716CE631513C83A@BL2PRD0310MB349.namprd03.prod.outlook.com>,
+	<COL002-W1903670804BE1DB619C98BFCB30@phx.gbl>
+Message-ID: <COL002-W56250A3E8B3AFA77513883FCB30@phx.gbl>
+
+Maybe I should be asking if anyone else has been able to get this to work. 
+ From: consume_ at hotmail.com
+To: greg.wroblewski at microsoft.com; rbarnett at trustwave.com
+Date: Fri, 10 Aug 2012 08:47:39 -0700
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+
+
+There is not an entry listed in the event log for a missing file.  
+ 
+I gave "IIS AppPool\DefaultAppPool" full control over the data files as I'm using IIS 7.5.  Same result.
+ 
+I also tried adding "Network Service", even through I'm pretty sure that is wrong.  Still no love.
+ 
+Bill
+
+ 
+From: Greg.Wroblewski at microsoft.com
+To: RBarnett at trustwave.com; consume_ at hotmail.com
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+Date: Thu, 9 Aug 2012 23:21:55 +0000
+
+
+
+
+
+
+
+
+
+This is really an APR bug (we should report it or create a workaround), but the problem is in the file permissions. Read access to everyone is not enough, proper
+ ACLs must be set as well.
+ 
+When the file does not exist this error gets logged in the event log:
+ 
+Syntax error in config file c:\inetpub\wwwroot\test.conf, line 47: Error creating rule: Could not open phrase file "c:\inetpub\wwwroot\modsecurity_35_scanners.data":
+ The system cannot find the file specified.
+ 
+So you can see when it?s a permission issue or a path issue.
+ 
+Greg
+ 
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+
+
+Sent: Thursday, August 9, 2012 2:45 PM
+
+To: Bill Roemhild
+
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org; Greg Wroblewski (SPARROW)
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+ 
+
+You might want to try and specify a full path to the .data file. 
+
+--
+
+
+Ryan Barnett
+
+
+Researcher Lead
+
+
+Trustwave - SpiderLabs
+
+
+ 
+
+
+
+
+
+On Aug 9, 2012, at 5:39 PM, Bill Roemhild <consume_ at hotmail.com> wrote:
+
+
+
+
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given read access to 'Everyone' on the
+ data files being read without success. Anyone else run into this problem? 
+
+ 
+
+ 
+
+Rule:
+
+SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}"
+
+ 
+
+Crash:
+
+w3wp.exe 
+
+   7.5.7601.17514 
+
+   4ce7afa2 
+
+   libapr-1.dll 
+
+   1.4.5.0 
+
+   500eaf34 
+
+   c0000005 
+
+   00000000000099f8 
+
+   1e08 
+
+   01cd7675752af369 
+
+   c:\windows\system32\inetsrv\w3wp.exe 
+
+   C:\Windows\system32\inetsrv\libapr-1.dll 
+
+   b4147ab9-e268-11e1-82b3-4437e66c2115 
+
+ 
+
+ 
+
+ 
+
+
+
+
+
+_______________________________________________
+
+Owasp-modsecurity-core-rule-set mailing list
+
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+ 
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient,
+ you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy
+ the material in its entirety, whether in electronic or hard copy format.
+ 		 	   		  
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120810/a99de57e/attachment.html>
+
+From RBarnett at trustwave.com  Fri Aug 10 18:11:16 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 10 Aug 2012 13:11:16 -0500
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using
+ IIS along with modsecurity 2.7.0-RC2
+In-Reply-To: <330E650B79FF8E4B8587D6597716CE631513CC2D@BL2PRD0310MB349.namprd03.prod.outlook.com>
+Message-ID: <CC4AC6E8.57F06%rbarnett@trustwave.com>
+
+Should probably move this discussion to the mod-security-developers list and then report back a fix.
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+From: "Greg Wroblewski (SPARROW)" <Greg.Wroblewski at microsoft.com<mailto:Greg.Wroblewski at microsoft.com>>
+Date: Fri, 10 Aug 2012 12:38:14 -0500
+To: Bill Roemhild <consume_ at hotmail.com<mailto:consume_ at hotmail.com>>, Ryan Barnett <rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>>, Breno Silva Pinto <BPinto at trustwave.com<mailto:BPinto at trustwave.com>>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+I see a problem. Even when permissions are correct, the code reads the file, but then it crashes.
+
+Breno,
+
+This is all happening in:
+
+staticint msre_op_pmFromFile_param_init(msre_rule *rule, char **error_msg)
+
+with crash:
+
+>             libapr-1.dll!apr_pool_cleanup_kill(apr_pool_t * p, const void * data, int (void *)* cleanup_fn)  Line 2270             C
+              libapr-1.dll!apr_file_close(apr_file_t * file)  Line 501           C
+               ModSecurityIIS.dll!msre_op_pmFromFile_param_init(msre_rule * rule, char * * error_msg)  Line 1384             C
+
+Here:
+
+    while (c) {
+#if APR_POOL_DEBUG
+        /* Some cheap loop detection to catch a corrupt list: */
+        if (c == c->next
+            || (c->next && c == c->next->next)
+            || (c->next && c->next->next && c == c->next->next->next)) {
+            abort();
+        }
+#endif
+
+        if (c->data == data && c->plain_cleanup_fn == cleanup_fn) {   <==  CRASH
+
+I cannot figure out what?s wrong, but I?ll keep looking.
+
+Greg
+
+From: Bill Roemhild [mailto:consume_ at hotmail.com]
+Sent: Friday, August 10, 2012 9:38 AM
+To: Greg Wroblewski (SPARROW); Ryan Barnett
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+Maybe I should be asking if anyone else has been able to get this to work.
+
+________________________________
+From: consume_ at hotmail.com<mailto:consume_ at hotmail.com>
+To: greg.wroblewski at microsoft.com<mailto:greg.wroblewski at microsoft.com>; rbarnett at trustwave.com<mailto:rbarnett at trustwave.com>
+Date: Fri, 10 Aug 2012 08:47:39 -0700
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+There is not an entry listed in the event log for a missing file.
+
+I gave "IIS AppPool\DefaultAppPool" full control over the data files as I'm using IIS 7.5. Same result.
+
+I also tried adding "Network Service", even through I'm pretty sure that is wrong. Still no love.
+
+Bill
+
+
+________________________________
+From: Greg.Wroblewski at microsoft.com<mailto:Greg.Wroblewski at microsoft.com>
+To: RBarnett at trustwave.com<mailto:RBarnett at trustwave.com>; consume_ at hotmail.com<mailto:consume_ at hotmail.com>
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+Date: Thu, 9 Aug 2012 23:21:55 +0000
+This is really an APR bug (we should report it or create a workaround), but the problem is in the file permissions. Read access to everyone is not enough, proper ACLs must be set as well.
+
+When the file does not exist this error gets logged in the event log:
+
+Syntax error in config file c:\inetpub\wwwroot\test.conf, line 47: Error creating rule: Could not open phrase file "c:\inetpub\wwwroot\modsecurity_35_scanners.data": The system cannot find the file specified.
+
+So you can see when it?s a permission issue or a path issue.
+
+Greg
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]<mailto:[mailto:RBarnett at trustwave.com]>
+Sent: Thursday, August 9, 2012 2:45 PM
+To: Bill Roemhild
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>; Greg Wroblewski (SPARROW)
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+You might want to try and specify a full path to the .data file.
+--
+Ryan Barnett
+Researcher Lead
+Trustwave - SpiderLabs
+
+
+On Aug 9, 2012, at 5:39 PM, Bill Roemhild <consume_ at hotmail.com<mailto:consume_ at hotmail.com>> wrote:
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given read access to 'Everyone' on the data files being read without success. Anyone else run into this problem?
+
+
+Rule:
+SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}"
+
+Crash:
+w3wp.exe
+   7.5.7601.17514
+   4ce7afa2
+   libapr-1.dll
+   1.4.5.0
+   500eaf34
+   c0000005
+   00000000000099f8
+   1e08
+   01cd7675752af369
+   c:\windows\system32\inetsrv\w3wp.exe
+   C:\Windows\system32\inetsrv\libapr-1.dll
+   b4147ab9-e268-11e1-82b3-4437e66c2115
+
+
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+_______________________________________________ Owasp-modsecurity-core-rule-set mailing list Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120810/6eae217b/attachment-0001.html>
+
+From RBarnett at trustwave.com  Fri Aug 10 18:35:37 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 10 Aug 2012 13:35:37 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Rule Review - 960911 (Invalid
+	HTTP Request Line)
+Message-ID: <CC4ACCB9.57F23%rbarnett@trustwave.com>
+
+We are starting the process of reviewing/updating the CRS base_rules.  As part of this process, I am sending out emails for community review of each rule.  We need feedback on any possible updates to the following:
+
+ *   Is the VARIABLE/TARGET list accurate?  Should we add/remove any variables?
+ *   Is the OPERATOR accurate?  Should we use a different operator?  Can the operator value be improved for accuracy and performance?
+ *   Are there any recommended changes to the action listing?
+
+I have gone ahead and updated this rule with the following improvements:
+
+ *   Removed the "t:lowercase" tfns and added the pcre ignore case quantifier (?I:
+ *   Reordered the action listing to make it more readable
+ *   Added new ModSecurity v2.7 ver, maturity and accuracy actions.  If you feel that any of these should be updated let me know.  Your feedback is critical for the accuracy label.  If you run into false positives, you must let us know so we can look to improve the rule or label its accuracy value accordingly.
+ *   Updated both tag and setvar data.
+
+#
+# Validate request line against the format specified in the HTTP RFC
+#
+# -=[ Rule Logic ]=-
+#
+# Uses rule negation against the regex for positive security.  The regex specifies the proper
+# construction of URI request lines such as:
+#
+#       "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
+#
+# It also outlines proper construction for CONNECT, OPTIONS and GET requests.
+#
+# -=[ References ]=-
+# http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.2.1
+# http://capec.mitre.org/data/definitions/272.html
+#
+SecRule REQUEST_LINE "!^(?i:(?:[a-z]{3,10}\s+(?:\w{3,7}?://[\w\-\./]*(?::\d+)?)?/[^?#]*(?:\?[^#\s]*)?(?:#[\S]*)?|connect (?:\d{1,3}\.){3}\d{1,3}\.?(?::\d+)?|options \*)\s+[
+\w\./]+|get /[^?#]*(?:\?[^#\s]*)?(?:#[\S]*)?)$" \
+  "msg:'Invalid HTTP Request Line', \
+  severity:'4', \
+  id:'960911', \
+  ver:'OWASP_CRS/2.2.6', \
+  rev:'2', \
+  maturity:'9', \
+  accuracy:'9', \
+  logdata:'%{request_line}', \
+  phase:1, \
+  block, \
+  t:none, \
+  tag:'OWASP_CRS/PROTOCOL_VIOLATION/INVALID_REQ', \
+  tag:'CAPEC-272' \
+  setvar:'tx.msg=%{rule.msg}', \
+  setvar:tx.anomaly_score=+%{tx.notice_anomaly_score}, \
+  setvar:'tx.%{rule.id}-OWASP_CRS/PROTOCOL_VIOLATION/INVALID_REQ-%{matched_var_name}=%{matched_var}'"
+
+
+--
+Ryan Barnett
+Trustwave SpiderLabs
+ModSecurity Project Leader
+OWASP ModSecurity CRS Project Leader
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120810/28d72b01/attachment.html>
+
+From bpkroth at gmail.com  Mon Aug 13 02:21:50 2012
+From: bpkroth at gmail.com (=?utf-8?B?YnBrcm90aEBnbWFpbC5jb20=?=)
+Date: Sun, 12 Aug 2012 21:21:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+	=?utf-8?q?=5Bmod-security-users?=
+	=?utf-8?q?=5D_Using_the_latest_ModSecurity_Versions?=
+Message-ID: <502864af.21aa320a.0f27.ffffbf2c@mx.google.com>
+
+Same here, tho Debian Squeeze. We even backported a more recent version from wheezy a while back, but it's too much for us to keep up with constantly doing that on our own.
+
+Thanks,
+Brian  
+
+Sent from my mobile device. 
+
+----- Reply message -----
+From: "Gjorgji Zarezankov" <gjorgjiz at paymentus.com>
+Date: Fri, Aug 10, 2012 08:49
+Subject: [mod-security-users] Using the latest ModSecurity Versions
+To: "Ryan Barnett" <RBarnett at trustwave.com>, <mod-security-users at lists.sourceforge.net>, <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+In our case its exactly that: We use SUSE SELS 11 SP and latest version
+available from there repositories is 2.5.6.
+
+
+
+*From:* Ryan Barnett [mailto:RBarnett at trustwave.com]
+*Sent:* Friday, August 10, 2012 9:38 AM
+*To:* mod-security-users at lists.sourceforge.net;
+owasp-modsecurity-core-rule-set at lists.owasp.org
+*Subject:* [mod-security-users] Using the latest ModSecurity Versions
+
+
+
+Question for the lists ? if you are not running the latest version of
+ModSecurity (v.2.6.7), what are the reasons why you have not upgraded?
+
+
+
+I ask this question because we are constantly adding new features to
+ModSecurity that can then be leveraged with the OWASP ModSecurity CRS.  For
+example, we have added some new actions:
+
+   - ver ? which will hold the rule package data.  Example -
+   "id:'959901',ver:'OWASP_CRS/2.2.5',?"
+   - maturity ? which will give the user a better idea of how well tested
+   the rule is.  Example - "id:'959901',ver:'OWASP_CRS/2.2.5',maturity:'9'?"
+- accuracy ? wh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120812/9eba837e/attachment.html>
+
+From bpkroth at gmail.com  Mon Aug 13 02:25:27 2012
+From: bpkroth at gmail.com (=?utf-8?B?YnBrcm90aEBnbWFpbC5jb20=?=)
+Date: Sun, 12 Aug 2012 21:25:27 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+	=?utf-8?q?Using_the_latest_ModS?= =?utf-8?q?ecurity=09Versions?=
+Message-ID: <50286588.e16a320a.2869.ffffbd1f@mx.google.com>
+
+I'm not sure I totally agree. I like not having endless extra repos to track and the vetting process that Debian for one has on their stable, backports, and volatile branches (though its not called that anymore). 
+
+It might just be a matter of working a bit more closely with them. 
+
+Thanks, 
+Brian
+
+Sent from my mobile device. 
+
+----- Reply message -----
+From: "Jeremy Brown" <jeremy.b at infosend.com>
+Date: Fri, Aug 10, 2012 10:01
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity	Versions
+To: "Ryan Barnett" <RBarnett at trustwave.com>, "mod-security-users at lists.sourceforge.net" <mod-security-users at lists.sourceforge.net>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+Hi Ryan,
+
++1 to the repo idea.  ModSecurity is the only software I maintain from source, because I fight to keep everything else installed from a repo.
+
+I would humbly suggest the ModSecurity team consider running their own yum repository and Debian/Ubuntu PPA.  I think it would definitely help keep people up to to date, and you wouldn't have to rely on upstream maintainers.
+
+Thanks,
+
+Jeremy Brown
+
+===========================================
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Ryan Barnett
+Sent: Friday, August 10, 2012 6:38 AM
+To: mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity Versions
+
+Question for the lists - if you are not running the latest version of ModSecurit
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120812/5a7b8017/attachment.html>
+
+From consume_ at hotmail.com  Mon Aug 13 14:29:21 2012
+From: consume_ at hotmail.com (Bill Roemhild)
+Date: Mon, 13 Aug 2012 07:29:21 -0700
+Subject: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using
+ IIS along with modsecurity 2.7.0-RC2
+In-Reply-To: <330E650B79FF8E4B8587D6597716CE631513CEC7@BL2PRD0310MB349.namprd03.prod.outlook.com>
+References: <330E650B79FF8E4B8587D6597716CE631513CC2D@BL2PRD0310MB349.namprd03.prod.outlook.com>,
+	<CC4AB872.4D27%bpinto@trustwave.com>,
+	<330E650B79FF8E4B8587D6597716CE631513CEC7@BL2PRD0310MB349.namprd03.prod.outlook.com>
+Message-ID: <COL002-W1141C87FF8906BB68B4EFF8FCB00@phx.gbl>
+
+I can confirm that setting the App Pool setting of "Enable 32-Bit Applications" to True does work. 
+Thanks for your help guys. 
+Bill 
+
+From: Greg.Wroblewski at microsoft.com
+To: BPinto at trustwave.com; consume_ at hotmail.com; RBarnett at trustwave.com
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+Date: Sat, 11 Aug 2012 00:25:30 +0000
+
+
+
+
+
+
+Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+
+
+Yep, the cleanup list in the pool is broken.
+ 
+This is one of those non-deterministic bugs, you need a little bit of luck to hit it. The thing that worked for me was switching to 32-bit application pool.
+ 
+Greg
+ 
+
+
+From: Breno Silva Pinto [mailto:BPinto at trustwave.com]
+
+
+Sent: Friday, August 10, 2012 11:09 AM
+
+To: Greg Wroblewski (SPARROW); Bill Roemhild; Ryan Barnett
+
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+ 
+Maybe for some reason  "c"  == NULL or pointing to a wrong addr ?
+
+
+
+
+
+On 8/10/12 12:38 PM, "Greg Wroblewski (SPARROW)" <Greg.Wroblewski at microsoft.com> wrote:
+I see a problem. Even when permissions are correct, the code reads the file, but then it crashes.
+
+ 
+
+Breno,
+
+ 
+
+This is all happening in:
+
+ 
+
+static
+int msre_op_pmFromFile_param_init(msre_rule *rule,
+char **error_msg)
+
+ 
+
+with crash:
+
+ 
+
+>             libapr-1.dll!apr_pool_cleanup_kill(apr_pool_t * p, const void * data, int (void *)* cleanup_fn)  Line 2270             C
+
+              libapr-1.dll!apr_file_close(apr_file_t * file)  Line 501           C
+
+               ModSecurityIIS.dll!msre_op_pmFromFile_param_init(msre_rule * rule, char * * error_msg)  Line 1384             C
+
+ 
+
+Here:
+
+ 
+
+  while (c) {
+
+#if APR_POOL_DEBUG
+
+       /* Some cheap loop detection to catch a corrupt list: */
+
+      if (c == c->next
+
+            || (c->next && c == c->next->next)
+
+            || (c->next && c->next->next && c == c->next->next->next)) {
+
+            abort();
+
+        }
+
+#endif
+
+
+
+       if (c->data == data && c->plain_cleanup_fn == cleanup_fn) {  ?
+  CRASH
+
+ 
+
+I cannot figure out what?s wrong, but I?ll keep looking.
+
+ 
+
+Greg
+
+ 
+
+
+
+From: Bill Roemhild [mailto:consume_ at hotmail.com]
+
+
+Sent: Friday, August 10, 2012 9:38 AM
+
+To: Greg Wroblewski (SPARROW); Ryan Barnett
+
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+
+
+
+Maybe I should be asking if anyone else has been able to get this to work.
+
+
+ 
+
+
+
+From: 
+consume_ at hotmail.com
+
+To: greg.wroblewski at microsoft.com; 
+rbarnett at trustwave.com
+
+Date: Fri, 10 Aug 2012 08:47:39 -0700
+
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+
+There is not an entry listed in the event log for a missing file.  
+
+ 
+
+I gave "IIS AppPool\DefaultAppPool" full control over the data files as I'm using IIS 7.5. Same result.
+
+ 
+
+I also tried adding "Network Service", even through I'm pretty sure that is wrong. Still no love.
+
+
+
+Bill
+
+
+
+ 
+
+
+
+From: 
+Greg.Wroblewski at microsoft.com
+
+To: RBarnett at trustwave.com; 
+consume_ at hotmail.com
+
+CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+
+Subject: RE: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+Date: Thu, 9 Aug 2012 23:21:55 +0000
+
+
+
+This is really an APR bug (we should report it or create a workaround), but the problem is in the file permissions. Read access to everyone is not enough, proper ACLs must be set as well.
+
+ 
+
+When the file does not exist this error gets logged in the event log:
+
+ 
+
+Syntax error in config file c:\inetpub\wwwroot\test.conf, line 47: Error creating rule: Could not open phrase file "c:\inetpub\wwwroot\modsecurity_35_scanners.data": The system cannot find
+ the file specified.
+
+ 
+
+So you can see when it?s a permission issue or a path issue.
+
+
+
+Greg
+
+
+
+
+
+From: Ryan Barnett [mailto:RBarnett at trustwave.com]
+
+
+Sent: Thursday, August 9, 2012 2:45 PM
+
+To: Bill Roemhild
+
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org; Greg Wroblewski (SPARROW)
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] @pmFromFile fails when using IIS along with modsecurity 2.7.0-RC2
+
+
+
+
+
+You might want to try and specify a full path to the .data file.
+
+
+
+
+--
+
+
+
+Ryan Barnett
+
+
+
+Researcher Lead
+
+
+
+Trustwave - SpiderLabs
+
+
+
+
+
+
+
+
+
+On Aug 9, 2012, at 5:39 PM, Bill Roemhild <consume_ at hotmail.com> wrote:
+
+
+
+I've been playing around with modsecurity 2.7.0-RC2 for IIS along with the OWASP rules.  When running any rule set that calls for a data file through @pmFromFile the application pool crashes.  I've given
+ read access to 'Everyone' on the data files being read without success. Anyone else run into this problem?
+
+
+ 
+
+ 
+
+Rule:
+
+SecRule REQUEST_HEADERS:User-Agent "@pmFromFile modsecurity_35_scanners.data" \
+
+        "phase:2,rev:'2.2.5',t:none,t:lowercase,block,msg:'Request Indicates a Security Scanner Scanned the Site',id:'990002',tag:'AUTOMATION/SECURITY_SCANNER',tag:'WASCTC/WASC-21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',severity:'4',setvar:'tx.msg=%{rule.msg}',setvar:tx.anomaly_score=+%{tx.warning_anomaly_score},setvar:tx.automation_score=+%{tx.warning_anomaly_score},setvar:tx.%{rule.id}-AUTOMATION/SECURITY_SCANNER-%{matched_var_name}=%{matched_var}"
+
+ 
+
+Crash:
+
+w3wp.exe 
+
+   7.5.7601.17514 
+
+   4ce7afa2 
+
+   libapr-1.dll 
+
+   1.4.5.0 
+
+   500eaf34 
+
+   c0000005 
+
+   00000000000099f8 
+
+   1e08 
+
+   01cd7675752af369 
+
+   c:\windows\system32\inetsrv\w3wp.exe 
+
+   C:\Windows\system32\inetsrv\libapr-1.dll 
+
+   b4147ab9-e268-11e1-82b3-4437e66c2115 
+
+ 
+
+ 
+
+ 
+
+
+
+_______________________________________________
+
+Owasp-modsecurity-core-rule-set mailing list
+
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified
+ that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its
+ entirety, whether in electronic or hard copy format.
+
+
+
+_______________________________________________ Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+ 
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient,
+ you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy
+ the material in its entirety, whether in electronic or hard copy format.
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120813/64b4ea60/attachment-0001.html>
+
+From tomb at owasp.org  Mon Aug 13 14:37:44 2012
+From: tomb at owasp.org (Tom Brennan)
+Date: Mon, 13 Aug 2012 10:37:44 -0400
+Subject: [Owasp-modsecurity-core-rule-set] Owasp-Waspy-Awards
+Message-ID: <7B35C2E2-82F1-42F7-803B-E077C798D5F6@owasp.org>
+
+This defender project has been helping the community for years fight better. Show your appreciation of the countless hours invested by Ryan Barnett and the project team show your support.
+
+OWASP has established the WASPY awards. Details on how to nomination your favorite projects;
+
+http://owasp.blogspot.com/2012/08/owasp-waspy-awards.html
+
+
+From jeremy.b at infosend.com  Mon Aug 13 15:10:46 2012
+From: jeremy.b at infosend.com (Jeremy Brown)
+Date: Mon, 13 Aug 2012 15:10:46 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest
+	ModSecurity	Versions
+In-Reply-To: <50286588.e16a320a.2869.ffffbd1f@mx.google.com>
+References: <50286588.e16a320a.2869.ffffbd1f@mx.google.com>
+Message-ID: <4A12944D9F6AB24BB3423EEB6AED8860CEE3DBF4@FUL-INF-MAIL-01.infosendmail.local>
+
+Having always up to date packages in the core repositories is ideal, but there are a couple of reasons I suggested separate yum repositories/PPAs.
+
+1. Getting constant attention for the package from the package maintainer is a wildcard, and even if it happens now, you never know what it will be like in the future.
+2. More importantly: Redhat does not release package version updates as part of its update process; they back port patches into the repository?s current version.  While that may work from a functionality standpoint (if new features made it into the backports), there could be things in ModSecurity that rely on the version number being correct.  While Redhat/CentOS may be unlike other distros in this respect, its use is very widespread.
+
+I certainly wouldn?t oppose up to date packages in core repositories, if the ModSecurity team decides to pursue this, but the logistics will need careful consideration.
+
+Thanks,
+
+Jeremy Brown
+
+From: bpkroth at gmail.com [mailto:bpkroth at gmail.com] 
+Sent: Sunday, August 12, 2012 7:25 PM
+To: Jeremy Brown; Ryan Barnett; mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity Versions
+
+I'm not sure I totally agree. I like not having endless extra repos to track and the vetting process that Debian for one has on their stable, backports, and volatile branches (though its not called that anymore). 
+
+It might just be a matter of working a bit more closely with them. 
+
+Thanks, 
+Brian
+
+Sent from my mobile device. 
+
+----- Reply message -----
+From: "Jeremy Brown" <jeremy.b at infosend.com>
+Date: Fri, Aug 10, 2012 10:01
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity Versions
+To: "Ryan Barnett" <RBarnett at trustwave.com>, "mod-security-users at lists.sourceforge.net" <mod-security-users at lists.sourceforge.net>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+Hi Ryan,
+
++1 to the repo idea. ?ModSecurity is the only software I maintain from source, because I fight to keep everything else installed from a repo.
+
+I would humbly suggest the ModSecurity team consider running their own yum repository and Debian/Ubuntu PPA. ?I think it would definitely help keep people up to to date, and you wouldn't have to rely on upstream maintainers.
+
+Thanks,
+
+Jeremy Brown
+
+===========================================
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Ryan Barnett
+Sent: Friday, August 10, 2012 6:38 AM
+To: mod-security-users at lists.sourceforge.net; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] Using the latest ModSecurity Versions
+
+Question for the lists - if you are not running the latest version of ModSecurit
+
+From oleg_gryb at yahoo.com  Sat Aug 18 04:27:29 2012
+From: oleg_gryb at yahoo.com (Oleg Gryb)
+Date: Fri, 17 Aug 2012 21:27:29 -0700 (PDT)
+Subject: [Owasp-modsecurity-core-rule-set] [Mod-security-developers]
+	Advanced Slow DoS Mitigation
+In-Reply-To: <20110707053401.GE1841@localhost>
+Message-ID: <1345264049.78338.YahooMailClassic@web121003.mail.ne1.yahoo.com>
+
+Hello,
+
+Has anyone had a chance to compare efficiency of mod_sec vs. QoS when it comes to mitigating against slow HTTP attacks? I've heard different opinions, e.g. that mod_sec might work well for slow reads, but not writes, while QoS is good for both. 
+
+Are there any research papers or just objective data that can confirm that or prove opposite?
+
+The other question is related to performance impact in both solutions when it comes to high volume systems.
+
+Any pointers are highly appreciated.? 
+
+--- On Thu, 7/7/11, Christian Folini <christian.folini at time-machine.ch> wrote:
+
+From: Christian Folini <christian.folini at time-machine.ch>
+Subject: Re: [Mod-security-developers] Advanced Slow DoS Mitigation
+To: mod-security-developers at lists.sourceforge.net
+Date: Thursday, July 7, 2011, 1:34 AM
+
+Hi there,
+
+On Wed, Jul 06, 2011 at 07:42:50AM -0500, Ryan Barnett wrote:
+> Great preso and really highlights the threat.? I was wondering what
+> percentage of WikiLeaks DoS attacks were utilizing Slowloris-type
+> techniques.
+
+Me2. ;)
+
+To be honest there was too much noise to do any sort of measurements.
+We have seen a lot of things, also a lot of vanilla slowloris,
+but we also must have missed a lot of other interesting attacks.
+
+> Specifically, phase:1 was moved by Ivan awhile ago to be the same as
+> phase:2 (instead of Apache post-read-request) due to many users wanting to
+> use phase:1 rules inside Apache scope directives like <Location>.? I
+> personally do not agree with this change and we are reviewing a potential
+> change back.
+
+I bumped into the old phase:1 / Location issue before so I understand
+the motivation. But I thought it would have been the better
+countermeasure to have apache refuse to start with a phase:1 rule
+inside a location.
+
+> Regardless - I believe that we should consider a "phase:0" option that
+> would essentially work at the Apache Filter level hook.? So, this would
+> not be parsed like the other variables but could give basic access to src
+> IP data and the entire request payload as perhaps a new variable -
+> THE_REQUEST.
+
+That sounds nice.
+
+> The main issue that I see with a Filter level hook is that mod_uniqueid is
+> not yet available and that is used by ModSecurity for proper logging.
+
+That does not sound very nice, though.
+
+Was not there a discussion on the Apache ML to hand over mod_uniqueid
+(functionality) to ModSecurity? I think that would be wrong, but maybe
+it is possible to introduce a patch to have mod_uniqueid run at this
+early hook too (and before phase:0).
+
+Cheers,
+
+Christian
+
+
+-- 
+If we could read the secret history of our enemies, we should find in
+each man's life sorrow and suffering enough to disarm all hostility.
+-- Henry Wadsworth Longfellow
+
+------------------------------------------------------------------------------
+All of the data generated in your IT infrastructure is seriously valuable.
+Why? It contains a definitive record of application performance, security 
+threats, fraudulent activity, and more. Splunk takes this data and makes 
+sense of it. IT sense. And common sense.
+http://p.sf.net/sfu/splunk-d2d-c2
+_______________________________________________
+mod-security-developers mailing list
+mod-security-developers at lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/mod-security-developers
+ModSecurity Services from Trustwave's SpiderLabs:
+https://www.trustwave.com/spiderLabs.php
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120817/98b5ca59/attachment.html>
+
+From c.klossek at apodiscounter.de  Thu Aug 23 13:34:59 2012
+From: c.klossek at apodiscounter.de (Christian Klossek)
+Date: Thu, 23 Aug 2012 15:34:59 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+Message-ID: <50363183.3020707@apodiscounter.de>
+
+Hi,
+
+I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+
+Why is the rule 981318 triggering on a GET-param with a value of "?"
+(Unicode U+0119)?
+
+I get this in my debug log (debug level 9):
+-------------------------------------
+SecRule
+"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+"@rx
+(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+"phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:'SQL
+Injection Attack: Common Injection Testing
+Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTION,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+
+Expanded
+"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+
+T (0) urlDecodeUni: "/test.php"
+Transformation completed in 13 usec.
+Executing operator "rx" with param
+"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+against REQUEST_FILENAME.
+Target value: "/test.php"
+Operator completed in 9 usec.
+
+T (0) urlDecodeUni: "keywords"
+Transformation completed in 13 usec.
+Executing operator "rx" with param
+"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+against ARGS_NAMES:keywords.
+Target value: "keywords"
+Operator completed in 4 usec.
+
+T (0) urlDecodeUni: "\xc4\x99"
+Transformation completed in 14 usec.
+Executing operator "rx" with param
+"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+against ARGS:keywords.
+Target value: "\xc4\x99"
+Added regex subexpression to TX.0: \x99
+Added regex subexpression to TX.1: \x99
+Operator completed in 38 usec.
+Setting variable: tx.msg=%{rule.msg}
+Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+Testing Detected
+..
+..
+-------------------------------------------
+
+Thanks for your help
+
+Christian
+
+From RBarnett at trustwave.com  Thu Aug 23 16:39:50 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 23 Aug 2012 11:39:50 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+In-Reply-To: <50363183.3020707@apodiscounter.de>
+Message-ID: <CC5BD409.5AFA3%rbarnett@trustwave.com>
+
+Christian,
+Is this an application that you control?  It looks as though this is some
+type of search field where the user can type in text.  If this is the
+case, then I suggest that the application use proper Unicode encoding of
+the input data so that the param field would be - keywords=%u0119 rather
+than keywords=?.
+
+In addition, I would suggest that you add the following to your
+ModSecurity main config file -
+
+SecUnicodeCodePoint 20127
+SecUnicodeMapFile /path/to/unicode.mapping
+
+You will need to adjust the first directive to suit your local code point.
+ 20127 maps to US-ASCII.  The unicode.mapping file comes bundled with the
+ModSecurity source code.  By using these directives, any t:urlDecodeUni
+transformation functions will map the Unicode data to the mappings you
+specify.
+
+-Ryan
+
+
+
+On 8/23/12 9:34 AM, "Christian Klossek" <c.klossek at apodiscounter.de> wrote:
+
+>Hi,
+>
+>I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+>
+>Why is the rule 981318 triggering on a GET-param with a value of "?"
+>(Unicode U+0119)?
+>
+>I get this in my debug log (debug level 9):
+>-------------------------------------
+>SecRule
+>"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>L:/*"
+>"@rx
+>(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x
+>80\x98;]+$)"
+>"phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:
+>'SQL
+>Injection Attack: Common Injection Testing
+>Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTIO
+>N,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/
+>6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critic
+>al_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},se
+>tvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+>
+>Expanded
+>"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>L:/*"
+>to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+>
+>T (0) urlDecodeUni: "/test.php"
+>Transformation completed in 13 usec.
+>Executing operator "rx" with param
+>"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>x80\x98;]+$)"
+>against REQUEST_FILENAME.
+>Target value: "/test.php"
+>Operator completed in 9 usec.
+>
+>T (0) urlDecodeUni: "keywords"
+>Transformation completed in 13 usec.
+>Executing operator "rx" with param
+>"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>x80\x98;]+$)"
+>against ARGS_NAMES:keywords.
+>Target value: "keywords"
+>Operator completed in 4 usec.
+>
+>T (0) urlDecodeUni: "\xc4\x99"
+>Transformation completed in 14 usec.
+>Executing operator "rx" with param
+>"(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>x80\x98;]+$)"
+>against ARGS:keywords.
+>Target value: "\xc4\x99"
+>Added regex subexpression to TX.0: \x99
+>Added regex subexpression to TX.1: \x99
+>Operator completed in 38 usec.
+>Setting variable: tx.msg=%{rule.msg}
+>Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+>Testing Detected
+>..
+>..
+>-------------------------------------------
+>
+>Thanks for your help
+>
+>Christian
+>_______________________________________________
+>Owasp-modsecurity-core-rule-set mailing list
+>Owasp-modsecurity-core-rule-set at lists.owasp.org
+>https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From c.klossek at apodiscounter.de  Thu Aug 23 18:04:01 2012
+From: c.klossek at apodiscounter.de (Christian Klossek)
+Date: Thu, 23 Aug 2012 20:04:01 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+In-Reply-To: <CC5BD409.5AFA3%rbarnett@trustwave.com>
+References: <CC5BD409.5AFA3%rbarnett@trustwave.com>
+Message-ID: <50367091.7050207@apodiscounter.de>
+
+Ryan,
+
+the Server and the page uses utf-8 encoding.
+When the form is being submitted the apache log looks like this:
+
+"GET /test.php?keywords=%C4%99 HTTP/1.0" 403 375 "-" "Mozilla/5.0 (X11;
+Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1"
+
+You can see the "?" is correctly encoded using utf-8 as "%C4%99". Why is
+modsecurity not decoding this in a proper way before doing it's tests?
+Or is it an apache configuration problem?
+
+Christian
+
+On 08/23/2012 06:39 PM, Ryan Barnett wrote:
+> Christian,
+> Is this an application that you control?  It looks as though this is some
+> type of search field where the user can type in text.  If this is the
+> case, then I suggest that the application use proper Unicode encoding of
+> the input data so that the param field would be - keywords=%u0119 rather
+> than keywords=?.
+>
+> In addition, I would suggest that you add the following to your
+> ModSecurity main config file -
+>
+> SecUnicodeCodePoint 20127
+> SecUnicodeMapFile /path/to/unicode.mapping
+>
+> You will need to adjust the first directive to suit your local code point.
+>  20127 maps to US-ASCII.  The unicode.mapping file comes bundled with the
+> ModSecurity source code.  By using these directives, any t:urlDecodeUni
+> transformation functions will map the Unicode data to the mappings you
+> specify.
+>
+> -Ryan
+>
+>
+>
+> On 8/23/12 9:34 AM, "Christian Klossek" <c.klossek at apodiscounter.de> wrote:
+>
+>> Hi,
+>>
+>> I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+>>
+>> Why is the rule 981318 triggering on a GET-param with a value of "?"
+>> (Unicode U+0119)?
+>>
+>> I get this in my debug log (debug level 9):
+>> -------------------------------------
+>> SecRule
+>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>> L:/*"
+>> "@rx
+>> (^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x
+>> 80\x98;]+$)"
+>> "phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:
+>> 'SQL
+>> Injection Attack: Common Injection Testing
+>> Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTIO
+>> N,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/
+>> 6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critic
+>> al_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},se
+>> tvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+>>
+>> Expanded
+>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>> L:/*"
+>> to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+>>
+>> T (0) urlDecodeUni: "/test.php"
+>> Transformation completed in 13 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>> x80\x98;]+$)"
+>> against REQUEST_FILENAME.
+>> Target value: "/test.php"
+>> Operator completed in 9 usec.
+>>
+>> T (0) urlDecodeUni: "keywords"
+>> Transformation completed in 13 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>> x80\x98;]+$)"
+>> against ARGS_NAMES:keywords.
+>> Target value: "keywords"
+>> Operator completed in 4 usec.
+>>
+>> T (0) urlDecodeUni: "\xc4\x99"
+>> Transformation completed in 14 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>> x80\x98;]+$)"
+>> against ARGS:keywords.
+>> Target value: "\xc4\x99"
+>> Added regex subexpression to TX.0: \x99
+>> Added regex subexpression to TX.1: \x99
+>> Operator completed in 38 usec.
+>> Setting variable: tx.msg=%{rule.msg}
+>> Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+>> Testing Detected
+>> ..
+>> ..
+>> -------------------------------------------
+>>
+
+
+From chris at jwall.org  Thu Aug 23 21:03:31 2012
+From: chris at jwall.org (Christian Bockermann)
+Date: Thu, 23 Aug 2012 23:03:31 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+In-Reply-To: <50363183.3020707@apodiscounter.de>
+References: <50363183.3020707@apodiscounter.de>
+Message-ID: <6F2F4426-218E-4FA3-9CD2-72396EB40BCB@jwall.org>
+
+Hi Christian,
+
+kannst Du mal den vollst?ndigen Request bzw. das AuditEvent dazu schicken?
+K?nnte es ggf sein, dass der Browser das Zeichen nicht URL-encoded sondern
+irgendwie anders geschickt hat, und die "urlDecodeUni" Transformation dann
+etwas daraus macht, was bei der Rule h?ngen bleibt?
+
+Ich w?rde mir das gerne mal genauer anschauen, allerdings br?uchte ich dazu
+am besten das Event (bitte vorher etwaige private Daten wie Session-ID, IP
+usw. entfernen).
+
+Gru?,
+   Chris
+
+
+Am 23.08.2012 um 15:34 schrieb Christian Klossek <c.klossek at apodiscounter.de>:
+
+> Hi,
+> 
+> I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+> 
+> Why is the rule 981318 triggering on a GET-param with a value of "?"
+> (Unicode U+0119)?
+> 
+> I get this in my debug log (debug level 9):
+> -------------------------------------
+> SecRule
+> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+> "@rx
+> (^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+> "phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:'SQL
+> Injection Attack: Common Injection Testing
+> Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTION,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+> 
+> Expanded
+> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+> to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+> 
+> T (0) urlDecodeUni: "/test.php"
+> Transformation completed in 13 usec.
+> Executing operator "rx" with param
+> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+> against REQUEST_FILENAME.
+> Target value: "/test.php"
+> Operator completed in 9 usec.
+> 
+> T (0) urlDecodeUni: "keywords"
+> Transformation completed in 13 usec.
+> Executing operator "rx" with param
+> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+> against ARGS_NAMES:keywords.
+> Target value: "keywords"
+> Operator completed in 4 usec.
+> 
+> T (0) urlDecodeUni: "\xc4\x99"
+> Transformation completed in 14 usec.
+> Executing operator "rx" with param
+> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+> against ARGS:keywords.
+> Target value: "\xc4\x99"
+> Added regex subexpression to TX.0: \x99
+> Added regex subexpression to TX.1: \x99
+> Operator completed in 38 usec.
+> Setting variable: tx.msg=%{rule.msg}
+> Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+> Testing Detected
+> ..
+> ..
+> -------------------------------------------
+> 
+> Thanks for your help
+> 
+> Christian
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From yersinia.spiros at gmail.com  Thu Aug 23 21:29:29 2012
+From: yersinia.spiros at gmail.com (yersinia)
+Date: Thu, 23 Aug 2012 23:29:29 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+In-Reply-To: <6F2F4426-218E-4FA3-9CD2-72396EB40BCB@jwall.org>
+References: <50363183.3020707@apodiscounter.de>
+	<6F2F4426-218E-4FA3-9CD2-72396EB40BCB@jwall.org>
+Message-ID: <CAH5b-BWPTnmSqkKG-7FDfDov6m+NgPv258q7yoHSKhC=uSWkhg@mail.gmail.com>
+
+Heem
+
+i am sorry, but speak english, please.
+
+Thks
+
+2012/8/23, Christian Bockermann <chris at jwall.org>:
+> Hi Christian,
+>
+> kannst Du mal den vollst?ndigen Request bzw. das AuditEvent dazu schicken?
+> K?nnte es ggf sein, dass der Browser das Zeichen nicht URL-encoded sondern
+> irgendwie anders geschickt hat, und die "urlDecodeUni" Transformation dann
+> etwas daraus macht, was bei der Rule h?ngen bleibt?
+>
+> Ich w?rde mir das gerne mal genauer anschauen, allerdings br?uchte ich dazu
+> am besten das Event (bitte vorher etwaige private Daten wie Session-ID, IP
+> usw. entfernen).
+>
+> Gru?,
+>    Chris
+>
+>
+> Am 23.08.2012 um 15:34 schrieb Christian Klossek
+> <c.klossek at apodiscounter.de>:
+>
+>> Hi,
+>>
+>> I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+>>
+>> Why is the rule 981318 triggering on a GET-param with a value of "?"
+>> (Unicode U+0119)?
+>>
+>> I get this in my debug log (debug level 9):
+>> -------------------------------------
+>> SecRule
+>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+>> "@rx
+>> (^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+>> "phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:'SQL
+>> Injection Attack: Common Injection Testing
+>> Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTION,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+>>
+>> Expanded
+>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+>> to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+>>
+>> T (0) urlDecodeUni: "/test.php"
+>> Transformation completed in 13 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+>> against REQUEST_FILENAME.
+>> Target value: "/test.php"
+>> Operator completed in 9 usec.
+>>
+>> T (0) urlDecodeUni: "keywords"
+>> Transformation completed in 13 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+>> against ARGS_NAMES:keywords.
+>> Target value: "keywords"
+>> Operator completed in 4 usec.
+>>
+>> T (0) urlDecodeUni: "\xc4\x99"
+>> Transformation completed in 14 usec.
+>> Executing operator "rx" with param
+>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+$)"
+>> against ARGS:keywords.
+>> Target value: "\xc4\x99"
+>> Added regex subexpression to TX.0: \x99
+>> Added regex subexpression to TX.1: \x99
+>> Operator completed in 38 usec.
+>> Setting variable: tx.msg=%{rule.msg}
+>> Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+>> Testing Detected
+>> ..
+>> ..
+>> -------------------------------------------
+>>
+>> Thanks for your help
+>>
+>> Christian
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+-- 
+Inviato dal mio dispositivo mobile
+
+From achim at owasp.org  Thu Aug 23 21:43:02 2012
+From: achim at owasp.org (Achim)
+Date: Thu, 23 Aug 2012 23:43:02 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Why is rule 981318 triggering?
+In-Reply-To: <50367091.7050207@apodiscounter.de>
+References: <CC5BD409.5AFA3%rbarnett@trustwave.com>
+	<50367091.7050207@apodiscounter.de>
+Message-ID: <5036A3E6.9060708@owasp.org>
+
+Christian,
+
+Am 23.08.2012 20:04, schrieb Christian Klossek:
+> Ryan,
+> 
+> the Server and the page uses utf-8 encoding.
+> When the form is being submitted the apache log looks like this:
+> 
+> "GET /test.php?keywords=%C4%99 HTTP/1.0" 403 375 "-" "Mozilla/5.0 (X11;
+> Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1"
+> 
+> You can see the "?" is correctly encoded using utf-8 as "%C4%99".
+
+> Why is
+> modsecurity not decoding this in a proper way before doing it's tests?
+> Or is it an apache configuration problem?
+
+I'll answer the 2'nd part of the question first: no, it's not an apache
+configuration problem, and it's not an apache problem at all.
+
+Now the 1'st part: modsecurity *does* decode proper, cause it exactly decodes
+in the way you (I mean you, the human) configured it to do.
+
+No offense meant so far, I'll try to explain:
+it's difficult to qualify this as a "problem", 'cause anything works as expected,
+it's just you (the human again) who expects a different behaviour.
+Why is this? 'cause the protocol (HTTP) is plain (old) 7-bit ASCII, which
+requires anything not 7-bit ASCII to be URL-encoded (except if specified as
+OCTET stream). And that's what your (and most likely all other) browser does:
+it URL-encodes as the protocol requires, i.e. ? as %C4%99.
+
+On the other side (think: the server side) this %C4%99 decodes simply to two
+bytes. If we look at these bytes, %C4 is ?, perfect, we're done (my opinion:),
+and %99, well I don't know.
+
+Before we dig deeper into the decoding jungle, lets look at HTTP:
+the request line (GET /something....) is the very first part of the complete
+request, it's neither the request header nor the request body, just the
+request line itself. At this point the receiving side has no information
+how the data should be decoded. It needs to rely on the core protocol
+definitions (HTTP here) which defines: 7-bit ASCII.
+And that's what apache (and every other web server too) gets, usually.
+
+Consequently no web server decodes anything here unless being told to do so.
+They even don't decode URL-encoding as this is the application's jobs (any
+CGI, or module or whatever is an application).
+
+Said this, it's time to look at devices/systems/whatever before the web server,
+I mean for example WAFs. modsecurity is a WAF (for simplicity I don't go into
+the details of an embedded WAF like modsecurity).
+Such a WAF (just like any IDS/IPS) inspects the traffic. And it also needs to
+rely on protocol specifications. But it has the advantage that it handles the
+request -the request line + request header + request body- as a unique object
+and hence is able to decode this complete object as specified by the object
+itself (i.e the request header). *BUT* it (the WAF) has to be configured to
+do so.
+
+In practice, espacialy in this example, the WAF has to be configured to decode
+anything to utf-8. One way to tweak modsecurity is using @validateUtf8Encoding.
+Then you need to adapt your rules accordingly (not a simple job).
+
+However, this again is not the behaviour you (the human) expects, unfortunately,
+i.e. try to decode %eb%b8%be%3e
+
+Have fun, I guess you end up in: somthing>
+:-))
+
+
+This is not the answer you expect, probably, but it hopefully helps to
+understand the problem (it's a problem only if you expect malicious data:)
+
+BTW, there exist comercial WAFs which force you to configure the charset
+and encoding to be expected and used for each request. Heaven (or the 
+developers) know how this works relyable in practice (see my funny example
+above:).
+
+
+ 
+> Christian
+> 
+> On 08/23/2012 06:39 PM, Ryan Barnett wrote:
+>> Christian,
+>> Is this an application that you control?  It looks as though this is some
+>> type of search field where the user can type in text.  If this is the
+>> case, then I suggest that the application use proper Unicode encoding of
+>> the input data so that the param field would be - keywords=%u0119 rather
+>> than keywords=?.
+>>
+>> In addition, I would suggest that you add the following to your
+>> ModSecurity main config file -
+>>
+>> SecUnicodeCodePoint 20127
+>> SecUnicodeMapFile /path/to/unicode.mapping
+>>
+>> You will need to adjust the first directive to suit your local code point.
+>>  20127 maps to US-ASCII.  The unicode.mapping file comes bundled with the
+>> ModSecurity source code.  By using these directives, any t:urlDecodeUni
+>> transformation functions will map the Unicode data to the mappings you
+>> specify.
+>>
+>> -Ryan
+>>
+>>
+>>
+>> On 8/23/12 9:34 AM, "Christian Klossek" <c.klossek at apodiscounter.de> wrote:
+>>
+>>> Hi,
+>>>
+>>> I'm using modsecurity 2.6.7 with CRS 2.2.5 on a debian squeeze system.
+>>>
+>>> Why is the rule 981318 triggering on a GET-param with a value of "?"
+>>> (Unicode U+0119)?
+>>>
+>>> I get this in my debug log (debug level 9):
+>>> -------------------------------------
+>>> SecRule
+>>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>>> L:/*"
+>>> "@rx
+>>> (^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\x
+>>> 80\x98;]+$)"
+>>> "phase:2,nolog,auditlog,rev:2.2.5,capture,t:none,t:urlDecodeUni,block,msg:
+>>> 'SQL
+>>> Injection Attack: Common Injection Testing
+>>> Detected',id:981318,logdata:%{TX.0},severity:2,tag:WEB_ATTACK/SQL_INJECTIO
+>>> N,tag:WASCTC/WASC-19,tag:OWASP_TOP_10/A1,tag:OWASP_AppSensor/CIE1,tag:PCI/
+>>> 6.5.2,setvar:tx.msg=%{rule.msg},setvar:tx.sql_injection_score=+%{tx.critic
+>>> al_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},se
+>>> tvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+>>>
+>>> Expanded
+>>> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XM
+>>> L:/*"
+>>> to "REQUEST_FILENAME|ARGS_NAMES:keywords|ARGS:keywords".
+>>>
+>>> T (0) urlDecodeUni: "/test.php"
+>>> Transformation completed in 13 usec.
+>>> Executing operator "rx" with param
+>>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>>> x80\x98;]+$)"
+>>> against REQUEST_FILENAME.
+>>> Target value: "/test.php"
+>>> Operator completed in 9 usec.
+>>>
+>>> T (0) urlDecodeUni: "keywords"
+>>> Transformation completed in 13 usec.
+>>> Executing operator "rx" with param
+>>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>>> x80\x98;]+$)"
+>>> against ARGS_NAMES:keywords.
+>>> Target value: "keywords"
+>>> Operator completed in 4 usec.
+>>>
+>>> T (0) urlDecodeUni: "\xc4\x99"
+>>> Transformation completed in 14 usec.
+>>> Executing operator "rx" with param
+>>> "(^[\"'`\xc2\xb4\xe2\x80\x99\xe2\x80\x98;]+|[\"'`\xc2\xb4\xe2\x80\x99\xe2\
+>>> x80\x98;]+$)"
+>>> against ARGS:keywords.
+>>> Target value: "\xc4\x99"
+>>> Added regex subexpression to TX.0: \x99
+>>> Added regex subexpression to TX.1: \x99
+>>> Operator completed in 38 usec.
+>>> Setting variable: tx.msg=%{rule.msg}
+>>> Resolved macro %{rule.msg} to: SQL Injection Attack: Common Injection
+>>> Testing Detected
+
+From leonardo at lbasolutions.com  Fri Aug 24 17:12:41 2012
+From: leonardo at lbasolutions.com (Leonardo Bacha Abrantes)
+Date: Fri, 24 Aug 2012 14:12:41 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Fail to create negative rule
+Message-ID: <CAG+8EEbGAXtcVEuC4h_iZYKeunJDBV0_v7iRH3nCQzxCDwnx6A@mail.gmail.com>
+
+Hey people, good afternoon!
+
+I'm trying to Add a new negative policy rule (
+http://www.modsecurity.org/blog/archives/2007/02/handling_false.html),
+because am facing false positve with the rule 970901.
+
+*## log
+
+*[Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity:
+Rule 2d8f030 [id "950901"][file
+"/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+"77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+"10.1.125.204"] [uri "/sites/all/themes/fsa/img/icone-seta.jpg"] [unique_id
+"UDeviX8AAAEAAHXIAy0AAAAA"]
+[Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity: Rule
+2d8f030 [id "950901"][file
+"/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+"77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+"10.1.125.204"] [uri "/sites/all/themes/fsa/img/icone-seta.jpg"] [unique_id
+"UDeviX8AAAEAAHXIAy0AAAAA"]
+[Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity: Rule
+2d8f030 [id "950901"][file
+"/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+"77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+"10.1.125.204"] [uri "/sites/all/themes/fsa/img/onda-fsa.png"] [unique_id
+"UDeviX8AAAEAAHXPDFoAAAAF"]
+
+
+*## log in verbose mode:*
+
+[24/Aug/2012:13:24:52 --0300] [192.168.21.10/sid#1526d30][rid#27f7510][/][5]
+Rule 116d418: SecRule
+"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+"@rx
+(?:(?:[\\;\\|\\`]\\W*?\\bcc|\\b(wget|curl))\\b|\\/cc(?:[\\'\"\\|\\;\\`\\-\\s]|$))"
+"phase:2,log,rev:2.2.5,capture,t:none,t:normalisePath,t:lowercase,ctl:auditLogParts=+E,msg:'System
+Command
+Injection',id:950907,tag:WEB_ATTACK/COMMAND_INJECTION,tag:WASCTC/WASC-31,tag:OWASP_TOP_10/A1,tag:PCI/6.5.2,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.command_injection_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+rule.id
+}-WEB_ATTACK/COMMAND_INJECTION-%{matched_var_name}=%{tx.0},skipAfter:END_COMMAND_INJECTION1"
+[24/Aug/2012:13:24:52 --0300] [192.168.21.10/sid#1526d30][rid#27f7510][/][4]
+Expanded
+"REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+to
+"REQUEST_COOKIES:SESSc2ec4f8fae0f9b49b1219031f3052c40|REQUEST_COOKIES:SESS988f6dde2396798ae2237ef1db71fdb8|REQUEST_COOKIES:SESS8677ac936d1934b4e08580e4b78c02d0|REQUEST_COOKIES:SESS4922cbb0a9f1bcd7dd450637560249a3|REQUEST_COOKIES:__utma|REQUEST_COOKIES:__utmz|REQUEST_COOKIES:SESSe8a50359f7869c256a51e29f93548645|REQUEST_COOKIES:pma_lang|REQUEST_COOKIES:SESS448430042d094f8dddea85b752fc6947|REQUEST_COOKIES:phpMyAdmin|REQUEST_COOKIES:__utmc|REQUEST_COOKIES:has_js|REQUEST_COOKIES_NAMES:SESSc2ec4f8fae0f9b49b1219031f3052c40|REQUEST_COOKIES_NAMES:SESS988f6dde2396798ae2237ef1db71fdb8|REQUEST_COOKIES_NAMES:SESS8677ac936d1934b4e08580e4b78c02d0|REQUEST_COOKIES_NAMES:SESS4922cbb0a9f1bcd7dd450637560249a3|REQUEST_COOKIES_NAMES:__utma|REQUEST_COOKIES_NAMES:__utmz|REQUEST_COOKIES_NAMES:SESSe8a50359f7869c256a51e29f93548645|REQUEST_COOKIES_NAMES:pma_lang|REQUEST_COOKIES_NAMES:SESS448430042d094f8dddea85b752fc6947|REQUEST_COOKIES_NAMES:php
+
+
+***************************************
+
+
+So, I created a file called modsecurity_crs_61_custom_rules.conf and I
+inserted the rule (see bellow) on it:
+
+
+SecRule
+REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML|
+!REQUEST_HEADERS:Cookie|REQUEST_COOKIES|REQUEST_COOKIES_NAMES|!REQUEST_COOKIES_NAMES:/^SESS$/:/*
+"(?i:([\s'\"`????(\)]*)?([\d\w]+)([\s'\"`????(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`????(\)]*)?([\s'\"`????(\)]*)?([\d\w]+)([\s'\"`????(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+likgexp)([\s'\"`????(\)]*)?(?!\6)([\d\w]+))"
+\
+
+"phase:2,rev:'2.2.5',capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,ctl:auditLogParts=+E,block,msg:'SQL
+Injection
+Attack',id:'1',logdata:'%{TX.0}',severity:'2',tag:'WEB_ATTACK/SQL_INJECTION',tag:'WASCTC/WASC-19',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/CIE1',tag:'PCI/6.5.2',setvar:'tx.msg=%{rule.msg}',setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+
+
+
+####
+
+*[root at myserver httpd]# /etc/init.d/httpd start*
+Starting httpd: Syntax error on line 10 of
+/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_61_custom_rules.conf:
+SecRule takes two or three arguments, rule target, operator and optional
+action list
+                                                           [FAILED]
+
+What I'm doing wrong in this rule ?
+
+many thanks!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120824/f85250c3/attachment.html>
+
+From jamuse at gmail.com  Sat Aug 25 20:45:21 2012
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Sat, 25 Aug 2012 23:45:21 +0300
+Subject: [Owasp-modsecurity-core-rule-set] Fail to create negative rule
+In-Reply-To: <CAG+8EEbGAXtcVEuC4h_iZYKeunJDBV0_v7iRH3nCQzxCDwnx6A@mail.gmail.com>
+References: <CAG+8EEbGAXtcVEuC4h_iZYKeunJDBV0_v7iRH3nCQzxCDwnx6A@mail.gmail.com>
+Message-ID: <CANnPkimnqGwC8m=G-NRuMgvTcU5PqUC1Bt79vRS4Zm_Rx6i6nA@mail.gmail.com>
+
+On Fri, Aug 24, 2012 at 8:12 PM, Leonardo Bacha Abrantes <
+leonardo at lbasolutions.com> wrote:
+
+> Hey people, good afternoon!
+>
+> I'm trying to Add a new negative policy rule (
+> http://www.modsecurity.org/blog/archives/2007/02/handling_false.html),
+> because am facing false positve with the rule 970901.
+>
+>
+Hi Leonardo,
+
+Handling false positives has gotten much easier since that blog post was
+written in 2007. If your running a modern version of ModSecurity,
+the SecRuleUpdateTargetById directive should do the trick. You may want to
+read Ryan's updated post on the subject here:
+
+http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+--
+ - Josh
+
+*## log
+>
+> *[Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity:
+> Rule 2d8f030 [id "950901"][file
+> "/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+> "77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+> "10.1.125.204"] [uri "/sites/all/themes/fsa/img/icone-seta.jpg"] [unique_id
+> "UDeviX8AAAEAAHXIAy0AAAAA"]
+> [Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity:
+> Rule 2d8f030 [id "950901"][file
+> "/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+> "77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+> "10.1.125.204"] [uri "/sites/all/themes/fsa/img/icone-seta.jpg"] [unique_id
+> "UDeviX8AAAEAAHXIAy0AAAAA"]
+> [Fri Aug 24 13:44:57 2012] [error] [client 192.168.21.10] ModSecurity:
+> Rule 2d8f030 [id "950901"][file
+> "/etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"][line
+> "77"] - Execution error - PCRE limits exceeded (-8): (null). [hostname
+> "10.1.125.204"] [uri "/sites/all/themes/fsa/img/onda-fsa.png"] [unique_id
+> "UDeviX8AAAEAAHXPDFoAAAAF"]
+>
+>
+> *## log in verbose mode:*
+>
+> [24/Aug/2012:13:24:52 --0300] [
+> 192.168.21.10/sid#1526d30][rid#27f7510][/][5<http://192.168.21.10/sid#1526d30][rid%2327f7510][/][5>]
+> Rule 116d418: SecRule
+> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+> "@rx
+> (?:(?:[\\;\\|\\`]\\W*?\\bcc|\\b(wget|curl))\\b|\\/cc(?:[\\'\"\\|\\;\\`\\-\\s]|$))"
+> "phase:2,log,rev:2.2.5,capture,t:none,t:normalisePath,t:lowercase,ctl:auditLogParts=+E,msg:'System
+> Command
+> Injection',id:950907,tag:WEB_ATTACK/COMMAND_INJECTION,tag:WASCTC/WASC-31,tag:OWASP_TOP_10/A1,tag:PCI/6.5.2,logdata:%{TX.0},severity:2,setvar:tx.msg=%{rule.msg},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.command_injection_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id
+> }-WEB_ATTACK/COMMAND_INJECTION-%{matched_var_name}=%{tx.0},skipAfter:END_COMMAND_INJECTION1"
+> [24/Aug/2012:13:24:52 --0300] [
+> 192.168.21.10/sid#1526d30][rid#27f7510][/][4<http://192.168.21.10/sid#1526d30][rid%2327f7510][/][4>]
+> Expanded
+> "REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*"
+> to
+> "REQUEST_COOKIES:SESSc2ec4f8fae0f9b49b1219031f3052c40|REQUEST_COOKIES:SESS988f6dde2396798ae2237ef1db71fdb8|REQUEST_COOKIES:SESS8677ac936d1934b4e08580e4b78c02d0|REQUEST_COOKIES:SESS4922cbb0a9f1bcd7dd450637560249a3|REQUEST_COOKIES:__utma|REQUEST_COOKIES:__utmz|REQUEST_COOKIES:SESSe8a50359f7869c256a51e29f93548645|REQUEST_COOKIES:pma_lang|REQUEST_COOKIES:SESS448430042d094f8dddea85b752fc6947|REQUEST_COOKIES:phpMyAdmin|REQUEST_COOKIES:__utmc|REQUEST_COOKIES:has_js|REQUEST_COOKIES_NAMES:SESSc2ec4f8fae0f9b49b1219031f3052c40|REQUEST_COOKIES_NAMES:SESS988f6dde2396798ae2237ef1db71fdb8|REQUEST_COOKIES_NAMES:SESS8677ac936d1934b4e08580e4b78c02d0|REQUEST_COOKIES_NAMES:SESS4922cbb0a9f1bcd7dd450637560249a3|REQUEST_COOKIES_NAMES:__utma|REQUEST_COOKIES_NAMES:__utmz|REQUEST_COOKIES_NAMES:SESSe8a50359f7869c256a51e29f93548645|REQUEST_COOKIES_NAMES:pma_lang|REQUEST_COOKIES_NAMES:SESS448430042d094f8dddea85b752fc6947|REQUEST_COOKIES_NAMES:php
+>
+>
+> ***************************************
+>
+>
+> So, I created a file called modsecurity_crs_61_custom_rules.conf and I
+> inserted the rule (see bellow) on it:
+>
+>
+> SecRule
+> REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML|
+>
+> !REQUEST_HEADERS:Cookie|REQUEST_COOKIES|REQUEST_COOKIES_NAMES|!REQUEST_COOKIES_NAMES:/^SESS$/:/*
+> "(?i:([\s'\"`????(\)]*)?([\d\w]+)([\s'\"`????(\)]*)?(?:=|<=>|r?like|sounds\s+like|regexp)([\s'\"`????(\)]*)?([\s'\"`????(\)]*)?([\d\w]+)([\s'\"`????(\)]*)?(?:!=|<=|>=|<>|<|>|\^|is\s+not|not\s+likgexp)([\s'\"`????(\)]*)?(?!\6)([\d\w]+))"
+> \
+>
+> "phase:2,rev:'2.2.5',capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,ctl:auditLogParts=+E,block,msg:'SQL
+> Injection
+> Attack',id:'1',logdata:'%{TX.0}',severity:'2',tag:'WEB_ATTACK/SQL_INJECTION',tag:'WASCTC/WASC-19',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/CIE1',tag:'PCI/6.5.2',setvar:'tx.msg=%{rule.msg}',setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{
+> rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}"
+>
+>
+>
+> ####
+>
+> *[root at myserver httpd]# /etc/init.d/httpd start*
+> Starting httpd: Syntax error on line 10 of
+> /etc/httpd/conf.d/modsecurity/base_rules/modsecurity_crs_61_custom_rules.conf:
+> SecRule takes two or three arguments, rule target, operator and optional
+> action list
+>                                                            [FAILED]
+>
+> What I'm doing wrong in this rule ?
+>
+> many thanks!
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120825/81d078cf/attachment.html>
+

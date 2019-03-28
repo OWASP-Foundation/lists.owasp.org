@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Current use of TAG data in rules and a new idea - CONFIDENCE_LEVEL
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Current%20use%20of%20TAG%20data%20in%0A%20rules%20and%20a%20new%20idea%20-%20CONFIDENCE_LEVEL&In-Reply-To=C9CDCB42.1E966%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000733.html">
+   <LINK REL="Next"  HREF="000734.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Current use of TAG data in rules and a new idea - CONFIDENCE_LEVEL</H1>
+    <B>Klaubert Herr da Silveira</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Current%20use%20of%20TAG%20data%20in%0A%20rules%20and%20a%20new%20idea%20-%20CONFIDENCE_LEVEL&In-Reply-To=C9CDCB42.1E966%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Current use of TAG data in rules and a new idea - CONFIDENCE_LEVEL">klaubert at gmail.com
+       </A><BR>
+    <I>Mon Apr 18 11:17:46 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000733.html">[Owasp-modsecurity-core-rule-set] Current use of TAG data in rules and a new idea - CONFIDENCE_LEVEL
+</A></li>
+        <LI>Next message: <A HREF="000734.html">[Owasp-modsecurity-core-rule-set] New Generic Malicious JS	Detection in Outbound Content
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#743">[ date ]</a>
+              <a href="thread.html#743">[ thread ]</a>
+              <a href="subject.html#743">[ subject ]</a>
+              <a href="author.html#743">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ryan,
+
+one interesting thing to do with the Confidence Tag could be a
+block/pass based on confidence. This can help the use of signatures,
+and even test/improve the signatures without disabling it. And in
+anomaly mode, this could rise the weigth of rules with with a higher
+confidence or lower the weight of a rule with lower confidence, having
+the same behaviour.
+
+Klaubert
+
+On Fri, Apr 15, 2011 at 11:15 AM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+&gt;<i> Hey everyone,
+</I>&gt;<i> I wanted give an overview of the current use of TAG data in rules (<A HREF="https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#tag">https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#tag</A>), as well as, to get some feedback on some new ideas for tag usage.
+</I>&gt;<i>
+</I>&gt;<i> First let's look at how TAG is currently being used today in the CRS. &#160;Here is an example SQL Injection rule -
+</I>&gt;<i>
+</I>&gt;<i> SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/* &quot;\bxp_cmdshell\b&quot; \
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160;&quot;phase:2,rev:'2.2.0',capture,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,t:replaceComments,t:compressWhiteSpace,ctl:auditLogParts=+E,block,msg:'SQL Injection Attack',id:'959052',tag:'WEB_ATTACK/SQL_INJECTION',tag:'WASCTC/WASC-19',tag:'OWASP_TOP_10/A1',tag:'OWASP_AppSensor/CIE1',tag:'PCI/6.5.2',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.msg}',setvar:tx.sql_injection_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTACK/SQL_INJECTION-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;<i>
+</I>&gt;<i> The TAG action is used to provide the following information:
+</I>&gt;<i>
+</I>&gt;<i> &#160;1. &#160;Attack Category &#8211; example WEB_ATTACK/SQL_INJECTION
+</I>&gt;<i> &#160;2. &#160;Mapping to community taxonomies &#8211; such as WASC Threat Classification, OWASP Top Ten and OWASP AppSensor Detection Points
+</I>&gt;<i> &#160;3. &#160;URL links to specific reference resources &#8211; as in this converted ET sql injection rule that lists a link to a SecurityFocus vuln entry
+</I>&gt;<i>
+</I>&gt;<i> # (2007539) SpiderLabs Research (SLR) Public Vulns: ET WEB_SPECIFIC_APPS 20/20 Auto Gallery SQL Injection Attempt -- vehiclelistings.asp model UPDATE
+</I>&gt;<i> SecRule REQUEST_LINE &quot;@contains /vehiclelistings.asp&quot; &quot;chain,phase:2,block,t:none,t:urlDecodeUni,t:htmlEntityDecode,t:normalisePathWin,capture,nolog,auditlog,logdata:'%{TX.0}',severity:'2',id:2007539,rev:6,msg:'SLR: ET WEB_SPECIFIC_APPS 20/20 Auto Gallery SQL Injection Attempt -- vehiclelistings.asp model UPDATE',tag:'web-application-attack',tag:'url,www.securityfocus.com/bid/21154'&quot;
+</I>&gt;<i> SecRule &amp;TX:'/WEB_ATTACK/SQL_INJECTION.*ARGS:model/' &quot;@gt 0&quot; &quot;ctl:auditLogParts=+E,setvar:'tx.msg=%{tx.msg} - ET WEB_SPECIFIC_APPS 20/20 Auto Gallery SQL Injection Attempt -- vehiclelistings.asp model UPDATE',setvar:tx.anomaly_score=+20,setvar:'tx.%{rule.id}-WEB_ATTACK-%{rule.severity}-%{rule.msg}-%{matched_var_name}=%{matched_var}'&quot;
+</I>&gt;<i>
+</I>&gt;<i> One big idea we have for a new TAG is Confidence Level which would give a general indication as to the rules accuracy level perhaps on a scale of 0-5 where 0 is totally experimental without much testing at all and 5 is a very strong signature that has been rigorously tested and a low chance of false positives. &#160;Example &#8211; tag:'CONFIDENCE_LEVEL/5'
+</I>&gt;<i>
+</I>&gt;<i> The Confidence Level tag seems like it has the potential to have a very positive impact to users for two reasons:
+</I>&gt;<i>
+</I>&gt;<i> &#160;1. &#160;Currently, there isn't much distinction for each rules as to its accuracy level. &#160;We do have the experimental_rules directory for brand new rules however that does not mean that other rules are all of equal accuracy levels.
+</I>&gt;<i> &#160;2. &#160;With the new v2.6 enhancement which added SecRuleRemoveByTag and ctl:ruleRemoveByTag (<A HREF="https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecRuleRemoveByTag">https://sourceforge.net/apps/mediawiki/mod-security/index.php?title=Reference_Manual#SecRuleRemoveByTag</A>) users will then have the ability to make local customizations to disable entire groups of rules based on TAG data :) &#160;For instance, if you wanted to only run CONFIDENCE_LEVEL/5 rules you could do that in a local custom rules file modsecurity_crs_60_custom_rules.conf to disable all lower confidence level rules &#8211;
+</I>&gt;<i>
+</I>&gt;<i> SecRuleRemoveByTag &quot;CONFIDENCE_LEVEL/[0-4]&quot;
+</I>&gt;<i>
+</I>&gt;<i> While this is a great new capability &#8211; we will need some help from the community with identifying the right CONFIDENCE_LEVEL settings for each rule. &#160;I will go through each rule and estimate a CONFIDENCE_LEVEL based on our intel. &#160;This may not be enough however. &#160;I have a feeling that most ModSecurity users silently handle false positives with local exceptions and they do not also report back to the community which rule IDs are causing problems. &#160;Some users do go the extra mile and actually open Jira tickets for the CRS with bug reports. &#160;That is great and it ensures that I will review/update the rules. &#160;I do think, however, that most end users would prefer an easier method. &#160;What do you all think about us creating a new mail-list on SourceForge strictly for sending in false positive rule issues? &#160;We could create something like - mod&#8211;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">security-false-positives at lists.sourceforge.net.</A>
+</I>&gt;<i>
+</I>&gt;<i> What do you think? &#160;If anyone has any better ideas for false positive reporting, please speak up.
+</I>&gt;<i>
+</I>&gt;<i> Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000733.html">[Owasp-modsecurity-core-rule-set] Current use of TAG data in rules and a new idea - CONFIDENCE_LEVEL
+</A></li>
+	<LI>Next message: <A HREF="000734.html">[Owasp-modsecurity-core-rule-set] New Generic Malicious JS	Detection in Outbound Content
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#743">[ date ]</a>
+              <a href="thread.html#743">[ thread ]</a>
+              <a href="subject.html#743">[ subject ]</a>
+              <a href="author.html#743">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

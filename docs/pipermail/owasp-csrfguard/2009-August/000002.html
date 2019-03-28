@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] CSRFGuard Additions
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20CSRFGuard%20Additions&In-Reply-To=1245172819.7537.53.camel%40cam.part.net">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] CSRFGuard Additions</H1>
+    <B>cam</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20CSRFGuard%20Additions&In-Reply-To=1245172819.7537.53.camel%40cam.part.net"
+       TITLE="[Owasp-csrfguard] CSRFGuard Additions">cmorris at part.net
+       </A><BR>
+    <I>Thu Aug 20 16:48:03 EDT 2009</I>
+    <P><UL>
+        
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2">[ date ]</a>
+              <a href="thread.html#2">[ thread ]</a>
+              <a href="subject.html#2">[ subject ]</a>
+              <a href="author.html#2">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Attached is the source of a version of CSRFGuard that includes a JAAS
+Login Method, and a pluggable TokenStrategy.  The motivation behind this
+work is to share a CSRF token across applications that have SSO enabled
+but don't share a session object.  
+
+This doesn't include any of the struts2 work we proposed a few months
+back.
+
+Here is the readme:
+
+
+
+This version of CSRFGuard is as build by PartNet.  It is built on the
+2.2 beta version.
+It adds the following features:
+- JAAS LoginModule that places a token name and value on the Subject
+(For sharing tokens across web-applications)
+- Pluggable strategy for obtaining token names and values
+- SubjectTokenStrategy for obtaining token name and value from the
+Subject
+- VariableLengthTokenStrategy for random token names and variable length
+tokens values
+
+Questions? Contact Cam Morris at <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">cmorris at part.net</A>
+
+
+
+On Tue, 2009-06-16 at 11:20 -0600, cam wrote: 
+&gt;<i> Hello CSRFGuard Folks,
+</I>&gt;<i> 
+</I>&gt;<i> My company, PartNet, has been evaluating different CSRF prevention tools
+</I>&gt;<i> and settled on building our own.  But, as we've been designing and
+</I>&gt;<i> coding it, we've had interoperability with CSRFGuard in mind.  PartNet
+</I>&gt;<i> just gave permission to donate any work on this tool to OWASP so I'd
+</I>&gt;<i> like to discuss the merits of the contribution and design with you.
+</I>&gt;<i> 
+</I>&gt;<i> What it is:
+</I>&gt;<i> Most of this includes integration with the struts2 framework, a struts2
+</I>&gt;<i> interceptor, struts2 theme, and a struts2 URL tag.  The only part that
+</I>&gt;<i> isn't struts related is a JAAS login method. 
+</I>&gt;<i> 
+</I>&gt;<i> JAAS Login Method:
+</I>&gt;<i> One problem we faced in using CSRFGuard is a user session was not shared
+</I>&gt;<i> across multiple applications.  We wanted CSRF protection on all the
+</I>&gt;<i> applications deployed including links between them.  Since we use
+</I>&gt;<i> container-managed authentication, and have our own JAAS login methods,
+</I>&gt;<i> we built an additional login method to generate a CSRF token and store
+</I>&gt;<i> it on the Subject.  This subject is provided to all applications even
+</I>&gt;<i> when the user's session is unique for each application.
+</I>&gt;<i> 
+</I>&gt;<i> We modified the code that generates a token to instead use a token
+</I>&gt;<i> generation strategy.  In addition to the default strategy, we created a
+</I>&gt;<i> strategy that will pull the token off of the subject and provide it
+</I>&gt;<i> instead of creating a new on.  We then made the login module use the
+</I>&gt;<i> default strategy.
+</I>&gt;<i> 
+</I>&gt;<i> Struts2 Interceptor:
+</I>&gt;<i> Instead of the CSRFGuard filter, the enforcement is done in a struts2
+</I>&gt;<i> interceptor.  The main difference is the configuration is based on
+</I>&gt;<i> annotations instead of configuration (not that one is better, some
+</I>&gt;<i> prefer annotations).
+</I>&gt;<i> 
+</I>&gt;<i> Struts2 Theme:
+</I>&gt;<i> Instead of re-writing the outgoing web-pages we changed the struts2
+</I>&gt;<i> themes to include tokens in links and forms.
+</I>&gt;<i> 
+</I>&gt;<i> Struts2 URL tag:
+</I>&gt;<i> Instead of using the jsp tags to insert tokens in custom javascript, we
+</I>&gt;<i> found that most, if not all, of our custom javascript uses URLs built by
+</I>&gt;<i> the struts2 URL tag.  So we build an extension of the tag to include the
+</I>&gt;<i> token.
+</I>&gt;<i> 
+</I>&gt;<i> Interoperability
+</I>&gt;<i> The goal is to make the CSRFGuard filter and the struts2 interceptor
+</I>&gt;<i> interchangeable.  In other words.  The CSRFGuard re-writer would work
+</I>&gt;<i> with the struts2 interceptor, or the CSRFGuard filter would work with
+</I>&gt;<i> struts2 theme.
+</I>&gt;<i> 
+</I>&gt;<i> I have a more detailed design doc.  But I wanted to get something out
+</I>&gt;<i> here to measure any interest in this project.  Please let me know what
+</I>&gt;<i> you think.
+</I>&gt;<i> 
+</I>&gt;<i> Cameron Morris, 
+</I>&gt;<i> Software Security Specialist 
+</I>&gt;<i> PartNet
+</I>-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: OWASP-CSRFGuard-2.2-partnet-build-dist.jar
+Type: application/x-java-archive
+Size: 47773 bytes
+Desc: not available
+Url : <A HREF="https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.bin">https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.bin</A> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: OWASP-CSRFGuard-2.2-partnet-build-src.zip
+Type: application/zip
+Size: 45294 bytes
+Desc: not available
+Url : <A HREF="https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.zip">https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20090820/a53a8ac1/attachment-0001.zip</A> 
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2">[ date ]</a>
+              <a href="thread.html#2">[ thread ]</a>
+              <a href="subject.html#2">[ subject ]</a>
+              <a href="author.html#2">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

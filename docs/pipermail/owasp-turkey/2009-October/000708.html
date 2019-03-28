@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-turkey] Ar&#305;zay&#305; Bul #1
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%20%3D%3Fiso-8859-3%3Fq%3FAr%3DB9zay%3DB9_Bul_%3D231%3F%3D&In-Reply-To=297cff690910120442r57865cdar717c94bc5147eedf%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000707.html">
+   <LINK REL="Next"  HREF="000705.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-turkey] Ar&#305;zay&#305; Bul #1</H1>
+    <B>Mesut Timur</B> 
+    <A HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=%5BOwasp-turkey%5D%20%3D%3Fiso-8859-3%3Fq%3FAr%3DB9zay%3DB9_Bul_%3D231%3F%3D&In-Reply-To=297cff690910120442r57865cdar717c94bc5147eedf%40mail.gmail.com"
+       TITLE="[Owasp-turkey] Ar&#305;zay&#305; Bul #1">mesut_timur at hotmail.com
+       </A><BR>
+    <I>Mon Oct 12 07:57:17 EDT 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000707.html">[Owasp-turkey] Ar&#305;zay&#305; Bul #1
+</A></li>
+        <LI>Next message: <A HREF="000705.html">[Owasp-turkey] Mactan Sonra
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#708">[ date ]</a>
+              <a href="thread.html#708">[ thread ]</a>
+              <a href="subject.html#708">[ subject ]</a>
+              <a href="author.html#708">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+
+Ben ilk gorduklerimi soyleyeyim o zaman. Javaya hakim olmadigimi belirterek baslayayim.
+
+ 
+
+
+String filename = user.downloadDirPath + separator + request.getParameter(&quot;filename&quot;); 
+reportLog.writeln(&quot;Download Request User:&quot; + user.userName + &quot; FileName:&quot; + filename);
+File f = new File(filename.trim());
+ 
+
+Burada ../../ ile yukaridaki dizinlere cikmak mumkun gibi, tabi API ekstra bir guvenlik sunmuyorsa ?? O zaman sistemden arbitrary sekilde dosyalari okumak mumkun olacaktir, muhtemelen LFI da .
+
+ 
+
+
+   response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + request.getParameter(&quot;filename&quot;) + &quot;\&quot;&quot;);
+
+Burada da Header Injection mumkun gorunuyor. HTTP Response Splitting yapilabilir.
+
+ 
+
+
+
+   reportLog.writeln(&quot;Download Request User:&quot; + user.userName + &quot; FileName:&quot; + filename);
+   reportLog.writeln(&quot;Download Response User:&quot; + user.userName + &quot; FileName:&quot; + filename + &quot; Success &quot;);
+ 
+
+reportLog'a sahte kayitlar eklemek mumkun.
+
+ 
+
+Baska bir sey cikartamadim.
+
+
+
+Mesut T&#304;MUR
+<A HREF="http://www.h-labs.org">http://www.h-labs.org</A> 
+GYTE Bilgisayar M&#252;hendisli&#287;i
+
+T&#252;rk&#231;e Web Uygulamas&#305; G&#252;venli&#287;i E-Posta Listesine &#252;ye olmak i&#231;in:
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">https://lists.owasp.org/mailman/listinfo/owasp-turkey</A>
+
+
+
+
+
+ 
+
+
+Date: Mon, 12 Oct 2009 14:42:52 +0300
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">bedirhanurgun at gmail.com</A>
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">owasp-turkey at lists.owasp.org</A>
+Subject: Re: [Owasp-turkey] Ar&#305;zay&#305; Bul #1
+
+
+:<i>) ya cok kolay geldi ya da cok zor, kestiremedim.
+</I>Asagidaki parcada benim gordugum 3 KRITIK guvenlik zafiyeti var. Java olduguna bakmayin, API'lar cok degismiyor.
+
+bedirhan
+
+10 Ekim 2009 15:49 tarihinde Bedirhan Urgun &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">bedirhanurgun at gmail.com</A>&gt; yazd&#305;:
+
+
+merhaba,
+Yazilim kaynakli guvenlik problemleri hepimizin malumu. Kod tabanli guvenlik problemlerini bulup/tartisabilecegimiz mailler gonderecegim kisa periyotlarla. Asagidaki Java parcasinda hangi guvenlik problemi(leri) var ve nasil cozulur?
+ 
+bedirhan
+ 
+Ar&#305;zay&#305; Bul #1
+--------------------
+ 
+  private void doDownload( HttpServletRequest request, HttpServletResponse response ) {
+  try {
+      
+      // get the user
+   HttpSession session = request.getSession();
+   User user = (User) session.getAttribute(UserConst.userAttr);
+   String filename = user.downloadDirPath + separator + request.getParameter(&quot;filename&quot;);
+   reportLog.writeln(&quot;Download Request User:&quot; + user.userName + &quot; FileName:&quot; + filename);
+   File f = new File(filename.trim());
+   
+   // get servlet output stream
+      ServletOutputStream op = response.getOutputStream();
+   
+   response.setContentLength((int) f.length());
+   response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + request.getParameter(&quot;filename&quot;) + &quot;\&quot;&quot;);
+   response.setHeader(&quot;Content-Type&quot;, &quot;application/octet-stream&quot;);
+   byte[] bbuf = new byte[255];
+   DataInputStream in = new DataInputStream(new FileInputStream(f));
+      
+      int length = 0;
+   while( (in != null) &amp;&amp; ((length = in.read(bbuf)) != -1) )
+    op.write(bbuf, 0, length);
+   in.close();
+   op.flush();
+   op.close();
+   
+      reportLog.writeln(&quot;Download Response User:&quot; + user.userName + &quot; FileName:&quot; + filename + &quot; Success &quot;);
+  } 
+    catch( Exception e ) {
+   SendException(e, request, response);
+  }
+ }
+
+
+
+-- 
+Bedirhan Urgun
+<A HREF="http://www.webguvenligi.org">http://www.webguvenligi.org</A>
+<A HREF="http://www.owasp.org/index.php/Turkey">http://www.owasp.org/index.php/Turkey</A>
+
+T&#252;rk&#231;e Web Uygulama G&#252;venli&#287;i E-Posta Listesine &#252;ye olmak i&#231;in: 
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-turkey">https://lists.owasp.org/mailman/listinfo/owasp-turkey</A>
+ 		 	   		  
+_________________________________________________________________
+Your E-mail and More On-the-Go. Get Windows Live Hotmail Free.
+<A HREF="http://clk.atdmt.com/GBL/go/171222985/direct/01/">http://clk.atdmt.com/GBL/go/171222985/direct/01/</A>
+-------------- sonraki b&#246;l&#252;m --------------
+Bir HTML eklentisi temizlendi...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-turkey/attachments/20091012/437956ae/attachment.html">https://lists.owasp.org/pipermail/owasp-turkey/attachments/20091012/437956ae/attachment.html</A> 
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000707.html">[Owasp-turkey] Ar&#305;zay&#305; Bul #1
+</A></li>
+	<LI>Next message: <A HREF="000705.html">[Owasp-turkey] Mactan Sonra
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#708">[ date ]</a>
+              <a href="thread.html#708">[ thread ]</a>
+              <a href="subject.html#708">[ subject ]</a>
+              <a href="author.html#708">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-turkey">More information about the Owasp-turkey
+mailing list</a><br>
+</body></html>

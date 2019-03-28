@@ -1,0 +1,288 @@
+From RBarnett at trustwave.com  Tue Apr  6 00:25:51 2004
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Tue, 06 Apr 2004 04:25:51 -0000
+Subject: [Owasp-modsecurity-core-rule-set] 981242 SQL Injection
+ detection false positives?
+In-Reply-To: <CAPrE0SZm+wnxGBrVtRFbUrjy1w0qG1T-nU_V0N+pn_Aw59vbBA@mail.gmail.com>
+Message-ID: <CA73D1CF.2FD39%rbarnett@trustwave.com>
+
+
+
+On 8/19/11 2:05 AM, "Paul McGarry" <paul at paulmcgarry.com> wrote:
+
+>On Thu, Aug 18, 2011 at 11:40 PM, Ryan Barnett <RBarnett at trustwave.com>
+>wrote:
+>
+>>>I think previously I have ended up disabling many the PHP-IDS based
+>>>rules because of the false positives.
+>>>
+>>>Is there some difference between how PHP-IDS executes the rules and
+>>>how modsecurity treats them?
+>
+>>>Similarly
+>>>3 Orchard Street
+>>>on the PHP_IDS demo is fine and
+>>>http://testing/index.php?street=3+Orchard+Street
+>>>gives me warnings (981248 on "3 Or" and 981242 on "3 Orc")
+>>
+>> The rule that triggered is not a converted PHPIDS rule but rather one
+>>that
+>> we developed as part of the SQL Injection Challenge analysis.  This
+>> particular rule is trying to identify common SQL Operators.  Examples
+>>here
+>
+>Sorry, I probably didn't help there by jumping to a different rule ID
+>for my first example.
+>The second example (quoted above) did also use PHP IDS related rules
+>which trigger in modsec but not on the PHP IDS demo site I think, I'll
+>constrain discussion to the 981242 rule for now, which in the current
+>release version is:
+>
+>======
+>SecRule
+>REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML
+>:/*
+>"(?i:(?:(\"|'|`|?|?|?)\s*x?or|div|like|between|and\s*(\"|'|`|?|?|?)?\d)|(?
+>:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|?|?|?)$)|(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:
+>[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'|`|?|?|?)))+\s*(?:n?and|x?x?or|
+>div|like|between|and|not|\|\||\&\&)\s*[\w(\"|'|`|?|?|?)[+&!@(),.-])|(?:[^\
+>w\s]\w+\s*[|-]\s*(\"|'|`|?|?|?)\s*\w)|(?:@\w+\s+(and|x?or|div|like|between
+>|and)\s*[(\"|'|`|?|?|?)\d]+)|(?:@[\w-]+\s(and|x?or|div|like|between|and)\s
+>*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\"|'|`|?|?|?).)|(?:\Winformation_s
+>chema|table_name\W))"
+>"phase:2,capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,block,
+>msg:'Detects
+>classic SQL injection probings
+>1/2',id:'981242',tag:'WEB_ATTACK/SQLI',tag:'WEB_ATTACK/ID',tag:'WEB_ATTACK
+>/LFI',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.id}-%{rule.msg}
+>',setvar:tx.anomaly_score=+6,setvar:'tx.%{tx.msg}-WEB_ATTACK/SQLI-%{matche
+>d_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/ID-%{matched_var_name
+>}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/LFI-%{matched_var_name}=%{tx.0}
+>'"
+>======
+>
+>If I understand the rule correctly it is really 8 separate,
+>independent tests in one rule.
+>Effectively:
+>
+>(?i:(\"|'|`|?|?|?)\s*x?or|div|like|between|and\s*(\"|'|`|?|?|?)?\d)
+>(?i:\\\\x(?:23|27|3d))
+>(?i:^.?(\"|'|`|?|?|?)$)
+>(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'
+>|`|?|?|?)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*[\w(\
+>"|'|`|?|?|?)[+&!@(),.-])
+>(?i:[^\w\s]\w+\s*[|-]\s*(\"|'|`|?|?|?)\s*\w)
+>(?i:@\w+\s+(and|x?or|div|like|between|and)\s*[(\"|'|`|?|?|?)\d]+)
+>(?i:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W
+>+[^\w\s]\s*(\"|'|`|?|?|?).)
+>(?i:\Winformation_schema|table_name\W)
+>
+>are all evaluated independently.
+>
+>What are the advantages to combining these into one rule?
+>
+>From my perspective there are some obvious downsides eg:
+>1) Makes the rule more opaque when trying to understand it.
+>2) Makes determining exactly what a particular exception is caused by
+>more difficult.
+>3) Makes rule removal more risky, ie if I need remove the rule
+>(perhaps to allow "3 Orchard" which the 4th regex picks up) then I
+>forgo a bunch of other checks that may still be useful.
+>It would seem to me that the simpler the rules can be the more
+>oversight of the rules there will be from people interested in the
+>area. A lot of the posts to the list seem to be of the "how do I
+>disable X" sort, perhaps because they take one look at the rule and
+>put it in the too hard basket. They might be more inclined to try and
+>improve them if they are more readily understandable.
+>
+>
+>Specifically for the 4th regex which is one I have butted up against:
+>
+>(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'
+>|`|?|?|?)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*[\w(\
+>"|'|`|?|?|?)[+&!@(),.-])
+>
+>
+>1) Some of the () grouping in the regex seems to obfuscate rather than
+>assist understanding, ie are the following the same (I am certainly
+>not a regex expert):
+>^[(\"|'|`|?|?|?)\\\\]*
+>^[\"'`???\\\\]*
+>
+>2) What are the four \ in the same class, doesn't it just produce two
+>literal \ in the class the second one being redundant?
+>
+>3) Is the "x?x?" intentional? If so why and should other areas only
+>checking for xor also check for xxor?
+>
+>4) Is it wise to try and handle word operators (or, and, not) in the
+>same rule code as symbol operators || and &&?
+>I think this might be the underlying root of my false positive as SQL
+>parsers will likely deal with them differently.
+>Ie no SQL parser (I hope) is going to see "3 Orchard" and interpret
+>the c as the start of a new word, whereas "3 ||chard" likely would and
+>could lead to exploitation (perhaps "3 Ortrue" and "3 ||true" is a
+>clearer example).
+>It seems that tighter regexs with less false positives could be
+>written if lexically different operators were treated separately.
+
+Paul,
+You bring up some good points.  We will go back and review those SQLi
+rules.  The main issue that we have is that we wanted to try and have a
+phpids default_filter.xml translation to ModSecurity rules that did NOT
+using Lua.  We had originally translated the phpids Converter.php code
+(which does the normalizations) to Lua and then we were able to use the
+exact same regexs from phpids.  We found two issues with this approach -
+
+1) During the SQLi Challenge, we found that some payloads were causing the
+Lua script to abort.  We obviously need to QA the script better...
+2) Most ModSecurity users don't want to run Lua.
+
+So, we opted to try and adjust the phpids regexes to account for the
+normalization of Converter.php.  This was a crude approach and there are
+some bugs we need to fix.
+
+As for combining these regexes into 1 - this was done by phpids to group
+filters that targeted similar attacks.  We could see about breaking them
+out but the downside for us is management as we want to update our filters
+whenever phpids updates theirs.
+
+We will see what we can do to make these easier to read though.
+
+-Ryan
+
+>
+>Paul
+>
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From paul at paulmcgarry.com  Tue Apr  6 00:37:08 2004
+From: paul at paulmcgarry.com (Paul McGarry)
+Date: Tue, 06 Apr 2004 04:37:08 -0000
+Subject: [Owasp-modsecurity-core-rule-set] 981242 SQL Injection
+ detection false positives?
+In-Reply-To: <CA728B8E.2FAF4%rbarnett@trustwave.com>
+References: <CAPrE0SZ2y1DZXRysYeoo_-xUNNfELBzr-NO8fQq9QZVDAg1T=A@mail.gmail.com>
+	<CA728B8E.2FAF4%rbarnett@trustwave.com>
+Message-ID: <CAPrE0SZm+wnxGBrVtRFbUrjy1w0qG1T-nU_V0N+pn_Aw59vbBA@mail.gmail.com>
+
+On Thu, Aug 18, 2011 at 11:40 PM, Ryan Barnett <RBarnett at trustwave.com> wrote:
+
+>>I think previously I have ended up disabling many the PHP-IDS based
+>>rules because of the false positives.
+>>
+>>Is there some difference between how PHP-IDS executes the rules and
+>>how modsecurity treats them?
+
+>>Similarly
+>>3 Orchard Street
+>>on the PHP_IDS demo is fine and
+>>http://testing/index.php?street=3+Orchard+Street
+>>gives me warnings (981248 on "3 Or" and 981242 on "3 Orc")
+>
+> The rule that triggered is not a converted PHPIDS rule but rather one that
+> we developed as part of the SQL Injection Challenge analysis. ?This
+> particular rule is trying to identify common SQL Operators. ?Examples here
+
+Sorry, I probably didn't help there by jumping to a different rule ID
+for my first example.
+The second example (quoted above) did also use PHP IDS related rules
+which trigger in modsec but not on the PHP IDS demo site I think, I'll
+constrain discussion to the 981242 rule for now, which in the current
+release version is:
+
+======
+SecRule REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/*
+"(?i:(?:(\"|'|`|?|?|?)\s*x?or|div|like|between|and\s*(\"|'|`|?|?|?)?\d)|(?:\\\\x(?:23|27|3d))|(?:^.?(\"|'|`|?|?|?)$)|(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'|`|?|?|?)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*[\w(\"|'|`|?|?|?)[+&!@(),.-])|(?:[^\w\s]\w+\s*[|-]\s*(\"|'|`|?|?|?)\s*\w)|(?:@\w+\s+(and|x?or|div|like|between|and)\s*[(\"|'|`|?|?|?)\d]+)|(?:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\"|'|`|?|?|?).)|(?:\Winformation_schema|table_name\W))"
+"phase:2,capture,multiMatch,t:none,t:urlDecodeUni,t:replaceComments,block,msg:'Detects
+classic SQL injection probings
+1/2',id:'981242',tag:'WEB_ATTACK/SQLI',tag:'WEB_ATTACK/ID',tag:'WEB_ATTACK/LFI',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.id}-%{rule.msg}',setvar:tx.anomaly_score=+6,setvar:'tx.%{tx.msg}-WEB_ATTACK/SQLI-%{matched_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/ID-%{matched_var_name}=%{tx.0}',setvar:'tx.%{tx.msg}-WEB_ATTACK/LFI-%{matched_var_name}=%{tx.0}'"
+======
+
+If I understand the rule correctly it is really 8 separate,
+independent tests in one rule.
+Effectively:
+
+(?i:(\"|'|`|?|?|?)\s*x?or|div|like|between|and\s*(\"|'|`|?|?|?)?\d)
+(?i:\\\\x(?:23|27|3d))
+(?i:^.?(\"|'|`|?|?|?)$)
+(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'|`|?|?|?)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*[\w(\"|'|`|?|?|?)[+&!@(),.-])
+(?i:[^\w\s]\w+\s*[|-]\s*(\"|'|`|?|?|?)\s*\w)
+(?i:@\w+\s+(and|x?or|div|like|between|and)\s*[(\"|'|`|?|?|?)\d]+)
+(?i:@[\w-]+\s(and|x?or|div|like|between|and)\s*[^\w\s])|(?:[^\w\s:]\s*\d\W+[^\w\s]\s*(\"|'|`|?|?|?).)
+(?i:\Winformation_schema|table_name\W)
+
+are all evaluated independently.
+
+What are the advantages to combining these into one rule?
+
+>From my perspective there are some obvious downsides eg:
+1) Makes the rule more opaque when trying to understand it.
+2) Makes determining exactly what a particular exception is caused by
+more difficult.
+3) Makes rule removal more risky, ie if I need remove the rule
+(perhaps to allow "3 Orchard" which the 4th regex picks up) then I
+forgo a bunch of other checks that may still be useful.
+It would seem to me that the simpler the rules can be the more
+oversight of the rules there will be from people interested in the
+area. A lot of the posts to the list seem to be of the "how do I
+disable X" sort, perhaps because they take one look at the rule and
+put it in the too hard basket. They might be more inclined to try and
+improve them if they are more readily understandable.
+
+
+Specifically for the 4th regex which is one I have butted up against:
+
+(?:(?:^[(\"|'|`|?|?|?)\\\\]*(?:[\d(\"|'|`|?|?|?)]+|[^(\"|'|`|?|?|?)]+(\"|'|`|?|?|?)))+\s*(?:n?and|x?x?or|div|like|between|and|not|\|\||\&\&)\s*[\w(\"|'|`|?|?|?)[+&!@(),.-])
+
+
+1) Some of the () grouping in the regex seems to obfuscate rather than
+assist understanding, ie are the following the same (I am certainly
+not a regex expert):
+^[(\"|'|`|?|?|?)\\\\]*
+^[\"'`???\\\\]*
+
+2) What are the four \ in the same class, doesn't it just produce two
+literal \ in the class the second one being redundant?
+
+3) Is the "x?x?" intentional? If so why and should other areas only
+checking for xor also check for xxor?
+
+4) Is it wise to try and handle word operators (or, and, not) in the
+same rule code as symbol operators || and &&?
+I think this might be the underlying root of my false positive as SQL
+parsers will likely deal with them differently.
+Ie no SQL parser (I hope) is going to see "3 Orchard" and interpret
+the c as the start of a new word, whereas "3 ||chard" likely would and
+could lead to exploitation (perhaps "3 Ortrue" and "3 ||true" is a
+clearer example).
+It seems that tighter regexs with less false positives could be
+written if lexically different operators were treated separately.
+
+Paul
+
+From RBarnett at trustwave.com  Sat Apr 10 04:42:40 2004
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 10 Apr 2004 08:42:40 -0000
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Advanced Topic of the
+	Week: (Updated) Exception Handling
+Message-ID: <CA796E73.301F1%rbarnett@trustwave.com>
+
+I updated the blog post to highlight the new exception handling capabilities of v2.6.0 with the SecRuleUpdateTargetById directive (and it's ctl equivalent) -
+http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+These make local exceptions much easier.
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+

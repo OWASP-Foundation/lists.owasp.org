@@ -1,0 +1,36 @@
+From rgural at ups.com  Fri Apr 27 12:33:13 2018
+From: rgural at ups.com (rgural at ups.com)
+Date: Fri, 27 Apr 2018 12:33:13 +0000
+Subject: [Owasp-java-encoder-project] JSON Output Encoding
+Message-ID: <3b3b4dcc1b0d444d944a2331cac9c40c@SVRP0004CB23.us.ups.com>
+
+OWASP Java Encoder Project Team:
+Hi ? we are having trouble finding a standard library for JSON output encoding.  I was happy to see that OWASP had a program for output encoders to tackle common XSS exploits.  I was hoping there was one to handle our use case.
+
+OWASP XSS (Cross Site Scripting) Prevention Cheat Sheet confirms what our InfoSec team is telling us for output encoding for JSON payloads, namely: [cid:image001.png at 01D3DDFE.26043D00]
+Though this talks about JavaScript specifically, I?ve seen where it applies to JSON.  IETF RFC 8259 section 7 talks about the correctness of supplying \uXXXX substitution if necessary.
+I saw that the org.owasp.encoder.Encode. forJavaScript method does include JSON in its scope (from JavaDoc):
+
+?         ?public static String<http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html?is-external=true> forJavaScript(String<http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html?is-external=true> input)
+
+Encodes for a JavaScript string. It is safe for use in HTML script attributes (such as onclick), script blocks, JSON files, and JavaScript source.
+?
+However the encoding provided does not change the encoding for non-alphanumeric characters to \uXXXX form but instead I see some characters (but not all I was hoping for ? though the document confirms the smaller scope) converted to \xDD form.  For instance:
+String jSON = forJavascript("{\"Name\" : \"!<[(!@Evil_Script#$)]>???? ???????? ??????? ? ??????????\"}");
+is converted to
+Encoded JSON = {\x22Name\x22 : \x22!<[(!@Evil_Script#$)]>???? ???????? ??????? ? ??????????\x16\x22}
+
+If there are no current encoders for JSON as described above, are there any plans to support a JSON encoder that can implement the XSS Prevention talked about above?  Does alphanumeric mean [a-z,A-Z,0-9] only or is it alphanumeric in any language?  Our InfoSec team interprets the meaning of the guidelines as the smaller alpha scope.  Any advice your members can provide would be of great benefit to us.
+Thanks,
+Roman
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20180427/47fb15fa/attachment.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: image001.png
+Type: image/png
+Size: 4554 bytes
+Desc: image001.png
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20180427/47fb15fa/attachment.png>
+

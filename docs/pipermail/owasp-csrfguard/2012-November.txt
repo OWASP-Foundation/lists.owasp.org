@@ -1,0 +1,509 @@
+From kgarryster at gmail.com  Mon Nov  5 12:47:26 2012
+From: kgarryster at gmail.com (Gaurav Katiyar)
+Date: Mon, 5 Nov 2012 12:47:26 +0000
+Subject: [Owasp-csrfguard] Possible bug in InterceptRedirectResponse class
+Message-ID: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+
+Hi All,
+
+I am using the CSRF Guard project in a web application and I think
+there is a bug in the latest code.
+
+https://github.com/esheri3/OWASP-CSRFGuard/blame/master/Owasp.CsrfGuard/src/org/owasp/csrfguard/http/InterceptRedirectResponse.java
+
+The class InterceptRedirectResponse on line 21 has the following
+
+if (!location.contains("://") && (csrfGuard.isProtectedPage(location)
+|| csrfGuard.isUnprotectedMethod("GET"))) {
+
+// code to add the token to the redirected URL
+
+}
+
+which says if redirect is to same domain and if page is protected or
+GET is not protected then add the token to the URL
+
+but I think it should be
+
+if redirect is to same domain and if the page is protected and GET is
+protected then add the csrf token.
+
+if (!location.contains("://") && csrfGuard.isProtectedPage(location)
+&& !csrfGuard.isUnprotectedMethod("GET")) {
+
+// code to add the token to the redirected URL
+
+}
+
+Have I understood this incorrectly?
+
+Please help.
+
+Thanks,
+Gaurav
+
+From eric.sheridan at owasp.org  Mon Nov  5 13:27:28 2012
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Mon, 05 Nov 2012 08:27:28 -0500
+Subject: [Owasp-csrfguard] Possible bug in InterceptRedirectResponse
+	class
+In-Reply-To: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+References: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+Message-ID: <5097BEC0.1030404@owasp.org>
+
+I think you understand it correctly. Care to submit a patch/pull request?
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 11/5/12 7:47 AM, Gaurav Katiyar wrote:
+> Hi All,
+> 
+> I am using the CSRF Guard project in a web application and I think
+> there is a bug in the latest code.
+> 
+> https://github.com/esheri3/OWASP-CSRFGuard/blame/master/Owasp.CsrfGuard/src/org/owasp/csrfguard/http/InterceptRedirectResponse.java
+> 
+> The class InterceptRedirectResponse on line 21 has the following
+> 
+> if (!location.contains("://") && (csrfGuard.isProtectedPage(location)
+> || csrfGuard.isUnprotectedMethod("GET"))) {
+> 
+> // code to add the token to the redirected URL
+> 
+> }
+> 
+> which says if redirect is to same domain and if page is protected or
+> GET is not protected then add the token to the URL
+> 
+> but I think it should be
+> 
+> if redirect is to same domain and if the page is protected and GET is
+> protected then add the csrf token.
+> 
+> if (!location.contains("://") && csrfGuard.isProtectedPage(location)
+> && !csrfGuard.isUnprotectedMethod("GET")) {
+> 
+> // code to add the token to the redirected URL
+> 
+> }
+> 
+> Have I understood this incorrectly?
+> 
+> Please help.
+> 
+> Thanks,
+> Gaurav
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+
+From Jason.Lindquist at securian.com  Mon Nov  5 13:51:38 2012
+From: Jason.Lindquist at securian.com (Jason.Lindquist at securian.com)
+Date: Mon, 5 Nov 2012 07:51:38 -0600
+Subject: [Owasp-csrfguard] Possible bug in
+	InterceptRedirectResponse	class
+In-Reply-To: <5097BEC0.1030404@owasp.org>
+References: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+	<5097BEC0.1030404@owasp.org>
+Message-ID: <OF15B36AC1.9E690CA6-ON86257AAD.004C0792-86257AAD.004C2368@securian.com>
+
+See the following pull request which fixes this issue: 
+https://github.com/esheri3/OWASP-CSRFGuard/pull/30 
+
+
+
+Jason C Lindquist
+Sr. Analyst, Development Support, Information Technology  ?  Securian 
+Financial Group
+400 Robert Street North  ?  St. Paul, MN 55101-2098
+651-665-5771
+jason.lindquist at securian.com  ?  www.securian.com
+
+Securian Financial Group ? Financial security for the long run ?
+
+
+This email transmission and any file attachments may contain confidential 
+information intended solely for the use of the individual or entity to 
+whom it is addressed. If you have received this email message in error, 
+please notify the sender and delete this email from your system. If you 
+are not the intended recipient, you may not disclose, copy, or distribute 
+the contents of this email. 
+
+
+
+From:   Eric Sheridan <eric.sheridan at owasp.org>
+To:     owasp-csrfguard at lists.owasp.org
+Date:   11/05/2012 07:27 AM
+Subject:        Re: [Owasp-csrfguard] Possible bug in 
+InterceptRedirectResponse       class
+Sent by:        owasp-csrfguard-bounces at lists.owasp.org
+
+
+
+I think you understand it correctly. Care to submit a patch/pull request?
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 11/5/12 7:47 AM, Gaurav Katiyar wrote:
+> Hi All,
+> 
+> I am using the CSRF Guard project in a web application and I think
+> there is a bug in the latest code.
+> 
+> 
+https://github.com/esheri3/OWASP-CSRFGuard/blame/master/Owasp.CsrfGuard/src/org/owasp/csrfguard/http/InterceptRedirectResponse.java
+
+> 
+> The class InterceptRedirectResponse on line 21 has the following
+> 
+> if (!location.contains("://") && (csrfGuard.isProtectedPage(location)
+> || csrfGuard.isUnprotectedMethod("GET"))) {
+> 
+> // code to add the token to the redirected URL
+> 
+> }
+> 
+> which says if redirect is to same domain and if page is protected or
+> GET is not protected then add the token to the URL
+> 
+> but I think it should be
+> 
+> if redirect is to same domain and if the page is protected and GET is
+> protected then add the csrf token.
+> 
+> if (!location.contains("://") && csrfGuard.isProtectedPage(location)
+> && !csrfGuard.isUnprotectedMethod("GET")) {
+> 
+> // code to add the token to the redirected URL
+> 
+> }
+> 
+> Have I understood this incorrectly?
+> 
+> Please help.
+> 
+> Thanks,
+> Gaurav
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121105/0a807104/attachment.html>
+
+From kgarryster at gmail.com  Mon Nov  5 14:16:18 2012
+From: kgarryster at gmail.com (Gaurav Katiyar)
+Date: Mon, 5 Nov 2012 14:16:18 +0000
+Subject: [Owasp-csrfguard] Possible bug in InterceptRedirectResponse
+	class
+In-Reply-To: <5097BEC0.1030404@owasp.org>
+References: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+	<5097BEC0.1030404@owasp.org>
+Message-ID: <CAEmOuTNR0cbim4DGgiPw5NU2kobFpPV02_pOiT2pXU_e012TQQ@mail.gmail.com>
+
+Just noticed that there is already a pull request from jason-lindquist
+which addresses this bug (#30).
+
+Any Ideas when this will be merged to the master.
+
+Thanks,
+
+On 5 November 2012 13:27, Eric Sheridan <eric.sheridan at owasp.org> wrote:
+> I think you understand it correctly. Care to submit a patch/pull request?
+>
+> Sincerely,
+> Eric Sheridan
+> (twitter) @eric_sheridan
+> (blog) http://ericsheridan.blogspot.com
+>
+> On 11/5/12 7:47 AM, Gaurav Katiyar wrote:
+>> Hi All,
+>>
+>> I am using the CSRF Guard project in a web application and I think
+>> there is a bug in the latest code.
+>>
+>> https://github.com/esheri3/OWASP-CSRFGuard/blame/master/Owasp.CsrfGuard/src/org/owasp/csrfguard/http/InterceptRedirectResponse.java
+>>
+>> The class InterceptRedirectResponse on line 21 has the following
+>>
+>> if (!location.contains("://") && (csrfGuard.isProtectedPage(location)
+>> || csrfGuard.isUnprotectedMethod("GET"))) {
+>>
+>> // code to add the token to the redirected URL
+>>
+>> }
+>>
+>> which says if redirect is to same domain and if page is protected or
+>> GET is not protected then add the token to the URL
+>>
+>> but I think it should be
+>>
+>> if redirect is to same domain and if the page is protected and GET is
+>> protected then add the csrf token.
+>>
+>> if (!location.contains("://") && csrfGuard.isProtectedPage(location)
+>> && !csrfGuard.isUnprotectedMethod("GET")) {
+>>
+>> // code to add the token to the redirected URL
+>>
+>> }
+>>
+>> Have I understood this incorrectly?
+>>
+>> Please help.
+>>
+>> Thanks,
+>> Gaurav
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+From eric.sheridan at owasp.org  Mon Nov  5 16:24:22 2012
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Mon, 05 Nov 2012 11:24:22 -0500
+Subject: [Owasp-csrfguard] Possible bug in InterceptRedirectResponse
+	class
+In-Reply-To: <CAEmOuTNR0cbim4DGgiPw5NU2kobFpPV02_pOiT2pXU_e012TQQ@mail.gmail.com>
+References: <CAEmOuTN5oq2hn7XLSgi1Wgv8dMD1VFmGHd2v9fo9TXksgaJNMg@mail.gmail.com>
+	<5097BEC0.1030404@owasp.org>
+	<CAEmOuTNR0cbim4DGgiPw5NU2kobFpPV02_pOiT2pXU_e012TQQ@mail.gmail.com>
+Message-ID: <5097E836.3010700@owasp.org>
+
+I just merged them - apologies for the delay.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 11/5/12 9:16 AM, Gaurav Katiyar wrote:
+> Just noticed that there is already a pull request from jason-lindquist
+> which addresses this bug (#30).
+> 
+> Any Ideas when this will be merged to the master.
+> 
+> Thanks,
+> 
+> On 5 November 2012 13:27, Eric Sheridan <eric.sheridan at owasp.org> wrote:
+>> I think you understand it correctly. Care to submit a patch/pull request?
+>>
+>> Sincerely,
+>> Eric Sheridan
+>> (twitter) @eric_sheridan
+>> (blog) http://ericsheridan.blogspot.com
+>>
+>> On 11/5/12 7:47 AM, Gaurav Katiyar wrote:
+>>> Hi All,
+>>>
+>>> I am using the CSRF Guard project in a web application and I think
+>>> there is a bug in the latest code.
+>>>
+>>> https://github.com/esheri3/OWASP-CSRFGuard/blame/master/Owasp.CsrfGuard/src/org/owasp/csrfguard/http/InterceptRedirectResponse.java
+>>>
+>>> The class InterceptRedirectResponse on line 21 has the following
+>>>
+>>> if (!location.contains("://") && (csrfGuard.isProtectedPage(location)
+>>> || csrfGuard.isUnprotectedMethod("GET"))) {
+>>>
+>>> // code to add the token to the redirected URL
+>>>
+>>> }
+>>>
+>>> which says if redirect is to same domain and if page is protected or
+>>> GET is not protected then add the token to the URL
+>>>
+>>> but I think it should be
+>>>
+>>> if redirect is to same domain and if the page is protected and GET is
+>>> protected then add the csrf token.
+>>>
+>>> if (!location.contains("://") && csrfGuard.isProtectedPage(location)
+>>> && !csrfGuard.isUnprotectedMethod("GET")) {
+>>>
+>>> // code to add the token to the redirected URL
+>>>
+>>> }
+>>>
+>>> Have I understood this incorrectly?
+>>>
+>>> Please help.
+>>>
+>>> Thanks,
+>>> Gaurav
+>>> _______________________________________________
+>>> Owasp-csrfguard mailing list
+>>> Owasp-csrfguard at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>>>
+>> _______________________________________________
+>> Owasp-csrfguard mailing list
+>> Owasp-csrfguard at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+From argenstijn at hotmail.com  Thu Nov  8 12:05:19 2012
+From: argenstijn at hotmail.com (Amon Amon)
+Date: Thu, 8 Nov 2012 12:05:19 +0000
+Subject: [Owasp-csrfguard] Feature request + question
+Message-ID: <SNT135-W249C912E4663DE642898D0DA690@phx.gbl>
+
+
+Hi Eric,
+
+I have a feature request:
+
+A response filter which add a token to all A and/or FORM elements.
+
+This means your component works independently of any framework. The javascript solution is also absolute!. And it means almost no configuration.
+
+Also. When do you build a new version of your component?
+
+
+Greetings,
+Amon
+
+
+
+
+
+
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121108/2021e895/attachment.html>
+
+From manchandap at yahoo.com  Thu Nov 29 07:04:03 2012
+From: manchandap at yahoo.com (P Manchanda)
+Date: Wed, 28 Nov 2012 23:04:03 -0800 (PST)
+Subject: [Owasp-csrfguard] CSRFGuard and protecting links of pages sent out
+	in emails
+In-Reply-To: <1354172510.11032.YahooMailNeo@web162604.mail.bf1.yahoo.com>
+References: <1354172510.11032.YahooMailNeo@web162604.mail.bf1.yahoo.com>
+Message-ID: <1354172643.12164.YahooMailNeo@web162602.mail.bf1.yahoo.com>
+
+Hi,
+
+
+I have one query related to implementing CSRFGuard Filter. I am not sure if this mailing list is the correct place to do so. If this mailing list is not the correct place, please guide me about posting my query.
+
+My Query:
+
+We implemented OWASP's CSRFGuard to protect our pages in the web application. For example */myCsrfProtected.jsp. We have injected CSRF token at all occurrences of */myCsrfProtected.jsp within the application. Everything works fine.
+
+However, we have other use case where the link to this protected page is sent out to users in an email. Think about a link to a report. Now when user clicks on this link, the token is missing or invalid and hence the CSRFGuard filter blocks the request assuming this to be a CSRF attack. (this is what filter has been implemented for :-) )
+
+
+Is there any way to handle this use case and allow access to CSRF protected page from outside the application. 
+ 
+?
+___________________ 
+Thks & brgds 
+P Manchanda
+Mobile: +91-9811210374 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121128/376cebcc/attachment.html>
+
+From fernandomayoral at uxorit.com  Thu Nov 29 14:23:07 2012
+From: fernandomayoral at uxorit.com (Fernando Mayoral)
+Date: Thu, 29 Nov 2012 11:23:07 -0300
+Subject: [Owasp-csrfguard] CSRFGuard and protecting links of pages sent
+	out
+Message-ID: <25DCD69978FA134B98904EA9A2D2055CDD4059@vm-ws2003.nextit.local>
+
+Hi, 
+
+I believe that what you need is a custom unprotected page which injects
+the token and redirect to the protected page, but then any user could
+
+get access, so you also need to generate an unique key per mail, store
+it (maybe with an expiration date and an access count?), and append the
+
+key as a parameter in the link to your unprotected landing page, so
+when you get the http request you can recover the key and validate it in
+
+
+order to verify that the user is someone who received the email, and
+redirect him to the protected page.
+
+ 
+
+Or, if that page isn't supposed to be protected, you can just exclude it
+in Owasp.CsrfGuard.properties as 
+org.owasp.csrfguard.unprotected.mypage=/myUnprotectedPage.jsp
+
+ 
+
+Hope it helps!
+
+ 
+
+ 
+
+ Fernando Mayoral
+
+ Desarrollador de Software
+
+ fernandomayoral at uxorit.com <mailto:fernandomayoral at uxorit.com> 
+ Skype: fernandomayoral.uxorit
+
+ 
+
+ Sinclair 3139 Piso 2
+ C1425DGU, Buenos Aires, Argentina
+ 54 11 4782.9659
+
+ La Rioja 2071 Piso 8
+ B7600GTL, Mar del Plata, Argentina
+ 54 22 3491.9250
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121129/6bc9d33f/attachment.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: image001.gif
+Type: image/gif
+Size: 1587 bytes
+Desc: image001.gif
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121129/6bc9d33f/attachment.gif>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: image002.jpg
+Type: image/jpeg
+Size: 2577 bytes
+Desc: image002.jpg
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121129/6bc9d33f/attachment.jpg>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: image003.gif
+Type: image/gif
+Size: 515 bytes
+Desc: image003.gif
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20121129/6bc9d33f/attachment-0001.gif>
+

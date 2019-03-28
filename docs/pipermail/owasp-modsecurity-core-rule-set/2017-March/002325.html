@@ -1,0 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Send back the correct response code
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Send%20back%20the%20correct%0A%20response%20code&In-Reply-To=%3C20170328112233.zri2kilshixqlexq%40leander%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002324.html">
+   <LINK REL="Next"  HREF="002326.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Send back the correct response code</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Send%20back%20the%20correct%0A%20response%20code&In-Reply-To=%3C20170328112233.zri2kilshixqlexq%40leander%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Send back the correct response code">christian.folini at netnea.com
+       </A><BR>
+    <I>Tue Mar 28 11:22:33 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002324.html">[Owasp-modsecurity-core-rule-set] Send back the correct response code
+</A></li>
+        <LI>Next message: <A HREF="002326.html">[Owasp-modsecurity-core-rule-set] Up next Monday: CRS chat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2325">[ date ]</a>
+              <a href="thread.html#2325">[ thread ]</a>
+              <a href="subject.html#2325">[ subject ]</a>
+              <a href="author.html#2325">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sheldon,
+
+The default action does not really matter much in this regard. You
+can oversteer it in your rules. I really do not see the issue.
+
+Somebody else understands the problem correctly?
+
+Ahoj,
+
+Christian
+
+On Mon, Mar 27, 2017 at 02:28:33PM +0000, Briand, Sheldon (NRC/CNRC) wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> Still playing with this one.  I can set my status in a rule (based on the backup tomcat status) but ultimately the user sees a 403 no matter what I do.
+</I>&gt;<i> 
+</I>&gt;<i> I'm guess it is because of the default disruptive action when a deny action is in effect.  The default action is to send a 403.  I see in RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf there are ways to change the default action.
+</I>&gt;<i> 
+</I>&gt;<i> Is there a way of saying: if backend_status is XXX then set the SetRuleUpdateActionById to a relevant rule? (Is that the best way to handle what I want to do?) I assume I would do that in the RESPONSE-999-EXCLUSION conf file.
+</I>&gt;<i> 
+</I>&gt;<i> Thanks,
+</I>&gt;<i> -Sheldon
+</I>&gt;<i> 
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">folini at netnea.com</A> [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">folini at netnea.com</A>] 
+</I>&gt;<i> Sent: Wednesday, March 01, 2017 5:28 PM
+</I>&gt;<i> To: Briand, Sheldon (NRC/CNRC) &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">sheldon.briand at canada.ca</A>&gt;
+</I>&gt;<i> Cc: Christian Folini &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>&gt;
+</I>&gt;<i> Subject: RE: [Owasp-modsecurity-core-rule-set] Send back the correct response code
+</I>&gt;<i> 
+</I>&gt;<i> Hey Sheldon,
+</I>&gt;<i> 
+</I>&gt;<i> Your rule work in phase 4. But in phase 4, the status header is already sent out. If you want to manipulate it, you need to do this in phase 3.
+</I>&gt;<i> 
+</I>&gt;<i> Ahoj,
+</I>&gt;<i> 
+</I>&gt;<i> Christian
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks for the suggestions so far.  I haven't managed to make it work 
+</I>&gt;<i> &gt; and just wanted to see if what I did makes sense.  (BTW backend server 
+</I>&gt;<i> &gt; is
+</I>&gt;<i> &gt; tomcat)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I put the following rule in a local.conf in the rules directory:
+</I>&gt;<i> &gt; SecRule RESPONSE_HEADERS:status &quot;^(.*?)$&quot;
+</I>&gt;<i> &gt; &quot;phase:3,pass,id:1,setvar:tx.backend_status=%{MATCHED_VAR}&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I changed RESPONSE-959-BLOCKING-EVALUATION.conf:
+</I>&gt;<i> &gt; SecRule TX:OUTBOUND_ANOMALY_SCORE &quot;@ge 
+</I>&gt;<i> &gt; %{tx.outbound_anomaly_score_threshold}&quot; \
+</I>&gt;<i> &gt;   &quot;phase:4,\
+</I>&gt;<i> &gt;   id:959100,\
+</I>&gt;<i> &gt;   tag:'anomaly-evaluation',\
+</I>&gt;<i> &gt;   t:none,\
+</I>&gt;<i> &gt;   deny,\
+</I>&gt;<i> &gt;   status:%{TX.backend_status}&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; RESPONSE-952-DATA-LEAKAGES-JAVA.conf:
+</I>&gt;<i> &gt; SecRule RESPONSE_BODY &quot;@pmFromFile java-code-leakages.data&quot; \
+</I>&gt;<i> &gt;         &quot;phase:4,\
+</I>&gt;<i> &gt;         rev:'3',\
+</I>&gt;<i> &gt;         ver:'OWASP_CRS/3.0.0',\
+</I>&gt;<i> &gt;         maturity:'9',\
+</I>&gt;<i> &gt;         accuracy:'9',\
+</I>&gt;<i> &gt;         t:none,\
+</I>&gt;<i> &gt;         capture,\
+</I>&gt;<i> &gt;         ctl:auditLogParts=+E,\
+</I>&gt;<i> &gt;         block,\
+</I>&gt;<i> &gt;         msg:'Java Source Code Leakage',\
+</I>&gt;<i> &gt;         logdata:'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}:
+</I>&gt;<i> &gt; %{MATCHED_VAR}',\
+</I>&gt;<i> &gt;         id:952100,\
+</I>&gt;<i> &gt;         tag:'application-multi',\
+</I>&gt;<i> &gt;         tag:'language-java',\
+</I>&gt;<i> &gt;         tag:'platform-multi',\
+</I>&gt;<i> &gt;         tag:'attack-disclosure',\
+</I>&gt;<i> &gt;         tag:'OWASP_CRS/LEAKAGE/SOURCE_CODE_JAVA',\
+</I>&gt;<i> &gt;         tag:'WASCTC/WASC-13',\
+</I>&gt;<i> &gt;         tag:'OWASP_TOP_10/A6',\
+</I>&gt;<i> &gt;         tag:'PCI/6.5.6',\
+</I>&gt;<i> &gt;         severity:'ERROR',\
+</I>&gt;<i> &gt;         setvar:'tx.msg=Access denied with code %{tx.backend_status}',\
+</I>&gt;<i> &gt;         setvar:tx.outbound_anomaly_score=+%{tx.error_anomaly_score},\
+</I>&gt;<i> &gt;         setvar:tx.anomaly_score=+%{tx.error_anomaly_score},\
+</I>&gt;<i> &gt;         setvar:tx.%{rule.id}-OWASP_CRS/LEAKAGE/SOURCE_CODE-%{matched_var_name}=%{tx.0}&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm seeing errors like this where the status isn't passed:
+</I>&gt;<i> &gt; Message: Access denied with code 403 (phase 4). Matched phrase 
+</I>&gt;<i> &gt; &quot;javax.servlet&quot; a t RESPONSE_BODY. [file 
+</I>&gt;<i> &gt; &quot;/etc/httpd/modsecurity.d/owasp-modsecurity-crs/rules/RES
+</I>&gt;<i> &gt; PONSE-952-DATA-LEAKAGES-JAVA.conf&quot;] [line &quot;50&quot;] [id &quot;952100&quot;] [rev 
+</I>&gt;<i> &gt; &quot;3&quot;] [msg &quot;Ja va Source Code Leakage&quot;] [data &quot;Matched Data: 
+</I>&gt;<i> &gt; javax.servlet found within RESPONS
+</I>&gt;<i> &gt; E_BODY: &lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;title&gt;Apache Tomcat/8.0.41 - Error 
+</I>&gt;<i> &gt; report&lt;/t
+</I>&gt;<i> &gt; itle&gt;&lt;style type=\x22text/css\x22&gt;H1
+</I>&gt;<i> &gt; {font-family:Tahoma,Arial,sans-serif;color:
+</I>&gt;<i> &gt; white;background-color:#525D76;font-size:22px;} H2 
+</I>&gt;<i> &gt; {font-family:Tahoma,Arial,san 
+</I>&gt;<i> &gt; s-serif;color:white;background-color:#525D76;font-size:16px;} H3 
+</I>&gt;<i> &gt; {font-family:Ta 
+</I>&gt;<i> &gt; homa,Arial,sans-serif;color:white;background-color:#525D76;font-size:1
+</I>&gt;<i> &gt; 4px;}
+</I>&gt;<i> &gt; BODY
+</I>&gt;<i> &gt;  {font-family:Tahoma,Arial,sans-serif;color:black;background-...&quot;]
+</I>&gt;<i> &gt; [severity &quot;ER
+</I>&gt;<i> &gt; ROR&quot;] [ver &quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;9&quot;] [accuracy &quot;9&quot;] [tag 
+</I>&gt;<i> &gt; &quot;application-mu lti&quot;] [tag &quot;language-java&quot;] [tag &quot;platform-multi&quot;] 
+</I>&gt;<i> &gt; [tag &quot;attack-disclosure&quot;] [ta g &quot;OWASP_CRS/LEAKAGE/SOURCE_CODE_JAVA&quot;] 
+</I>&gt;<i> &gt; [tag &quot;WASCTC/WASC-13&quot;] [tag &quot;OWA
+</I>&gt;<i> &gt; Message: Warning. Operator GE matched 4 at TX:outbound_anomaly_score.
+</I>&gt;<i> &gt; [file &quot;/et
+</I>&gt;<i> &gt; c/httpd/modsecurity.d/owasp-modsecurity-crs/rules/RESPONSE-980-CORRELATION.conf&quot;
+</I>&gt;<i> &gt; ] [line &quot;82&quot;] [id &quot;980140&quot;] [msg &quot;Outbound Anomaly Score Exceeded 
+</I>&gt;<i> &gt; (score
+</I>&gt;<i> &gt; 4): Acc
+</I>&gt;<i> &gt; ess denied with code &quot;] [tag &quot;event-correlation&quot;]
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks!
+</I>&gt;<i> &gt; -Sheldon
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -----Original Message-----
+</I>&gt;<i> &gt; From: Christian Folini [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>]
+</I>&gt;<i> &gt; Sent: Tuesday, February 21, 2017 4:40 PM
+</I>&gt;<i> &gt; To: Briand, Sheldon (NRC/CNRC) &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">sheldon.briand at canada.ca</A>&gt;
+</I>&gt;<i> &gt; Subject: Re: [Owasp-modsecurity-core-rule-set] Send back the correct 
+</I>&gt;<i> &gt; response code
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Hi there,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I see. Now I get you.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Assuming, that the status action accepts dynamic variables as 
+</I>&gt;<i> &gt; parameters, you could save the status code at the beginning of phase 3 
+</I>&gt;<i> &gt; and then replace 959100 with a rule with &quot;deny,status:%{TX.backend_status}&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; This might work, but I have not tested this.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Ahoj,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Christian
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Tue, Feb 21, 2017 at 08:33:12PM +0000, Briand, Sheldon (NRC/CNRC)
+</I>&gt;<i> &gt; wrote:
+</I>&gt;<i> &gt;&gt; Hi Christian,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Sorry for not being clear.  I'm fairly new to modsecurity.  I have a 
+</I>&gt;<i> &gt;&gt; reverse proxy setup.  Let's say that a legitimate request comes in.
+</I>&gt;<i> &gt;&gt; That request generates an error on the backend server.  I'd like to 
+</I>&gt;<i> &gt;&gt; return whatever code the backend server would have returned instead 
+</I>&gt;<i> &gt;&gt; of the modsecurity 403.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Thanks,
+</I>&gt;<i> &gt;&gt; -Sheldon
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; -----Original Message-----
+</I>&gt;<i> &gt;&gt; From: Christian Folini [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>]
+</I>&gt;<i> &gt;&gt; Sent: Tuesday, February 21, 2017 4:24 PM
+</I>&gt;<i> &gt;&gt; To: Briand, Sheldon (NRC/CNRC) &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">sheldon.briand at canada.ca</A>&gt;
+</I>&gt;<i> &gt;&gt; Subject: Re: [Owasp-modsecurity-core-rule-set] Send back the correct 
+</I>&gt;<i> &gt;&gt; response code
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Hi Sheldon,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Not sure I understand you. What is the &quot;correct&quot; error code in your 
+</I>&gt;<i> &gt;&gt; question?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; The incoming requests are blocked in rule 949110. That rule does a 
+</I>&gt;<i> &gt;&gt; &quot;deny&quot; which defaults to 403. You can update that rule to include a 
+</I>&gt;<i> &gt;&gt; different status code. If I remember correctly, it is possible to 
+</I>&gt;<i> &gt;&gt; assign a variable as status code. If not, you would have to juggle a 
+</I>&gt;<i> &gt;&gt; bit writing rules for individual status codes and control them via 
+</I>&gt;<i> &gt;&gt; variables or something.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Doable, but a bit of work.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Ahoj,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Christian
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; On Tue, Feb 21, 2017 at 07:55:09PM +0000, Briand, Sheldon (NRC/CNRC)
+</I>&gt;<i> &gt;&gt; wrote:
+</I>&gt;<i> &gt;&gt; &gt; Hi,
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; I'm wondering how to best setup the CRS 3 rules to allow 
+</I>&gt;<i> &gt;&gt; &gt; modsecurity
+</I>&gt;<i> &gt;&gt; to return the correct error code in the response.  The error message 
+</I>&gt;<i> &gt;&gt; I don't need just the error code that was triggered instead of a 403 
+</I>&gt;<i> &gt;&gt; every time.  I am running in self-contained mode.  Is this possible?
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; Thanks,
+</I>&gt;<i> &gt;&gt; &gt; -Sheldon
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; Sheldon Briand
+</I>&gt;<i> &gt;&gt; &gt; Computer Systems and Applications Analyst National Research 
+</I>&gt;<i> &gt;&gt; &gt; Council/Government of Canada 
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Sheldon.briand at canada.ca</A>/&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Sheldon.briand at canada.ca</A>/&gt; Tel:
+</I>&gt;<i> &gt;&gt; &gt; (902)
+</I>&gt;<i> &gt;&gt; &gt; 426-1677
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; &gt; Owasp-modsecurity-core-rule-set mailing list 
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rul">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rul</A>
+</I>&gt;<i> &gt;&gt; &gt; e
+</I>&gt;<i> &gt;&gt; &gt; -s
+</I>&gt;<i> &gt;&gt; &gt; et
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+-- 
+<A HREF="https://www.feistyduck.com/training/modsecurity-training-course">https://www.feistyduck.com/training/modsecurity-training-course</A>
+mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">christian.folini at netnea.com</A>
+twitter: @ChrFolini
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002324.html">[Owasp-modsecurity-core-rule-set] Send back the correct response code
+</A></li>
+	<LI>Next message: <A HREF="002326.html">[Owasp-modsecurity-core-rule-set] Up next Monday: CRS chat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2325">[ date ]</a>
+              <a href="thread.html#2325">[ thread ]</a>
+              <a href="subject.html#2325">[ subject ]</a>
+              <a href="author.html#2325">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

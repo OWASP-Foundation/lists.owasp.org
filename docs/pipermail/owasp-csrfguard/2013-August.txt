@@ -1,0 +1,4353 @@
+From Unmesh_Desale at symantec.com  Mon Aug  5 12:41:03 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/15c93db1/attachment.html>
+
+From Unmesh_Desale at symantec.com  Mon Aug  5 12:44:08 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Mon, 5 Aug 2013 05:44:08 -0700
+Subject: [Owasp-csrfguard] Help: CSRF Guard not working with IE8
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F4CB3@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fabulous when I am browsing my site using Firefox Mozilla but same application doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/bc875da3/attachment.html>
+
+From thomas.x.barber at jpmorgan.com  Mon Aug  5 12:47:32 2013
+From: thomas.x.barber at jpmorgan.com (Barber, Thomas X)
+Date: Mon, 5 Aug 2013 12:47:32 +0000
+Subject: [Owasp-csrfguard] Help: CSRF Guard not working with IE8
+In-Reply-To: <6CA846967A7AA24F8F60325CA7323A374D361F4CB3@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CB3@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+Message-ID: <A0FDB8D63716494EA24A037FDE02C13625336F8F@SBACMX003.exchad.jpmchase.net>
+
+Hi,
+
+I found the same issue with IE8 not injecting tokens for AJAX requests. It worked ok with IE9+
+
+Thanks
+
+Tom
+
+From: owasp-csrfguard-bounces at lists.owasp.org [mailto:owasp-csrfguard-bounces at lists.owasp.org] On Behalf Of Unmesh Desale
+Sent: 05 August 2013 13:44
+To: owasp-csrfguard at lists.owasp.org; Owasp-csrfguard-request at lists.owasp.org
+Subject: [Owasp-csrfguard] Help: CSRF Guard not working with IE8
+
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fabulous when I am browsing my site using Firefox Mozilla but same application doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>
+________________________________
+
+
+
+This email is confidential and subject to important disclaimers and conditions including on offers for the purchase or sale of securities, accuracy and completeness of information, viruses, confidentiality, legal privilege, and legal entity disclaimers, available at http://www.jpmorgan.com/pages/disclosures/email.  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/369cd9ca/attachment.html>
+
+From rajesh_punjabi at hotmail.com  Mon Aug  5 17:13:59 2013
+From: rajesh_punjabi at hotmail.com (Rajesh Punjabi)
+Date: Mon, 5 Aug 2013 10:13:59 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+Message-ID: <BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+
+I got into the same issue and here is what I wrote earlier on a thread.
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.In IE8 the browser loads all the css files and JS files twice.  This seems to screw up things.You could try to make the INJECT_ATTRIBUTES parameter as false.
+Alternatively, if you think this may break some functionality you desire then in the injectTokenAttribute() method I added the following line. (more of a hack)if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {    var uri = parseUri(location);    .....................}
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+HTH
+Best,
+Rajesh
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+
+Hi All, I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn?t not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8. Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible? Please suggest me some solution. I am in urgent need of help.  Thanks,Unmesh Desale
+________________________________ Office: +91 20 40754 4823  Mobile: +91 9657725432  
+unmesh_desale at symantec.com
+________________________________  
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/48a1ca1d/attachment-0001.html>
+
+From Unmesh_Desale at symantec.com  Tue Aug  6 03:41:01 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Mon, 5 Aug 2013 20:41:01 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F4F1C@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Thanks so much Rajesh....
+
+I will try this at my end and will get back to you.
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+Sent: Monday, August 05, 2013 10:44 PM
+To: Unmesh Desale; owasp-csrfguard at lists.owasp.org
+Subject: RE: [Owasp-csrfguard] Issue with IE8
+
+I got into the same issue and here is what I wrote earlier on a thread.
+
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.
+In IE8 the browser loads all the css files and JS files twice.  This seems to screw up things.
+You could try to make the INJECT_ATTRIBUTES parameter as false.
+
+Alternatively, if you think this may break some functionality you desire then in the injectTokenAttribute() method I added the following line. (more of a hack)
+if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {
+    var uri = parseUri(location);
+    .....................
+}
+
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+
+HTH
+
+Best,
+Rajesh
+
+________________________________
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/0190a9d1/attachment.html>
+
+From Unmesh_Desale at symantec.com  Tue Aug  6 05:34:06 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Mon, 5 Aug 2013 22:34:06 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Hi Rajesh,
+
+Tried the below solution but it is still not able to inject the token. Whenever I am placing one alert message in that function then I am able to see CRSF token in resulting html (IE8).
+
+element.setAttribute(attr, location);
+alert('token injected:' + value);
+
+Below are my settings for servelet in web.xml;
+
+<servlet>
+            <servlet-name>JavaScriptServlet</servlet-name>
+            <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+            <init-param>
+                  <param-name>source-file</param-name>
+                  <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-forms</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-attributes</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>domain-strict</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>referer-pattern</param-name>
+                  <param-value>.*localhost:8080.*</param-value>
+            </init-param>
+</servlet>
+
+Below are settings for CSRF Guard Properties:
+
+
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.TokenPerPagePrecreate=false
+
+org.owasp.csrfguard.Ajax=true
+
+org.owasp.csrfguard.unprotected.Default=/appliance
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+org.owasp.csrfguard.unprotected.JavaScript=*.js
+org.owasp.csrfguard.unprotected.css=*.css
+org.owasp.csrfguard.unprotected.html=*.html
+org.owasp.csrfguard.unprotected.png=*.png
+org.owasp.csrfguard.unprotected.jpg=*.jpg
+org.owasp.csrfguard.unprotected.ico=*.ico
+org.owasp.csrfguard.unprotected.gif=*.gif
+org.owasp.csrfguard.unprotected.Tag=/tag.jsp
+org.owasp.csrfguard.unprotected.jsp=*.jsp
+org.owasp.csrfguard.unprotected.Error=/appliance/error.html
+org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+org.owasp.csrfguard.action.Log.Message=potential cross-site request forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%, uri:%request_uri%, error:%exception_message%)
+
+org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+
+
+org.owasp.csrfguard.TokenLength=32
+
+org.owasp.csrfguard.PRNG=SHA1PRNG
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+Sent: Monday, August 05, 2013 10:44 PM
+To: Unmesh Desale; owasp-csrfguard at lists.owasp.org
+Subject: RE: [Owasp-csrfguard] Issue with IE8
+
+I got into the same issue and here is what I wrote earlier on a thread.
+
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.
+In IE8 the browser loads all the css files and JS files twice.  This seems to screw up things.
+You could try to make the INJECT_ATTRIBUTES parameter as false.
+
+Alternatively, if you think this may break some functionality you desire then in the injectTokenAttribute() method I added the following line. (more of a hack)
+if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {
+    var uri = parseUri(location);
+    .....................
+}
+
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+
+HTH
+
+Best,
+Rajesh
+
+________________________________
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130805/7e8d910d/attachment-0001.html>
+
+From tom.a.barber at gmail.com  Tue Aug  6 08:27:06 2013
+From: tom.a.barber at gmail.com (Tom Barber)
+Date: Tue, 6 Aug 2013 09:27:06 +0100
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+Message-ID: <CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+
+Is it the injection of tokens into links etc or ajax requests that is
+failing? I found that xmlhttprequest injection doesn't work in <ie9
+On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com> wrote:
+
+> Hi Rajesh,****
+>
+> ** **
+>
+> Tried the below solution but it is still not able to inject the token.
+> Whenever I am placing one alert message in that function then I am able to
+> see CRSF token in resulting html (IE8).****
+>
+> ** **
+>
+> element.setAttribute(attr, location);****
+>
+> alert('token injected:' + value);****
+>
+> ** **
+>
+> Below are my settings for servelet in web.xml;****
+>
+> ** **
+>
+> *<servlet>*****
+>
+>             <servlet-name>JavaScriptServlet</servlet-name>****
+>
+>
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+> ****
+>
+>             <init-*param*>****
+>
+>                   <param-name>source-file</param-name>****
+>
+>                   <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>***
+> *
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>inject-into-forms</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>inject-into-attributes</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>domain-strict</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>*referer*-pattern</param-name>****
+>
+>                   <param-value>.**localhost*:8080.*</param-value>****
+>
+>             </init-*param*>           ****
+>
+> *</servlet>*
+>
+> * *
+>
+> Below are settings for CSRF Guard Properties:****
+>
+> * *
+>
+> * *
+>
+> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger****
+>
+> ** **
+>
+> org.owasp.csrfguard.TokenPerPage=true****
+>
+> org.owasp.csrfguard.TokenPerPagePrecreate=false****
+>
+> ** **
+>
+> org.owasp.csrfguard.Ajax=true****
+>
+> ** **
+>
+> org.owasp.csrfguard.unprotected.Default=/appliance****
+>
+>
+> org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+> ****
+>
+> org.owasp.csrfguard.unprotected.JavaScript=*.js****
+>
+> org.owasp.csrfguard.unprotected.css=*.css****
+>
+> org.owasp.csrfguard.unprotected.html=*.html****
+>
+> org.owasp.csrfguard.unprotected.png=*.png****
+>
+> org.owasp.csrfguard.unprotected.jpg=*.jpg****
+>
+> org.owasp.csrfguard.unprotected.ico=*.ico****
+>
+> org.owasp.csrfguard.unprotected.gif=*.gif****
+>
+> org.owasp.csrfguard.unprotected.Tag=/tag.jsp****
+>
+> org.owasp.csrfguard.unprotected.jsp=*.jsp****
+>
+> org.owasp.csrfguard.unprotected.Error=/appliance/error.html****
+>
+> org.owasp.csrfguard.unprotected.Patch=/appliance/
+> manage.appliance.patch.details.do****
+>
+> org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/
+> settings.appreconfig.security.edit.do****
+>
+> org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/
+> launch.configure.appliance.do****
+>
+> ** **
+>
+> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log****
+>
+> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+> forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+> uri:%request_uri%, error:%exception_message%)****
+>
+> ** **
+>
+> org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect***
+> *
+>
+> org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html****
+>
+> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate****
+>
+> ** **
+>
+> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN****
+>
+> ** **
+>
+> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN****
+>
+> ** **
+>
+> ** **
+>
+> org.owasp.csrfguard.TokenLength=32****
+>
+> ** **
+>
+> org.owasp.csrfguard.PRNG=SHA1PRNG****
+>
+> ** **
+>
+> *Thanks,*
+>
+> *Unmesh Desale
+> **________________________________***
+>
+>  ****
+>
+> *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432*
+> unmesh_desale at symantec.com*
+> *________________________________***
+>
+> ** **
+>
+> ** **
+>
+> *From:* Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+> *Sent:* Monday, August 05, 2013 10:44 PM
+> *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org
+> *Subject:* RE: [Owasp-csrfguard] Issue with IE8****
+>
+> ** **
+>
+> I got into the same issue and here is what I wrote earlier on a thread.***
+> *
+>
+> ** **
+>
+> It seems when the JavaScriptServlet injects tokens to all the elements in
+> the DOM, it also attaches the token to <script src=''> and <link href=''>.
+> ****
+>
+> In IE8 the browser loads all the css files and JS files twice.  This seems
+> to screw up things.****
+>
+> You could try to make the INJECT_ATTRIBUTES parameter as false.****
+>
+> ** **
+>
+> Alternatively, if you think this may break some functionality you desire
+> then in the injectTokenAttribute() method I added the following line. (more
+> of a hack)****
+>
+> if(location != null && isValidUrl(location) &&
+> !location.toLowerCase().endsWith(".css") &&
+> !location.toLowerCase().endsWith(".js") &&
+> !location.toLowerCase().endsWith("javascriptservlet")) {****
+>
+>     var uri = parseUri(location);****
+>
+>     .....................****
+>
+> }****
+>
+> ** **
+>
+> So basically for js, css files we shouldn't need to attach the CSRFTOKEN
+> attribute.****
+>
+> ** **
+>
+> HTH****
+>
+> ** **
+>
+> Best,
+> Rajesh****
+>
+> ** **
+> ------------------------------
+>
+> From: Unmesh_Desale at symantec.com
+> To: owasp-csrfguard at lists.owasp.org
+> Date: Mon, 5 Aug 2013 05:41:03 -0700
+> Subject: [Owasp-csrfguard] Issue with IE8****
+>
+> Hi All,****
+>
+>  ****
+>
+> I have configured OWASP CSRFGuard for my project. It is working fine when
+> I am browsing my site using Firefox Mozilla but same site doesn?t not work
+> when I browse it through IE 8. This module is not able to inject CSRF token
+> for IE8.****
+>
+>  ****
+>
+> Is this module works (supports) IE8 and higher versions? Is it
+> cross-browser compatible?****
+>
+>  ****
+>
+> Please suggest me some solution. I am in urgent need of help.****
+>
+>  ****
+>
+>  ****
+>
+> *Thanks,*****
+>
+> *Unmesh Desale
+> **________________________________*****
+>
+>  ****
+>
+> *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432*
+> unmesh_desale at symantec.com*
+> *________________________________*****
+>
+>  ****
+>
+>  ****
+>
+>
+> _______________________________________________ Owasp-csrfguard mailing
+> list Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard****
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/c190d23e/attachment-0001.html>
+
+From Unmesh_Desale at symantec.com  Tue Aug  6 08:43:59 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Tue, 6 Aug 2013 01:43:59 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Yes it is the injection of tokens into links etc... not getting any error for ajax request. I am not able to see any CSRF token in IE8.
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Tom Barber [mailto:tom.a.barber at gmail.com]
+Sent: Tuesday, August 06, 2013 1:57 PM
+To: Unmesh Desale
+Cc: owasp-csrfguard at lists.owasp.org; Rajesh Punjabi
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+
+Is it the injection of tokens into links etc or ajax requests that is failing? I found that xmlhttprequest injection doesn't work in <ie9
+On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>> wrote:
+Hi Rajesh,
+
+Tried the below solution but it is still not able to inject the token. Whenever I am placing one alert message in that function then I am able to see CRSF token in resulting html (IE8).
+
+element.setAttribute(attr, location);
+alert('token injected:' + value);
+
+Below are my settings for servelet in web.xml;
+
+<servlet>
+            <servlet-name>JavaScriptServlet</servlet-name>
+            <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+            <init-param>
+                  <param-name>source-file</param-name>
+                  <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-forms</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-attributes</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>domain-strict</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>referer-pattern</param-name>
+                  <param-value>.*localhost:8080.*</param-value>
+            </init-param>
+</servlet>
+
+Below are settings for CSRF Guard Properties:
+
+
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.TokenPerPagePrecreate=false
+
+org.owasp.csrfguard.Ajax=true
+
+org.owasp.csrfguard.unprotected.Default=/appliance
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+org.owasp.csrfguard.unprotected.JavaScript=*.js
+org.owasp.csrfguard.unprotected.css=*.css
+org.owasp.csrfguard.unprotected.html=*.html
+org.owasp.csrfguard.unprotected.png=*.png
+org.owasp.csrfguard.unprotected.jpg=*.jpg
+org.owasp.csrfguard.unprotected.ico=*.ico
+org.owasp.csrfguard.unprotected.gif=*.gif
+org.owasp.csrfguard.unprotected.Tag=/tag.jsp
+org.owasp.csrfguard.unprotected.jsp=*.jsp
+org.owasp.csrfguard.unprotected.Error=/appliance/error.html
+org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+org.owasp.csrfguard.action.Log.Message=potential cross-site request forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%, uri:%request_uri%, error:%exception_message%)
+
+org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+
+
+org.owasp.csrfguard.TokenLength=32
+
+org.owasp.csrfguard.PRNG=SHA1PRNG
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+Sent: Monday, August 05, 2013 10:44 PM
+To: Unmesh Desale; owasp-csrfguard at lists.owasp.org
+Subject: RE: [Owasp-csrfguard] Issue with IE8
+
+I got into the same issue and here is what I wrote earlier on a thread.
+
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.
+In IE8 the browser loads all the css files and JS files twice.  This seems to screw up things.
+You could try to make the INJECT_ATTRIBUTES parameter as false.
+
+Alternatively, if you think this may break some functionality you desire then in the injectTokenAttribute() method I added the following line. (more of a hack)
+if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {
+    var uri = parseUri(location);
+    .....................
+}
+
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+
+HTH
+
+Best,
+Rajesh
+
+________________________________
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn't not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/d0c3b616/attachment-0001.html>
+
+From manchandap at yahoo.com  Tue Aug  6 10:56:55 2013
+From: manchandap at yahoo.com (P Manchanda)
+Date: Tue, 6 Aug 2013 03:56:55 -0700 (PDT)
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+Message-ID: <1375786615.77012.YahooMailNeo@web162603.mail.bf1.yahoo.com>
+
+can you try with the following servlet init parameter:
+
+????????? <param-name>referer-pattern</param-name>
+????????? <param-value>.*</param-value>
+
+
+?
+___________________ 
+Thks & brgds 
+P Manchanda
+Mobile: +91-9811210374 
+
+
+
+________________________________
+ From: Unmesh Desale <Unmesh_Desale at symantec.com>
+To: Tom Barber <tom.a.barber at gmail.com> 
+Cc: "owasp-csrfguard at lists.owasp.org" <owasp-csrfguard at lists.owasp.org> 
+Sent: Tuesday, 6 August 2013, 14:13
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+ 
+
+
+Yes it is the injection of tokens into links etc? not getting any error for ajax request. I am not able to see any CSRF token in IE8.
+?
+Thanks,
+Unmesh Desale
+________________________________
+?
+Office:?+91 20 40754 4823? Mobile: +91 9657725432?
+unmesh_desale at symantec.com
+________________________________
+?
+?
+From:Tom Barber [mailto:tom.a.barber at gmail.com] 
+Sent: Tuesday, August 06, 2013 1:57 PM
+To: Unmesh Desale
+Cc: owasp-csrfguard at lists.owasp.org; Rajesh Punjabi
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+?
+Is it the injection of tokens into links etc or ajax requests that is failing? I found that xmlhttprequest injection doesn't work in <ie9
+On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com> wrote:
+Hi Rajesh,
+?
+Tried the below solution but it is still not able to inject the token. Whenever I am placing one alert message in that function then I am able to see CRSF token in resulting html (IE8).
+?
+element.setAttribute(attr, location);
+alert('token injected:' + value);
+?
+Below are my settings for servelet in web.xml;
+?
+<servlet>
+??????????? <servlet-name>JavaScriptServlet</servlet-name>
+??????????? <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+??????????? <init-param>
+????????????????? <param-name>source-file</param-name>
+????????????????? <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+??????????? </init-param>
+??????????? <init-param>
+????????????????? <param-name>inject-into-forms</param-name>
+????????????????? <param-value>true</param-value>
+??????????? </init-param>
+??????????? <init-param>
+????????????????? <param-name>inject-into-attributes</param-name>
+????????????????? <param-value>true</param-value>
+??????????? </init-param>
+??????????? <init-param>
+????????????????? <param-name>domain-strict</param-name>
+????????????????? <param-value>true</param-value>
+??????????? </init-param>
+??????????? <init-param>
+????????????????? <param-name>referer-pattern</param-name>
+????????????????? <param-value>.*localhost:8080.*</param-value>
+??????????? </init-param>?????????? 
+</servlet>
+?
+Below are settings for CSRF Guard Properties:
+?
+?
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+?
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.TokenPerPagePrecreate=false
+?
+org.owasp.csrfguard.Ajax=true
+?
+org.owasp.csrfguard.unprotected.Default=/appliance
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+org.owasp.csrfguard.unprotected.JavaScript=*.js
+org.owasp.csrfguard.unprotected.css=*.css
+org.owasp.csrfguard.unprotected.html=*.html
+org.owasp.csrfguard.unprotected.png=*.png
+org.owasp.csrfguard.unprotected.jpg=*.jpg
+org.owasp.csrfguard.unprotected.ico=*.ico
+org.owasp.csrfguard.unprotected.gif=*.gif
+org.owasp.csrfguard.unprotected.Tag=/tag.jsp
+org.owasp.csrfguard.unprotected.jsp=*.jsp
+org.owasp.csrfguard.unprotected.Error=/appliance/error.html
+org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+?
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+org.owasp.csrfguard.action.Log.Message=potential cross-site request forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%, uri:%request_uri%, error:%exception_message%)
+?
+org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+?
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+?
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+?
+?
+org.owasp.csrfguard.TokenLength=32
+?
+org.owasp.csrfguard.PRNG=SHA1PRNG
+?
+Thanks,
+Unmesh Desale
+________________________________
+?
+Office:?+91 20 40754 4823? Mobile: +91 9657725432?
+unmesh_desale at symantec.com
+________________________________
+?
+?
+From:Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com] 
+Sent: Monday, August 05, 2013 10:44 PM
+To: Unmesh Desale; owasp-csrfguard at lists.owasp.org
+Subject: RE: [Owasp-csrfguard] Issue with IE8
+?
+I got into the same issue and here is what I wrote earlier on a thread.
+?
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.
+In IE8 the browser loads all the css files and JS files twice. ?This seems to screw up things.
+You could try to make the?INJECT_ATTRIBUTES parameter as false.
+?
+Alternatively, if you think this may break some functionality you desire then in the?injectTokenAttribute() method I added the following line. (more of a hack)
+if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {
+? ??var uri = parseUri(location);
+? ? .....................
+}
+?
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+?
+HTH
+?
+Best,
+Rajesh
+?
+
+________________________________
+
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Hi All,
+?
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn?t not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+?
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+?
+Please suggest me some solution. I am in urgent need of help.
+?
+?
+Thanks,
+Unmesh Desale
+________________________________
+?
+Office:?+91 20 40754 4823? Mobile: +91 9657725432?
+unmesh_desale at symantec.com
+________________________________
+?
+?
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/78b4759c/attachment-0001.html>
+
+From Unmesh_Desale at symantec.com  Tue Aug  6 13:11:56 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Tue, 6 Aug 2013 06:11:56 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <1375786615.77012.YahooMailNeo@web162603.mail.bf1.yahoo.com>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<1375786615.77012.YahooMailNeo@web162603.mail.bf1.yahoo.com>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D361F5392@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Thanks P Manchanda?.
+
+I tried it but was not working for me.
+
+Below Rajesh?s solution was working now after clearing cache and closing dev tools plug-in from IE. Now, I am able to see CSRF token in IE8.
+
+Other problem is whenever AJAX request goes to the server, it doesn?t contain CSRF token and request validation fails.  Do I need change any javascript to support AJAX requests?
+
+Currently, CSRF Guard properties file is have below property set.
+org.owasp.csrfguard.Ajax=true
+
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: P Manchanda [mailto:manchandap at yahoo.com]
+Sent: Tuesday, August 06, 2013 4:27 PM
+To: Unmesh Desale; Tom Barber
+Cc: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+can you try with the following servlet init parameter:
+
+          <param-name>referer-pattern</param-name>
+          <param-value>.*</param-value>
+
+
+___________________
+Thks & brgds
+P Manchanda
+Mobile: +91-9811210374
+
+________________________________
+From: Unmesh Desale <Unmesh_Desale at symantec.com>
+To: Tom Barber <tom.a.barber at gmail.com>
+Cc: "owasp-csrfguard at lists.owasp.org" <owasp-csrfguard at lists.owasp.org>
+Sent: Tuesday, 6 August 2013, 14:13
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+Yes it is the injection of tokens into links etc? not getting any error for ajax request. I am not able to see any CSRF token in IE8.
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Tom Barber [mailto:tom.a.barber at gmail.com]
+Sent: Tuesday, August 06, 2013 1:57 PM
+To: Unmesh Desale
+Cc: owasp-csrfguard at lists.owasp.org; Rajesh Punjabi
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+Is it the injection of tokens into links etc or ajax requests that is failing? I found that xmlhttprequest injection doesn't work in <ie9
+On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>> wrote:
+Hi Rajesh,
+
+Tried the below solution but it is still not able to inject the token. Whenever I am placing one alert message in that function then I am able to see CRSF token in resulting html (IE8).
+
+element.setAttribute(attr, location);
+alert('token injected:' + value);
+
+Below are my settings for servelet in web.xml;
+
+<servlet>
+            <servlet-name>JavaScriptServlet</servlet-name>
+            <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+            <init-param>
+                  <param-name>source-file</param-name>
+                  <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-forms</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>inject-into-attributes</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>domain-strict</param-name>
+                  <param-value>true</param-value>
+            </init-param>
+            <init-param>
+                  <param-name>referer-pattern</param-name>
+                  <param-value>.*localhost:8080.*</param-value>
+            </init-param>
+</servlet>
+
+Below are settings for CSRF Guard Properties:
+
+
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.TokenPerPagePrecreate=false
+
+org.owasp.csrfguard.Ajax=true
+
+org.owasp.csrfguard.unprotected.Default=/appliance
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+org.owasp.csrfguard.unprotected.JavaScript=*.js
+org.owasp.csrfguard.unprotected.css=*.css
+org.owasp.csrfguard.unprotected.html=*.html
+org.owasp.csrfguard.unprotected.png=*.png
+org.owasp.csrfguard.unprotected.jpg=*.jpg
+org.owasp.csrfguard.unprotected.ico=*.ico
+org.owasp.csrfguard.unprotected.gif=*.gif
+org.owasp.csrfguard.unprotected.Tag=/tag.jsp
+org.owasp.csrfguard.unprotected.jsp=*.jsp
+org.owasp.csrfguard.unprotected.Error=/appliance/error.html
+org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+org.owasp.csrfguard.action.Log.Message=potential cross-site request forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%, uri:%request_uri%, error:%exception_message%)
+
+org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html
+org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+
+
+org.owasp.csrfguard.TokenLength=32
+
+org.owasp.csrfguard.PRNG=SHA1PRNG
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+Sent: Monday, August 05, 2013 10:44 PM
+To: Unmesh Desale; owasp-csrfguard at lists.owasp.org
+Subject: RE: [Owasp-csrfguard] Issue with IE8
+
+I got into the same issue and here is what I wrote earlier on a thread.
+
+It seems when the JavaScriptServlet injects tokens to all the elements in the DOM, it also attaches the token to <script src=''> and <link href=''>.
+In IE8 the browser loads all the css files and JS files twice.  This seems to screw up things.
+You could try to make the INJECT_ATTRIBUTES parameter as false.
+
+Alternatively, if you think this may break some functionality you desire then in the injectTokenAttribute() method I added the following line. (more of a hack)
+if(location != null && isValidUrl(location) && !location.toLowerCase().endsWith(".css") && !location.toLowerCase().endsWith(".js") && !location.toLowerCase().endsWith("javascriptservlet")) {
+    var uri = parseUri(location);
+    .....................
+}
+
+So basically for js, css files we shouldn't need to attach the CSRFTOKEN attribute.
+
+HTH
+
+Best,
+Rajesh
+
+________________________________
+From: Unmesh_Desale at symantec.com
+To: owasp-csrfguard at lists.owasp.org
+Date: Mon, 5 Aug 2013 05:41:03 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+Hi All,
+
+I have configured OWASP CSRFGuard for my project. It is working fine when I am browsing my site using Firefox Mozilla but same site doesn?t not work when I browse it through IE 8. This module is not able to inject CSRF token for IE8.
+
+Is this module works (supports) IE8 and higher versions? Is it cross-browser compatible?
+
+Please suggest me some solution. I am in urgent need of help.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/def5c9bd/attachment-0001.html>
+
+From tom.a.barber at gmail.com  Tue Aug  6 13:19:17 2013
+From: tom.a.barber at gmail.com (Tom Barber)
+Date: Tue, 6 Aug 2013 14:19:17 +0100
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+Message-ID: <CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>
+
+As I mentioned before I found that csrfguard does not work correctly with
+ie8 when it comes to ajax requests.
+Thanks
+Tom
+On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com> wrote:
+
+> Yes it is the injection of tokens into links etc? not getting any error
+> for ajax request. I am not able to see any CSRF token in IE8.****
+>
+> ** **
+>
+> *Thanks,*
+>
+> *Unmesh Desale
+> **________________________________***
+>
+>  ****
+>
+> *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432*
+> unmesh_desale at symantec.com*
+> *________________________________***
+>
+> ** **
+>
+> ** **
+>
+> *From:* Tom Barber [mailto:tom.a.barber at gmail.com]
+> *Sent:* Tuesday, August 06, 2013 1:57 PM
+> *To:* Unmesh Desale
+> *Cc:* owasp-csrfguard at lists.owasp.org; Rajesh Punjabi
+> *Subject:* Re: [Owasp-csrfguard] Issue with IE8****
+>
+> ** **
+>
+> Is it the injection of tokens into links etc or ajax requests that is
+> failing? I found that xmlhttprequest injection doesn't work in <ie9****
+>
+> On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com>
+> wrote:****
+>
+> Hi Rajesh,****
+>
+>  ****
+>
+> Tried the below solution but it is still not able to inject the token.
+> Whenever I am placing one alert message in that function then I am able to
+> see CRSF token in resulting html (IE8).****
+>
+>  ****
+>
+> element.setAttribute(attr, location);****
+>
+> alert('token injected:' + value);****
+>
+>  ****
+>
+> Below are my settings for servelet in web.xml;****
+>
+>  ****
+>
+> *<servlet>*****
+>
+>             <servlet-name>JavaScriptServlet</servlet-name>****
+>
+>
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+> ****
+>
+>             <init-*param*>****
+>
+>                   <param-name>source-file</param-name>****
+>
+>                   <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>***
+> *
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>inject-into-forms</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>inject-into-attributes</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>domain-strict</param-name>****
+>
+>                   <param-value>true</param-value>****
+>
+>             </init-*param*>****
+>
+>             <init-*param*>****
+>
+>                   <param-name>*referer*-pattern</param-name>****
+>
+>                   <param-value>.**localhost*:8080.*</param-value>****
+>
+>             </init-*param*>           ****
+>
+> *</servlet>*****
+>
+>  ****
+>
+> Below are settings for CSRF Guard Properties:****
+>
+>  ****
+>
+>  ****
+>
+> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger****
+>
+>  ****
+>
+> org.owasp.csrfguard.TokenPerPage=true****
+>
+> org.owasp.csrfguard.TokenPerPagePrecreate=false****
+>
+>  ****
+>
+> org.owasp.csrfguard.Ajax=true****
+>
+>  ****
+>
+> org.owasp.csrfguard.unprotected.Default=/appliance****
+>
+>
+> org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet
+> ****
+>
+> org.owasp.csrfguard.unprotected.JavaScript=*.js****
+>
+> org.owasp.csrfguard.unprotected.css=*.css****
+>
+> org.owasp.csrfguard.unprotected.html=*.html****
+>
+> org.owasp.csrfguard.unprotected.png=*.png****
+>
+> org.owasp.csrfguard.unprotected.jpg=*.jpg****
+>
+> org.owasp.csrfguard.unprotected.ico=*.ico****
+>
+> org.owasp.csrfguard.unprotected.gif=*.gif****
+>
+> org.owasp.csrfguard.unprotected.Tag=/tag.jsp****
+>
+> org.owasp.csrfguard.unprotected.jsp=*.jsp****
+>
+> org.owasp.csrfguard.unprotected.Error=/appliance/error.html****
+>
+> org.owasp.csrfguard.unprotected.Patch=/appliance/
+> manage.appliance.patch.details.do****
+>
+> org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/
+> settings.appreconfig.security.edit.do****
+>
+> org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/
+> launch.configure.appliance.do****
+>
+>  ****
+>
+> org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log****
+>
+> org.owasp.csrfguard.action.Log.Message=potential cross-site request
+> forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+> uri:%request_uri%, error:%exception_message%)****
+>
+>  ****
+>
+> org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect***
+> *
+>
+> org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html****
+>
+> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate****
+>
+>  ****
+>
+> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN****
+>
+>  ****
+>
+> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN****
+>
+>  ****
+>
+>  ****
+>
+> org.owasp.csrfguard.TokenLength=32****
+>
+>  ****
+>
+> org.owasp.csrfguard.PRNG=SHA1PRNG****
+>
+>  ****
+>
+> *Thanks,*****
+>
+> *Unmesh Desale
+> **________________________________*****
+>
+>  ****
+>
+> *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432*
+> unmesh_desale at symantec.com*
+> *________________________________*****
+>
+>  ****
+>
+>  ****
+>
+> *From:* Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com]
+> *Sent:* Monday, August 05, 2013 10:44 PM
+> *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org
+> *Subject:* RE: [Owasp-csrfguard] Issue with IE8****
+>
+>  ****
+>
+> I got into the same issue and here is what I wrote earlier on a thread.***
+> *
+>
+>  ****
+>
+> It seems when the JavaScriptServlet injects tokens to all the elements in
+> the DOM, it also attaches the token to <script src=''> and <link href=''>.
+> ****
+>
+> In IE8 the browser loads all the css files and JS files twice.  This seems
+> to screw up things.****
+>
+> You could try to make the INJECT_ATTRIBUTES parameter as false.****
+>
+>  ****
+>
+> Alternatively, if you think this may break some functionality you desire
+> then in the injectTokenAttribute() method I added the following line. (more
+> of a hack)****
+>
+> if(location != null && isValidUrl(location) &&
+> !location.toLowerCase().endsWith(".css") &&
+> !location.toLowerCase().endsWith(".js") &&
+> !location.toLowerCase().endsWith("javascriptservlet")) {****
+>
+>     var uri = parseUri(location);****
+>
+>     .....................****
+>
+> }****
+>
+>  ****
+>
+> So basically for js, css files we shouldn't need to attach the CSRFTOKEN
+> attribute.****
+>
+>  ****
+>
+> HTH****
+>
+>  ****
+>
+> Best,
+> Rajesh****
+>
+>  ****
+> ------------------------------
+>
+> From: Unmesh_Desale at symantec.com
+> To: owasp-csrfguard at lists.owasp.org
+> Date: Mon, 5 Aug 2013 05:41:03 -0700
+> Subject: [Owasp-csrfguard] Issue with IE8****
+>
+> Hi All,****
+>
+>  ****
+>
+> I have configured OWASP CSRFGuard for my project. It is working fine when
+> I am browsing my site using Firefox Mozilla but same site doesn?t not work
+> when I browse it through IE 8. This module is not able to inject CSRF token
+> for IE8.****
+>
+>  ****
+>
+> Is this module works (supports) IE8 and higher versions? Is it
+> cross-browser compatible?****
+>
+>  ****
+>
+> Please suggest me some solution. I am in urgent need of help.****
+>
+>  ****
+>
+>  ****
+>
+> *Thanks,*****
+>
+> *Unmesh Desale
+> **________________________________*****
+>
+>  ****
+>
+> *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432*
+> unmesh_desale at symantec.com*
+> *________________________________*****
+>
+>  ****
+>
+>  ****
+>
+>
+> _______________________________________________ Owasp-csrfguard mailing
+> list Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard****
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard****
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/74e52c0f/attachment-0001.html>
+
+From eric.sheridan at owasp.org  Tue Aug  6 14:40:02 2013
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Tue, 06 Aug 2013 10:40:02 -0400
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>
+Message-ID: <52010AC2.8060205@owasp.org>
+
+There are some folks helping to resolve this issue as we speak. I don't
+believe the code has been committed yet but the 'HijackExplorer' code in
+the JavaScript file messes things up now as IE has moved to
+XMLHTTPRequest instead of the ActiveX approach.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 8/6/13 9:19 AM, Tom Barber wrote:
+> As I mentioned before I found that csrfguard does not work correctly
+> with ie8 when it comes to ajax requests. 
+> Thanks
+> Tom
+> 
+> On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+> <mailto:Unmesh_Desale at symantec.com>> wrote:
+> 
+>     Yes it is the injection of tokens into links etc? not getting any
+>     error for ajax request. I am not able to see any CSRF token in IE8.____
+> 
+>     __ __
+> 
+>     *Thanks,____*
+> 
+>     *Unmesh Desale
+>     **__________________________________**____*
+> 
+>      ____
+> 
+>     *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>     <tel:%2B91%209657725432>* _
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>     *__________________________________**____*
+> 
+>     __ __
+> 
+>     __ __
+> 
+>     *From:*Tom Barber [mailto:tom.a.barber at gmail.com
+>     <mailto:tom.a.barber at gmail.com>]
+>     *Sent:* Tuesday, August 06, 2013 1:57 PM
+>     *To:* Unmesh Desale
+>     *Cc:* owasp-csrfguard at lists.owasp.org
+>     <mailto:owasp-csrfguard at lists.owasp.org>; Rajesh Punjabi
+>     *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+> 
+>     __ __
+> 
+>     Is it the injection of tokens into links etc or ajax requests that
+>     is failing? I found that xmlhttprequest injection doesn't work in
+>     <ie9____
+> 
+>     On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+>     <mailto:Unmesh_Desale at symantec.com>> wrote:____
+> 
+>     Hi Rajesh,____
+> 
+>      ____
+> 
+>     Tried the below solution but it is still not able to inject the
+>     token. Whenever I am placing one alert message in that function then
+>     I am able to see CRSF token in resulting html (IE8).____
+> 
+>      ____
+> 
+>     element.setAttribute(attr, location);____
+> 
+>     alert('token injected:' + value);____
+> 
+>      ____
+> 
+>     Below are my settings for servelet in web.xml;____
+> 
+>      ____
+> 
+>     _<servlet>_____
+> 
+>                 <servlet-name>JavaScriptServlet</servlet-name>____
+> 
+>                
+>     <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>source-file</param-name>____
+> 
+>                      
+>     <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>inject-into-forms</param-name>____
+> 
+>                       <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>inject-into-attributes</param-name>____
+> 
+>                       <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>domain-strict</param-name>____
+> 
+>                       <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>_referer_-pattern</param-name>____
+> 
+>                       <param-value>.*_localhost_:8080.*</param-value>____
+> 
+>                 </init-_param_>           ____
+> 
+>     _</servlet>_____
+> 
+>      ____
+> 
+>     Below are settings for CSRF Guard Properties:____
+> 
+>      ____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenPerPage=true____
+> 
+>     org.owasp.csrfguard.TokenPerPagePrecreate=false____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.Ajax=true____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.unprotected.Default=/appliance____
+> 
+>     org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+> 
+>     org.owasp.csrfguard.unprotected.JavaScript=*.js____
+> 
+>     org.owasp.csrfguard.unprotected.css=*.css____
+> 
+>     org.owasp.csrfguard.unprotected.html=*.html____
+> 
+>     org.owasp.csrfguard.unprotected.png=*.png____
+> 
+>     org.owasp.csrfguard.unprotected.jpg=*.jpg____
+> 
+>     org.owasp.csrfguard.unprotected.ico=*.ico____
+> 
+>     org.owasp.csrfguard.unprotected.gif=*.gif____
+> 
+>     org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+> 
+>     org.owasp.csrfguard.unprotected.jsp=*.jsp____
+> 
+>     org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+> 
+>     org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+>     <http://manage.appliance.patch.details.do>____
+> 
+>     org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+>     <http://settings.appreconfig.security.edit.do>____
+> 
+>     org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+>     <http://launch.configure.appliance.do>____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+> 
+>     org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>     forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+>     uri:%request_uri%, error:%exception_message%)____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+> 
+>     org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+> 
+>     org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+> 
+>      ____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenLength=32____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.PRNG=SHA1PRNG____
+> 
+>      ____
+> 
+>     *Thanks,*____
+> 
+>     *Unmesh Desale
+>     **__________________________________*____
+> 
+>      ____
+> 
+>     *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>     <tel:%2B91%209657725432>* _
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>     *__________________________________*____
+> 
+>      ____
+> 
+>      ____
+> 
+>     *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com
+>     <mailto:rajesh_punjabi at hotmail.com>]
+>     *Sent:* Monday, August 05, 2013 10:44 PM
+>     *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org
+>     <mailto:owasp-csrfguard at lists.owasp.org>
+>     *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+> 
+>      ____
+> 
+>     I got into the same issue and here is what I wrote earlier on a
+>     thread.____
+> 
+>      ____
+> 
+>     It seems when the JavaScriptServlet injects tokens to all the
+>     elements in the DOM, it also attaches the token to <script src=''>
+>     and <link href=''>.____
+> 
+>     In IE8 the browser loads all the css files and JS files twice.  This
+>     seems to screw up things.____
+> 
+>     You could try to make the INJECT_ATTRIBUTES parameter as false.____
+> 
+>      ____
+> 
+>     Alternatively, if you think this may break some functionality you
+>     desire then in the injectTokenAttribute() method I added the
+>     following line. (more of a hack)____
+> 
+>     if(location != null && isValidUrl(location) &&
+>     !location.toLowerCase().endsWith(".css") &&
+>     !location.toLowerCase().endsWith(".js") &&
+>     !location.toLowerCase().endsWith("javascriptservlet")) {____
+> 
+>         var uri = parseUri(location);____
+> 
+>         .....................____
+> 
+>     }____
+> 
+>      ____
+> 
+>     So basically for js, css files we shouldn't need to attach the
+>     CSRFTOKEN attribute.____
+> 
+>      ____
+> 
+>     HTH____
+> 
+>      ____
+> 
+>     Best,
+>     Rajesh____
+> 
+>      ____
+> 
+>     ------------------------------------------------------------------------
+> 
+>     From: Unmesh_Desale at symantec.com <mailto:Unmesh_Desale at symantec.com>
+>     To: owasp-csrfguard at lists.owasp.org
+>     <mailto:owasp-csrfguard at lists.owasp.org>
+>     Date: Mon, 5 Aug 2013 05:41:03 -0700
+>     Subject: [Owasp-csrfguard] Issue with IE8____
+> 
+>     Hi All,____
+> 
+>      ____
+> 
+>     I have configured OWASP CSRFGuard for my project. It is working fine
+>     when I am browsing my site using Firefox Mozilla but same site
+>     doesn?t not work when I browse it through IE 8. This module is not
+>     able to inject CSRF token for IE8.____
+> 
+>      ____
+> 
+>     Is this module works (supports) IE8 and higher versions? Is it
+>     cross-browser compatible?____
+> 
+>      ____
+> 
+>     Please suggest me some solution. I am in urgent need of help.____
+> 
+>      ____
+> 
+>      ____
+> 
+>     *Thanks,*____
+> 
+>     *Unmesh Desale
+>     **__________________________________*____
+> 
+>      ____
+> 
+>     *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>     <tel:%2B91%209657725432>* _
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>     *__________________________________*____
+> 
+>      ____
+> 
+>      ____
+> 
+> 
+>     _______________________________________________ Owasp-csrfguard
+>     mailing list Owasp-csrfguard at lists.owasp.org
+>     <mailto:Owasp-csrfguard at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+>     _______________________________________________
+>     Owasp-csrfguard mailing list
+>     Owasp-csrfguard at lists.owasp.org <mailto:Owasp-csrfguard at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+
+From manchandap at yahoo.com  Tue Aug  6 16:16:42 2013
+From: manchandap at yahoo.com (P Manchanda)
+Date: Tue, 6 Aug 2013 09:16:42 -0700 (PDT)
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <52010AC2.8060205@owasp.org>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>
+	<52010AC2.8060205@owasp.org>
+Message-ID: <1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>
+
+Good to hear that people are working to fix this issue.
+
+Else I would recommend creating a stand alone test bed that reproduces the problem and sharing it with the community. That would help to resolve the problem.
+
+
+?
+___________________ 
+Thks & brgds 
+P Manchanda
+Mobile: +91-9811210374 
+
+
+
+________________________________
+ From: Eric Sheridan <eric.sheridan at owasp.org>
+To: owasp-csrfguard at lists.owasp.org 
+Sent: Tuesday, 6 August 2013, 20:10
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+ 
+
+There are some folks helping to resolve this issue as we speak. I don't
+believe the code has been committed yet but the 'HijackExplorer' code in
+the JavaScript file messes things up now as IE has moved to
+XMLHTTPRequest instead of the ActiveX approach.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 8/6/13 9:19 AM, Tom Barber wrote:
+> As I mentioned before I found that csrfguard does not work correctly
+> with ie8 when it comes to ajax requests. 
+> Thanks
+> Tom
+> 
+> On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+> <mailto:Unmesh_Desale at symantec.com>> wrote:
+> 
+>? ?  Yes it is the injection of tokens into links etc? not getting any
+>? ?  error for ajax request. I am not able to see any CSRF token in IE8.____
+> 
+>? ?  __ __
+> 
+>? ?  *Thanks,____*
+> 
+>? ?  *Unmesh Desale
+>? ?  **__________________________________**____*
+> 
+>? ? ? ____
+> 
+>? ?  *Office:* +91 20 40754 4823? *Mobile: *+91 9657725432
+>? ?  <tel:%2B91%209657725432>* _
+>? ? _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>? ?  *__________________________________**____*
+> 
+>? ?  __ __
+> 
+>? ?  __ __
+> 
+>? ?  *From:*Tom Barber [mailto:tom.a.barber at gmail.com
+>? ?  <mailto:tom.a.barber at gmail.com>]
+>? ?  *Sent:* Tuesday, August 06, 2013 1:57 PM
+>? ?  *To:* Unmesh Desale
+>? ?  *Cc:* owasp-csrfguard at lists.owasp.org
+>? ?  <mailto:owasp-csrfguard at lists.owasp.org>; Rajesh Punjabi
+>? ?  *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+> 
+>? ?  __ __
+> 
+>? ?  Is it the injection of tokens into links etc or ajax requests that
+>? ?  is failing? I found that xmlhttprequest injection doesn't work in
+>? ?  <ie9____
+> 
+>? ?  On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+>? ?  <mailto:Unmesh_Desale at symantec.com>> wrote:____
+> 
+>? ?  Hi Rajesh,____
+> 
+>? ? ? ____
+> 
+>? ?  Tried the below solution but it is still not able to inject the
+>? ?  token. Whenever I am placing one alert message in that function then
+>? ?  I am able to see CRSF token in resulting html (IE8).____
+> 
+>? ? ? ____
+> 
+>? ?  element.setAttribute(attr, location);____
+> 
+>? ?  alert('token injected:' + value);____
+> 
+>? ? ? ____
+> 
+>? ?  Below are my settings for servelet in web.xml;____
+> 
+>? ? ? ____
+> 
+>? ?  _<servlet>_____
+> 
+>? ? ? ? ? ? ? ?  <servlet-name>JavaScriptServlet</servlet-name>____
+> 
+>? ? ? ? ? ? ? ? 
+>? ?  <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+> 
+>? ? ? ? ? ? ? ?  <init-_param_>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-name>source-file</param-name>____
+> 
+>? ? ? ? ? ? ? ? ? ? ? 
+>? ?  <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+> 
+>? ? ? ? ? ? ? ?  </init-_param_>____
+> 
+>? ? ? ? ? ? ? ?  <init-_param_>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-name>inject-into-forms</param-name>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-value>true</param-value>____
+> 
+>? ? ? ? ? ? ? ?  </init-_param_>____
+> 
+>? ? ? ? ? ? ? ?  <init-_param_>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-name>inject-into-attributes</param-name>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-value>true</param-value>____
+> 
+>? ? ? ? ? ? ? ?  </init-_param_>____
+> 
+>? ? ? ? ? ? ? ?  <init-_param_>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-name>domain-strict</param-name>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-value>true</param-value>____
+> 
+>? ? ? ? ? ? ? ?  </init-_param_>____
+> 
+>? ? ? ? ? ? ? ?  <init-_param_>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-name>_referer_-pattern</param-name>____
+> 
+>? ? ? ? ? ? ? ? ? ? ?  <param-value>.*_localhost_:8080.*</param-value>____
+> 
+>? ? ? ? ? ? ? ?  </init-_param_>? ? ? ? ?  ____
+> 
+>? ?  _</servlet>_____
+> 
+>? ? ? ____
+> 
+>? ?  Below are settings for CSRF Guard Properties:____
+> 
+>? ? ? ____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.TokenPerPage=true____
+> 
+>? ?  org.owasp.csrfguard.TokenPerPagePrecreate=false____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.Ajax=true____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.unprotected.Default=/appliance____
+> 
+>? ?  org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+> 
+>? ?  org.owasp.csrfguard.unprotected.JavaScript=*.js____
+> 
+>? ?  org.owasp.csrfguard.unprotected.css=*.css____
+> 
+>? ?  org.owasp.csrfguard.unprotected.html=*.html____
+> 
+>? ?  org.owasp.csrfguard.unprotected.png=*.png____
+> 
+>? ?  org.owasp.csrfguard.unprotected.jpg=*.jpg____
+> 
+>? ?  org.owasp.csrfguard.unprotected.ico=*.ico____
+> 
+>? ?  org.owasp.csrfguard.unprotected.gif=*.gif____
+> 
+>? ?  org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+> 
+>? ?  org.owasp.csrfguard.unprotected.jsp=*.jsp____
+> 
+>? ?  org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+> 
+>? ?  org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+>? ?  <http://manage.appliance.patch.details.do>____
+> 
+>? ?  org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+>? ?  <http://settings.appreconfig.security.edit.do>____
+> 
+>? ?  org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+>? ?  <http://launch.configure.appliance.do>____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+> 
+>? ?  org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>? ?  forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+>? ?  uri:%request_uri%, error:%exception_message%)____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+> 
+>? ?  org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+> 
+>? ?  org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+> 
+>? ? ? ____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.TokenLength=32____
+> 
+>? ? ? ____
+> 
+>? ?  org.owasp.csrfguard.PRNG=SHA1PRNG____
+> 
+>? ? ? ____
+> 
+>? ?  *Thanks,*____
+> 
+>? ?  *Unmesh Desale
+>? ?  **__________________________________*____
+> 
+>? ? ? ____
+> 
+>? ?  *Office:* +91 20 40754 4823? *Mobile: *+91 9657725432
+>? ?  <tel:%2B91%209657725432>* _
+>? ? _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>? ?  *__________________________________*____
+> 
+>? ? ? ____
+> 
+>? ? ? ____
+> 
+>? ?  *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com
+>? ?  <mailto:rajesh_punjabi at hotmail.com>]
+>? ?  *Sent:* Monday, August 05, 2013 10:44 PM
+>? ?  *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org
+>? ?  <mailto:owasp-csrfguard at lists.owasp.org>
+>? ?  *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+> 
+>? ? ? ____
+> 
+>? ?  I got into the same issue and here is what I wrote earlier on a
+>? ?  thread.____
+> 
+>? ? ? ____
+> 
+>? ?  It seems when the JavaScriptServlet injects tokens to all the
+>? ?  elements in the DOM, it also attaches the token to <script src=''>
+>? ?  and <link href=''>.____
+> 
+>? ?  In IE8 the browser loads all the css files and JS files twice.? This
+>? ?  seems to screw up things.____
+> 
+>? ?  You could try to make the INJECT_ATTRIBUTES parameter as false.____
+> 
+>? ? ? ____
+> 
+>? ?  Alternatively, if you think this may break some functionality you
+>? ?  desire then in the injectTokenAttribute() method I added the
+>? ?  following line. (more of a hack)____
+> 
+>? ?  if(location != null && isValidUrl(location) &&
+>? ?  !location.toLowerCase().endsWith(".css") &&
+>? ?  !location.toLowerCase().endsWith(".js") &&
+>? ?  !location.toLowerCase().endsWith("javascriptservlet")) {____
+> 
+>? ? ? ?  var uri = parseUri(location);____
+> 
+>? ? ? ?  .....................____
+> 
+>? ?  }____
+> 
+>? ? ? ____
+> 
+>? ?  So basically for js, css files we shouldn't need to attach the
+>? ?  CSRFTOKEN attribute.____
+> 
+>? ? ? ____
+> 
+>? ?  HTH____
+> 
+>? ? ? ____
+> 
+>? ?  Best,
+>? ?  Rajesh____
+> 
+>? ? ? ____
+> 
+>? ?  ------------------------------------------------------------------------
+> 
+>? ?  From: Unmesh_Desale at symantec.com <mailto:Unmesh_Desale at symantec.com>
+>? ?  To: owasp-csrfguard at lists.owasp.org
+>? ?  <mailto:owasp-csrfguard at lists.owasp.org>
+>? ?  Date: Mon, 5 Aug 2013 05:41:03 -0700
+>? ?  Subject: [Owasp-csrfguard] Issue with IE8____
+> 
+>? ?  Hi All,____
+> 
+>? ? ? ____
+> 
+>? ?  I have configured OWASP CSRFGuard for my project. It is working fine
+>? ?  when I am browsing my site using Firefox Mozilla but same site
+>? ?  doesn?t not work when I browse it through IE 8. This module is not
+>? ?  able to inject CSRF token for IE8.____
+> 
+>? ? ? ____
+> 
+>? ?  Is this module works (supports) IE8 and higher versions? Is it
+>? ?  cross-browser compatible?____
+> 
+>? ? ? ____
+> 
+>? ?  Please suggest me some solution. I am in urgent need of help.____
+> 
+>? ? ? ____
+> 
+>? ? ? ____
+> 
+>? ?  *Thanks,*____
+> 
+>? ?  *Unmesh Desale
+>? ?  **__________________________________*____
+> 
+>? ? ? ____
+> 
+>? ?  *Office:* +91 20 40754 4823? *Mobile: *+91 9657725432
+>? ?  <tel:%2B91%209657725432>* _
+>? ? _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>? ?  *__________________________________*____
+> 
+>? ? ? ____
+> 
+>? ? ? ____
+> 
+> 
+>? ?  _______________________________________________ Owasp-csrfguard
+>? ?  mailing list Owasp-csrfguard at lists.owasp.org
+>? ?  <mailto:Owasp-csrfguard at lists.owasp.org>
+>? ? https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+>? ?  _______________________________________________
+>? ?  Owasp-csrfguard mailing list
+>? ? Owasp-csrfguard at lists.owasp.org <mailto:Owasp-csrfguard at lists.owasp.org>
+>? ? https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/36ad631c/attachment-0001.html>
+
+From armyofda12mnkeys at gmail.com  Tue Aug  6 16:58:58 2013
+From: armyofda12mnkeys at gmail.com (Arian)
+Date: Tue, 6 Aug 2013 12:58:58 -0400
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>
+	<52010AC2.8060205@owasp.org>
+	<1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>
+Message-ID: <CANZ6e7wiV_BMdJnpDyDvQRLvXiRNxT3jGBE+-G5EZ18iJc+DLQ@mail.gmail.com>
+
+Do you get this same IE8 error when you use Developer Tools in IE9 to
+simulate 8 via the Browser Mode/Document Mode dropdown?
+Im only asking cause I've tested ajax requests on our site via that way for
+IE8 and never had issues...
+
+my main configuration settings are:
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.Ajax=true
+
+
+Also found it more dependable to have the Owasp.CsrfGuard.js file loaded
+via jquery onload (otherwise in my slow browser which is filled with 10-15
+programming related tabs, the token isn't injected in time)... My updates
+for that are here if anyone interested:
+https://github.com/esheri3/OWASP-CSRFGuard/issues/27
+
+-Arian
+
+
+
+On Tue, Aug 6, 2013 at 12:16 PM, P Manchanda <manchandap at yahoo.com> wrote:
+
+> Good to hear that people are working to fix this issue.
+>
+> Else I would recommend creating a stand alone test bed that reproduces the
+> problem and sharing it with the community. That would help to resolve the
+> problem.
+>
+>
+>
+> ___________________
+> Thks & brgds
+> P Manchanda
+> Mobile: +91-9811210374 <http://geocities.com/manchandap/>
+>
+>   ------------------------------
+>  *From:* Eric Sheridan <eric.sheridan at owasp.org>
+> *To:* owasp-csrfguard at lists.owasp.org
+> *Sent:* Tuesday, 6 August 2013, 20:10
+>
+> *Subject:* Re: [Owasp-csrfguard] Issue with IE8
+>
+> There are some folks helping to resolve this issue as we speak. I don't
+> believe the code has been committed yet but the 'HijackExplorer' code in
+> the JavaScript file messes things up now as IE has moved to
+> XMLHTTPRequest instead of the ActiveX approach.
+>
+> Sincerely,
+> Eric Sheridan
+> (twitter) @eric_sheridan
+> (blog) http://ericsheridan.blogspot.com
+>
+> On 8/6/13 9:19 AM, Tom Barber wrote:
+> > As I mentioned before I found that csrfguard does not work correctly
+> > with ie8 when it comes to ajax requests.
+> > Thanks
+> > Tom
+> >
+> > On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+> > <mailto:Unmesh_Desale at symantec.com>> wrote:
+> >
+> >    Yes it is the injection of tokens into links etc? not getting any
+> >    error for ajax request. I am not able to see any CSRF token in
+> IE8.____
+> >
+> >    __ __
+> >
+> >    *Thanks,____*
+> >
+> >    *Unmesh Desale
+> >    **__________________________________**____*
+> >
+> >      ____
+> >
+> >    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+> >    <tel:%2B91%209657725432>* _
+> >    _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+> >    *__________________________________**____*
+> >
+> >    __ __
+> >
+> >    __ __
+> >
+> >    *From:*Tom Barber [mailto:tom.a.barber at gmail.com
+> >    <mailto:tom.a.barber at gmail.com>]
+> >    *Sent:* Tuesday, August 06, 2013 1:57 PM
+> >    *To:* Unmesh Desale
+> >    *Cc:* owasp-csrfguard at lists.owasp.org
+> >    <mailto:owasp-csrfguard at lists.owasp.org>; Rajesh Punjabi
+> >    *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+> >
+> >    __ __
+> >
+> >    Is it the injection of tokens into links etc or ajax requests that
+> >    is failing? I found that xmlhttprequest injection doesn't work in
+> >    <ie9____
+> >
+> >    On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+> >    <mailto:Unmesh_Desale at symantec.com>> wrote:____
+> >
+> >    Hi Rajesh,____
+> >
+> >      ____
+> >
+> >    Tried the below solution but it is still not able to inject the
+> >    token. Whenever I am placing one alert message in that function then
+> >    I am able to see CRSF token in resulting html (IE8).____
+> >
+> >      ____
+> >
+> >    element.setAttribute(attr, location);____
+> >
+> >    alert('token injected:' + value);____
+> >
+> >      ____
+> >
+> >    Below are my settings for servelet in web.xml;____
+> >
+> >      ____
+> >
+> >    _<servlet>_____
+> >
+> >                <servlet-name>JavaScriptServlet</servlet-name>____
+> >
+> >
+> >
+> <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+> >
+> >                <init-_param_>____
+> >
+> >                      <param-name>source-file</param-name>____
+> >
+> >
+> >    <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+> >
+> >                </init-_param_>____
+> >
+> >                <init-_param_>____
+> >
+> >                      <param-name>inject-into-forms</param-name>____
+> >
+> >                      <param-value>true</param-value>____
+> >
+> >                </init-_param_>____
+> >
+> >                <init-_param_>____
+> >
+> >                      <param-name>inject-into-attributes</param-name>____
+> >
+> >                      <param-value>true</param-value>____
+> >
+> >                </init-_param_>____
+> >
+> >                <init-_param_>____
+> >
+> >                      <param-name>domain-strict</param-name>____
+> >
+> >                      <param-value>true</param-value>____
+> >
+> >                </init-_param_>____
+> >
+> >                <init-_param_>____
+> >
+> >                      <param-name>_referer_-pattern</param-name>____
+> >
+> >                      <param-value>.*_localhost_:8080.*</param-value>____
+> >
+> >                </init-_param_>          ____
+> >
+> >    _</servlet>_____
+> >
+> >      ____
+> >
+> >    Below are settings for CSRF Guard Properties:____
+> >
+> >      ____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.TokenPerPage=true____
+> >
+> >    org.owasp.csrfguard.TokenPerPagePrecreate=false____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.Ajax=true____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.unprotected.Default=/appliance____
+> >
+> >
+> org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+> >
+> >    org.owasp.csrfguard.unprotected.JavaScript=*.js____
+> >
+> >    org.owasp.csrfguard.unprotected.css=*.css____
+> >
+> >    org.owasp.csrfguard.unprotected.html=*.html____
+> >
+> >    org.owasp.csrfguard.unprotected.png=*.png____
+> >
+> >    org.owasp.csrfguard.unprotected.jpg=*.jpg____
+> >
+> >    org.owasp.csrfguard.unprotected.ico=*.ico____
+> >
+> >    org.owasp.csrfguard.unprotected.gif=*.gif____
+> >
+> >    org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+> >
+> >    org.owasp.csrfguard.unprotected.jsp=*.jsp____
+> >
+> >    org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+> >
+> >    org.owasp.csrfguard.unprotected.Patch=/appliance/
+> manage.appliance.patch.details.do
+> >    <http://manage.appliance.patch.details.do>____
+> >
+> >    org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/
+> settings.appreconfig.security.edit.do
+> >    <http://settings.appreconfig.security.edit.do>____
+> >
+> >    org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/
+> launch.configure.appliance.do
+> >    <http://launch.configure.appliance.do>____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+> >
+> >    org.owasp.csrfguard.action.Log.Message=potential cross-site request
+> >    forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+> >    uri:%request_uri%, error:%exception_message%)____
+> >
+> >      ____
+> >
+> >
+> org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+> >
+> >    org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+> >
+> >
+> org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+> >
+> >      ____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.TokenLength=32____
+> >
+> >      ____
+> >
+> >    org.owasp.csrfguard.PRNG=SHA1PRNG____
+> >
+> >      ____
+> >
+> >    *Thanks,*____
+> >
+> >    *Unmesh Desale
+> >    **__________________________________*____
+> >
+> >      ____
+> >
+> >    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+> >    <tel:%2B91%209657725432>* _
+> >    _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+> >    *__________________________________*____
+> >
+> >      ____
+> >
+> >      ____
+> >
+> >    *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com
+> >    <mailto:rajesh_punjabi at hotmail.com>]
+> >    *Sent:* Monday, August 05, 2013 10:44 PM
+> >    *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org
+> >    <mailto:owasp-csrfguard at lists.owasp.org>
+> >    *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+> >
+> >      ____
+> >
+> >    I got into the same issue and here is what I wrote earlier on a
+> >    thread.____
+> >
+> >      ____
+> >
+> >    It seems when the JavaScriptServlet injects tokens to all the
+> >    elements in the DOM, it also attaches the token to <script src=''>
+> >    and <link href=''>.____
+> >
+> >    In IE8 the browser loads all the css files and JS files twice.  This
+> >    seems to screw up things.____
+> >
+> >    You could try to make the INJECT_ATTRIBUTES parameter as false.____
+> >
+> >      ____
+> >
+> >    Alternatively, if you think this may break some functionality you
+> >    desire then in the injectTokenAttribute() method I added the
+> >    following line. (more of a hack)____
+> >
+> >    if(location != null && isValidUrl(location) &&
+> >    !location.toLowerCase().endsWith(".css") &&
+> >    !location.toLowerCase().endsWith(".js") &&
+> >    !location.toLowerCase().endsWith("javascriptservlet")) {____
+> >
+> >        var uri = parseUri(location);____
+> >
+> >        .....................____
+> >
+> >    }____
+> >
+> >      ____
+> >
+> >    So basically for js, css files we shouldn't need to attach the
+> >    CSRFTOKEN attribute.____
+> >
+> >      ____
+> >
+> >    HTH____
+> >
+> >      ____
+> >
+> >    Best,
+> >    Rajesh____
+> >
+> >      ____
+> >
+> >
+> ------------------------------------------------------------------------
+> >
+> >    From: Unmesh_Desale at symantec.com <mailto:Unmesh_Desale at symantec.com>
+> >    To: owasp-csrfguard at lists.owasp.org
+> >    <mailto:owasp-csrfguard at lists.owasp.org>
+> >    Date: Mon, 5 Aug 2013 05:41:03 -0700
+> >    Subject: [Owasp-csrfguard] Issue with IE8____
+> >
+> >    Hi All,____
+> >
+> >      ____
+> >
+> >    I have configured OWASP CSRFGuard for my project. It is working fine
+> >    when I am browsing my site using Firefox Mozilla but same site
+> >    doesn?t not work when I browse it through IE 8. This module is not
+> >    able to inject CSRF token for IE8.____
+> >
+> >      ____
+> >
+> >    Is this module works (supports) IE8 and higher versions? Is it
+> >    cross-browser compatible?____
+> >
+> >      ____
+> >
+> >    Please suggest me some solution. I am in urgent need of help.____
+> >
+> >      ____
+> >
+> >      ____
+> >
+> >    *Thanks,*____
+> >
+> >    *Unmesh Desale
+> >    **__________________________________*____
+> >
+> >      ____
+> >
+> >    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+> >    <tel:%2B91%209657725432>* _
+> >    _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+> >    *__________________________________*____
+> >
+> >      ____
+> >
+> >      ____
+> >
+> >
+> >    _______________________________________________ Owasp-csrfguard
+> >    mailing list Owasp-csrfguard at lists.owasp.org
+> >    <mailto:Owasp-csrfguard at lists.owasp.org>
+> >    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> >
+> >
+> >    _______________________________________________
+> >    Owasp-csrfguard mailing list
+> >    Owasp-csrfguard at lists.owasp.org <mailto:
+> Owasp-csrfguard at lists.owasp.org>
+> >    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> >
+> >
+> >
+> > _______________________________________________
+> > Owasp-csrfguard mailing list
+> > Owasp-csrfguard at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> >
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/ad4435fb/attachment-0001.html>
+
+From rajesh_punjabi at hotmail.com  Tue Aug  6 18:08:48 2013
+From: rajesh_punjabi at hotmail.com (Rajesh Punjabi)
+Date: Tue, 6 Aug 2013 11:08:48 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <CANZ6e7wiV_BMdJnpDyDvQRLvXiRNxT3jGBE+-G5EZ18iJc+DLQ@mail.gmail.com>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>,
+	<52010AC2.8060205@owasp.org>,
+	<1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>,
+	<CANZ6e7wiV_BMdJnpDyDvQRLvXiRNxT3jGBE+-G5EZ18iJc+DLQ@mail.gmail.com>
+Message-ID: <BAY170-W57568BC96D5D10955550A8FC5D0@phx.gbl>
+
+Unmesh,Try with the attached js file.Thanks,Rajesh
+
+Date: Tue, 6 Aug 2013 12:58:58 -0400
+From: armyofda12mnkeys at gmail.com
+To: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+Do you get this same IE8 error when you use Developer Tools in IE9 to simulate 8 via the Browser Mode/Document Mode dropdown?Im only asking cause I've tested ajax requests on our site via that way for IE8 and never had issues...
+
+my main configuration settings are:org.owasp.csrfguard.TokenPerPage=trueorg.owasp.csrfguard.Ajax=true
+
+Also found it more dependable to have the Owasp.CsrfGuard.js file loaded via jquery onload (otherwise in my slow browser which is filled with 10-15 programming related tabs, the token isn't injected in time)... My updates for that are here if anyone interested:
+https://github.com/esheri3/OWASP-CSRFGuard/issues/27 -Arian
+
+
+On Tue, Aug 6, 2013 at 12:16 PM, P Manchanda <manchandap at yahoo.com> wrote:
+
+Good to hear that people are working to fix this issue.
+
+
+Else I would recommend creating a stand alone test bed that reproduces the problem and sharing it with the community. That would help to resolve the problem.
+
+ 
+___________________ 
+Thks & brgds 
+P ManchandaMobile: +91-9811210374 
+
+
+    
+    From: Eric Sheridan
+ <eric.sheridan at owasp.org>
+ To: owasp-csrfguard at lists.owasp.org 
+
+ Sent: Tuesday, 6 August 2013, 20:10
+ Subject: Re: [Owasp-csrfguard] Issue with IE8
+  
+ 
+There are some folks helping to resolve this issue as we speak. I don't
+believe the code has been committed yet but the 'HijackExplorer' code in
+the JavaScript file messes things up now as IE has moved to
+
+XMLHTTPRequest instead of the ActiveX approach.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+
+On 8/6/13 9:19 AM, Tom Barber wrote:
+> As I mentioned before I found that csrfguard does not work correctly
+> with ie8 when it comes to ajax requests. 
+>
+ Thanks
+> Tom
+> 
+> On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+> <mailto:Unmesh_Desale at symantec.com>> wrote:
+
+> 
+>     Yes it is the injection of tokens into links etc? not getting any
+>     error for ajax request. I am not able to see any CSRF token in IE8.____
+> 
+>     __ __
+> 
+>     *Thanks,____*
+
+> 
+>     *Unmesh Desale
+>     **__________________________________**____*
+> 
+>      ____
+> 
+>     *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+
+>     <tel:%2B91%209657725432>* _
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+
+>     *__________________________________**____*
+> 
+>     __ __
+> 
+>     __ __
+> 
+>     *From:*Tom Barber [mailto:tom.a.barber at gmail.com
+
+>     <mailto:tom.a.barber at gmail.com>]
+>     *Sent:* Tuesday, August 06, 2013 1:57 PM
+>     *To:* Unmesh Desale
+>     *Cc:* owasp-csrfguard at lists.owasp.org
+
+>     <mailto:owasp-csrfguard at lists.owasp.org>; Rajesh Punjabi
+>     *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+> 
+>     __ __
+
+> 
+>     Is it the injection of tokens into links etc or ajax requests that
+>     is failing? I found that xmlhttprequest injection doesn't work in
+>     <ie9____
+> 
+>     On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com
+
+>     <mailto:Unmesh_Desale at symantec.com>>
+ wrote:____
+> 
+>     Hi Rajesh,____
+> 
+>      ____
+> 
+>     Tried the below solution but it is still not able to inject the
+>     token. Whenever I am placing one alert message in that function then
+
+>     I am able to see CRSF token in resulting html (IE8).____
+> 
+>      ____
+> 
+>     element.setAttribute(attr, location);____
+> 
+>     alert('token injected:' + value);____
+
+> 
+>      ____
+> 
+>     Below are my settings for servelet in web.xml;____
+> 
+>      ____
+> 
+>     _<servlet>_____
+> 
+>                 <servlet-name>JavaScriptServlet</servlet-name>____
+
+> 
+>             
+   
+>     <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>source-file</param-name>____
+
+> 
+>                      
+>     <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+
+> 
+>                       <param-name>inject-into-forms</param-name>____
+> 
+>           
+            <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>inject-into-attributes</param-name>____
+
+> 
+>                       <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>domain-strict</param-name>____
+
+> 
+>     
+                  <param-value>true</param-value>____
+> 
+>                 </init-_param_>____
+> 
+>                 <init-_param_>____
+> 
+>                       <param-name>_referer_-pattern</param-name>____
+
+> 
+>                       <param-value>.*_localhost_:8080.*</param-value>____
+> 
+>                 </init-_param_>           ____
+> 
+>     _</servlet>_____
+> 
+
+>      ____
+> 
+>     Below are settings for CSRF Guard Properties:____
+> 
+>     
+ ____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenPerPage=true____
+> 
+
+>     org.owasp.csrfguard.TokenPerPagePrecreate=false____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.Ajax=true____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.unprotected.Default=/appliance____
+
+> 
+>     org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+> 
+>     org.owasp.csrfguard.unprotected.JavaScript=*.js____
+> 
+>     org.owasp.csrfguard.unprotected.css=*.css____
+
+> 
+>     org.owasp.csrfguard.unprotected.html=*.html____
+> 
+>    
+ org.owasp.csrfguard.unprotected.png=*.png____
+> 
+>     org.owasp.csrfguard.unprotected.jpg=*.jpg____
+> 
+>     org.owasp.csrfguard.unprotected.ico=*.ico____
+> 
+>     org.owasp.csrfguard.unprotected.gif=*.gif____
+
+> 
+>     org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+> 
+>     org.owasp.csrfguard.unprotected.jsp=*.jsp____
+> 
+>     org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+
+> 
+>     org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do
+>     <http://manage.appliance.patch.details.do>____
+
+> 
+>     org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do
+>     <http://settings.appreconfig.security.edit.do>____
+
+> 
+>     org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do
+>     <http://launch.configure.appliance.do>____
+
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+> 
+>     org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>     forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+
+>     uri:%request_uri%, error:%exception_message%)____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+> 
+>    
+ org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+> 
+>     org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+> 
+>      ____
+> 
+>      ____
+> 
+>     org.owasp.csrfguard.TokenLength=32____
+> 
+
+>      ____
+> 
+>     org.owasp.csrfguard.PRNG=SHA1PRNG____
+> 
+>      ____
+> 
+>     *Thanks,*____
+> 
+>     *Unmesh Desale
+>     **__________________________________*____
+
+> 
+>      ____
+> 
+>     *Office:* +91
+ 20 40754 4823  *Mobile: *+91 9657725432
+>     <tel:%2B91%209657725432>* _
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+
+>     *__________________________________*____
+> 
+>      ____
+> 
+>      ____
+> 
+>     *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com
+
+>     <mailto:rajesh_punjabi at hotmail.com>]
+>     *Sent:* Monday, August 05, 2013 10:44 PM
+>     *To:* Unmesh
+ Desale; owasp-csrfguard at lists.owasp.org
+>     <mailto:owasp-csrfguard at lists.owasp.org>
+
+>     *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+> 
+>      ____
+> 
+>     I got into the same issue and here is what I wrote earlier on a
+>     thread.____
+> 
+>      ____
+
+> 
+>     It seems when the JavaScriptServlet injects tokens to all the
+>     elements in the DOM, it also attaches the token to <script src=''>
+>     and <link href=''>.____
+
+> 
+>     In IE8 the browser loads all the css files and JS files twice.  This
+>    
+ seems to screw up things.____
+> 
+>     You could try to make the INJECT_ATTRIBUTES parameter as false.____
+> 
+>      ____
+> 
+>     Alternatively, if you think this may break some functionality you
+
+>     desire then in the injectTokenAttribute() method I added the
+>     following line. (more of a hack)____
+> 
+>     if(location != null && isValidUrl(location) &&
+>     !location.toLowerCase().endsWith(".css") &&
+
+>     !location.toLowerCase().endsWith(".js") &&
+>     !location.toLowerCase().endsWith("javascriptservlet")) {____
+> 
+>         var uri = parseUri(location);____
+> 
+
+>         .....................____
+> 
+>     }____
+> 
+>     
+ ____
+> 
+>     So basically for js, css files we shouldn't need to attach the
+>     CSRFTOKEN attribute.____
+> 
+>      ____
+> 
+>     HTH____
+> 
+>      ____
+> 
+
+>     Best,
+>     Rajesh____
+> 
+>      ____
+> 
+>     ------------------------------------------------------------------------
+> 
+>     From: Unmesh_Desale at symantec.com <mailto:Unmesh_Desale at symantec.com>
+
+>     To: owasp-csrfguard at lists.owasp.org
+>    
+ <mailto:owasp-csrfguard at lists.owasp.org>
+>     Date: Mon, 5 Aug 2013 05:41:03 -0700
+>     Subject: [Owasp-csrfguard] Issue with IE8____
+
+> 
+>     Hi All,____
+> 
+>      ____
+> 
+>     I have configured OWASP CSRFGuard for my project. It is working fine
+>     when I am browsing my site using Firefox Mozilla but same site
+
+>     doesn?t not work when I browse it through IE 8. This module is not
+>     able to inject CSRF token for IE8.____
+> 
+>      ____
+> 
+>     Is this module works (supports) IE8 and higher versions? Is it
+
+>     cross-browser compatible?____
+> 
+>      ____
+> 
+>     Please
+ suggest me some solution. I am in urgent need of help.____
+> 
+>      ____
+> 
+>      ____
+> 
+>     *Thanks,*____
+> 
+>     *Unmesh Desale
+>     **__________________________________*____
+
+> 
+>      ____
+> 
+>     *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>     <tel:%2B91%209657725432>* _
+
+>     _unmesh_desale at symantec.com <mailto:unmesh_desale at symantec.com>*
+>     *__________________________________*____
+
+> 
+>      ____
+> 
+>      ____
+> 
+> 
+>    
+ _______________________________________________ Owasp-csrfguard
+>     mailing list Owasp-csrfguard at lists.owasp.org
+>     <mailto:Owasp-csrfguard at lists.owasp.org>
+
+>     https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+>     _______________________________________________
+
+>     Owasp-csrfguard mailing list
+>     Owasp-csrfguard at lists.owasp.org <mailto:Owasp-csrfguard at lists.owasp.org>
+
+>     https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+> 
+> 
+> 
+> _______________________________________________
+
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+> 
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+
+    
+_______________________________________________
+
+Owasp-csrfguard mailing list
+
+Owasp-csrfguard at lists.owasp.org
+
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+
+
+
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/42b6160c/attachment-0001.html>
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: Owasp.CsrfGuard.js.txt
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130806/42b6160c/attachment-0001.txt>
+
+From Unmesh_Desale at symantec.com  Wed Aug  7 12:44:43 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Wed, 7 Aug 2013 05:44:43 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <BAY170-W57568BC96D5D10955550A8FC5D0@phx.gbl>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>,
+	<52010AC2.8060205@owasp.org>,
+	<1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>,
+	<CANZ6e7wiV_BMdJnpDyDvQRLvXiRNxT3jGBE+-G5EZ18iJc+DLQ@mail.gmail.com>
+	<BAY170-W57568BC96D5D10955550A8FC5D0@phx.gbl>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D36CB8715@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Thanks Rajesh.... I tried your script.
+
+This script is able to inject CSRF token in page rendered in IE8 but it is not able to send the same token in AJAX as well as simple POST request.
+
+I am not even able to login to the site in IE 8 and same configurations/settings (scripts) are working perfectly fine in Mozilla Firefox 22.0.
+
+Thanks Arian.....
+
+But in our project we are not using JQuery... :(
+
+
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: owasp-csrfguard-bounces at lists.owasp.org [mailto:owasp-csrfguard-bounces at lists.owasp.org] On Behalf Of Rajesh Punjabi
+Sent: Tuesday, August 06, 2013 11:39 PM
+To: Arian; owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+Unmesh,
+Try with the attached js file.
+Thanks,
+Rajesh
+________________________________
+Date: Tue, 6 Aug 2013 12:58:58 -0400
+From: armyofda12mnkeys at gmail.com
+To: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+Do you get this same IE8 error when you use Developer Tools in IE9 to simulate 8 via the Browser Mode/Document Mode dropdown?
+Im only asking cause I've tested ajax requests on our site via that way for IE8 and never had issues...
+
+my main configuration settings are:
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.Ajax=true
+
+
+Also found it more dependable to have the Owasp.CsrfGuard.js file loaded via jquery onload (otherwise in my slow browser which is filled with 10-15 programming related tabs, the token isn't injected in time)... My updates for that are here if anyone interested:
+https://github.com/esheri3/OWASP-CSRFGuard/issues/27
+
+-Arian
+
+
+On Tue, Aug 6, 2013 at 12:16 PM, P Manchanda <manchandap at yahoo.com<mailto:manchandap at yahoo.com>> wrote:
+Good to hear that people are working to fix this issue.
+
+Else I would recommend creating a stand alone test bed that reproduces the problem and sharing it with the community. That would help to resolve the problem.
+
+
+
+___________________
+Thks & brgds
+P Manchanda
+Mobile: +91-9811210374
+
+________________________________
+From: Eric Sheridan <eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>>
+To: owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+Sent: Tuesday, 6 August 2013, 20:10
+
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+There are some folks helping to resolve this issue as we speak. I don't
+believe the code has been committed yet but the 'HijackExplorer' code in
+the JavaScript file messes things up now as IE has moved to
+XMLHTTPRequest instead of the ActiveX approach.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com<http://ericsheridan.blogspot.com/>
+
+On 8/6/13 9:19 AM, Tom Barber wrote:
+> As I mentioned before I found that csrfguard does not work correctly
+> with ie8 when it comes to ajax requests.
+> Thanks
+> Tom
+>
+> On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>
+> <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>> wrote:
+>
+>    Yes it is the injection of tokens into links etc... not getting any
+>    error for ajax request. I am not able to see any CSRF token in IE8.____
+>
+>    __ __
+>
+>    *Thanks,____*
+>
+>    *Unmesh Desale
+>    **__________________________________**____*
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________**____*
+>
+>    __ __
+>
+>    __ __
+>
+>    *From:*Tom Barber [mailto:tom.a.barber at gmail.com<mailto:tom.a.barber at gmail.com>
+>    <mailto:tom.a.barber at gmail.com<mailto:tom.a.barber at gmail.com>>]
+>    *Sent:* Tuesday, August 06, 2013 1:57 PM
+>    *To:* Unmesh Desale
+>    *Cc:* owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>; Rajesh Punjabi
+>    *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+>
+>    __ __
+>
+>    Is it the injection of tokens into links etc or ajax requests that
+>    is failing? I found that xmlhttprequest injection doesn't work in
+>    <ie9____
+>
+>    On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>
+>    <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>> wrote:____
+>
+>    Hi Rajesh,____
+>
+>      ____
+>
+>    Tried the below solution but it is still not able to inject the
+>    token. Whenever I am placing one alert message in that function then
+>    I am able to see CRSF token in resulting html (IE8).____
+>
+>      ____
+>
+>    element.setAttribute(attr, location);____
+>
+>    alert('token injected:' + value);____
+>
+>      ____
+>
+>    Below are my settings for servelet in web.xml;____
+>
+>      ____
+>
+>    _<servlet>_____
+>
+>                <servlet-name>JavaScriptServlet</servlet-name>____
+>
+>
+>    <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>source-file</param-name>____
+>
+>
+>    <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>inject-into-forms</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>inject-into-attributes</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>domain-strict</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>_referer_-pattern</param-name>____
+>
+>                      <param-value>.*_localhost_:8080.*</param-value>____
+>
+>                </init-_param_>          ____
+>
+>    _</servlet>_____
+>
+>      ____
+>
+>    Below are settings for CSRF Guard Properties:____
+>
+>      ____
+>
+>      ____
+>
+>    org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenPerPage=true____
+>
+>    org.owasp.csrfguard.TokenPerPagePrecreate=false____
+>
+>      ____
+>
+>    org.owasp.csrfguard.Ajax=true____
+>
+>      ____
+>
+>    org.owasp.csrfguard.unprotected.Default=/appliance____
+>
+>    org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+>
+>    org.owasp.csrfguard.unprotected.JavaScript=*.js____
+>
+>    org.owasp.csrfguard.unprotected.css=*.css____
+>
+>    org.owasp.csrfguard.unprotected.html=*.html____
+>
+>    org.owasp.csrfguard.unprotected.png=*.png____
+>
+>    org.owasp.csrfguard.unprotected.jpg=*.jpg____
+>
+>    org.owasp.csrfguard.unprotected.ico=*.ico____
+>
+>    org.owasp.csrfguard.unprotected.gif=*.gif____
+>
+>    org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+>
+>    org.owasp.csrfguard.unprotected.jsp=*.jsp____
+>
+>    org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+>
+>    org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do<http://manage.appliance.patch.details.do>
+>    <http://manage.appliance.patch.details.do<http://manage.appliance.patch.details.do/>>____
+>
+>    org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do<http://settings.appreconfig.security.edit.do>
+>    <http://settings.appreconfig.security.edit.do<http://settings.appreconfig.security.edit.do/>>____
+>
+>    org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do<http://launch.configure.appliance.do>
+>    <http://launch.configure.appliance.do<http://launch.configure.appliance.do/>>____
+>
+>      ____
+>
+>    org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+>
+>    org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>    forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+>    uri:%request_uri%, error:%exception_message%)____
+>
+>      ____
+>
+>    org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+>
+>    org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+>
+>    org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+>
+>      ____
+>
+>    org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+>
+>      ____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenLength=32____
+>
+>      ____
+>
+>    org.owasp.csrfguard.PRNG=SHA1PRNG____
+>
+>      ____
+>
+>    *Thanks,*____
+>
+>    *Unmesh Desale
+>    **__________________________________*____
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________*____
+>
+>      ____
+>
+>      ____
+>
+>    *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com<mailto:rajesh_punjabi at hotmail.com>
+>    <mailto:rajesh_punjabi at hotmail.com<mailto:rajesh_punjabi at hotmail.com>>]
+>    *Sent:* Monday, August 05, 2013 10:44 PM
+>    *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>
+>    *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+>
+>      ____
+>
+>    I got into the same issue and here is what I wrote earlier on a
+>    thread.____
+>
+>      ____
+>
+>    It seems when the JavaScriptServlet injects tokens to all the
+>    elements in the DOM, it also attaches the token to <script src=''>
+>    and <link href=''>.____
+>
+>    In IE8 the browser loads all the css files and JS files twice.  This
+>    seems to screw up things.____
+>
+>    You could try to make the INJECT_ATTRIBUTES parameter as false.____
+>
+>      ____
+>
+>    Alternatively, if you think this may break some functionality you
+>    desire then in the injectTokenAttribute() method I added the
+>    following line. (more of a hack)____
+>
+>    if(location != null && isValidUrl(location) &&
+>    !location.toLowerCase().endsWith(".css") &&
+>    !location.toLowerCase().endsWith(".js") &&
+>    !location.toLowerCase().endsWith("javascriptservlet")) {____
+>
+>        var uri = parseUri(location);____
+>
+>        .....................____
+>
+>    }____
+>
+>      ____
+>
+>    So basically for js, css files we shouldn't need to attach the
+>    CSRFTOKEN attribute.____
+>
+>      ____
+>
+>    HTH____
+>
+>      ____
+>
+>    Best,
+>    Rajesh____
+>
+>      ____
+>
+>    ------------------------------------------------------------------------
+>
+>    From: Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com> <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>
+>    To: owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>
+>    Date: Mon, 5 Aug 2013 05:41:03 -0700
+>    Subject: [Owasp-csrfguard] Issue with IE8____
+>
+>    Hi All,____
+>
+>      ____
+>
+>    I have configured OWASP CSRFGuard for my project. It is working fine
+>    when I am browsing my site using Firefox Mozilla but same site
+>    doesn't not work when I browse it through IE 8. This module is not
+>    able to inject CSRF token for IE8.____
+>
+>      ____
+>
+>    Is this module works (supports) IE8 and higher versions? Is it
+>    cross-browser compatible?____
+>
+>      ____
+>
+>    Please suggest me some solution. I am in urgent need of help.____
+>
+>      ____
+>
+>      ____
+>
+>    *Thanks,*____
+>
+>    *Unmesh Desale
+>    **__________________________________*____
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________*____
+>
+>      ____
+>
+>      ____
+>
+>
+>    _______________________________________________ Owasp-csrfguard
+>    mailing list Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+>    <mailto:Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>>
+>    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+>
+>
+>    _______________________________________________
+>    Owasp-csrfguard mailing list
+>    Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org> <mailto:Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>>
+>    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130807/c991387d/attachment-0001.html>
+
+From Zackary.Macomber at delhaize.com  Mon Aug 12 15:22:58 2013
+From: Zackary.Macomber at delhaize.com (Macomber, Zackary)
+Date: Mon, 12 Aug 2013 15:22:58 +0000
+Subject: [Owasp-csrfguard] NullPointerException after logging in when using
+	OWASP CSRFGuard 3.0
+Message-ID: <4A4E9A53E4ECC84A913B3AF10E2C893306DEB0@NA900205-SAL.delhaize.com>
+
+*** I HAVE POSTED THE FOLLOWING AT STACK OVERFLOW AS WELL...NO RESPONSE YET... ***
+
+I am attempting to use the latest OWASP CSRFGuard (v3.0). After I log into my web application locally, I get the following error:
+[8/12/13 7:14:58:792 EDT] 00000023 servlet       E com.ibm.ws.webcontainer.servlet.ServletWrapper service SRVE0068E: An exception was thrown
+by one of the service methods of the servlet [action] in application [GuidingStars]. Exception created : [java.lang.NullPointerException
+    at com.ibm.ws.session.SessionData.getSessionValue(SessionData.java:301)
+    at com.ibm.ws.session.SessionData.getAttribute(SessionData.java:163)
+    at org.owasp.csrfguard.CsrfGuard.updateToken(CsrfGuard.java:395)
+    at org.owasp.csrfguard.CsrfGuardHttpSessionListener.sessionCreated(CsrfGuardHttpSessionListener.java:13)
+
+I have setup my csrfguard.properties file in a "barebones" fashion (see below) but still am getting this error.
+
+Any ideas on how to resolve this?
+
+Here's my properties file:
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+org.owasp.csrfguard.TokenLength=32
+org.owasp.csrfguard.PRNG=SHA1PRNG
+
+Thanks,
+
+Zack Macomber
+Java EE Developer
+Delhaize America Shared Services Group, LLC
+t: 207.885.3963
+e: zackary.macomber at delhaize.com<mailto:zackary.macomber at delhaize.com>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130812/464b7052/attachment.html>
+
+From eric.sheridan at owasp.org  Mon Aug 12 16:16:17 2013
+From: eric.sheridan at owasp.org (Eric Sheridan)
+Date: Mon, 12 Aug 2013 12:16:17 -0400
+Subject: [Owasp-csrfguard] NullPointerException after logging in when
+ using OWASP CSRFGuard 3.0
+In-Reply-To: <4A4E9A53E4ECC84A913B3AF10E2C893306DEB0@NA900205-SAL.delhaize.com>
+References: <4A4E9A53E4ECC84A913B3AF10E2C893306DEB0@NA900205-SAL.delhaize.com>
+Message-ID: <52090A51.5040803@owasp.org>
+
+Have you tried pulling and building directly from GitHub? The 'dist'
+bundle suffers from a couple NPE which have been addressed in git, but a
+new 'dist' has not yet been rebuilt.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com
+
+On 8/12/13 11:22 AM, Macomber, Zackary wrote:
+> */*** I HAVE POSTED THE FOLLOWING AT STACK OVERFLOW AS WELL?NO RESPONSE
+> YET? ***/*
+> 
+>  
+> 
+> I am attempting to use the latest OWASP CSRFGuard (v3.0). After I log
+> into my web application locally, I get the following error:
+> 
+> [8/12/13 7:14:58:792 EDT] 00000023 servlet       E
+> com.ibm.ws.webcontainer.servlet.ServletWrapper service SRVE0068E: An
+> exception was thrown
+> 
+> by one of the service methods of the servlet [action] in application
+> [GuidingStars]. Exception created : [java.lang.NullPointerException
+> 
+>     at com.ibm.ws.session.SessionData.getSessionValue(SessionData.java:301)
+> 
+>     at com.ibm.ws.session.SessionData.getAttribute(SessionData.java:163)
+> 
+>     at org.owasp.csrfguard.CsrfGuard.updateToken(CsrfGuard.java:395)
+> 
+>     at
+> org.owasp.csrfguard.CsrfGuardHttpSessionListener.sessionCreated(CsrfGuardHttpSessionListener.java:13)
+> 
+>  
+> 
+> I have setup my csrfguard.properties file in a "barebones" fashion (see
+> below) but still am getting this error.
+> 
+>  
+> 
+> Any ideas on how to resolve this?
+> 
+>  
+> 
+> Here's my properties file:
+> 
+> org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+> 
+> org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN
+> 
+> org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN
+> 
+> org.owasp.csrfguard.TokenLength=32
+> 
+> org.owasp.csrfguard.PRNG=SHA1PRNG
+> 
+>  
+> 
+> Thanks,
+> 
+>  
+> 
+> *Zack Macomber***
+> 
+> Java EE Developer
+> 
+> Delhaize America Shared Services Group, LLC
+> 
+> t: 207.885.3963
+> 
+> e: _zackary.macomber at delhaize.com <mailto:zackary.macomber at delhaize.com>_
+> 
+>  
+> 
+> 
+> 
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+> 
+
+From Unmesh_Desale at symantec.com  Thu Aug 29 03:50:39 2013
+From: Unmesh_Desale at symantec.com (Unmesh Desale)
+Date: Wed, 28 Aug 2013 20:50:39 -0700
+Subject: [Owasp-csrfguard] Issue with IE8
+In-Reply-To: <BAY170-W57568BC96D5D10955550A8FC5D0@phx.gbl>
+References: <6CA846967A7AA24F8F60325CA7323A374D361F4CAE@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<BAY170-W93B465BB70D9D96667DE0FFC5C0@phx.gbl>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F5003@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaS=CtAyLr+D3PuKZSry8aV3pe2HuRH6v8XtnSXwZPmY=A@mail.gmail.com>,
+	<6CA846967A7AA24F8F60325CA7323A374D361F51C8@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>,
+	<CAKrLoaR7zP3+HC+XyNQrChzX7=jdibYVQuzBoPw07yNtXmmnoQ@mail.gmail.com>,
+	<52010AC2.8060205@owasp.org>,
+	<1375805802.60790.YahooMailNeo@web162601.mail.bf1.yahoo.com>,
+	<CANZ6e7wiV_BMdJnpDyDvQRLvXiRNxT3jGBE+-G5EZ18iJc+DLQ@mail.gmail.com>
+	<BAY170-W57568BC96D5D10955550A8FC5D0@phx.gbl>
+Message-ID: <6CA846967A7AA24F8F60325CA7323A374D4143109F@APJ1XCHEVSPIN33.SYMC.SYMANTEC.COM>
+
+Hi All,
+
+Thanks for your support....
+
+I am able successfully integrate this into my application.
+
+@Rajesh: Thank you very much for your script. It really worked seamlessly.
+
+
+Thanks,
+Unmesh Desale
+________________________________
+
+Office: +91 20 40754 4823  Mobile: +91 9657725432
+unmesh_desale at symantec.com
+________________________________
+
+
+From: owasp-csrfguard-bounces at lists.owasp.org [mailto:owasp-csrfguard-bounces at lists.owasp.org] On Behalf Of Rajesh Punjabi
+Sent: Tuesday, August 06, 2013 11:39 PM
+To: Arian; owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+Unmesh,
+Try with the attached js file.
+Thanks,
+Rajesh
+________________________________
+Date: Tue, 6 Aug 2013 12:58:58 -0400
+From: armyofda12mnkeys at gmail.com
+To: owasp-csrfguard at lists.owasp.org
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+Do you get this same IE8 error when you use Developer Tools in IE9 to simulate 8 via the Browser Mode/Document Mode dropdown?
+Im only asking cause I've tested ajax requests on our site via that way for IE8 and never had issues...
+
+my main configuration settings are:
+org.owasp.csrfguard.TokenPerPage=true
+org.owasp.csrfguard.Ajax=true
+
+
+Also found it more dependable to have the Owasp.CsrfGuard.js file loaded via jquery onload (otherwise in my slow browser which is filled with 10-15 programming related tabs, the token isn't injected in time)... My updates for that are here if anyone interested:
+https://github.com/esheri3/OWASP-CSRFGuard/issues/27
+
+-Arian
+
+
+On Tue, Aug 6, 2013 at 12:16 PM, P Manchanda <manchandap at yahoo.com<mailto:manchandap at yahoo.com>> wrote:
+Good to hear that people are working to fix this issue.
+
+Else I would recommend creating a stand alone test bed that reproduces the problem and sharing it with the community. That would help to resolve the problem.
+
+
+
+___________________
+Thks & brgds
+P Manchanda
+Mobile: +91-9811210374
+
+________________________________
+From: Eric Sheridan <eric.sheridan at owasp.org<mailto:eric.sheridan at owasp.org>>
+To: owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+Sent: Tuesday, 6 August 2013, 20:10
+
+Subject: Re: [Owasp-csrfguard] Issue with IE8
+
+There are some folks helping to resolve this issue as we speak. I don't
+believe the code has been committed yet but the 'HijackExplorer' code in
+the JavaScript file messes things up now as IE has moved to
+XMLHTTPRequest instead of the ActiveX approach.
+
+Sincerely,
+Eric Sheridan
+(twitter) @eric_sheridan
+(blog) http://ericsheridan.blogspot.com<http://ericsheridan.blogspot.com/>
+
+On 8/6/13 9:19 AM, Tom Barber wrote:
+> As I mentioned before I found that csrfguard does not work correctly
+> with ie8 when it comes to ajax requests.
+> Thanks
+> Tom
+>
+> On Aug 6, 2013 9:44 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>
+> <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>> wrote:
+>
+>    Yes it is the injection of tokens into links etc... not getting any
+>    error for ajax request. I am not able to see any CSRF token in IE8.____
+>
+>    __ __
+>
+>    *Thanks,____*
+>
+>    *Unmesh Desale
+>    **__________________________________**____*
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________**____*
+>
+>    __ __
+>
+>    __ __
+>
+>    *From:*Tom Barber [mailto:tom.a.barber at gmail.com<mailto:tom.a.barber at gmail.com>
+>    <mailto:tom.a.barber at gmail.com<mailto:tom.a.barber at gmail.com>>]
+>    *Sent:* Tuesday, August 06, 2013 1:57 PM
+>    *To:* Unmesh Desale
+>    *Cc:* owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>; Rajesh Punjabi
+>    *Subject:* Re: [Owasp-csrfguard] Issue with IE8____
+>
+>    __ __
+>
+>    Is it the injection of tokens into links etc or ajax requests that
+>    is failing? I found that xmlhttprequest injection doesn't work in
+>    <ie9____
+>
+>    On Aug 6, 2013 6:34 AM, "Unmesh Desale" <Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>
+>    <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>> wrote:____
+>
+>    Hi Rajesh,____
+>
+>      ____
+>
+>    Tried the below solution but it is still not able to inject the
+>    token. Whenever I am placing one alert message in that function then
+>    I am able to see CRSF token in resulting html (IE8).____
+>
+>      ____
+>
+>    element.setAttribute(attr, location);____
+>
+>    alert('token injected:' + value);____
+>
+>      ____
+>
+>    Below are my settings for servelet in web.xml;____
+>
+>      ____
+>
+>    _<servlet>_____
+>
+>                <servlet-name>JavaScriptServlet</servlet-name>____
+>
+>
+>    <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>source-file</param-name>____
+>
+>
+>    <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>inject-into-forms</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>inject-into-attributes</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>domain-strict</param-name>____
+>
+>                      <param-value>true</param-value>____
+>
+>                </init-_param_>____
+>
+>                <init-_param_>____
+>
+>                      <param-name>_referer_-pattern</param-name>____
+>
+>                      <param-value>.*_localhost_:8080.*</param-value>____
+>
+>                </init-_param_>          ____
+>
+>    _</servlet>_____
+>
+>      ____
+>
+>    Below are settings for CSRF Guard Properties:____
+>
+>      ____
+>
+>      ____
+>
+>    org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenPerPage=true____
+>
+>    org.owasp.csrfguard.TokenPerPagePrecreate=false____
+>
+>      ____
+>
+>    org.owasp.csrfguard.Ajax=true____
+>
+>      ____
+>
+>    org.owasp.csrfguard.unprotected.Default=/appliance____
+>
+>    org.owasp.csrfguard.unprotected.JavaScriptServlet=/appliance/JavaScriptServlet____
+>
+>    org.owasp.csrfguard.unprotected.JavaScript=*.js____
+>
+>    org.owasp.csrfguard.unprotected.css=*.css____
+>
+>    org.owasp.csrfguard.unprotected.html=*.html____
+>
+>    org.owasp.csrfguard.unprotected.png=*.png____
+>
+>    org.owasp.csrfguard.unprotected.jpg=*.jpg____
+>
+>    org.owasp.csrfguard.unprotected.ico=*.ico____
+>
+>    org.owasp.csrfguard.unprotected.gif=*.gif____
+>
+>    org.owasp.csrfguard.unprotected.Tag=/tag.jsp____
+>
+>    org.owasp.csrfguard.unprotected.jsp=*.jsp____
+>
+>    org.owasp.csrfguard.unprotected.Error=/appliance/error.html____
+>
+>    org.owasp.csrfguard.unprotected.Patch=/appliance/manage.appliance.patch.details.do<http://manage.appliance.patch.details.do>
+>    <http://manage.appliance.patch.details.do<http://manage.appliance.patch.details.do/>>____
+>
+>    org.owasp.csrfguard.unprotected.SecurityEdit=/appliance/settings.appreconfig.security.edit.do<http://settings.appreconfig.security.edit.do>
+>    <http://settings.appreconfig.security.edit.do<http://settings.appreconfig.security.edit.do/>>____
+>
+>    org.owasp.csrfguard.unprotected.launchInitConfig=/appliance/launch.configure.appliance.do<http://launch.configure.appliance.do>
+>    <http://launch.configure.appliance.do<http://launch.configure.appliance.do/>>____
+>
+>      ____
+>
+>    org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log____
+>
+>    org.owasp.csrfguard.action.Log.Message=potential cross-site request
+>    forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%,
+>    uri:%request_uri%, error:%exception_message%)____
+>
+>      ____
+>
+>    org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect____
+>
+>    org.owasp.csrfguard.action.Redirect.Page=/appliance/error.html____
+>
+>    org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenName=OWASP_CSRFTOKEN____
+>
+>      ____
+>
+>    org.owasp.csrfguard.SessionKey=OWASP_CSRFTOKEN____
+>
+>      ____
+>
+>      ____
+>
+>    org.owasp.csrfguard.TokenLength=32____
+>
+>      ____
+>
+>    org.owasp.csrfguard.PRNG=SHA1PRNG____
+>
+>      ____
+>
+>    *Thanks,*____
+>
+>    *Unmesh Desale
+>    **__________________________________*____
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________*____
+>
+>      ____
+>
+>      ____
+>
+>    *From:*Rajesh Punjabi [mailto:rajesh_punjabi at hotmail.com<mailto:rajesh_punjabi at hotmail.com>
+>    <mailto:rajesh_punjabi at hotmail.com<mailto:rajesh_punjabi at hotmail.com>>]
+>    *Sent:* Monday, August 05, 2013 10:44 PM
+>    *To:* Unmesh Desale; owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>
+>    *Subject:* RE: [Owasp-csrfguard] Issue with IE8____
+>
+>      ____
+>
+>    I got into the same issue and here is what I wrote earlier on a
+>    thread.____
+>
+>      ____
+>
+>    It seems when the JavaScriptServlet injects tokens to all the
+>    elements in the DOM, it also attaches the token to <script src=''>
+>    and <link href=''>.____
+>
+>    In IE8 the browser loads all the css files and JS files twice.  This
+>    seems to screw up things.____
+>
+>    You could try to make the INJECT_ATTRIBUTES parameter as false.____
+>
+>      ____
+>
+>    Alternatively, if you think this may break some functionality you
+>    desire then in the injectTokenAttribute() method I added the
+>    following line. (more of a hack)____
+>
+>    if(location != null && isValidUrl(location) &&
+>    !location.toLowerCase().endsWith(".css") &&
+>    !location.toLowerCase().endsWith(".js") &&
+>    !location.toLowerCase().endsWith("javascriptservlet")) {____
+>
+>        var uri = parseUri(location);____
+>
+>        .....................____
+>
+>    }____
+>
+>      ____
+>
+>    So basically for js, css files we shouldn't need to attach the
+>    CSRFTOKEN attribute.____
+>
+>      ____
+>
+>    HTH____
+>
+>      ____
+>
+>    Best,
+>    Rajesh____
+>
+>      ____
+>
+>    ------------------------------------------------------------------------
+>
+>    From: Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com> <mailto:Unmesh_Desale at symantec.com<mailto:Unmesh_Desale at symantec.com>>
+>    To: owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>
+>    <mailto:owasp-csrfguard at lists.owasp.org<mailto:owasp-csrfguard at lists.owasp.org>>
+>    Date: Mon, 5 Aug 2013 05:41:03 -0700
+>    Subject: [Owasp-csrfguard] Issue with IE8____
+>
+>    Hi All,____
+>
+>      ____
+>
+>    I have configured OWASP CSRFGuard for my project. It is working fine
+>    when I am browsing my site using Firefox Mozilla but same site
+>    doesn't not work when I browse it through IE 8. This module is not
+>    able to inject CSRF token for IE8.____
+>
+>      ____
+>
+>    Is this module works (supports) IE8 and higher versions? Is it
+>    cross-browser compatible?____
+>
+>      ____
+>
+>    Please suggest me some solution. I am in urgent need of help.____
+>
+>      ____
+>
+>      ____
+>
+>    *Thanks,*____
+>
+>    *Unmesh Desale
+>    **__________________________________*____
+>
+>      ____
+>
+>    *Office:* +91 20 40754 4823  *Mobile: *+91 9657725432
+>    <tel:%2B91%209657725432>* _
+>    _unmesh_desale at symantec.com<mailto:_unmesh_desale at symantec.com> <mailto:unmesh_desale at symantec.com<mailto:unmesh_desale at symantec.com>>*
+>    *__________________________________*____
+>
+>      ____
+>
+>      ____
+>
+>
+>    _______________________________________________ Owasp-csrfguard
+>    mailing list Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+>    <mailto:Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>>
+>    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+>
+>
+>    _______________________________________________
+>    Owasp-csrfguard mailing list
+>    Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org> <mailto:Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>>
+>    https://lists.owasp.org/mailman/listinfo/owasp-csrfguard____
+>
+>
+>
+> _______________________________________________
+> Owasp-csrfguard mailing list
+> Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+> https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+>
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+_______________________________________________
+Owasp-csrfguard mailing list
+Owasp-csrfguard at lists.owasp.org<mailto:Owasp-csrfguard at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+
+
+_______________________________________________ Owasp-csrfguard mailing list Owasp-csrfguard at lists.owasp.org https://lists.owasp.org/mailman/listinfo/owasp-csrfguard
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130828/26d2dbc1/attachment-0001.html>
+

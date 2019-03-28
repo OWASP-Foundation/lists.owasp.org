@@ -1,0 +1,210 @@
+From jim.manico at owasp.org  Thu Jul  3 14:03:43 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Thu, 03 Jul 2014 22:03:43 +0800
+Subject: [Owasp-java-encoder-project] Regarding OWASP Java Encoder
+In-Reply-To: <CAD5mSqUzg_VFQpKOiazoYJVpfkGtwvYggYkGa+26cGcxs0wiHg@mail.gmail.com>
+References: <CAD5mSqUzg_VFQpKOiazoYJVpfkGtwvYggYkGa+26cGcxs0wiHg@mail.gmail.com>
+Message-ID: <53B562BF.3090300@owasp.org>
+
+Good stuff and moving this to the list.
+
+(1) I don't think we even need to do this:
+
+<a href='<%=Encode.forHtmlAttribute(Encode.forUri(uri))%>'>...</a>.
+
+Shouldn't...
+
+<a href='<%=Encode.forHtmlAttribute(validURL)%>'>CLICK ME</a>.
+
+... be enough?
+
+(2) -- I think typo in example JSP usage of function *forCssString
+
+*I see it, fixing now.
+*
+(3) *Also in *forHtmlAttribute*, update in the documentation is required 
+because I suppose that now Java Encoder encodes IE's back-tick (``)
+
+We had a big debate about this but decided not to deal, I forgot why. We 
+should be using the list to save these conversations. :) Jeff, can you 
+refresh good sir?
+
+Aloha,
+Jim
+
+
+> <a href='http://example.com/?xss='onmouseover='alert(1) 
+> <http://example.com/?xss=%27onmouseover=%27alert%281%29>>click</a>
+>
+> The attacker can break or jump out from the context. Isn't it (please 
+> note single quotes around href's value)?
+>
+> -- I think typo in example JSP usage of function *forCssString *
+>
+> The code available on the site is:
+>
+> <div style="background: url('<=Encode.forCssString(...)%>');">
+>
+>      <style type="text/css">
+>          background: url('<%=Encode.forCssString(...)%>');
+>      </style>
+>
+> It should be like that (given below) because the above code snippet 
+> fits well for the next function in the documentation i,e., *forCssUrl. 
+> In fact the documentation use the same code forCssUrl also.*
+>
+> <div style="..<=Encode.forCssString(...)%>...">
+>
+>      <style type="text/css">
+>          width: '<%=Encode.forCssString(...)%>';
+>      </style>
+>
+> - Also in *forHtmlAttribute*, update in the documentation is required 
+> because I suppose that now Java Encoder encodes IE's back-tick (``) 
+> also by keeping in mind: 
+> http://packetstormsecurity.com/files/123927/OWASP-Java-Encoder-Filter-Bypass.html
+>
+> Finally it would be great if there is an online test bed that supports 
+> all contexts. It would make the community testing easy ...
+>
+> Best Regards,
+>
+> ashar
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20140703/78c81dc3/attachment.html>
+
+From jim.manico at owasp.org  Thu Jul  3 14:05:28 2014
+From: jim.manico at owasp.org (Jim Manico)
+Date: Thu, 03 Jul 2014 22:05:28 +0800
+Subject: [Owasp-java-encoder-project] Regarding OWASP Java Encoder
+In-Reply-To: <CALbNpGiHRifKBiMEir91j3A2G4jkGnzrngbYEqsJUdwv3SCCrg@mail.gmail.com>
+References: <CAD5mSqUzg_VFQpKOiazoYJVpfkGtwvYggYkGa+26cGcxs0wiHg@mail.gmail.com>	<53B555D8.1030306@owasp.org>
+	<CALbNpGiHRifKBiMEir91j3A2G4jkGnzrngbYEqsJUdwv3SCCrg@mail.gmail.com>
+Message-ID: <53B56328.3010208@owasp.org>
+
+Adding this to the list, I'll fix the documentation bugs now. Rock on 
+Ashar! Comments inline are from Jeff.
+
+Thanks gents! :)
+
+- Jim
+
+>>     Hi Jim,
+>>
+>>     Today I had a chance to read the OWASP Java Encoder
+>>     documentation:
+>>     http://owasp-java-encoder.googlecode.com/svn/tags/1.1/core/apidocs/org/owasp/encoder/Encode.html
+>>
+>>     I had some observations and I hope you will help me in improving
+>>     my understanding:
+>>
+>>     -- I think OWASP Java Encoder is doing overly extensive encoding
+>>     ... The job can be done in far less characters in some cases.
+>>     e.g., *forHtmlContent* function only < is enough why encode " and
+>>     > ? There is no way to execute JavaScript if inside the tag
+>>     contents < is encoded. I had experienced this recently in my
+>>     challenge ... This is just an example from one function ... the
+>>     same applies to other also.
+>>
+> This is a documentation bug.  forHtmlContent only encodes "<" "&" and 
+> ">".  The ">" is unnecessary in HTML, but in XHTML it is required 
+> after "]]", or it could cause a sort of DoS attack, since "]]>" is 
+> invalid in XML documents.
+>
+>>     -- *forUri*: This function does not encode single quote ..
+>>     According to HTML5 specifications, both quoted (double and
+>>     single) and unquoted values are allowed e.g., in the following case:
+>>
+>>     <a href='<%=Encode.forHtmlAttribute(Encode.forUri(uri))%>'>...</a>.
+>>
+>>     <a href='http://example.com/?xss='onmouseover='alert(1)
+>>     <http://example.com/?xss=%27onmouseover=%27alert%281%29>>click</a>
+>>
+>>     The attacker can break or jump out from the context. Isn't it
+>>     (please note single quotes around href's value)?
+>
+>
+> This was a conscientious decision, that I made, but I'm still on the 
+> fence about.  URL's do not always need the single-quote character 
+> encoded according to RFC3986--they're in the "reserved" set, so they 
+> may have special meaning depending on the part of the URL in which 
+> they appear.  So the thought was that if the URL is to be presented in 
+> an attribute context, it would require double encoding -- 
+> forHtmlAttribute(forUri(data)), similarly if in a JavaScript context 
+> -- var url = "<%= forJavaScriptBlock(forUrl(data)) %>", etc...
+>
+> But as I said, I'm not entirely convinced this is the best route.   
+> Hex-encoding it seems like a safer option.
+>
+>>
+>>     -- I think typo in example JSP usage of function *forCssString *
+>>
+>>     The code available on the site is:
+>>
+>>     <div style="background: url('<=Encode.forCssString(...)%>');">
+>>
+>>          <style type="text/css">
+>>              background: url('<%=Encode.forCssString(...)%>');
+>>          </style>
+>>
+>>     It should be like that (given below) because the above code
+>>     snippet fits well for the next function in the documentation
+>>     i,e., *forCssUrl. In fact the documentation use the same code
+>>     forCssUrl also.*
+>>
+>>     <div style="..<=Encode.forCssString(...)%>...">
+>>
+>>          <style type="text/css">
+>>              width: '<%=Encode.forCssString(...)%>';
+>>          </style>
+>>
+>
+> The forCssString method should always be surrounded by context proved 
+> quotes.  E.g.
+>
+> GOOD:  '<%= Encode.forCssString(data) %>'
+> BAD:    <%= Encode.forCssString(data) %>
+>
+> The forCssURL method should always be surrounded by context provided 
+> url(), and quotes are NOT needed.  E.g.
+>
+> GOOD:  url(<%= Encode.forCssUrl(data) %>)
+> BAD:     '<%= Encode.forCssUrl(data) %>'
+> BAD*:    url('<%= Encode.forCssUrl(data) %>')
+>
+>  (BAD* = actually harmless, just overly encoded, but is definitely not 
+> preferred)
+>
+> Subtle, but important.  Perhaps this needs more emphasis in the 
+> documentation?  Honestly I hate these methods, allowing user data in 
+> the CSS just seems like such a bad idea, and a poor separation of 
+> concerns to boot.
+>
+>>     - Also in *forHtmlAttribute*, update in the documentation is
+>>     required because I suppose that now Java Encoder encodes IE's
+>>     back-tick (``) also by keeping in mind:
+>>     http://packetstormsecurity.com/files/123927/OWASP-Java-Encoder-Filter-Bypass.html
+>>
+>>     Finally it would be great if there is an online test bed that
+>>     supports all contexts. It would make the community testing easy ...
+>>
+>
+> forHtmlAttribute does not encode IE's back-tick. That's a bug in IE.  
+> There is no escape technique we could provide that would avoid the 
+> back-tick issue with IE--other than removing the character 
+> altogether.  We need to update the documentation to provide the 
+> details on the issue and our workaround.  Jim, I'll dig up the email I 
+> sent you a while back on this which included a workaround.  If you get 
+> a chance, please review it.
+ From Jim : YOU GOT IT JEFF.
+
+Thank all,
+Jim
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-java-encoder-project/attachments/20140703/ba6c7b72/attachment.html>
+

@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20How%20do%20I%20redirect%20for%20Invalid%20token%20for%20an%0A%20AJAX&In-Reply-To=%3CBAY170-W13761DE985D470929403299FCE80%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000188.html">
+   <LINK REL="Next"  HREF="000190.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX</H1>
+    <B>Rajesh Punjabi</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-csrfguard%5D%20How%20do%20I%20redirect%20for%20Invalid%20token%20for%20an%0A%20AJAX&In-Reply-To=%3CBAY170-W13761DE985D470929403299FCE80%40phx.gbl%3E"
+       TITLE="[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX">rajesh_punjabi at hotmail.com
+       </A><BR>
+    <I>Mon Mar 18 17:14:58 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000188.html">[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+</A></li>
+        <LI>Next message: <A HREF="000190.html">[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#189">[ date ]</a>
+              <a href="thread.html#189">[ thread ]</a>
+              <a href="subject.html#189">[ subject ]</a>
+              <a href="author.html#189">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks Ming for the response.   I do have a similar setup as you mentioned but it works for page request only.  It doesnt seem to work for AJAX requests.   Does it work for you for AJAX requests too when lets say a REST call is the protected URL?
+Thanks,Rajesh
+
+From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">MCheung at tmrs.com</A>
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">rajesh_punjabi at hotmail.com</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>
+Subject: RE: [Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+Date: Mon, 18 Mar 2013 14:59:18 +0000
+
+
+
+
+
+
+
+
+
+Here is the way I did that,
+ 
+1)     
+In the Owasp.CsrfGuard.prop file,  Set the following property to a jsp page,
+
+a.      
+org.owasp.csrfguard.action.Redirect.Page=/&lt;MyAppliactionName&gt;/error/CsrfAttackRedirect.jsp   /// where &lt;/MyApplicationName&gt; is same as your URL
+<A HREF="https://myCompany.com/&lt;MyApplicationName">https://myCompany.com/&lt;MyApplicationName</A>&gt;/Login.
+2)     
+In the CsrfAttackRedirect.jsp, add a line to forward to your Logout servlet
+
+a.      
+ 
+        &lt;body&gt; 
+
+          
+        &lt;%
+if (request.getParameter(&quot;user&quot;)==null){
+%&gt;
+
+        
+        &lt;jsp:forward
+page=&quot;/Logoff&quot;
+&gt;<i> 
+</I>           
+&lt;jsp:param
+name=&quot;CsrfAttack&quot;
+value=&quot;CsrfAttactkDetected&quot;
+/&gt;
+             &lt;jps:param name=&#8221;AnyKeyName&#8221; value=&#8221;AnyValue&#8221; /&gt;
+       
+&lt;/jsp:forward&gt;
+
+        
+        &lt;%}%&gt; 
+
+        &lt;/body&gt;
+ 
+
+3) 
+Since you are already in logoff servlet, you can do invalidation and any other things as you want before forward back to a display JSP.
+ 
+ 
+
+
+Thanks,
+Ming
+
+ 
+
+
+From: Rajesh Punjabi [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">rajesh_punjabi at hotmail.com</A>]
+
+
+Sent: Monday, March 18, 2013 12:01 AM
+
+To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">owasp-csrfguard at lists.owasp.org</A>
+
+Subject: Re: [Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+
+
+ 
+
+Would appreciate if someone could share your experiences with this problem.  Essentially for AJAX requests when the token is amiss, how do we take care of the error handling.  Ideally, want
+ to take the user to a error page and invalidate the session.
+
+ 
+
+
+Appreciate your help.
+
+
+
+###################################################################
+
+CONFIDENTIALITY NOTICE: This communication, including attachments,
+
+is intended only for the use of the individual or entity to which
+
+it is addressed and may contain information that is privileged,
+
+confidential, and exempt from disclosure under applicable law.
+
+If you are not the intended recipient, you are notified that any
+
+use, dissemination, forwarding, distribution, or copying of the
+
+communication is strictly prohibited. Please notify the sender
+
+immediately by e-mail if you have received this communication by
+
+mistake and delete all copies of the original message and
+
+attachments from your system.
+
+###################################################################
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130318/b416fedd/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20130318/b416fedd/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000188.html">[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+</A></li>
+	<LI>Next message: <A HREF="000190.html">[Owasp-csrfguard] How do I redirect for Invalid token for an AJAX
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#189">[ date ]</a>
+              <a href="thread.html#189">[ thread ]</a>
+              <a href="subject.html#189">[ subject ]</a>
+              <a href="author.html#189">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

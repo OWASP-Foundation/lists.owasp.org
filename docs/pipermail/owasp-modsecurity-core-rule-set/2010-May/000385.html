@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20default%20action%20for%0A%20blocking%20rules%20only%3F&In-Reply-To=BD05115B-4474-4495-A759-0BAC87387A1E%40terremark.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000384.html">
+   <LINK REL="Next"  HREF="000386.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?</H1>
+    <B>Brian Rectanus</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Setting%20default%20action%20for%0A%20blocking%20rules%20only%3F&In-Reply-To=BD05115B-4474-4495-A759-0BAC87387A1E%40terremark.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?">Brian.Rectanus at breach.com
+       </A><BR>
+    <I>Wed May 19 12:47:42 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000384.html">[Owasp-modsecurity-core-rule-set] Setting default action for	blocking rules only?
+</A></li>
+        <LI>Next message: <A HREF="000386.html">[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#385">[ date ]</a>
+              <a href="thread.html#385">[ thread ]</a>
+              <a href="subject.html#385">[ subject ]</a>
+              <a href="author.html#385">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 05/19/2010 07:17 AM, Mario Santana wrote:
+&gt;<i> 
+</I>&gt;<i> Hi, all.
+</I>&gt;<i> 
+</I>&gt;<i> I'm looking for a way to set a SESSION variable in all blocking rules.  If I put &quot;setvar:SESSION.tagged=1&quot; in SecDefaultAction, then that variable will be set when some non-blocking rules match.  I've read Ivan's book, browsed the code, and experimented with Lua - without finding a way.  Any pointers?
+</I>
+What version of CRS?  If 2.x, then blocking is done via anomaly scoring.
+ This setvar can be added to the rule checking the anomaly score.
+
+&gt;<i> 
+</I>&gt;<i> I'm about to despair and just manually add the setvar action to all blocking rules in the CRS...
+</I>
+If an older 1.6 CRS, then you could use SecRuleUpdateActionById for each
+blocking rule that you want to have set the SESSION var so that you do
+not have to edit the CRS files.  You could probably write a script to
+maintain this :)
+
+SecRuleUpdateActionById 12345 setvar:SESSION.tagged=1
+
+
+But I think the easiest way is to use a phase:5 rule.  For example:
+
+# Example blocking rule
+SecRule ARGS &quot;attack&quot; \
+  &quot;phase:2,log,auditlog,deny,status:403,id:12345&quot;
+
+# In phase 5, then look for that 403 and set SESSION var
+SecRule RESPONSE_STATUS &quot;@eq 403&quot; \
+  &quot;phase:5,pass,nolog,setvar:SESSION.tagged=1&quot;
+
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000384.html">[Owasp-modsecurity-core-rule-set] Setting default action for	blocking rules only?
+</A></li>
+	<LI>Next message: <A HREF="000386.html">[Owasp-modsecurity-core-rule-set] Setting default action for blocking rules only?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#385">[ date ]</a>
+              <a href="thread.html#385">[ thread ]</a>
+              <a href="subject.html#385">[ subject ]</a>
+              <a href="author.html#385">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

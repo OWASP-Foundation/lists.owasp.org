@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Correct place for custom scoring rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Correct%20place%20for%20custom%0A%20scoring%20rules&In-Reply-To=%3C20170717105054.jxl2qzobhtrknidc%40leander%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002417.html">
+   <LINK REL="Next"  HREF="002419.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Correct place for custom scoring rules</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Correct%20place%20for%20custom%0A%20scoring%20rules&In-Reply-To=%3C20170717105054.jxl2qzobhtrknidc%40leander%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Correct place for custom scoring rules">christian.folini at netnea.com
+       </A><BR>
+    <I>Mon Jul 17 10:50:54 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002417.html">[Owasp-modsecurity-core-rule-set] Correct place for custom scoring	rules
+</A></li>
+        <LI>Next message: <A HREF="002419.html">[Owasp-modsecurity-core-rule-set] Live-Stream of CRS3 presentation	to night at OWASP Chapter London
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2418">[ date ]</a>
+              <a href="thread.html#2418">[ thread ]</a>
+              <a href="subject.html#2418">[ subject ]</a>
+              <a href="author.html#2418">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hey Cristian,
+
+On Mon, Jul 17, 2017 at 12:29:16PM +0200, Cristian Mammoli wrote:
+&gt;<i> Hi, I'm using crs 3 in &quot;anomaly score mode&quot; and I would like to add a couple
+</I>&gt;<i> of custom rules to &quot;lower&quot; the anomaly score before the final evaliuation
+</I>
+Makes sense. I thought about such scenarios as well, but I never really
+tried it in practice.
+
+&gt;<i> But where do I put it to have it processed before the final score is
+</I>&gt;<i> analyzed for rejection?
+</I>
+So the incoming score is evaluated in rule 949110 towards the end of
+phase 2. Squeezing a rule after 948xxx and before 949110 is quite
+difficult without changing the rule file(s).
+
+I see two approaches:
+- You remove rule 949110 on startup and re-create it yourself at the end
+  of phase 2 together with your custom rules.
+  Notice that there is report rule in the 98xxxx range that you
+  might have to handle as well or it will mess up your log file
+  with garbage reports based on the wrong scores.
+- You do not lower the score before 949110 hits, but you start with
+  -2 instead of 0 in a rule that runs after crs-setup.conf but before
+  the rules files. However, I am not really sure ModSec allows for 
+  negative numbers.
+
+I am sure other methods are possible that these are the two I would
+probably try out.
+
+Cheers,
+
+Christian
+
+
+-- 
+Und es gehen die Menschen zu bestaunen die Gipfel der Berge und die
+ungeheuren Fluten des Meeres und die weit dahinfliessenden Str&#246;me 
+und den Saum des Ozeans und die Kreisbahnen der Gestirne und haben
+nicht acht ihrer selbst.
+--- Augustinus (354-430)
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002417.html">[Owasp-modsecurity-core-rule-set] Correct place for custom scoring	rules
+</A></li>
+	<LI>Next message: <A HREF="002419.html">[Owasp-modsecurity-core-rule-set] Live-Stream of CRS3 presentation	to night at OWASP Chapter London
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2418">[ date ]</a>
+              <a href="thread.html#2418">[ thread ]</a>
+              <a href="subject.html#2418">[ subject ]</a>
+              <a href="author.html#2418">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

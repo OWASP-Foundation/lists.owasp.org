@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Handling mod security as a firewall for all kind of web sites
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Handling%20mod%20security%20as%20a%0A%20firewall%20for%20all%20kind%20of%20web%20sites&In-Reply-To=%3C20160302074024.GA28380%40elias%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002029.html">
+   <LINK REL="Next"  HREF="002031.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Handling mod security as a firewall for all kind of web sites</H1>
+    <B>Christian Folini</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Handling%20mod%20security%20as%20a%0A%20firewall%20for%20all%20kind%20of%20web%20sites&In-Reply-To=%3C20160302074024.GA28380%40elias%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Handling mod security as a firewall for all kind of web sites">christian.folini at netnea.com
+       </A><BR>
+    <I>Wed Mar  2 07:40:25 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002029.html">[Owasp-modsecurity-core-rule-set] Handling mod security as a firewall for all kind of web sites
+</A></li>
+        <LI>Next message: <A HREF="002031.html">[Owasp-modsecurity-core-rule-set] ipMatch and X-Forwarded-For
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2030">[ date ]</a>
+              <a href="thread.html#2030">[ thread ]</a>
+              <a href="subject.html#2030">[ subject ]</a>
+              <a href="author.html#2030">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Avi,
+
+
+On Tue, Mar 01, 2016 at 09:06:56PM +0200, Avi Fatal wrote:
+&gt;<i> We are 200 of websites / webapps for our clients.
+</I>&gt;<i> From wordpress to .net apps, java and more.
+</I>&gt;<i> 
+</I>&gt;<i> We want to provide a united waf solution for all of them.
+</I>&gt;<i>
+</I>&gt;<i> ...
+</I>&gt;<i>
+</I>&gt;<i> Its more of a conceptual question...
+</I>&gt;<i> How can I manage a solution for 200 of webapps? does it makes sense?
+</I>
+Your problem is my day job.
+
+It is a very hard problem and there is no easy solution.
+
+The Core Rules are generic in nature. They try to achieve a high
+level of security via a broad set of rules. But applications are
+very diverse, developers are crazy and users are insane. This makes
+for an explosive mixture which results in the amount of false
+positives you have already witnessed.
+
+You can not defend 200 websites on day 1. You need to go step by
+step.
+
+There is a latin motto, which I do not know if it is used among
+English speakers: It's &quot;Divide et Impera!&quot; -&gt; &quot;Divide and Rule&quot;.
+
+In your context, it means to group your services and prioritize them.
+Personally, I would suggest to give every service a security target
+and tag it with the software running. Like:
+Service 001: medium security, wordpress
+Service 002: low security, wordpress
+Service 003: high security, custom java software
+Service 004: high security, joomla
+...
+
+Then I suggest you pick a group in the highest security class, which
+shares the same software. If you have several high security wordpress
+installations, these are going to be your pilot services.
+
+You need to work with a pilot to grow your knowledge. Then follow some
+of the suggestions of Manuel. They are right on target. It all depends
+on your setup and how you manage rules and the tuning. You need to
+develop a ModSec rule and tuning setup that fits your environment
+and work mode. There is no silver bullet and I still experiment with
+this depending on my customer.
+
+My personal approach is to always use anomaly scoring and starting
+in blocking mode with an anomaly limit &gt;1000. And then tuning your way
+down to 20, 10, 5.
+Running in logging mode will drown you in false positives and you will
+never switch to blocking.
+Running in blocking mode without anomaly scoring will have the false
+positives kill your services (and possibly your job too).
+
+It is only with an anomaly scoring blocking mode and a limit of 20
+or lower that you will see an impact on the attackers. So this will
+take time. A lot of time. It works via multiple iterations of tuning
+sessions. Typically 5-10 iterations.
+
+As Chaim pointed out, the new paranoia settings will allow you to start
+with less false positives than with the 2.2.X series of the core rules.
+In fact, if you start out now, I suggest to start with 3.0.0rc1 as this
+saves the transition from 2.2.X to 3.0 next year. If you do start with
+3.0.0rc1, I would be very interested to stay in contact as your
+experience could be very valuable for the community.
+
+Under the line: This is going to be very hard. And it will take a lot
+of time. Not 24h a day, but it will keep a single person occupied
+full working time for 1-2-3 years, I guess. It's still way cheaper than
+commercial offerings (for 200 sites!) - outside of those commercial
+offerings that to a bit of cleansing and fancy reports, but there is
+no real blocking of attackers behind.
+
+Good luck!
+
+Christian
+
+
+-- 
+People demand freedom of speech as a compensation for the freedom 
+of thought which they seldom use.
+-- Soren Kierkegaard
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002029.html">[Owasp-modsecurity-core-rule-set] Handling mod security as a firewall for all kind of web sites
+</A></li>
+	<LI>Next message: <A HREF="002031.html">[Owasp-modsecurity-core-rule-set] ipMatch and X-Forwarded-For
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2030">[ date ]</a>
+              <a href="thread.html#2030">[ thread ]</a>
+              <a href="subject.html#2030">[ subject ]</a>
+              <a href="author.html#2030">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

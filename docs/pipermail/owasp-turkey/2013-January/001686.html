@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-turkey] mysql escape sorunsali - 2 defa alanlar kusura bakmasin
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-turkey%5D%20mysql%20escape%20sorunsali%20-%202%20defa%20alanlar%20kusura%0A%20bakmasin&In-Reply-To=%3C5101D7F4.7060205%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001685.html">
+   <LINK REL="Next"  HREF="001680.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-turkey] mysql escape sorunsali - 2 defa alanlar kusura bakmasin</H1>
+    <B>Hakan Can</B> 
+    <A HREF="mailto:owasp-turkey%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-turkey%5D%20mysql%20escape%20sorunsali%20-%202%20defa%20alanlar%20kusura%0A%20bakmasin&In-Reply-To=%3C5101D7F4.7060205%40gmail.com%3E"
+       TITLE="[Owasp-turkey] mysql escape sorunsali - 2 defa alanlar kusura bakmasin">gogreenbecool at gmail.com
+       </A><BR>
+    <I>Fri Jan 25 00:55:16 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001685.html">[Owasp-turkey] mysql escape sorunsali - 2 defa alanlar kusura	bakmasin
+</A></li>
+        <LI>Next message: <A HREF="001680.html">[Owasp-turkey] Processing ile g&#246;rsel kodlama at&#246;lyesi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1686">[ date ]</a>
+              <a href="thread.html#1686">[ thread ]</a>
+              <a href="subject.html#1686">[ subject ]</a>
+              <a href="author.html#1686">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>G&#246;rd&#252;&#287;&#252;m kadar&#305;yla arkada&#351;lar&#305;n kafas&#305; hakl&#305; olarak kar&#305;&#351;m&#305;&#351;.
+&#214;ncelikle kavramlar&#305; yerine oturtal&#305;m.
+1- string : i&#231;inde sql dili ile ilgili her hangi bir tan&#305;mlay&#305;c&#305; ad, method
+yada komut bar&#305;nd&#305;rmayan sadece karakter ve &#246;zel-karakterden olu&#351;an dizi.
+
+2- &#214;zel-karakter Literal Characters(mysql):
+  NUL (0x00) --&gt; \0
+  BS  (0x08) --&gt; \b
+  TAB (0x09) --&gt; \t
+  LF  (0x0a) --&gt; \n
+  CR  (0x0d) --&gt; \r
+  SUB (0x1a) --&gt; \Z
+  &quot;   (0x22) --&gt; \&quot;
+  %   (0x25) --&gt; \%
+  '   (0x27) --&gt; \'
+  \   (0x5c) --&gt; \\
+  _   (0x5f) --&gt; \_
+
+
+mysql'deki ana ay&#305;ra&#231;lar
+#1 `  	Opening single quote (0x60)
+#2 '	Closing single quote (apostrophe)  (0x27)
+#3 &quot;	Quotation mark (0x22)
+
+  &#351;imdi tek tek kafa kar&#305;&#351;t&#305;ran noktalara &#305;&#351;&#305;k tutabiliriz.
+Normal MySQL mode se&#231;ildi&#287;inde #2 ve #3  string tan&#305;mlama ayrac&#305; olarak
+kullan&#305;labilir, #1 string tan&#305;mlamad&#305;&#287;&#305; gibi &#246;zel karakterleri de
+i&#351;levsizle&#351;tirir. #1 ay&#305;rac&#305; database table ve column adlar&#305;n&#305; korumak 
+ve tan&#305;mlamak i&#231;in kullan&#305;labilir.
+
+&#246;r (select `check-in`,`check-out` from rooms where location='alanya' and 
+city=&quot;antalya&quot;)
+
+normalde (-) yani tire column ad&#305; i&#231;inde hata verirken #1 ile ay&#305;ra&#231; 
+i&#231;ine al&#305;nca
+sorunsuz &#231;al&#305;&#351;&#305;r.
+Fakat ANSI_QUOTES SQL mode se&#231;ildi&#287;inde  #3 ayrac&#305;n&#305; #1 e &#231;evirir
+(Buras&#305; t&#252;m kar&#305;&#351;&#305;kl&#305;&#287;&#305;n &#231;&#305;kt&#305;&#287;&#305; nokta) #2 ye de&#287;il.
+yukar&#305;daki &#246;rne&#287;e bakarsak &quot;antalya&quot; =&gt; `antalya` ya d&#246;n&#252;&#351;t&#252;r&#252;l&#252;r ve mysql
+antalya ad&#305;nda bir column bulunamad&#305; diye hata verir.
+K&#305;saca sadece #2 string tan&#305;mlar #1 ve #2 database table ve column adlar&#305;n&#305;
+tan&#305;mlamakta kullan&#305;labilir.
+Buras&#305; &#231;ok &#246;nemli ANSI ve Mysql mode de&#287;i&#351;imi sadece string tan&#305;mlama 
+tarz&#305;n&#305;
+de&#287;i&#351;tirir. String i&#231;indeki Literal Characterlerin nas&#305;l escape edilece&#287;ini
+de&#287;i&#351;tirmez.
+Her iki durumda da ge&#231;erli bir &#351;ekilde t&#252;m &#246;zel karakterler(kendisi dahil)
+\ backslash ile escape edilebilir
+
+ &gt;Ancak benim gord&#252;g&#252;m bu deil. Yani her durumda;
+ &gt;
+ &gt;    single tick, extra single tick ile escape edilebiliyor VE
+ &gt;    single tick, \ karakteriyle  de escape edilebiliyor.
+ &gt;
+ &gt;Sadece a&#351;a&#287;&#305;daki komut &#231;al&#305;&#351;t&#305;r&#305;l&#305;rsa
+ &gt;
+ &gt;set sql_mode NO_BACKSLASH_ESCAPE
+
+ &gt;i&#351;te bu durumda yukar&#305;daki ikinci madde &#231;al&#305;&#351;m&#305;yor.
+
+normal sql modun da  '&quot;test&quot;' ve &quot;'test'&quot;  escape edilmeden &#231;al&#305;&#351;&#305;r
+fakat ''test'' ve &quot;&quot;test&quot;&quot; hata verir  fakat escape edilirse
+	'\'test\'' ve &quot;\&quot;test\&quot;&quot; normal &#231;al&#305;&#351;&#305;r
+yukar&#305;daki durumlarda quote() fonksiyonu tercih edilmelidir.
+
+teknik olarak ANSI mode da  (&quot;) ay&#305;rac&#305; kullan&#305;lamayaca&#287;&#305; i&#231;in ve 
+d&#246;n&#252;&#351;t&#252;r&#252;ld&#252;&#287;&#252; i&#231;in manuel olarak escape edilmezse hata vermeli. Ama bu 
+mant&#305;ken olmas&#305; gereken.
+Test edilip do&#287;rulanmas&#305; gerekir.
+
+not:Mysql fonksiyonlar&#305; (%) ve (_) &#246;zel karakterlerini escape etmez 
+&#231;&#252;nk&#252; bunlar
+like ile genel arama yapmak i&#231;in kullan&#305;l&#305;r  (location like '%k&#246;y')
+
+mysql_real_escape_string fonksiyonu a&#351;a&#287;&#305;daki karakterleri escape eder
+\x00, \n, \r, \, ', &quot; ve \x1a.(control Z)
+#1 \x60 ay&#305;rac&#305; mysql fonksiyonlar&#305; taraf&#305;ndan escape edilmez.
+Man&#252;el olarak escape edilmez ise hata verir.
+
+OWASP sitesine gelirsek evet bu kafa kar&#305;&#351;t&#305;r&#305;c&#305;.
+Mysql yard&#305;m metinleri ile &#231;eli&#351;iyor ve d&#252;zeltilmesi gerekir.
+Okadar da &#246;nemli de&#287;il sonu&#231;ta ansi kullanan&#305;m&#305;ndan cayd&#305;rmak d&#305;&#351;&#305;nda 
+bir yan etkisi yok :)
+
+Hakan Can.
+
+<A HREF="http://dev.mysql.com/doc/refman/5.0/en/string-literals.html">http://dev.mysql.com/doc/refman/5.0/en/string-literals.html</A>
+mysql yard&#305;m metini sayfas&#305;ndan al&#305;nt&#305;:
+ &gt;If the ANSI_QUOTES SQL mode is enabled, string literals can be quoted 
+only
+within single quotation marks because a string quoted within double 
+quotation
+marks is interpreted as an identifier.
+
+<A HREF="https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet#MySQL_Escaping">https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet#MySQL_Escaping</A>
+sayfas&#305;ndan al&#305;nt&#305;
+
+ &gt;MySQL Escaping
+ &gt;
+ &gt;MySQL supports two escaping modes:
+ &gt;
+ &gt;    ANSI_QUOTES SQL mode, and a mode with this off, which we call
+ &gt;    MySQL mode.
+ &gt;
+ &gt;ANSI SQL mode: Simply encode all ' (single tick) characters with '' 
+(two single ticks)
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001685.html">[Owasp-turkey] mysql escape sorunsali - 2 defa alanlar kusura	bakmasin
+</A></li>
+	<LI>Next message: <A HREF="001680.html">[Owasp-turkey] Processing ile g&#246;rsel kodlama at&#246;lyesi
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1686">[ date ]</a>
+              <a href="thread.html#1686">[ thread ]</a>
+              <a href="subject.html#1686">[ subject ]</a>
+              <a href="author.html#1686">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-turkey">More information about the Owasp-turkey
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,308 @@
+From denisputnam at verizon.net  Wed Sep  7 13:10:12 2016
+From: denisputnam at verizon.net (Denis Putnam)
+Date: Wed, 07 Sep 2016 09:10:12 -0400
+Subject: [Owasp-csrfguard] 404 error for the JavaScriptServlet
+Message-ID: <0ADB5363-8C2D-4D64-84A1-47A57A7618EF@verizon.net>
+
+According to firebug in firefox, I am getting this error:
+
+"NetworkError: 404 Not Found - http://localhost:8080/AssetCore/JavaScriptServlet?
+
+This is my web.xml file.  The first listener is commented out because it currently breaks the entire app.  I am sending out a second question for that one.
+
+Can someone tell me what I am doing wrong?
+
+-Denis
+
+	<!--
+	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+	</listener>
+	  -->
+
+
+	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardHttpSessionListener</listener-class>
+	</listener>
+	
+	<context-param>
+	   <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+	   <param-value>true</param-value>
+	</context-param>
+
+	
+	<filter>
+		<filter-name>CSRFGuard</filter-name>
+		<filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>CSRFGuard</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<servlet>
+		<servlet-name>JavaScriptServlet</servlet-name>
+		<servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>JavaScriptServlet</servlet-name>
+		<url-pattern>/AssetCore/JavaScriptServlet</url-pattern>
+	</servlet-mapping>
+
+This is my Owasp.CsrfGuard.properties:
+
+org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+org.owasp.csrfguard.Enabled = true
+#org.owasp.csrfguard.TokenPerPage=true
+#org.owasp.csrfguard.configuration.provider.factory = org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory
+org.owasp.csrfguard.NewTokenLandingPage=%servletContext%/login.jsp
+org.owasp.csrfguard.UnprotectedMethods=GET
+
+org.owasp.csrfguard.unprotected.Default=%servletContext%/
+org.owasp.csrfguard.unprotected.JavaScriptServlet=%servletContext%/JavaScriptServlet
+org.owasp.csrfguard.unprotected.Login=%servletContext%/login.jsp
+org.owasp.csrfguard.unprotected.Error=%servletContext%/error.jsp
+
+#org.owasp.csrfguard.action.Empty=org.owasp.csrfguard.action.Empty
+org.owasp.csrfguard.action.Log=org.owasp.csrfguard.action.Log
+org.owasp.csrfguard.action.Log.Message=potential cross-site request forgery (CSRF) attack thwarted (user:%user%, ip:%remote_ip%, method:%request_method%, uri:%request_uri%, error:%exception_message%)
+#org.owasp.csrfguard.action.Invalidate=org.owasp.csrfguard.action.Invalidate
+org.owasp.csrfguard.action.Redirect=org.owasp.csrfguard.action.Redirect
+org.owasp.csrfguard.action.Redirect.Page=%servletContext%/error.jsp
+#org.owasp.csrfguard.action.RequestAttribute=org.owasp.csrfguard.action.RequestAttribute
+#org.owasp.csrfguard.action.RequestAttribute.AttributeName=Owasp_CsrfGuard_Exception_Key
+##org.owasp.csrfguard.action.Rotate=org.owasp.csrfguard.action.Rotate
+#org.owasp.csrfguard.action.SessionAttribute=org.owasp.csrfguard.action.SessionAttribute
+#org.owasp.csrfguard.action.SessionAttribute.AttributeName=Owasp_CsrfGuard_Exception_Key
+org.owasp.csrfguard.action.Error=org.owasp.csrfguard.action.Error
+org.owasp.csrfguard.action.Error.Code=403
+org.owasp.csrfguard.action.Error.Message=Security violation.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20160907/0809cabe/attachment.html>
+
+From denisputnam at verizon.net  Wed Sep  7 13:15:47 2016
+From: denisputnam at verizon.net (Denis Putnam)
+Date: Wed, 07 Sep 2016 09:15:47 -0400
+Subject: [Owasp-csrfguard] How do I get output to my console log at the
+	debug level?
+Message-ID: <81DE6A57-AC00-4BA1-AD1A-E3C446F4E1F7@verizon.net>
+
+I have set org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger, but I don?t know how to set the level to debug so that it prints out in my IDE console log.
+
+-Denis
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20160907/516e82c2/attachment-0001.html>
+
+From denisputnam at verizon.net  Wed Sep  7 13:24:43 2016
+From: denisputnam at verizon.net (Denis Putnam)
+Date: Wed, 07 Sep 2016 09:24:43 -0400
+Subject: [Owasp-csrfguard] HTTP Status 404 - /AssetCore/ error
+Message-ID: <50CCFE9E-D2E7-4E49-B808-C3923B70B5B5@verizon.net>
+
+Hi,
+
+I am getting this error in my app whenever I use 
+
+	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+	</listener>
+
+in the web.xml file.
+
+I believe it is because I am seeing the follow exception which is causing the application to abort.  It is saying that it can?t find the "com/mysql/jdbc/profiler/ProfilerEventHandlerFactory?, which is not a problem if I comment out the listener.
+
+It seems that either the listener is blocking something or it is expecting this class in the class path.  Can someone tell the solution?
+
+-Denis
+
+07 Sep 2016 09:17:09,183  INFO com.arknss.asset.core.config.SwaggerConfig$$EnhancerBySpringCGLIB$$1e7b5aa1:34 - api(): called...
+Sep 07, 2016 9:17:12 AM org.apache.catalina.startup.Catalina start
+INFO: Server startup in 44470 ms
+Exception in thread "Tomcat JDBC Pool Cleaner[1025799482:1473254195281]" java.lang.NoClassDefFoundError: com/mysql/jdbc/profiler/ProfilerEventHandlerFactory
+	at com.mysql.jdbc.ConnectionImpl.realClose(ConnectionImpl.java:4273)
+	at com.mysql.jdbc.ConnectionImpl.close(ConnectionImpl.java:1444)
+	at org.apache.tomcat.jdbc.pool.PooledConnection.disconnect(PooledConnection.java:374)
+	at org.apache.tomcat.jdbc.pool.PooledConnection.release(PooledConnection.java:538)
+	at org.apache.tomcat.jdbc.pool.ConnectionPool.release(ConnectionPool.java:589)
+	at org.apache.tomcat.jdbc.pool.ConnectionPool.checkIdle(ConnectionPool.java:998)
+	at org.apache.tomcat.jdbc.pool.ConnectionPool.checkIdle(ConnectionPool.java:979)
+	at org.apache.tomcat.jdbc.pool.ConnectionPool$PoolCleaner.run(ConnectionPool.java:1345)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+Caused by: java.lang.ClassNotFoundException: Illegal access: this web application instance has been stopped already. Could not load [com.mysql.jdbc.profiler.ProfilerEventHandlerFactory]. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForClassLoading(WebappClassLoaderBase.java:1343)
+	at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1206)
+	at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1167)
+	... 10 more
+Caused by: java.lang.IllegalStateException: Illegal access: this web application instance has been stopped already. Could not load [com.mysql.jdbc.profiler.ProfilerEventHandlerFactory]. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading(WebappClassLoaderBase.java:1353)
+	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForClassLoading(WebappClassLoaderBase.java:1341)
+	... 12 more
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20160907/593aa129/attachment.html>
+
+From denisputnam at verizon.net  Wed Sep  7 16:20:19 2016
+From: denisputnam at verizon.net (Denis Putnam)
+Date: Wed, 07 Sep 2016 12:20:19 -0400
+Subject: [Owasp-csrfguard] HTTP Status 404 - /AssetCore/ error
+In-Reply-To: <50CCFE9E-D2E7-4E49-B808-C3923B70B5B5@verizon.net>
+References: <50CCFE9E-D2E7-4E49-B808-C3923B70B5B5@verizon.net>
+Message-ID: <E09C975C-3530-42A8-BF39-20573EC25E70@verizon.net>
+
+I solved this one.  I had to put the mysql jar file in the tomcat class path rather than the WEB-INF directory.
+
+> On Sep 7, 2016, at 9:24 AM, Denis Putnam <denisputnam at verizon.net> wrote:
+> 
+> Hi,
+> 
+> I am getting this error in my app whenever I use 
+> 
+> 	<listener>
+> 		<listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+> 	</listener>
+> 
+> in the web.xml file.
+> 
+> I believe it is because I am seeing the follow exception which is causing the application to abort.  It is saying that it can?t find the "com/mysql/jdbc/profiler/ProfilerEventHandlerFactory?, which is not a problem if I comment out the listener.
+> 
+> It seems that either the listener is blocking something or it is expecting this class in the class path.  Can someone tell the solution?
+> 
+> -Denis
+> 
+> 07 Sep 2016 09:17:09,183  INFO com.arknss.asset.core.config.SwaggerConfig$$EnhancerBySpringCGLIB$$1e7b5aa1:34 - api(): called...
+> Sep 07, 2016 9:17:12 AM org.apache.catalina.startup.Catalina start
+> INFO: Server startup in 44470 ms
+> Exception in thread "Tomcat JDBC Pool Cleaner[1025799482:1473254195281]" java.lang.NoClassDefFoundError: com/mysql/jdbc/profiler/ProfilerEventHandlerFactory
+> 	at com.mysql.jdbc.ConnectionImpl.realClose(ConnectionImpl.java:4273)
+> 	at com.mysql.jdbc.ConnectionImpl.close(ConnectionImpl.java:1444)
+> 	at org.apache.tomcat.jdbc.pool.PooledConnection.disconnect(PooledConnection.java:374)
+> 	at org.apache.tomcat.jdbc.pool.PooledConnection.release(PooledConnection.java:538)
+> 	at org.apache.tomcat.jdbc.pool.ConnectionPool.release(ConnectionPool.java:589)
+> 	at org.apache.tomcat.jdbc.pool.ConnectionPool.checkIdle(ConnectionPool.java:998)
+> 	at org.apache.tomcat.jdbc.pool.ConnectionPool.checkIdle(ConnectionPool.java:979)
+> 	at org.apache.tomcat.jdbc.pool.ConnectionPool$PoolCleaner.run(ConnectionPool.java:1345)
+> 	at java.util.TimerThread.mainLoop(Timer.java:555)
+> 	at java.util.TimerThread.run(Timer.java:505)
+> Caused by: java.lang.ClassNotFoundException: Illegal access: this web application instance has been stopped already. Could not load [com.mysql.jdbc.profiler.ProfilerEventHandlerFactory]. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+> 	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForClassLoading(WebappClassLoaderBase.java:1343)
+> 	at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1206)
+> 	at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1167)
+> 	... 10 more
+> Caused by: java.lang.IllegalStateException: Illegal access: this web application instance has been stopped already. Could not load [com.mysql.jdbc.profiler.ProfilerEventHandlerFactory]. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+> 	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading(WebappClassLoaderBase.java:1353)
+> 	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForClassLoading(WebappClassLoaderBase.java:1341)
+> 	... 12 more
+> 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20160907/feff2a26/attachment.html>
+
+From denisputnam at verizon.net  Wed Sep  7 19:11:44 2016
+From: denisputnam at verizon.net (Denis Putnam)
+Date: Wed, 07 Sep 2016 15:11:44 -0400
+Subject: [Owasp-csrfguard] CSRFGuard simply does not work.  Please help
+Message-ID: <6A4AA661-04E4-4E93-8965-11332E134D74@verizon.net>
+
+Below is my web.xml file and below that is my Owasp.CsrfGuard.properties file.
+
+I have tried multiple combinations of the url-pattern for ?/*? and what you see currently and no matter what combinations of things I try, my entire application  will not run with the CsrfGuardServletContextListener.  If I comment it out, then my everything is wide open.
+
+Please tell me what I need to do?
+
+-Denis
+
+	<filter-mapping>
+		<filter-name>CSRFGuard</filter-name>
+		<url-pattern>/AssetCore/*</url-pattern>
+	</filter-mapping>
+
+web.xml
+	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+	</listener>
+ 
+
+
+	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardHttpSessionListener</listener-class>
+	</listener>
+	
+<!--
+	<context-param>
+	   <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+	   <param-value>true</param-value>
+	</context-param>
+
+
+			      -->	
+	<filter>
+		<filter-name>CSRFGuard</filter-name>
+		<filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>CSRFGuard</filter-name>
+		<url-pattern>/AssetCore/*</url-pattern>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>JavaScriptServlet</servlet-name>
+		<servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+
+		 <init-param>
+	         <param-name>source-file</param-name>
+	         <param-value>WEB-INF/Owasp.CsrfGuard.js</param-value>
+	     </init-param>
+	
+	     <init-param>
+	         <param-name>inject-into-forms</param-name>
+	         <param-value>true</param-value>
+	     </init-param>
+	     <init-param>
+	         <param-name>inject-into-attributes</param-name>
+	         <param-value>true</param-value>
+	     </init-param>
+	    <init-param>
+	         <param-name>domain-strict</param-name>
+	         <param-value>false</param-value>
+	    </init-param>
+	    <init-param>
+	         <param-name>referer-pattern</param-name>
+	         <param-value>.*localhost.*</param-value>
+	    </init-param>
+
+	</servlet>
+
+
+	<servlet-mapping>
+		<servlet-name>JavaScriptServlet</servlet-name>
+		<url-pattern>/JavaScriptServlet</url-pattern>
+	</servlet-mapping>
+
+properties file.
+#org.owasp.csrfguard.Logger=org.owasp.csrfguard.log.ConsoleLogger
+org.owasp.csrfguard.Logger=com.arknss.asset.core.csrf.CsrfLogger
+org.owasp.csrfguard.Enabled = true
+#org.owasp.csrfguard.TokenPerPage=true
+#org.owasp.csrfguard.configuration.provider.factory = org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory
+#org.owasp.csrfguard.NewTokenLandingPage=%servletContext%/login.jsp
+org.owasp.csrfguard.UnprotectedMethods=GET
+
+org.owasp.csrfguard.unprotected.Default=/AssetCore/
+org.owasp.csrfguard.unprotected.Public=/AssetCore/*
+org.owasp.csrfguard.unprotected.JavaScriptServlet=/AssetCore/JavaScriptServlet
+org.owasp.csrfguard.unprotected.Login=/AssetCore/login
+org.owasp.csrfguard.unprotected.Error=/AssetCore//error.jsp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20160907/a4e0b60b/attachment-0001.html>
+

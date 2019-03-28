@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-vancouver] logging question
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-vancouver%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-vancouver%5D%20logging%20question&In-Reply-To=%3CCAD_ZbKzZJYcdR-p7xQ_bdsNQzrfLmGXbbRf4NH2kybnmosVaLg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000160.html">
+   <LINK REL="Next"  HREF="000162.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-vancouver] logging question</H1>
+    <B>Yvan Boily</B> 
+    <A HREF="mailto:owasp-vancouver%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-vancouver%5D%20logging%20question&In-Reply-To=%3CCAD_ZbKzZJYcdR-p7xQ_bdsNQzrfLmGXbbRf4NH2kybnmosVaLg%40mail.gmail.com%3E"
+       TITLE="[Owasp-vancouver] logging question">yvanboily at gmail.com
+       </A><BR>
+    <I>Fri Feb  3 14:54:08 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000160.html">[Owasp-vancouver] logging question
+</A></li>
+        <LI>Next message: <A HREF="000162.html">[Owasp-vancouver] logging question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#161">[ date ]</a>
+              <a href="thread.html#161">[ thread ]</a>
+              <a href="subject.html#161">[ subject ]</a>
+              <a href="author.html#161">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Feb 2, 2012 at 1:04 PM, Iain Duncan &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">iduncan at xornot.com</A>&gt; wrote:
+
+&gt;<i> Hey folks, I have a question, and am not clear whether this list is
+</I>&gt;<i> supposed to be to talk about topics, or just about chapter events.
+</I>&gt;<i> Apologies if this is the wrong place, and if so, could anyone recommend the
+</I>&gt;<i> best place?
+</I>&gt;<i>
+</I>
+This is a great place to ask questions!
+
+
+&gt;<i> I'm implementing some fairly detailed logging for a client, for security
+</I>&gt;<i> and for legal coverage ( non-repudiation of reading disclaimers, etc). The
+</I>&gt;<i> records are being logged to a database, with the goal to convince the
+</I>&gt;<i> client that this db should be moved to a separate server so that logs go to
+</I>&gt;<i> a a remote machine for which the app has only insert privileges.
+</I>
+
+Logging to a remote server is always a good start, but I am curious about
+the decision to store logs in a database rather than a using a conventional
+logging service (syslog or one of its variants, a flat file that gets
+pushed or pulled periodically, etc).  Using a custom format or storing the
+records within a database may make it more difficult to get the data into
+an event processing engine that allows admins of your application to
+correlate application logs against system and network events.
+
+One of the logs is of each request for a pyramid view ( essentially any
+&gt;<i> kind of
+</I>&gt;<i> complete page, does not include requests for css/javascript/images ). I had
+</I>&gt;<i> read that it's a good idea to just log the whole http request, but of
+</I>&gt;<i> course that has the session token in it.
+</I>
+
+In general, logging the entire HTTP request outside of a debug environment
+is unsafe since you invariably end up storing user credentials, session
+state data, and other sensitive data outside of the application and its
+database.  Best case scenario, this is a violation of best practice, worst
+case scenario it is a regulatory or compliance issue.  If you go that
+route, make sure you are properly sanitizing the fields that contain
+sensitive data before writing them to the database.
+
+
+&gt;<i> I'm just wondering whether I should be concerned about the fact that if a
+</I>&gt;<i> compromise allowed someone to
+</I>&gt;<i> read the db, could they hijack an admin users session?
+</I>&gt;<i>
+</I>
+In general, yes.  Note that in this case, you should be extending beyond
+the consideration of an external attacker and consider what a malicious
+user might be able to accomplish.  If your authentication scheme is
+designed properly, and you have proper separation of duties within your
+environment, a system administrator or DBA should not be able to violate
+the non-repudiation aspect of the design without resorting to collusion.
+
+
+&gt;<i> Which has me trying to figure out if that matters, given that if they can
+</I>&gt;<i> read the db, they're pretty far in. I could redact the session token ( and
+</I>&gt;<i> all cookies ) before logging, but would this have potential negatives for
+</I>&gt;<i> forensics?
+</I>&gt;<i>
+</I>
+Generating a proper audit trail extends beyond capturing the content of an
+HTTP request; it would be more effective to generate an audit record of
+every privileged action a user performs (or, if necessary, of every action
+performed).  Generating this type of an audit capability serves two
+purposes:
+
+First, it lets you meet any requirements you might have around executing
+application level forensics of what happened.  Having discrete, clearly
+documented, and granular audit capabilities make it clear which subject
+performed with operation on which object, and the context in which that
+operation performed, without having to sift through HTTP request blobs in
+log files.
+
+Second, it provides data that can be used to make an application attack
+aware, which increases the likelihood of detecting and stopping an attack
+or compromise.
+
+You can read more about attack aware applications here:
+ - <A HREF="https://www.owasp.org/index.php/OWASP_AppSensor_Project">https://www.owasp.org/index.php/OWASP_AppSensor_Project</A> (especially the
+detection points)
+ - <A HREF="http://blog.mozilla.com/webappsec/2011/02/02/attack-aware-applications/">http://blog.mozilla.com/webappsec/2011/02/02/attack-aware-applications/</A>
+ - Mozilla's AMO uses CEF logging to implement attack awareness if you want
+some examples of how to do this in python (although that is specific to our
+use of Arcsight)
+
+I don't know if these responses help to clarify the issue, but another
+important part of understanding the best approach for logging is
+understanding what the requirements might be; feel free to contact me
+directly with any questions you might have about this stuff, or anything
+you may not want to discuss or disclose on a public mailing list.
+
+Thanks
+&gt;<i> Iain
+</I>&gt;<i> XORNOT Studios
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-vancouver mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">Owasp-vancouver at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">https://lists.owasp.org/mailman/listinfo/owasp-vancouver</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000160.html">[Owasp-vancouver] logging question
+</A></li>
+	<LI>Next message: <A HREF="000162.html">[Owasp-vancouver] logging question
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#161">[ date ]</a>
+              <a href="thread.html#161">[ thread ]</a>
+              <a href="subject.html#161">[ subject ]</a>
+              <a href="author.html#161">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-vancouver">More information about the Owasp-vancouver
+mailing list</a><br>
+</body></html>

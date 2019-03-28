@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Redirect%20with%20token%20not%20working%20when%20query%0A%20parameters%20present%20and%20TokenPerPage%3Dtrue&In-Reply-To=4E13A735.6070105%40stanford.edu">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000062.html">
+   <LINK REL="Next"  HREF="000064.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true</H1>
+    <B>Patrick Radtke</B> 
+    <A HREF="mailto:owasp-csrfguard%40lists.owasp.org?Subject=%5BOwasp-csrfguard%5D%20Redirect%20with%20token%20not%20working%20when%20query%0A%20parameters%20present%20and%20TokenPerPage%3Dtrue&In-Reply-To=4E13A735.6070105%40stanford.edu"
+       TITLE="[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true">pradtke at stanford.edu
+       </A><BR>
+    <I>Wed Jul  6 13:58:09 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000062.html">[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+</A></li>
+        <LI>Next message: <A HREF="000064.html">[Owasp-csrfguard] The meaning of NewTokenLandingPage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#63">[ date ]</a>
+              <a href="thread.html#63">[ thread ]</a>
+              <a href="subject.html#63">[ subject ]</a>
+              <a href="author.html#63">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm not sure how to submit a patch via github so I've attached one here.
+I didn't see any place for unit tests in the current code base, so my 
+testing was
+manual in one of our apps.
+
+-Patrick
+
+On 7/5/11 5:07 PM, Patrick Radtke wrote:
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> I needed support for appending the CSRF token as part of a redirect.
+</I>&gt;<i> I saw this feature was available in git, but there is a bug that prevents it
+</I>&gt;<i> from working when query parameters are present.
+</I>&gt;<i> Basically 'isValidRequest' ignores query params, while 'getTokenValue'
+</I>&gt;<i> doesn't.
+</I>&gt;<i>
+</I>&gt;<i> Example:
+</I>&gt;<i> I access
+</I>&gt;<i> /AccountApp/editmf
+</I>&gt;<i> which redirects to
+</I>&gt;<i> /AccountApp/editmf?execution=e1s1
+</I>&gt;<i>
+</I>&gt;<i> After adding CSRF Guard
+</I>&gt;<i> I access
+</I>&gt;<i> {/AccountApp/editmf?OWASP_CSRFTOKEN=RSDP-3A22-LV7E-Y53P-ZSBE-QCJG-DLQS-FL6K}
+</I>&gt;<i> the per page token is stored under the key '/AccountApp/editmf'
+</I>&gt;<i> The redirect is to '/AccountApp/editmf?execution=e1s1' which
+</I>&gt;<i> doesn't match the key, so the session token is used to construct the
+</I>&gt;<i> redirect url
+</I>&gt;<i> /AccountApp/editmf?execution=e1s1&amp;OWASP_CSRFTOKEN=OWZF-U0O1-4LKU-W4UR-40KB-0LRI-6TMF-5GCM
+</I>&gt;<i> This happens in 'getTokenValue()'
+</I>&gt;<i>
+</I>&gt;<i> However, when isValidRequest after the redirect, only
+</I>&gt;<i> '/AccountApp/editmf' is used to check the pageTokens map,
+</I>&gt;<i> so the token no longer matches.
+</I>&gt;<i>
+</I>&gt;<i> The 'location' needs the query params stripped off. I'm not familiar enough
+</I>&gt;<i> with servlets to know if there is standard call to do that.
+</I>&gt;<i>
+</I>&gt;<i> (approx line 75 of CsrfGuardFilter)
+</I>&gt;<i> String location = redirectResponse.getLocation()
+</I>&gt;<i>
+</I>&gt;<i> This all works fine if TokenPerPage=false.
+</I>&gt;<i>
+</I>&gt;<i> thanks,
+</I>&gt;<i>
+</I>&gt;<i> Patrick
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-csrfguard mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">Owasp-csrfguard at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">https://lists.owasp.org/mailman/listinfo/owasp-csrfguard</A>
+</I>
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: redirect.patch
+Url: <A HREF="https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110706/dd87147f/attachment.pl">https://lists.owasp.org/pipermail/owasp-csrfguard/attachments/20110706/dd87147f/attachment.pl</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000062.html">[Owasp-csrfguard] Redirect with token not working when query parameters present and TokenPerPage=true
+</A></li>
+	<LI>Next message: <A HREF="000064.html">[Owasp-csrfguard] The meaning of NewTokenLandingPage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#63">[ date ]</a>
+              <a href="thread.html#63">[ thread ]</a>
+              <a href="subject.html#63">[ subject ]</a>
+              <a href="author.html#63">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-csrfguard">More information about the Owasp-csrfguard
+mailing list</a><br>
+</body></html>

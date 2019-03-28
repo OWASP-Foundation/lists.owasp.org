@@ -1,0 +1,69 @@
+<tt>
+&lt;div&nbsp;dir=&quot;ltr&quot;&gt;On&nbsp;Tue,&nbsp;Sep&nbsp;24,&nbsp;2013&nbsp;at&nbsp;3:02&nbsp;PM,&nbsp;Reinhard&nbsp;Kocznar&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:office@kocznar.com&quot;&nbsp;target=&quot;_blank&quot;&gt;office@kocznar.com&lt;/a&gt;&gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_extra&quot;&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0px&nbsp;0px&nbsp;0px&nbsp;0.8ex;border-left-width:1px;border-left-color:rgb(204,204,204);border-left-style:solid;padding-left:1ex&quot;&gt;<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+&lt;div&nbsp;lang=&quot;DE&quot;&nbsp;link=&quot;blue&quot;&nbsp;vlink=&quot;purple&quot;&gt;<br>
+<br>
+&lt;div&gt;<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;Hello,&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;&lt;u&gt;&lt;/u&gt; &lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;lang=&quot;EN-GB&quot;&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;I&nbsp;use&nbsp;mod_security&nbsp;(OWASP_CRS/2.2.7)&nbsp;on&nbsp;a&nbsp;Windows<br>
+2003&nbsp;Server&nbsp;with&nbsp;Apache&nbsp;2.7.4.&nbsp;This&nbsp;works&nbsp;fine,&nbsp;and&nbsp;I&nbsp;want&nbsp;to&nbsp;use&nbsp;SecGeoLookupDb<br>
+to&nbsp;block&nbsp;some&nbsp;countries.&nbsp;Unfortunately&nbsp;I&nbsp;do&nbsp;not&nbsp;come&nbsp;clear&nbsp;with&nbsp;the&nbsp;documentation<br>
+for&nbsp;this&nbsp;job.&nbsp;Can&nbsp;anybody&nbsp;help?&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;lang=&quot;EN-GB&quot;&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Hi&nbsp;Reinhard,&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Have&nbsp;your&nbsp;tried&nbsp;something&nbsp;like&nbsp;the&nbsp;following.&nbsp;The&nbsp;example&nbsp;below&nbsp;defines&nbsp;where&nbsp;the&nbsp;GeoLiteCity&nbsp;database&nbsp;is&nbsp;stored.&nbsp;I&nbsp;chose&nbsp;/opt/modsecurity/var/lib&nbsp;but&nbsp;you&nbsp;could&nbsp;put&nbsp;the&nbsp;db&nbsp;somewhere&nbsp;else&nbsp;on&nbsp;your&nbsp;system.&nbsp;You&nbsp;can&nbsp;download&nbsp;the&nbsp;database&nbsp;from&nbsp;&lt;a&nbsp;href=&quot;http://www.maxmind.com/&quot;&gt;http://www.maxmind.com/&lt;/a&gt;.&nbsp;FWIW,&nbsp;the&nbsp;GEOIP2&nbsp;databases&nbsp;do&nbsp;not&nbsp;work&nbsp;with&nbsp;ModSecurity&nbsp;(yet).&nbsp;Next&nbsp;I&nbsp;created&nbsp;a&nbsp;rule&nbsp;to&nbsp;lookup&nbsp;the&nbsp;remote&nbsp;IP&nbsp;address&nbsp;and&nbsp;deny&nbsp;the&nbsp;connection&nbsp;if&nbsp;the&nbsp;request&nbsp;did&nbsp;not&nbsp;come&nbsp;from&nbsp;a&nbsp;US&nbsp;based&nbsp;IP&nbsp;address.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;SecGeoLookupDb&nbsp;/opt/modsecurity/lib/GeoLiteCity.dat&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;SecRule&nbsp;REMOTE_ADDR&nbsp;&quot;@geoLookup&quot;&nbsp;&quot;phase:1,chain,id:1,deny,msg:&#39;Non-US&nbsp;IP&nbsp;address&#39;&quot;&lt;/div&gt;<br>
+&lt;div&gt; &nbsp;SecRule&nbsp;GEO:COUNTRY_CODE&nbsp;&quot;!@streq&nbsp;US&quot;&lt;/div&gt;&lt;/div&gt;&lt;div&gt; &lt;/div&gt;&lt;div&gt;--&lt;/div&gt;&lt;div&gt; -&nbsp;Josh&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0px&nbsp;0px&nbsp;0px&nbsp;0.8ex;border-left-width:1px;border-left-color:rgb(204,204,204);border-left-style:solid;padding-left:1ex&quot;&gt;<br>
+&lt;div&nbsp;lang=&quot;DE&quot;&nbsp;link=&quot;blue&quot;&nbsp;vlink=&quot;purple&quot;&gt;&lt;div&gt;&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;lang=&quot;EN-GB&quot;&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt; &lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;lang=&quot;EN-GB&quot;&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;Thank&nbsp;you,&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;Reinhard&nbsp;Kocznar&nbsp;&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;Zeus&nbsp;Versicherungsberatung&nbsp;e.U.&lt;br&gt;<br>
+Versicherungsmakler&nbsp;und&nbsp;Berater&nbsp;in&lt;/span&gt;&lt;/font&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:11pt;font-family:Arial;color:navy&quot;&gt;&nbsp;&lt;/span&gt;&lt;/font&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;Versicherungsangelegenheiten&nbsp;&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+<br>
+&lt;p&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;Koernerstrasse<br>
+13                   <br>
+Telefon&nbsp;&lt;a&nbsp;href=&quot;tel:%2B43%20512%20393824&quot;&nbsp;value=&quot;+43512393824&quot;&nbsp;target=&quot;_blank&quot;&gt;+43&nbsp;512&nbsp;393824&lt;/a&gt;&nbsp;&lt;br&gt;<br>
+A-6020&nbsp;Innsbruck                      <br>
+Fax&nbsp;&lt;a&nbsp;href=&quot;tel:%2B43%20512%20394617&quot;&nbsp;value=&quot;+43512394617&quot;&nbsp;target=&quot;_blank&quot;&gt;+43&nbsp;512&nbsp;394617&lt;/a&gt;&nbsp;&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&gt;&lt;font&nbsp;size=&quot;3&quot;&nbsp;face=&quot;Times&nbsp;New&nbsp;Roman&quot;&gt;&lt;span&nbsp;style=&quot;font-size:12pt&quot;&gt;&lt;a&nbsp;href=&quot;http://www.kocznar.com/&quot;&nbsp;title=&quot;blocked::http://www.kocznar.com/&quot;&nbsp;target=&quot;_blank&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;http://www.zeus-1.at/&lt;/span&gt;&lt;/font&gt;&lt;/a&gt;&lt;/span&gt;&lt;/font&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;&nbsp;-&nbsp;&lt;/span&gt;&lt;/font&gt;&lt;a&nbsp;href=&quot;http://www.available-light.org/&quot;&nbsp;title=&quot;blocked::http://www.available-light.org/&quot;&nbsp;target=&quot;_blank&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;http://www.available-light.org/&lt;/span&gt;&lt;/font&gt;&lt;/a&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;&nbsp;&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+<br>
+&lt;p&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;-------------------------------------------------------------------------------------------<br>
+&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;p&gt;&lt;b&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy;font-weight:bold&quot;&gt;Hamster&nbsp;im&nbsp;Laufrad&lt;/span&gt;&lt;/font&gt;&lt;/b&gt;&lt;font&nbsp;color=&quot;navy&quot;&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial;color:navy&quot;&gt;,&nbsp;Essay,&nbsp;Limbus,&nbsp;Innsbruck&nbsp;ISBN&nbsp;978-3-902534-92-7&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;size=&quot;3&quot;&nbsp;face=&quot;Times&nbsp;New&nbsp;Roman&quot;&gt;&lt;span&nbsp;style=&quot;font-size:12pt&quot;&gt;&lt;a&nbsp;href=&quot;http://books.kocznar.com/&quot;&nbsp;title=&quot;blocked::http://books.kocznar.com/&quot;&nbsp;target=&quot;_blank&quot;&gt;&lt;font&nbsp;face=&quot;Arial&quot;&gt;&lt;span&nbsp;style=&quot;font-size:10pt;font-family:Arial&quot;&gt;http://books.kocznar.com/&lt;/span&gt;&lt;/font&gt;&lt;/a&gt;&lt;/span&gt;&lt;/font&gt;&lt;font&gt;&lt;span&nbsp;style=&quot;font-size:10pt&quot;&gt;&lt;u&gt;&lt;/u&gt;&lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+<br>
+&lt;p&nbsp;class=&quot;&quot;&gt;&lt;font&nbsp;size=&quot;3&quot;&nbsp;face=&quot;Times&nbsp;New&nbsp;Roman&quot;&gt;&lt;span&nbsp;style=&quot;font-size:12pt&quot;&gt;&lt;u&gt;&lt;/u&gt; &lt;u&gt;&lt;/u&gt;&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;<br>
+<br>
+&lt;/div&gt;<br>
+<br>
+&lt;/div&gt;<br>
+<br>
+<br>
+&lt;br&gt;_______________________________________________&lt;br&gt;<br>
+Owasp-modsecurity-core-rule-set&nbsp;mailing&nbsp;list&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;mailto:Owasp-modsecurity-core-rule-set@lists.owasp.org&quot;&gt;Owasp-modsecurity-core-rule-set@lists.owasp.org&lt;/a&gt;&lt;br&gt;<br>
+&lt;a&nbsp;href=&quot;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&quot;&nbsp;target=&quot;_blank&quot;&gt;https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;/a&gt;&lt;br&gt;<br>
+&lt;br&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;<br>
+
+</tt>

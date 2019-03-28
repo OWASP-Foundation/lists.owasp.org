@@ -1,0 +1,2261 @@
+From dendler at owasp.org  Tue Mar 18 15:44:19 2003
+From: dendler at owasp.org (David Endler)
+Date: Tue, 18 Mar 2003 15:44:19 -0500
+Subject: [OWASP-TESTING] It's aliiiiive
+Message-ID: <000401c2ed8f$266ab9b0$644510ac@idef.com>
+
+Attached is the latest draft of the Testing document in RTF format.  The
+conversion was a little quirky from OpenOffice, so certain
+sections are capitalized.  There is still MUCH to do, but I would like to
+define a
+staggered release schedule of chapters to allow us to edit in a timely and
+effective manner, focusing on specific portions methodically.  The
+following release schedule is what I had in mind.  I'm not completely sure
+if this
+is too aggresive, or not aggresive enough, but we can always adjust the
+timeframe.  Thoughts?
+
+I'll be sending specific requests for the first release cluster later
+tonight.  The first release I imagine will be the easiest to get ready for
+prime time publication. Thanks for your continued patience and support:
+
+
+ Preface
+ Introduction
+ Introducing the OWASP Testing Methodology
+ PUBLISHED by April 1st.
+
+ Planning
+ Security Management Review
+ Source Code Review
+ PUBLISHED by May 1st.
+
+ Presentation Tier Profiling
+ Presentation Tier Testing
+ PUBLISHED by June 1st.
+
+ Application Tier Profiling
+ Application Tier Testing
+ PUBLISHED by July 1st.
+
+ Profiling the Data Tier
+ Testing the Data Tier
+ PUBLISHED by July 15th.
+
+ Results
+ PUBLISHED by August 1st.
+
+ Reporting
+ PUBLISHED by August 15th.
+
+ FINAL COMPLETE DRAFT revisions September 15.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: test_rtf.zip
+Type: application/x-zip-compressed
+Size: 427214 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030318/c2b8e0ce/attachment.bin 
+
+From rdawes at deloitte.co.za  Thu Mar 20 03:59:40 2003
+From: rdawes at deloitte.co.za (Dawes, Rogan (ZA - Johannesburg))
+Date: Thu, 20 Mar 2003 10:59:40 +0200
+Subject: [OWASP-TESTING] Testing Cookie predictability
+Message-ID: <AA8E3CBBF6E2E7489931D9F30A7BDBD81B23EB@zajnbnt006.za.deloitte.com>
+
+Hi,
+
+I have been doing some work on cookie analysis, and thought I'd share what
+I've done with the group.
+
+It is quite rough and ready at this point, but seems to be quite effective.
+
+Essentially, the method is:
+
+Collect a sample of cookies, by replaying a request however many times is
+desired. (The request can be taken from an Exodus proxy session, or simply a
+handcrafted request to the URL that generates the cookies)
+
+I typically do something like:
+
+for i in `seq 1 10000` ; do
+  cat cookierequest | nc server port | egrep "^Date|Set-Cookie" >> sample
+done
+
+cat sample | ./processcookie.pl > baked
+
+(process cookie converts the date and time from the response to seconds from
+epoch, and outputs lines like:
+
+seconds:cookiename:cookievalue
+
+Which can then be grepped for a specific cookie if the app generates more
+than one)
+
+I then convert the cookie value to a number (typically a BIIIG number :-)
+using a Perl script that I have written.
+
+cat baked | grep cookiename | ./charset.pl > values.dat
+
+Charset.pl basically looks at the characters that are in use for each
+position in the cookie, and uses that positional character set to convert
+the character to a number. E.g. the character "C" in a set "ABC" is
+equivalent to the number 2 in a base 3 system. The overall cookie value is
+calculated by the formula 
+
+The nice thing about this method is that, even if the character set is, say,
++-0-9A-Za-z (64 chars), if half of them are never used for whatever reason,
+they don't contribute to making the numbers larger than they need to be.
+
+$value += index($c[$n],$charset[$n]) * (length($charset[$n]) ** ($l - $n -
+1) )
+
+Where $n is the character position in the cookie, and $l is the length of
+the cookie
+
+I then take the output (values.dat), and plot it using gnuplot. Depending on
+the sample size, it is quite likely that you will see any patterns in the
+cookies, such as different sequences operating in parallel (e.g. the web
+server is talking to multiple instances of an application server in a
+round-robin/load-balanced schema)
+
+You can then filter your cookie sample (looking for repeated characters,
+etc) to focus on a particular sequence, and graph that individually to see
+the pattern in more detail. (charset.pl can also help here, as it can print
+out the character set for each position in the cookie. The smaller the
+character set for that position, the more likely it is that there is a
+pattern there)
+
+Finally, you can use strange.pl to look for "strange attractors" (See Michal
+Zalewski's work on TCP sequence number predictability), and plot that on a
+3d or 2d graph.
+
+
+
+
+Sample data, obfuscated to protect the innocent :-)
+
+Raw cookie dump
+===============
+Date: Wed, 12 Mar 2003 12:07:43 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:43 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=Rlqv0QtA30Q16cKKx1Rg; path=/; domain=.blah
+Date: Wed, 12 Mar 2003 12:07:43 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:43 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=wN3AcgdS16g6Qvool6wb; path=/; domain=.blah
+Date: Wed, 12 Mar 2003 12:07:44 GMT
+Date: Wed, 12 Mar 2003 12:07:45 GMT
+Set-Cookie: eBvm=9; expires=Thu, 11-Mar-2004 12:07:45 GMT; path=/;
+domain=.blah
+Set-Cookie: o_ebId=qRx1DX760AXJySQQsJqq; path=/; domain=.blah
+
+Processed cookie output
+=======================
+1047470863:eBvm:9
+1047470863:o_ebId:Rlqv0QtA30Q16cKKx1Rg
+1047470863:eBvm:9
+1047470863:o_ebId:wN3AcgdS16g6Qvool6wb
+1047470865:eBvm:9
+1047470865:o_ebId:qRx1DX760AXJySQQsJqq
+1047470866:eBvm:9
+1047470866:o_ebId:wN3Acg9yJ6g6Qvool6wt
+1047470867:eBvm:9
+1047470867:o_ebId:qRx1DXq4uAXJySQQsJqc
+1047470868:eBvm:9
+1047470868:o_ebId:wN3AcgcxCLg6Qvool6wv
+
+As you can see, there are repeated strings in this sample "g6Qvo", "XJySQ".
+Picking one sequence to focus on, we get:
+
+Cookies for XJySQ
+=================
+1047470865:o_ebId:qRx1DX760AXJySQQsJqq
+1047470867:o_ebId:qRx1DXq4uAXJySQQsJqc
+1047470869:o_ebId:qRx1DXUUsUXJySQQsJp6
+1047470870:o_ebId:qRx1DsJhvUXJySQQsJp-
+1047470885:o_ebId:qRx1D+74gqXJySQQsJLc
+1047470890:o_ebId:qRx1DaJQe7XJySQQsJRL
+1047470895:o_ebId:qRx1Da7cg7XJySQQsJRw
+1047470898:o_ebId:qRx1DaDsRxXJySQQsJ0d
+1047470899:o_ebId:qRx1DaUhvUXJySQQsJ0q
+1047470905:o_ebId:qRx1US7GvmXJySQQsJDd
+1047470907:o_ebId:qRx1USqUsmXJySQQsc16
+1047470908:o_ebId:qRx1USD6zVXJySQQsc1L
+
+Which we can split into two parts, before and after the static string, and
+analyse separately.
+
+1047470865:o_ebId:qRx1DX760A
+1047470867:o_ebId:qRx1DXq4uA
+1047470869:o_ebId:qRx1DXUUsU
+1047470870:o_ebId:qRx1DsJhvU
+1047470885:o_ebId:qRx1D+74gq
+1047470890:o_ebId:qRx1DaJQe7
+1047470895:o_ebId:qRx1Da7cg7
+1047470898:o_ebId:qRx1DaDsRx
+1047470899:o_ebId:qRx1DaUhvU
+
+cat cookies* | ./processcookie.pl | grep -i ebId | grep XJySQ | cut -c1-28 |
+./charset.pl -f3 -d: -c > sample.dat
+=================
+Overall Charset count is : 35
+Overall Charset is : 
++01467ADGJKNQRSUVXYZaceghlmpqsuvxyz
+
+charset[0] is 'q'
+charset[1] is 'Rs'
+charset[2] is '4QUx'
+charset[3] is '01DILRXqt'
+charset[4] is '7ADJKUVmqx'
+charset[5] is '+NSXYZapsy'
+charset[6] is '7ADJKUVmqx'
+charset[7] is '+46GQUchsx'
+charset[8] is '0QReglsuvz'
+charset[9] is '7ADJKUVmqx'
+
+Cookies with values associated with each
+========================================
+1047470865 o_ebId qRx1DX760A 810794
+1047470867 o_ebId qRx1DXq4uA 818764
+1047470869 o_ebId qRx1DXUUsU 816158
+1047470870 o_ebId qRx1DsJhvU 864378
+1047470885 o_ebId qRx1D+74gq 780741
+1047470890 o_ebId qRx1DaJQe7 844023
+1047470895 o_ebId qRx1Da7cg7 841233
+1047470898 o_ebId qRx1DaDsRx 843422
+1047470899 o_ebId qRx1DaUhvU 846378
+1047470905 o_ebId qRx1US7Gvm 1100980
+1047470907 o_ebId qRx1USqUsm 1109160
+
+Now use gnuplot to view again
+
+Plot "sample.dat" using 4 with line
+
+I've attached a sample PDF file containing some of the graphs that have been
+generated from these cookies
+
+For what it is worth, these cookies were generated by NewAtlanta's
+ServletExec, v3.0
+
+Use strange.pl to calculate 3d differences:
+
+    my $x = $seq[2] - $seq[3];
+    my $y = $seq[1] - $seq[2];
+    my $z = $seq[0] - $seq[1];
+
+3d differences from strange.pl
+==============================
+7970 -2606 48220
+-2606 48220 -83637
+48220 -83637 63282
+-83637 63282 -2790
+63282 -2790 2189
+-2790 2189 2956
+2189 2956 254602
+2956 254602 8180
+
+
+-- 
+"Using encryption on the Internet is the equivalent of arranging an 
+armored car to deliver credit card information from someone living 
+in a cardboard box to someone living on a park bench."
+  - Eugene Spafford
+-- 
+Deloitte & Touche Security Services Group
+Tel: +27(11)806-6216     Fax: +27(11)806-5202     Cell: +27(82)784-9498
+-- 
+NOTE: This e-mail message and its attachments are subject to the disclaimers
+      as published at: http://www.deloitte.co.za/disc.htm#emaildisc
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Cookies.pdf
+Type: application/octet-stream
+Size: 153222 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment.obj 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: strange.pl
+Type: application/octet-stream
+Size: 462 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0001.obj 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: charset.pl
+Type: application/octet-stream
+Size: 4315 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0002.obj 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: processcookie.pl
+Type: application/octet-stream
+Size: 665 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/7879242c/attachment-0003.obj 
+
+From DEndler at iDefense.com  Thu Mar 20 19:51:31 2003
+From: DEndler at iDefense.com (David Endler)
+Date: Thu, 20 Mar 2003 19:51:31 -0500
+Subject: [OWASP-TESTING] Back to work - Release 1
+Message-ID: <A4FCADDE108AD611A4A70008C7A49E0D56D2B2@IDSRV10>
+
+> http://www.owasp.org/testing
+> 
+> I just updated the web site, if anyone's company info has changed, kindly
+> let me know.  Here's the first cluster of chapters for release before
+> April 1.  Please look these sections over and provide suggestions and or
+> edits on the wording.  Some specific tasks I would like to have volunteers
+> for:
+> 
+> * Producing another image on page 11 that illustrates web applications
+> * Developing regulatory section with more concrete examples from industry
+> (HIPAA, GLB, etc.)
+> * Scrutiny of the Test Phases (last page) and their organization
+> 
+> Thanks,
+> 
+> -dave
+> 
+> David Endler, CISSP
+> Director, Technical Intelligence
+> iDEFENSE, Inc.
+> 1875 Campus Commons Drive 
+> Suite 210
+> Reston, VA 20191
+> voice: 703.390.1230
+> fax: 703.390.9456
+> 
+> dendler at idefense.com
+> www.idefense.com
+> 
+>  <<Release1.zip>> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Release1.zip
+Type: application/octet-stream
+Size: 339333 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030320/605c28f0/attachment.obj 
+
+From glyng at bigfoot.com  Fri Mar 21 03:41:38 2003
+From: glyng at bigfoot.com (Glyn)
+Date: Fri, 21 Mar 2003 08:41:38 -0000
+Subject: [OWASP-TESTING] Back to work - Release 1
+In-Reply-To: <A4FCADDE108AD611A4A70008C7A49E0D56D2B2@IDSRV10>
+Message-ID: <002701c2ef85$b06c6da0$4545a8c0@toolrack>
+
+Hey Dave,
+
+I'm happy to take on the Test Phases review & makeover.
+
+Glyn.
+
+> -----Original Message-----
+> From: owasp-testing-admin at lists.sourceforge.net 
+> [mailto:owasp-testing-admin at lists.sourceforge.net] On Behalf 
+> Of David Endler
+> Sent: 21 March 2003 00:52
+> To: 'owasp-testing at lists.sourceforge.net'
+> Cc: 'Ramirez, Manuel N (CORP, DDEMESIS)'; 'Mastrippolito, 
+> Fred NE'; 'Steve Manzuik'; 'Reza Kopaee'; 'Javier 
+> Fern?ndez-Sanguino Pe?a'; 'Jeremiah Grossman'
+> Subject: [OWASP-TESTING] Back to work - Release 1
+> 
+> 
+> > http://www.owasp.org/testing
+> > 
+> > I just updated the web site, if anyone's company info has changed, 
+> > kindly let me know.  Here's the first cluster of chapters 
+> for release 
+> > before April 1.  Please look these sections over and provide 
+> > suggestions and or edits on the wording.  Some specific 
+> tasks I would 
+> > like to have volunteers
+> > for:
+> > 
+> > * Producing another image on page 11 that illustrates web 
+> applications
+> > * Developing regulatory section with more concrete examples from 
+> > industry (HIPAA, GLB, etc.)
+> > * Scrutiny of the Test Phases (last page) and their organization
+> > 
+> > Thanks,
+> > 
+> > -dave
+> > 
+> > David Endler, CISSP
+> > Director, Technical Intelligence
+> > iDEFENSE, Inc.
+> > 1875 Campus Commons Drive
+> > Suite 210
+> > Reston, VA 20191
+> > voice: 703.390.1230
+> > fax: 703.390.9456
+> > 
+> > dendler at idefense.com
+> > www.idefense.com
+> > 
+> >  <<Release1.zip>>
+> 
+
+
+
+
+From mark at curphey.com  Sun Mar 23 14:38:21 2003
+From: mark at curphey.com (Mark Curphey)
+Date: 23 Mar 2003 11:38:21 -0800
+Subject: [OWASP-TESTING] Testing Copyright and Testing Serialization
+In-Reply-To: <000401c2ed8f$266ab9b0$644510ac@idef.com>
+References: <000401c2ed8f$266ab9b0$644510ac@idef.com>
+Message-ID: <1048448300.20786.29.camel@localhost.localdomain>
+
+Dave
+
+All looks good. I think its worth explaining the thought was to
+serialize testing each month on the new portal. The new portal really is
+cool. A rolling demo can often be found at http://12.237.96.109 and it
+will move to the owasp dev servers soon. In case thats down heres a
+screen shot.
+
+I also wanted to just point out that any work that is submitted for
+consideration you are agreeing that it will be copyrighted to the Free
+Software Foundation and released under GNU licensing. I know 99% of
+everyones fine with that, but there are a few people playing silly
+buggers. The layers advise us that as long as we have let everyone know
+and given them a chance to object thats all we need to do. So if you
+object, please let Dave and I know and well remove your contribution. 
+
+Cheers  
+
+
+On Tue, 2003-03-18 at 12:44, David Endler wrote:
+> Attached is the latest draft of the Testing document in RTF format.  The
+> conversion was a little quirky from OpenOffice, so certain
+> sections are capitalized.  There is still MUCH to do, but I would like to
+> define a
+> staggered release schedule of chapters to allow us to edit in a timely and
+> effective manner, focusing on specific portions methodically.  The
+> following release schedule is what I had in mind.  I'm not completely sure
+> if this
+> is too aggresive, or not aggresive enough, but we can always adjust the
+> timeframe.  Thoughts?
+> 
+> I'll be sending specific requests for the first release cluster later
+> tonight.  The first release I imagine will be the easiest to get ready for
+> prime time publication. Thanks for your continued patience and support:
+> 
+> 
+>  Preface
+>  Introduction
+>  Introducing the OWASP Testing Methodology
+>  PUBLISHED by April 1st.
+> 
+>  Planning
+>  Security Management Review
+>  Source Code Review
+>  PUBLISHED by May 1st.
+> 
+>  Presentation Tier Profiling
+>  Presentation Tier Testing
+>  PUBLISHED by June 1st.
+> 
+>  Application Tier Profiling
+>  Application Tier Testing
+>  PUBLISHED by July 1st.
+> 
+>  Profiling the Data Tier
+>  Testing the Data Tier
+>  PUBLISHED by July 15th.
+> 
+>  Results
+>  PUBLISHED by August 1st.
+> 
+>  Reporting
+>  PUBLISHED by August 15th.
+> 
+>  FINAL COMPLETE DRAFT revisions September 15.
+-- 
+Mark Curphey <mark at curphey.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Image.tiff.gz
+Type: application/x-gzip
+Size: 285780 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030323/e24408f4/attachment.gz 
+
+From DEndler at iDefense.com  Tue Mar 25 18:47:42 2003
+From: DEndler at iDefense.com (David Endler)
+Date: Tue, 25 Mar 2003 18:47:42 -0500
+Subject: [OWASP-TESTING] Uncle OWASP needs YOU!
+Message-ID: <A4FCADDE108AD611A4A70008C7A49E0D56D301@IDSRV10>
+
+Hi all,
+
+I really want to adhere to the schedule set forth for release, so would
+appreciate your feedback ASAP.  Please share your comments/sugguestions with
+the rest of the list by this weekend so I can develop a decent merging and
+editing of the document to go out by April 1.  Even if it's a small comment!
+Still looking for an updated graphic and more concrete regulatory examples.
+
+I've added a few people to our list who have kindly agreed to volunteer some
+time with the peer review process. If it's your first posting, feel free to
+introduce yourself. THANKS,
+
+-dave
+
+>  -----Original Message-----
+> From: 	David Endler  
+> Sent:	Thursday, March 20, 2003 7:52 PM
+> To:	'owasp-testing at lists.sourceforge.net'
+> Cc:	'Ramirez, Manuel N (CORP, DDEMESIS)'; 'Mastrippolito, Fred NE';
+> 'Steve  Manzuik'; 'Reza Kopaee'; 'Javier Fern?ndez-Sanguino Pe?a';
+> 'Jeremiah Grossman'
+> Subject:	Back to work - Release 1
+> 
+> http://www.owasp.org/testing
+> 
+> I just updated the web site, if anyone's company info has changed, kindly
+> let me know.  Here's the first cluster of chapters for release before
+> April 1.  Please look these sections over and provide suggestions and or
+> edits on the wording.  Some specific tasks I would like to have volunteers
+> for:
+> 
+> * Producing another image on page 11 that illustrates web applications
+> * Developing regulatory section with more concrete examples from industry
+> (HIPAA, GLB, etc.)
+> * Scrutiny of the Test Phases (last page) and their organization
+> 
+> Thanks,
+> 
+> -dave
+> 
+> David Endler, CISSP
+> Director, Technical Intelligence
+> iDEFENSE, Inc.
+> 1875 Campus Commons Drive 
+> Suite 210
+> Reston, VA 20191
+> voice: 703.390.1230
+> fax: 703.390.9456
+> 
+> dendler at idefense.com
+> www.idefense.com
+> 
+>  <<Release1.zip>> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Release1.zip
+Type: application/octet-stream
+Size: 339333 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030325/9f8f9ae1/attachment.obj 
+
+From steve at entrenchtech.com  Tue Mar 25 20:18:42 2003
+From: steve at entrenchtech.com (Steve Manzuik)
+Date: Tue, 25 Mar 2003 18:18:42 -0700
+Subject: [OWASP-TESTING] Uncle OWASP needs YOU!
+In-Reply-To: <A4FCADDE108AD611A4A70008C7A49E0D56D301@IDSRV10>
+Message-ID: <000101c2f335$a3baa690$0100a8c0@fujilatop>
+
+Hi Dave et all.
+
+I will spend some time on this tonight and as suggested by Dave, I will
+introduce myself.
+
+My name is Steve Manzuik, I am one of the moderators of VulnWatch a
+vulnerability disclosure mailing list (www.vulnwatch.org), a former
+member of Nomad Mobile Research Center (NMRC), and currently an
+independent consultant in Calgary, Alberta (www.entrenchtech.com).  I
+hope I can be a bit of help on the OWASP project and I am glad to be
+here.  You can get me off this list at steve at entrenchtech.com or
+steve at vulnwatch.org.
+
+Cheers;
+
+Steve Manzuik
+
+> -----Original Message-----
+> From: owasp-testing-admin at lists.sourceforge.net 
+> [mailto:owasp-testing-admin at lists.sourceforge.net] On Behalf 
+> Of David Endler
+> Sent: Tuesday, March 25, 2003 4:48 PM
+> To: 'owasp-testing at lists.sourceforge.net'
+> Subject: [OWASP-TESTING] Uncle OWASP needs YOU!
+> 
+> 
+> Hi all,
+> 
+> I really want to adhere to the schedule set forth for 
+> release, so would appreciate your feedback ASAP.  Please 
+> share your comments/sugguestions with the rest of the list by 
+> this weekend so I can develop a decent merging and editing of 
+> the document to go out by April 1.  Even if it's a small 
+> comment! Still looking for an updated graphic and more 
+> concrete regulatory examples.
+> 
+> I've added a few people to our list who have kindly agreed to 
+> volunteer some time with the peer review process. If it's 
+> your first posting, feel free to introduce yourself. THANKS,
+> 
+> -dave
+> 
+> >  -----Original Message-----
+> > From: 	David Endler  
+> > Sent:	Thursday, March 20, 2003 7:52 PM
+> > To:	'owasp-testing at lists.sourceforge.net'
+> > Cc:	'Ramirez, Manuel N (CORP, DDEMESIS)'; 'Mastrippolito, Fred NE';
+> > 'Steve  Manzuik'; 'Reza Kopaee'; 'Javier Fern?ndez-Sanguino Pe?a'; 
+> > 'Jeremiah Grossman'
+> > Subject:	Back to work - Release 1
+> > 
+> > http://www.owasp.org/testing
+> > 
+> > I just updated the web site, if anyone's company info has changed, 
+> > kindly let me know.  Here's the first cluster of chapters 
+> for release 
+> > before April 1.  Please look these sections over and provide 
+> > suggestions and or edits on the wording.  Some specific 
+> tasks I would 
+> > like to have volunteers
+> > for:
+> > 
+> > * Producing another image on page 11 that illustrates web 
+> applications
+> > * Developing regulatory section with more concrete examples from 
+> > industry (HIPAA, GLB, etc.)
+> > * Scrutiny of the Test Phases (last page) and their organization
+> > 
+> > Thanks,
+> > 
+> > -dave
+> > 
+> > David Endler, CISSP
+> > Director, Technical Intelligence
+> > iDEFENSE, Inc.
+> > 1875 Campus Commons Drive
+> > Suite 210
+> > Reston, VA 20191
+> > voice: 703.390.1230
+> > fax: 703.390.9456
+> > 
+> > dendler at idefense.com
+> > www.idefense.com
+> > 
+> >  <<Release1.zip>>
+> 
+
+
+
+
+From jfernandez at germinus.com  Wed Mar 26 03:59:33 2003
+From: jfernandez at germinus.com (Javier Fernandez-Sanguino)
+Date: Wed, 26 Mar 2003 09:59:33 +0100
+Subject: [OWASP-TESTING] Re: Back to work - Release 1
+References: <A4FCADDE108AD611A4A70008C7A49E0D56D2B2@IDSRV10>
+Message-ID: <3E816BF5.2000307@germinus.com>
+
+Sorry David, but isn't this version of the Testing Guide trimmed down? 
+This copy (the rtf file in the zip file) is only 15 pages long and ends 
+with the "Phase 3 - Reporting" epigraph of "The OWASP Test Phases".
+
+Maybe the copy lost content when converting from docbook to rtf. 
+Wouldn't it make more sense to produce a pdf version for peer review?
+
+Best regards
+
+Javier Fern?ndez-Sanguino
+
+
+
+
+
+From DEndler at iDefense.com  Wed Mar 26 09:34:34 2003
+From: DEndler at iDefense.com (David Endler)
+Date: Wed, 26 Mar 2003 09:34:34 -0500
+Subject: [OWASP-TESTING] RE: Back to work - Release 1
+Message-ID: <A4FCADDE108AD611A4A70008C7A49E0D56D308@IDSRV10>
+
+Hi Javier,
+
+We're only working on the initial sections first so as to focus our energies
+appropriately and to serialize the sections on the new OWASP portal.
+
+If you'd like to see the mostly rough unfinished document, I've uploaded it
+in both OpenOffice and rtf formats to
+http://www.owasp.org/testing/testing.zip .  As you can see from the amount
+left to be done, you'll probably agree a monthly staggered approach to
+release is the best way to go.
+
+FYI, when you all start to share comments/edits, for now I think the best
+way is to do it in plain text and email them to the entire list.  Cut and
+paste where necessary. 
+
+-dave
+
+> -----Original Message-----
+> From: Javier Fernandez-Sanguino [mailto:jfernandez at germinus.com]
+> Sent: Wednesday, March 26, 2003 4:00 AM
+> To: David Endler
+> Cc: 'owasp-testing at lists.sourceforge.net'
+> Subject: Re: Back to work - Release 1
+> 
+> 
+> Sorry David, but isn't this version of the Testing Guide 
+> trimmed down? 
+> This copy (the rtf file in the zip file) is only 15 pages 
+> long and ends 
+> with the "Phase 3 - Reporting" epigraph of "The OWASP Test Phases".
+> 
+> Maybe the copy lost content when converting from docbook to rtf. 
+> Wouldn't it make more sense to produce a pdf version for peer review?
+> 
+> Best regards
+> 
+> Javier Fern?ndez-Sanguino
+> 
+> 
+
+
+
+From jfernandez at germinus.com  Wed Mar 26 10:23:17 2003
+From: jfernandez at germinus.com (Javier Fernandez-Sanguino)
+Date: Wed, 26 Mar 2003 16:23:17 +0100
+Subject: [OWASP-TESTING] Re: Back to work - Release 1
+References: <A4FCADDE108AD611A4A70008C7A49E0D56D308@IDSRV10>
+Message-ID: <3E81C5E5.5050809@germinus.com>
+
+David Endler wrote:
+> Hi Javier,
+> 
+> We're only working on the initial sections first so as to focus our energies
+> appropriately and to serialize the sections on the new OWASP portal.
+> 
+
+Understood.
+
+
+> If you'd like to see the mostly rough unfinished document, I've uploaded it
+> in both OpenOffice and rtf formats to
+> http://www.owasp.org/testing/testing.zip .  As you can see from the amount
+> left to be done, you'll probably agree a monthly staggered approach to
+> release is the best way to go.
+> 
+
+Ok. Thanks for pointing it out (I had a previous, 0.6, release)
+
+
+> FYI, when you all start to share comments/edits, for now I think the best
+> way is to do it in plain text and email them to the entire list.  Cut and
+> paste where necessary. 
+> 
+
+Will do in short time.
+
+Regards
+
+Javi
+
+
+
+
+From jfernandez at germinus.com  Wed Mar 26 11:14:57 2003
+From: jfernandez at germinus.com (Javier Fernandez-Sanguino)
+Date: Wed, 26 Mar 2003 17:14:57 +0100
+Subject: [OWASP-TESTING] Comments on Release1 OWASP-Testing
+Message-ID: <3E81D201.1090702@germinus.com>
+
+I have reviewed the first release David made on the OWASP Testing 
+methodology. I'm adding some comments below on issues which might or 
+might not be relevant to the document.
+
+Hopefully the comments will be useful to the people who have written the 
+document.
+
+Best Regards
+
+Javier Fernandez-Sanguino
+Security Divison
+Germinus
+
+------------------------------- Start Comments ----------------------
+
+[1] page 4
+People have probably spotted this, but, anyway, the table of contents 
+includes a full paragraph between the page references. Probably a 
+problem with the styles:
+
+"Unicode	54
+A Tester should ensure in the source code that some security checking 
+should is carried out after UTF-8 decoding is completed. "
+
+[2] page 6
+The following line:
+"There are many different publicly available checklists one can download 
+on how to securely deploy specific web technologies (erg. Apache, IIS, 
+iPlanet, etc.), "
+could probably be changed to:
+"There are many different publicly available checklists one can download 
+on how to securely deploy specific web technologies (erg. installing 
+Apache, IIS or iPlanet, developing in Java, VisualBasic or PHP, etc.), "
+
+Otherwise the example is too specific, IMHO, to checklists related to 
+vendor (web server) products and undermines the phrase.
+
+[3] page 8
+
+I do not agree completely with this statement:
+
+"(...) was started in September of 2001. At the time there was no 
+central place where developers and security professionals could learn 
+how to build secure web applications or test the security of their 
+products. (...)"
+
+Related to secure web applications the World Wide Web Consortium has had 
+http://www.w3.org/Security/ for quite some time. Also the WWW Security 
+FAQ has been provided since 1995. As for security testing, the OSSTMM 
+first version, for example, was published in april 2001 and had a (very 
+small) section on web application testing. Granted, OWASP has 
+spearheaded the web security effort since then and now produces far 
+better information that those sources.
+
+Maybe the paragraph should be changed to
+
+"(...) was started in September of 2001. At the time the information 
+available for developers and security professionals where they could 
+learn how to build secure web applications or test the security of their 
+products was fairly insufficient. Although documentation such as the WWW 
+Consortium's "WWW Security FAQ" and the OSTMM from (at that time) 
+Ideahamster organisation were a start, they did not provide sufficient 
+in depth information for professionals and, in some cases, had been 
+obsoleted by new emerging technologies. (...)"
+
+[4] page 10
+
+"The Application Tier may include technology like CGI's, Java, .NET 
+services, PHP or ColdFusion "
+
+I would not include CGI as a technology since it is, essentially, a 
+specification, as described at http://www.w3.org/CGI/. CGI has, IMHO, 
+been (wrongly) used as a reference to scripts that implemented (at the 
+time) the specification, i.e. shell/perl/C scripts. The CGI interface is 
+used, however, by .NET services, PHP aplications, ASPs...
+
+I would rephrase that as:
+"The Application Tier may include the use of specifications such as CGI 
+or SOAP and technologies like interpreted scripts, Java applications, 
+.NET services, PHP or ColdFusion."
+
+[5] page 11
+
+"Of course small applications may consist of a simple CGI running on a 
+local host; reading or writing files to disk. "
+
+Again a bad use of the CGI term IMHO. Why not rephrase it to:
+
+"Of course small applications may consist of a simple script running on 
+a local host; communicating through CGI with the web server and reading 
+or writing files to disk. "
+
+[6] page 13
+
+Related to the regulatory requirements:
+
+"Financial institutions have regulatory requirements from the FDIC or 
+OCC for Internet banking , see for example the very general and vague (...)"
+
+should be changed to:
+
+"At the US, financial institutions have regulatory requirements from the 
+FDIC or OCC for Internet banking , see for example the very general and 
+vague ...."
+
+I believe it would also be relevant to add a note on the European 
+Directive 95/46/EC: "on the protection of individuals with regard to the 
+processing of personal data and on the free movement of such data"
+http://europa.eu.int/comm/internal_market/privacy/index_en.htm
+
+Which states:
+
+"Article 17
+Security of processing
+1. Member States shall provide that the controller must implement 
+appropriate technical and organizational measures to protect personal 
+data against accidental or unlawful destruction or accidental loss, 
+alteration, unauthorized disclosure or access, in particular where the 
+processing involves the transmission of data over a network, and against 
+all other unlawful forms of processing."
+
+This directive has been converted into a law in all European countries. 
+Meaning that companies which use personal data as part of an e-commerce 
+service might be legally liable if anything of the above occurs. This is 
+pretty similar to the HIPAA and very relevant to web applications which 
+usually make use of databases including personal information which 
+should be protected from attack.
+
+[7] page 15
+
+I think that a note on what is currently done in web application 
+security might be useful here to drive a point. As you all are aware 
+security testing in web deployments are currently primarily based on 
+"penetration tests" (a.k.a. security black box analysis) of the web 
+services deployed.
+
+This is usually flashy ("I was able to retrieve you whole customer 
+database from the Internet") but it's far from sufficient if you want to 
+make sure that applications are secure and will stay that way (i.e. 
+application developers will not make the same mistakes again, web 
+services will be deployed following security guidelines). Maybe a 
+footnote on this could be added to the following paragraph or before in 
+the text when describing the different security testing phases:
+
+"Implementation Review and Testing -  An implementation review involves 
+actual testing of the security of the application as implemented (often 
+called grey or black box testing)."
+
+
+[8]
+
+Overall I think this section gives a good introduction on what web 
+services are and what the current needs are. However, I would like it to 
+link or reference information from third parties. It is very 
+OWASP-specific and seems to say "before us, nothing was done on the web 
+security area".
+
+It would be proper, IMHO, to talk slightly more about previous works and 
+to current works which might be related to the OWASP effort.
+
+Some samples:
+
+- The yet to be released OSSTMM version 3 includes much more information 
+on web application testing guidelines and tools (version 2.0 provides 
+already much more than 1.0)
+
+- NIST has produced some outstanding documents on overall security, 
+security testing (maybe too network specific) and web applications too. 
+Take a look at NIST SP-800-44: 
+http://csrc.nist.gov/publications/nistpubs/800-44/sp800-44.pdf
+(it might be too specific to the products and OS itself, not the 
+applications, but it's part of what OWASP testing is about)
+
+- SANS is trying to produce a web application check list
+http://www.sans.org/score/webappschecklist.php as part of the SCORE project.
+
+- IntersectAlliance has produced some high-quality (IMHO) security 
+checklists for web-related applications: 
+http://www.intersectalliance.com/projects/
+
+
+
+
+
+From DEndler at iDefense.com  Wed Mar 26 15:04:03 2003
+From: DEndler at iDefense.com (David Endler)
+Date: Wed, 26 Mar 2003 15:04:03 -0500
+Subject: [OWASP-TESTING] Comments on Release1 OWASP-Testing
+Message-ID: <A4FCADDE108AD611A4A70008C7A49E0D56D310@IDSRV10>
+
+Javier,
+
+Great initial feedback, especially the European Directive info.  Looking
+forward to everyone else's take.
+
+-dave
+
+> -----Original Message-----
+> From: owasp-testing-admin at lists.sourceforge.net
+> [mailto:owasp-testing-admin at lists.sourceforge.net]On Behalf Of Javier
+> Fernandez-Sanguino
+> Sent: Wednesday, March 26, 2003 11:15 AM
+> To: owasp-testing at lists.sourceforge.net; David Endler
+> Subject: [OWASP-TESTING] Comments on Release1 OWASP-Testing
+> 
+> 
+> I have reviewed the first release David made on the OWASP Testing 
+> methodology. I'm adding some comments below on issues which might or 
+> might not be relevant to the document.
+> 
+> Hopefully the comments will be useful to the people who have 
+> written the 
+> document.
+> 
+> Best Regards
+> 
+> Javier Fernandez-Sanguino
+> Security Divison
+> Germinus
+> 
+> ------------------------------- Start Comments ----------------------
+> 
+> [1] page 4
+> People have probably spotted this, but, anyway, the table of contents 
+> includes a full paragraph between the page references. Probably a 
+> problem with the styles:
+> 
+> "Unicode	54
+> A Tester should ensure in the source code that some security checking 
+> should is carried out after UTF-8 decoding is completed. "
+> 
+> [2] page 6
+> The following line:
+> "There are many different publicly available checklists one 
+> can download 
+> on how to securely deploy specific web technologies (erg. 
+> Apache, IIS, 
+> iPlanet, etc.), "
+> could probably be changed to:
+> "There are many different publicly available checklists one 
+> can download 
+> on how to securely deploy specific web technologies (erg. installing 
+> Apache, IIS or iPlanet, developing in Java, VisualBasic or 
+> PHP, etc.), "
+> 
+> Otherwise the example is too specific, IMHO, to checklists related to 
+> vendor (web server) products and undermines the phrase.
+> 
+> [3] page 8
+> 
+> I do not agree completely with this statement:
+> 
+> "(...) was started in September of 2001. At the time there was no 
+> central place where developers and security professionals could learn 
+> how to build secure web applications or test the security of their 
+> products. (...)"
+> 
+> Related to secure web applications the World Wide Web 
+> Consortium has had 
+> http://www.w3.org/Security/ for quite some time. Also the WWW 
+> Security 
+> FAQ has been provided since 1995. As for security testing, the OSSTMM 
+> first version, for example, was published in april 2001 and 
+> had a (very 
+> small) section on web application testing. Granted, OWASP has 
+> spearheaded the web security effort since then and now produces far 
+> better information that those sources.
+> 
+> Maybe the paragraph should be changed to
+> 
+> "(...) was started in September of 2001. At the time the information 
+> available for developers and security professionals where they could 
+> learn how to build secure web applications or test the 
+> security of their 
+> products was fairly insufficient. Although documentation such 
+> as the WWW 
+> Consortium's "WWW Security FAQ" and the OSTMM from (at that time) 
+> Ideahamster organisation were a start, they did not provide 
+> sufficient 
+> in depth information for professionals and, in some cases, had been 
+> obsoleted by new emerging technologies. (...)"
+> 
+> [4] page 10
+> 
+> "The Application Tier may include technology like CGI's, Java, .NET 
+> services, PHP or ColdFusion "
+> 
+> I would not include CGI as a technology since it is, essentially, a 
+> specification, as described at http://www.w3.org/CGI/. CGI has, IMHO, 
+> been (wrongly) used as a reference to scripts that 
+> implemented (at the 
+> time) the specification, i.e. shell/perl/C scripts. The CGI 
+> interface is 
+> used, however, by .NET services, PHP aplications, ASPs...
+> 
+> I would rephrase that as:
+> "The Application Tier may include the use of specifications 
+> such as CGI 
+> or SOAP and technologies like interpreted scripts, Java applications, 
+> .NET services, PHP or ColdFusion."
+> 
+> [5] page 11
+> 
+> "Of course small applications may consist of a simple CGI 
+> running on a 
+> local host; reading or writing files to disk. "
+> 
+> Again a bad use of the CGI term IMHO. Why not rephrase it to:
+> 
+> "Of course small applications may consist of a simple script 
+> running on 
+> a local host; communicating through CGI with the web server 
+> and reading 
+> or writing files to disk. "
+> 
+> [6] page 13
+> 
+> Related to the regulatory requirements:
+> 
+> "Financial institutions have regulatory requirements from the FDIC or 
+> OCC for Internet banking , see for example the very general 
+> and vague (...)"
+> 
+> should be changed to:
+> 
+> "At the US, financial institutions have regulatory 
+> requirements from the 
+> FDIC or OCC for Internet banking , see for example the very 
+> general and 
+> vague ...."
+> 
+> I believe it would also be relevant to add a note on the European 
+> Directive 95/46/EC: "on the protection of individuals with 
+> regard to the 
+> processing of personal data and on the free movement of such data"
+> http://europa.eu.int/comm/internal_market/privacy/index_en.htm
+> 
+> Which states:
+> 
+> "Article 17
+> Security of processing
+> 1. Member States shall provide that the controller must implement 
+> appropriate technical and organizational measures to protect personal 
+> data against accidental or unlawful destruction or accidental loss, 
+> alteration, unauthorized disclosure or access, in particular 
+> where the 
+> processing involves the transmission of data over a network, 
+> and against 
+> all other unlawful forms of processing."
+> 
+> This directive has been converted into a law in all European 
+> countries. 
+> Meaning that companies which use personal data as part of an 
+> e-commerce 
+> service might be legally liable if anything of the above 
+> occurs. This is 
+> pretty similar to the HIPAA and very relevant to web 
+> applications which 
+> usually make use of databases including personal information which 
+> should be protected from attack.
+> 
+> [7] page 15
+> 
+> I think that a note on what is currently done in web application 
+> security might be useful here to drive a point. As you all are aware 
+> security testing in web deployments are currently primarily based on 
+> "penetration tests" (a.k.a. security black box analysis) of the web 
+> services deployed.
+> 
+> This is usually flashy ("I was able to retrieve you whole customer 
+> database from the Internet") but it's far from sufficient if 
+> you want to 
+> make sure that applications are secure and will stay that way (i.e. 
+> application developers will not make the same mistakes again, web 
+> services will be deployed following security guidelines). Maybe a 
+> footnote on this could be added to the following paragraph or 
+> before in 
+> the text when describing the different security testing phases:
+> 
+> "Implementation Review and Testing -  An implementation 
+> review involves 
+> actual testing of the security of the application as 
+> implemented (often 
+> called grey or black box testing)."
+> 
+> 
+> [8]
+> 
+> Overall I think this section gives a good introduction on what web 
+> services are and what the current needs are. However, I would 
+> like it to 
+> link or reference information from third parties. It is very 
+> OWASP-specific and seems to say "before us, nothing was done 
+> on the web 
+> security area".
+> 
+> It would be proper, IMHO, to talk slightly more about 
+> previous works and 
+> to current works which might be related to the OWASP effort.
+> 
+> Some samples:
+> 
+> - The yet to be released OSSTMM version 3 includes much more 
+> information 
+> on web application testing guidelines and tools (version 2.0 provides 
+> already much more than 1.0)
+> 
+> - NIST has produced some outstanding documents on overall security, 
+> security testing (maybe too network specific) and web 
+> applications too. 
+> Take a look at NIST SP-800-44: 
+> http://csrc.nist.gov/publications/nistpubs/800-44/sp800-44.pdf
+> (it might be too specific to the products and OS itself, not the 
+> applications, but it's part of what OWASP testing is about)
+> 
+> - SANS is trying to produce a web application check list
+> http://www.sans.org/score/webappschecklist.php as part of the 
+> SCORE project.
+> 
+> - IntersectAlliance has produced some high-quality (IMHO) security 
+> checklists for web-related applications: 
+> http://www.intersectalliance.com/projects/
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+
+
+
+From tomgal at Exchange.Microsoft.com  Thu Mar 27 05:14:56 2003
+From: tomgal at Exchange.Microsoft.com (Tom Gallagher)
+Date: Thu, 27 Mar 2003 02:14:56 -0800
+Subject: [OWASP-TESTING] Uncle OWASP needs YOU!
+Message-ID: <EB005E067BC00A458EF6639DEC5AEDA3B4F64A@df-muttley.dogfood>
+
+Here is my feedback on the first section.
+
+1. Page 10 says, "The functions performed can range form relatively simple tasks like..."  "Form" should be "from".
+
+2. Page 11 - Can we get a better resolution graphic?  I can barely make out the text.
+
+3. Page 11 - It looks like ASP is in the presentation tier of the graphic.  I think this should be in the application tier.  Entire web apps have been written in ASP.  According to your definition for the application tier it fits there.  ASP handles the user input, making decisions, and obtaining more data.  PHP is in the application tier; ASP and PHP are very similar.  I don't know much about Java server pages, but perhaps they also belong in the application tier.
+
+4. Page 11 - We should add a non-browser application to the leftmost list in the presentation tier.  Something like FrontPage or Word.  Most people realize the web browser uses the web, but they may not realize their desktop office productivity application do too.
+
+5. Page 12 - "A Data Tier is used to store things needed by the application and acts as a repository for both temporary and permanent data. It is the bank vault or database of a web application. Modern systems are typically now storing data in XML format for interoperability with other system and sources.
+Of course small applications may consist of a simple CGI running on a local host; reading or writing files to disk."  
+This makes it sound like a database, local files, and XML are separate things.  The XML format is used in both files and databases.  Perhaps the wording should be, "A Data Tier is used to read and store things needed by the application and acts as a repository for both temporary and permanent data. This data can be read and stored in local files or a database.  Modern systems are typically now formatting the data as XML for interoperability with other system and sources."
+
+6. Page 13 - "The most effective way to strengthen the security of a web application is to include security testing as an integral part of the development lifecycle."  I think this statement is a little overboard.  While security testing is extremely important, I would argue that secure design and coding practices are just as important if not more.  Security should be thought of in all stages of the product cycle, but security testing does happen until you have designed and coded something.  During the design phase threat modeling is pretty important; secure coding practices and security awareness is important during implementation.  These are not usually referred to as testing.  Let's change this to "An important way to strengthen..." or "One effective way to strengthen..."?
+
+7. Page 14 - Should we include something about P3P since we are talking about policies and P3P is a web related policy?
+
+Tom
+
+---
+Tom Gallagher <tomgal at microsoft.com>
+Office QnS Security Team
+
+
+-----Original Message-----
+From: owasp-testing-admin at lists.sourceforge.net [mailto:owasp-testing-admin at lists.sourceforge.net] On Behalf Of David Endler
+Sent: Tuesday, March 25, 2003 3:48 PM
+To: 'owasp-testing at lists.sourceforge.net'
+Subject: [OWASP-TESTING] Uncle OWASP needs YOU!
+
+Hi all,
+
+I really want to adhere to the schedule set forth for release, so would
+appreciate your feedback ASAP.  Please share your comments/sugguestions with
+the rest of the list by this weekend so I can develop a decent merging and
+editing of the document to go out by April 1.  Even if it's a small comment!
+Still looking for an updated graphic and more concrete regulatory examples.
+
+I've added a few people to our list who have kindly agreed to volunteer some
+time with the peer review process. If it's your first posting, feel free to
+introduce yourself. THANKS,
+
+-dave
+
+>  -----Original Message-----
+> From: 	David Endler  
+> Sent:	Thursday, March 20, 2003 7:52 PM
+> To:	'owasp-testing at lists.sourceforge.net'
+> Cc:	'Ramirez, Manuel N (CORP, DDEMESIS)'; 'Mastrippolito, Fred NE';
+> 'Steve  Manzuik'; 'Reza Kopaee'; 'Javier Fern?ndez-Sanguino Pe?a';
+> 'Jeremiah Grossman'
+> Subject:	Back to work - Release 1
+> 
+> http://www.owasp.org/testing
+> 
+> I just updated the web site, if anyone's company info has changed, kindly
+> let me know.  Here's the first cluster of chapters for release before
+> April 1.  Please look these sections over and provide suggestions and or
+> edits on the wording.  Some specific tasks I would like to have volunteers
+> for:
+> 
+> * Producing another image on page 11 that illustrates web applications
+> * Developing regulatory section with more concrete examples from industry
+> (HIPAA, GLB, etc.)
+> * Scrutiny of the Test Phases (last page) and their organization
+> 
+> Thanks,
+> 
+> -dave
+> 
+> David Endler, CISSP
+> Director, Technical Intelligence
+> iDEFENSE, Inc.
+> 1875 Campus Commons Drive 
+> Suite 210
+> Reston, VA 20191
+> voice: 703.390.1230
+> fax: 703.390.9456
+> 
+> dendler at idefense.com
+> www.idefense.com
+> 
+>  <<Release1.zip>> 
+
+
+
+
+
+From DEndler at iDefense.com  Fri Mar 28 17:51:54 2003
+From: DEndler at iDefense.com (David Endler)
+Date: Fri, 28 Mar 2003 17:51:54 -0500
+Subject: [OWASP-TESTING] nag nag nag - comments please
+Message-ID: <A4FCADDE108AD611A4A70008C7A49E0D56D339@IDSRV10>
+
+Hi guys,
+
+As we're approaching the weekend, just wanted to remind you to please look
+over the 1st draff section and submit comments.  Only two people, Tom and
+Javier, have responded so far. Thanks again for all of your efforts,
+
+-dave
+
+p.s. Just in case you deleted the email, the rtf document is at
+http://www.owasp.org/testing/testing.zip
+
+
+
+
+
+From dan at idsec.com  Sat Mar 29 09:38:13 2003
+From: dan at idsec.com (dan cuthbert)
+Date: Sat, 29 Mar 2003 14:38:13 +0000
+Subject: [OWASP-TESTING] nag nag nag - comments please
+In-Reply-To: <A4FCADDE108AD611A4A70008C7A49E0D56D339@IDSRV10>; from DEndler@iDefense.com on Fri, Mar 28, 2003 at 05:51:54PM -0500
+References: <A4FCADDE108AD611A4A70008C7A49E0D56D339@IDSRV10>
+Message-ID: <20030329143813.A3052@popeye.idsec.co.uk>
+
+Sorry dave, was flirting between airports
+
+Tom and Javier did cover quiet a bit of what i was going to say (it pays to be quick)
+
+Page 11:
+
+i also agreee with Tom in that Java server pages belonging in the application tier
+
+Page 13:
+
+In addition to the European directive, the UK has the Data Protection Act, which applies to all personal information stored in files or databases. 
+Maybe a section defining all the different laws applying to this section needs to be added?
+
+
+Other than that, it looks great.
+ill have another final look when i'm totallly awake
+
+
+Dan
+
+
+On Fri, Mar 28, 2003 at 05:51:54PM -0500, David Endler tapped away......
+> Hi guys,
+> 
+> As we're approaching the weekend, just wanted to remind you to please look
+> over the 1st draff section and submit comments.  Only two people, Tom and
+> Javier, have responded so far. Thanks again for all of your efforts,
+> 
+> -dave
+> 
+> p.s. Just in case you deleted the email, the rtf document is at
+> http://www.owasp.org/testing/testing.zip
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+
+
+
+
+
+From mark at curphey.com  Sat Mar 29 10:20:54 2003
+From: mark at curphey.com (Mark Curphey)
+Date: 29 Mar 2003 07:20:54 -0800
+Subject: [OWASP-TESTING] nag nag nag - comments please
+In-Reply-To: <20030329143813.A3052@popeye.idsec.co.uk>
+References: <A4FCADDE108AD611A4A70008C7A49E0D56D339@IDSRV10>
+	 <20030329143813.A3052@popeye.idsec.co.uk>
+Message-ID: <1048951253.17976.13.camel@localhost.localdomain>
+
+Page 11
+
+I think everyone's on the same page but just so we are clear jsp's are
+compiled the first time they are called into effectively regular
+servlets. The old model pre jdk1.2 was more like asp and php.
+
+With this and asp.net and code behind things are a little more blurry
+but I guess the original point was to  discuss why mixing presentation
+and business logic is not a good idea for security (web server gets
+rooted, loose applications as well).
+
+The new owasp guide (draft) has a good new section on this and
+architectures that its worth syncing up with. You can check it out of
+cvs.
+
+
+On Sat, 2003-03-29 at 06:38, dan cuthbert wrote:
+> Sorry dave, was flirting between airports
+> 
+> Tom and Javier did cover quiet a bit of what i was going to say (it pays to be quick)
+> 
+> Page 11:
+> 
+> i also agreee with Tom in that Java server pages belonging in the application tier
+> 
+> Page 13:
+> 
+> In addition to the European directive, the UK has the Data Protection Act, which applies to all personal information stored in files or databases. 
+> Maybe a section defining all the different laws applying to this section needs to be added?
+> 
+> 
+> Other than that, it looks great.
+> ill have another final look when i'm totallly awake
+> 
+> 
+> Dan
+> 
+> 
+> On Fri, Mar 28, 2003 at 05:51:54PM -0500, David Endler tapped away......
+> > Hi guys,
+> > 
+> > As we're approaching the weekend, just wanted to remind you to please look
+> > over the 1st draff section and submit comments.  Only two people, Tom and
+> > Javier, have responded so far. Thanks again for all of your efforts,
+> > 
+> > -dave
+> > 
+> > p.s. Just in case you deleted the email, the rtf document is at
+> > http://www.owasp.org/testing/testing.zip
+> > 
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by:
+> > The Definitive IT and Networking Event. Be There!
+> > NetWorld+Interop Las Vegas 2003 -- Register today!
+> > http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> > _______________________________________________
+> > owasp-testing mailing list
+> > owasp-testing at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+
+
+
+
+From randolph at seawa.org.au  Sat Mar 29 22:29:18 2003
+From: randolph at seawa.org.au (Nick Randolph)
+Date: Sun, 30 Mar 2003 11:29:18 +0800
+Subject: [OWASP-TESTING] nag nag nag - comments please
+Message-ID: <2A7BEE31ED0FFF40AE0C4E68A53AB2650B2666@ntserver.seawa.org.au>
+
+A number of comments on the intro section...
+
+1.	Following the discussion on where ASP, and JSP fit, I think that it is important to identify where the technologies were supposed to be used, rather than where they are being used.  Both ASP and JSP (and for that matter PHP) were designed as presentation layer technologies.  ASP was designed to work with COM components to do the application tier logic, JSP was designed to work with Java classes (aka Java Beans) and initially PHP wasn't designed to do any back end processing.  Before I get shot down for this comment, a lot has changed since then and these languages have advanced considerably, so perhaps they do belong in the Application tier.  My preference is to see ASP and JSP in the presentation tier and their associated technologies ie COM/COM+/Serviced Components and Java beans, in the application tier
+
+2.	Section "What are Web Applications"
+	
+	Replace "developed at the Speed of Light" with "evolved at a staggering rate" - Speed of Light is a bit to SciFi for a professional document
+	
+	Replace "Java (or Similar Language)" with "an object-oriented language" - More generalist
+
+	Replace "Through Complex Business logic tiers" with "Using complex business logic" - Use of tier is unnecessary
+
+
+3.	Rearrangement of paragraphs - The "What are Web Services" section should be before the paragraph starting "It can help to think of a web application....".  A new section heading should be inserted after this section titled "3-Tiers of logic" or something similar.  Web Services really only differ from web applications in the presentation tier, instead of displaying data via a web browser they pass data via a remote method call.  Instead of being viewed by a human user (ie web application), web services are consumed by other applications/services.
+
+	To this end, I would also reword the paragraph "It can help to think of a web application being made up of three logical tiers or functions" to "Most modern applcations can be divided into three logical tiers or functions".  The three tier separation is becoming more common in even desktop applications where the GUI is separated from the functional classes, which is separate from the data/persistence layer.
+
+4.	Section "Presentation Tier"
+
+	Replace "Presentation Tiers are responsible" with The presentation tier is responsible"
+
+	Replace "It may also include application compoenets that create the page layout" with It may also include components that determine the presentation logic and create the page layout.
+
+5.	Section "Data tier"
+
+	Should be renamed "Persistence Tier" - The other two layers talk about "Presentation" (The way things are presented) and "Application" (The logic that brings the data together).  Following this format the word "Persisence" (The way data is stored) is more consistent than data (what is being stored).
+
+6.	Section "Application Security Development Lifecycle"
+
+	Ammend "Those tasks ... development and testing" to "Those tasks ... development, testing, deployment, maintenance and retirement" - The deployment and maintenance areas are especially important as it is these areas that security is of upmost importance as there is real data involved.  The omission of the last three sections in a lifecycle is one of the most common and unforgivable mistakes that any software engineer can make!!
+
+
+Anyway, there is enough ramblings from me.  They are just my thoughts, so take what you want from it.
+
+Cheers
+
+Nick
+
+
+-----Original Message-----
+From: Mark Curphey [mailto:mark at curphey.com]
+Sent: Saturday, 29 March 2003 11:21 PM
+To: dan cuthbert
+Cc: owasp-testing at lists.sourceforge.net
+Subject: Re: [OWASP-TESTING] nag nag nag - comments please
+
+
+Page 11
+
+I think everyone's on the same page but just so we are clear jsp's are
+compiled the first time they are called into effectively regular
+servlets. The old model pre jdk1.2 was more like asp and php.
+
+With this and asp.net and code behind things are a little more blurry
+but I guess the original point was to  discuss why mixing presentation
+and business logic is not a good idea for security (web server gets
+rooted, loose applications as well).
+
+The new owasp guide (draft) has a good new section on this and
+architectures that its worth syncing up with. You can check it out of
+cvs.
+
+
+On Sat, 2003-03-29 at 06:38, dan cuthbert wrote:
+> Sorry dave, was flirting between airports
+> 
+> Tom and Javier did cover quiet a bit of what i was going to say (it pays to be quick)
+> 
+> Page 11:
+> 
+> i also agreee with Tom in that Java server pages belonging in the application tier
+> 
+> Page 13:
+> 
+> In addition to the European directive, the UK has the Data Protection Act, which applies to all personal information stored in files or databases. 
+> Maybe a section defining all the different laws applying to this section needs to be added?
+> 
+> 
+> Other than that, it looks great.
+> ill have another final look when i'm totallly awake
+> 
+> 
+> Dan
+> 
+> 
+> On Fri, Mar 28, 2003 at 05:51:54PM -0500, David Endler tapped away......
+> > Hi guys,
+> > 
+> > As we're approaching the weekend, just wanted to remind you to please look
+> > over the 1st draff section and submit comments.  Only two people, Tom and
+> > Javier, have responded so far. Thanks again for all of your efforts,
+> > 
+> > -dave
+> > 
+> > p.s. Just in case you deleted the email, the rtf document is at
+> > http://www.owasp.org/testing/testing.zip
+> > 
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by:
+> > The Definitive IT and Networking Event. Be There!
+> > NetWorld+Interop Las Vegas 2003 -- Register today!
+> > http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> > _______________________________________________
+> > owasp-testing mailing list
+> > owasp-testing at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by:
+The Definitive IT and Networking Event. Be There!
+NetWorld+Interop Las Vegas 2003 -- Register today!
+http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+_______________________________________________
+owasp-testing mailing list
+owasp-testing at lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/owasp-testing
+
+---
+Incoming mail is certified Virus Free.
+Checked by AVG anti-virus system (http://www.grisoft.com).
+Version: 6.0.463 / Virus Database: 262 - Release Date: 17/03/2003
+ 
+
+---
+Outgoing mail is certified Virus Free.
+Checked by AVG anti-virus system (http://www.grisoft.com).
+Version: 6.0.463 / Virus Database: 262 - Release Date: 17/03/2003
+ 
+
+
+
+From mark at curphey.com  Sun Mar 30 13:34:01 2003
+From: mark at curphey.com (Mark Curphey)
+Date: 30 Mar 2003 10:34:01 -0800
+Subject: [OWASP-TESTING] nag nag nag - comments please
+In-Reply-To: <2A7BEE31ED0FFF40AE0C4E68A53AB2650B2666@ntserver.seawa.org.au>
+References: <2A7BEE31ED0FFF40AE0C4E68A53AB2650B2666@ntserver.seawa.org.au>
+Message-ID: <1049049238.1064.73.camel@localhost.localdomain>
+
+Hiya Nick, 
+
+This was my thinking. Putting ASP and JSP in the same bag would be like
+saying Win32 and MVS are both OS's. Whilst true, one is a monolithic
+kernel and one isn't. I think we are at (or need to be) a layer deeper
+in the descriptions. You can pre-compile a JSP before you deploy it, you
+cant do that with ASP (unless I am very much mistaken). They are
+different beasts with similar names. Mentioning the origins is great and
+will obviously help. I guess my point is I think we need to talk the
+lingua de franca of developers and if you speak to a Java developer and
+say jsp is the same as ASP you would get a shrug....see my point ;-) A
+JSP is a servlet is a servlet. Now that said JSP can and does clearly
+deal with presentation so maybe the whole presentation , business logic
+and data tier thing is whats wrong. We perhaps need to articulate that
+some technologies so both. Then again I think thats the job of the Guide
+and not testing, i guess there are a a whole new class of issues in
+testing code that contains references to DSN's than there is a method
+call ;-)
+
+This is important to get right as it is fundamental to the Guide and
+Testing.
+
+I am attaching the first wo chapters to the new Guide which I spruced up
+a bit. I think they help with some of the other comments here and
+elsewhere. There is a lot of great stuff of architecture and the common
+problems. Well worth a cvs download !
+
+
+PS I have been rebuilding machines so haven't read the Testing chapters
+yet. I will tonight.
+
+On Sat, 2003-03-29 at 19:29, Nick Randolph wrote:
+> A number of comments on the intro section...
+> 
+> 1.	Following the discussion on where ASP, and JSP fit, I think that it is important to identify where the technologies were supposed to be used, rather than where they are being used.  Both ASP and JSP (and for that matter PHP) were designed as presentation layer technologies.  ASP was designed to work with COM components to do the application tier logic, JSP was designed to work with Java classes (aka Java Beans) and initially PHP wasn't designed to do any back end processing.  Before I get shot down for this comment, a lot has changed since then and these languages have advanced considerably, so perhaps they do belong in the Application tier.  My preference is to see ASP and JSP in the presentation tier and their associated technologies ie COM/COM+/Serviced Components and Java beans, in the application tier
+> 
+> 2.	Section "What are Web Applications"
+> 	
+> 	Replace "developed at the Speed of Light" with "evolved at a staggering rate" - Speed of Light is a bit to SciFi for a professional document
+> 	
+> 	Replace "Java (or Similar Language)" with "an object-oriented language" - More generalist
+> 
+> 	Replace "Through Complex Business logic tiers" with "Using complex business logic" - Use of tier is unnecessary
+> 
+> 
+> 3.	Rearrangement of paragraphs - The "What are Web Services" section should be before the paragraph starting "It can help to think of a web application....".  A new section heading should be inserted after this section titled "3-Tiers of logic" or something similar.  Web Services really only differ from web applications in the presentation tier, instead of displaying data via a web browser they pass data via a remote method call.  Instead of being viewed by a human user (ie web application), web services are consumed by other applications/services.
+> 
+> 	To this end, I would also reword the paragraph "It can help to think of a web application being made up of three logical tiers or functions" to "Most modern applcations can be divided into three logical tiers or functions".  The three tier separation is becoming more common in even desktop applications where the GUI is separated from the functional classes, which is separate from the data/persistence layer.
+> 
+> 4.	Section "Presentation Tier"
+> 
+> 	Replace "Presentation Tiers are responsible" with The presentation tier is responsible"
+> 
+> 	Replace "It may also include application compoenets that create the page layout" with It may also include components that determine the presentation logic and create the page layout.
+> 
+> 5.	Section "Data tier"
+> 
+> 	Should be renamed "Persistence Tier" - The other two layers talk about "Presentation" (The way things are presented) and "Application" (The logic that brings the data together).  Following this format the word "Persisence" (The way data is stored) is more consistent than data (what is being stored).
+> 
+> 6.	Section "Application Security Development Lifecycle"
+> 
+> 	Ammend "Those tasks ... development and testing" to "Those tasks ... development, testing, deployment, maintenance and retirement" - The deployment and maintenance areas are especially important as it is these areas that security is of upmost importance as there is real data involved.  The omission of the last three sections in a lifecycle is one of the most common and unforgivable mistakes that any software engineer can make!!
+> 
+> 
+> Anyway, there is enough ramblings from me.  They are just my thoughts, so take what you want from it.
+> 
+> Cheers
+> 
+> Nick
+> 
+> 
+> -----Original Message-----
+> From: Mark Curphey [mailto:mark at curphey.com]
+> Sent: Saturday, 29 March 2003 11:21 PM
+> To: dan cuthbert
+> Cc: owasp-testing at lists.sourceforge.net
+> Subject: Re: [OWASP-TESTING] nag nag nag - comments please
+> 
+> 
+> Page 11
+> 
+> I think everyone's on the same page but just so we are clear jsp's are
+> compiled the first time they are called into effectively regular
+> servlets. The old model pre jdk1.2 was more like asp and php.
+> 
+> With this and asp.net and code behind things are a little more blurry
+> but I guess the original point was to  discuss why mixing presentation
+> and business logic is not a good idea for security (web server gets
+> rooted, loose applications as well).
+> 
+> The new owasp guide (draft) has a good new section on this and
+> architectures that its worth syncing up with. You can check it out of
+> cvs.
+> 
+> 
+> On Sat, 2003-03-29 at 06:38, dan cuthbert wrote:
+> > Sorry dave, was flirting between airports
+> > 
+> > Tom and Javier did cover quiet a bit of what i was going to say (it pays to be quick)
+> > 
+> > Page 11:
+> > 
+> > i also agreee with Tom in that Java server pages belonging in the application tier
+> > 
+> > Page 13:
+> > 
+> > In addition to the European directive, the UK has the Data Protection Act, which applies to all personal information stored in files or databases. 
+> > Maybe a section defining all the different laws applying to this section needs to be added?
+> > 
+> > 
+> > Other than that, it looks great.
+> > ill have another final look when i'm totallly awake
+> > 
+> > 
+> > Dan
+> > 
+> > 
+> > On Fri, Mar 28, 2003 at 05:51:54PM -0500, David Endler tapped away......
+> > > Hi guys,
+> > > 
+> > > As we're approaching the weekend, just wanted to remind you to please look
+> > > over the 1st draff section and submit comments.  Only two people, Tom and
+> > > Javier, have responded so far. Thanks again for all of your efforts,
+> > > 
+> > > -dave
+> > > 
+> > > p.s. Just in case you deleted the email, the rtf document is at
+> > > http://www.owasp.org/testing/testing.zip
+> > > 
+> > > 
+> > > 
+> > > 
+> > > -------------------------------------------------------
+> > > This SF.net email is sponsored by:
+> > > The Definitive IT and Networking Event. Be There!
+> > > NetWorld+Interop Las Vegas 2003 -- Register today!
+> > > http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> > > _______________________________________________
+> > > owasp-testing mailing list
+> > > owasp-testing at lists.sourceforge.net
+> > > https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> > 
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by:
+> > The Definitive IT and Networking Event. Be There!
+> > NetWorld+Interop Las Vegas 2003 -- Register today!
+> > http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> > _______________________________________________
+> > owasp-testing mailing list
+> > owasp-testing at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> > 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+> ---
+> Incoming mail is certified Virus Free.
+> Checked by AVG anti-virus system (http://www.grisoft.com).
+> Version: 6.0.463 / Virus Database: 262 - Release Date: 17/03/2003
+>  
+> 
+> ---
+> Outgoing mail is certified Virus Free.
+> Checked by AVG anti-virus system (http://www.grisoft.com).
+> Version: 6.0.463 / Virus Database: 262 - Release Date: 17/03/2003
+>  
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ch02.xml
+Type: text/xml
+Size: 6040 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030330/1e9c74dc/attachment.xml 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ch01.xml
+Type: text/xml
+Size: 10995 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-testing/attachments/20030330/1e9c74dc/attachment-0001.xml 
+
+From jpoteet at tech-partners.com  Sun Mar 30 21:29:46 2003
+From: jpoteet at tech-partners.com (Jeremy Poteet)
+Date: Sun, 30 Mar 2003 20:29:46 -0600
+Subject: [OWASP-TESTING] nag nag nag - comments please
+In-Reply-To: <A4FCADDE108AD611A4A70008C7A49E0D56D339@IDSRV10>
+Message-ID: <BAAD043A.42D0%jpoteet@tech-partners.com>
+
+Some good comments so far.  I have a few thoughts that I wanted to share.
+Take from this what you want.
+
+1) I know we can't and don't want to attempt to list every technology that
+can be used in web development.  However a category or type of technology
+that seems to be missing in the diagram and text is the use of rich web
+interfaces such as Java applets or ActiveX controls.  I'm not sure if that
+is an oversight or an intended omission.
+
+2) Most of the notes I started making and the comments to the list seem to
+revolve around the use of technologies and where they fit in the
+architecture of a web application.  I think we need to be careful not to
+fall into a "can't see the forest for the trees" issue.  I'm not sure what
+the full scope of where we are going to take web application security
+testing, but it seems like that should dictate the depth of understanding of
+web application architecture that is required.  For example, if we are going
+to focus on "black box" or pen testing or looking at the application from an
+attacker's perspective, the only tier of the application that is required
+for us to understand would be the presentation tier.  The remaining tiers
+would actually become a potential target for the test, i.e. can we determine
+how the rest of the application is architected and does that expose other
+vulnerabilities.
+
+On the other hand, if we are going to "expand" the scope of testing to
+include code reviews, testing of components such as EJBs or COM for which we
+need to create a test harness, etc., we obviously have to understand the
+architecture more fully.  These types of tests sometimes can only be done by
+the developers of the application.  For example, some of our customers only
+have us conduct "black box" assessments, while others give us full access to
+the source code, environment, etc.  I'm sure the rest of you would have
+similar stories.
+
+In short (realizing I passed that point 2 paragraphs ago), I feel that we
+should focus on those things necessary to establish, implement and evaluate
+the testing process and leave anything extraneous to that for other groups
+to handle.  If we need to show the architecture of the web application in a
+similar fashion to what we are now doing, we must keep in sync with what
+other OWASP projects, such as the Guide are doing.  I think Mark mentioned
+this in his comments, and this will be an ongoing struggle for the OWASP
+leadership, but minimizing the instances where OWASP documents may be in
+conflict will be something we will have to stay focused on as each project
+matures.
+
+3) In the five common reasons to test a web application, what I feel is
+often the main reason is either missing or doesn't jump out to me.  It seems
+like the main reason we test is to try to locate our security
+vulnerabilities, whether they are design or implementation problems, before
+an attacker exploits them.  Our applications are constantly being "tested"
+by attackers.  That could possibly fit into one of the reasons listed, and
+while it may seem pretty basic, I think it's important to come out and say
+something about it.
+
+Again, those are my initial thoughts.  I'm really looking forward to how
+this document fleshes out over the next year.
+
+                 
+Jeremy Poteet, CISSP
+Chief Technology Officer
+Technology Partners, Inc.
+1-877-636-1331 x105 (toll free)
+636-519-1221 x105
+http://www.tech-partners.com
+  
+
+
+
+
+On 3/28/03 4:51 PM, "David Endler" <DEndler at iDefense.com> wrote:
+
+> Hi guys,
+> 
+> As we're approaching the weekend, just wanted to remind you to please look
+> over the 1st draff section and submit comments.  Only two people, Tom and
+> Javier, have responded so far. Thanks again for all of your efforts,
+> 
+> -dave
+> 
+> p.s. Just in case you deleted the email, the rtf document is at
+> http://www.owasp.org/testing/testing.zip
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+
+
+
+
+From mark at curphey.com  Sun Mar 30 23:06:40 2003
+From: mark at curphey.com (Mark Curphey)
+Date: 30 Mar 2003 20:06:40 -0800
+Subject: [OWASP-TESTING] nag nag nag - comments please
+In-Reply-To: <BAAD043A.42D0%jpoteet@tech-partners.com>
+References: <BAAD043A.42D0%jpoteet@tech-partners.com>
+Message-ID: <1049083598.1064.109.camel@localhost.localdomain>
+
+Agree. I think what is being suggested about ensuring we keep in sync
+makes a lot of sense and ensuring testing focuses on testing also seems
+smart. 
+
+Overall I think the aim wasn't to prescribe testing as black box or
+white box or whatever, it was more to describe each discipline that you
+might consider, highlight the pros and cons of each, describe when each
+may be appropriate, and describe a process and technique proceedures to
+undertake each and them. 
+
+Does that seem sensible and accurate? 
+
+Given its much easier to bite off small chunks at a time I would suggest
+we focus on those first four chapters for now. This is what I think the
+intent of them was.
+
+Chapter 1 - Introduction - obvious. Use the Guide format. 
+Chapter 2 - What is a Web Application or Web Service ? - set the scene
+and make the book complete for someone who is reading it in isolation or
+needs the chapter for context. Refer to the OWASP Guide as the
+definitive reference. Pull content directly from the Guide.
+
+So that leaves US with the first two REAL chapters for this project of
+Why Test and The OWASP Testing Methodology. I think 3 is relatively easy
+and 4 will see hot debate ;-) And rightly so.
+
+Chapter 3 - Why Test ? - Objective: discuss the reasons why you would
+want to test. Jeremy's point is well taken, there maybe more. Perhaps
+create a Chapter 3 document on its own and start iterating improvements
+? Dave, are you the keeper for any updates ? If we can put it into
+DocBook chapter by Chapter and in CVS it will be a whole lot easier. I
+know I go from DocBook hater to lover but it really is working well for
+the Guide project now ;-)
+
+Chapter 4 - Objective to define a structured methodology that could be
+adopted for how to decide, Why, When, What and How to test your target
+site / applications. Now I have written that I have convinced myself
+Chapter 3 is a sub section of Chapter 4. What struck me when I re-read
+the heading and subheadings was we kinda prescribed a right way and a
+wrong way. I think thats the Phase word that indicates serialization. I
+think its more a case of here are the things you should consider and
+heres some tips that can help you arrive about your answer. Thats not to
+say some things aren't logically before others. Clearly a plan is a good
+idea and theres no point in creating  that afterwards right.
+
+Anyways Dave, what do you day about chapter by chapter. I am sure we can
+all knock out the Methodology in a few weeks of online debate ?
+
+PS The portal architect is off this week coding it up. It really is
+close but is a lot of week. It will get pounded and were damn determined
+its going to be as secure as it can be. As you know we spoke about this
+being serialize chapter by Chapter month by month for the rest of the
+year. Thats still the best thing to do but I would hate for this to
+start on the crappy html site we have today. I will chat to David
+Raphael and see if we can do the xslt for the first 3 chapters if you
+agree 1 is Intro, 2 is what are web apps and 3 is methodology. When
+thats agreed I'll personally do the CVS docbook entries.  
+ 
+
+
+
+On Sun, 2003-03-30 at 18:29, Jeremy Poteet wrote:
+> Some good comments so far.  I have a few thoughts that I wanted to share.
+> Take from this what you want.
+> 
+> 1) I know we can't and don't want to attempt to list every technology that
+> can be used in web development.  However a category or type of technology
+> that seems to be missing in the diagram and text is the use of rich web
+> interfaces such as Java applets or ActiveX controls.  I'm not sure if that
+> is an oversight or an intended omission.
+> 
+> 2) Most of the notes I started making and the comments to the list seem to
+> revolve around the use of technologies and where they fit in the
+> architecture of a web application.  I think we need to be careful not to
+> fall into a "can't see the forest for the trees" issue.  I'm not sure what
+> the full scope of where we are going to take web application security
+> testing, but it seems like that should dictate the depth of understanding of
+> web application architecture that is required.  For example, if we are going
+> to focus on "black box" or pen testing or looking at the application from an
+> attacker's perspective, the only tier of the application that is required
+> for us to understand would be the presentation tier.  The remaining tiers
+> would actually become a potential target for the test, i.e. can we determine
+> how the rest of the application is architected and does that expose other
+> vulnerabilities.
+> 
+> On the other hand, if we are going to "expand" the scope of testing to
+> include code reviews, testing of components such as EJBs or COM for which we
+> need to create a test harness, etc., we obviously have to understand the
+> architecture more fully.  These types of tests sometimes can only be done by
+> the developers of the application.  For example, some of our customers only
+> have us conduct "black box" assessments, while others give us full access to
+> the source code, environment, etc.  I'm sure the rest of you would have
+> similar stories.
+> 
+> In short (realizing I passed that point 2 paragraphs ago), I feel that we
+> should focus on those things necessary to establish, implement and evaluate
+> the testing process and leave anything extraneous to that for other groups
+> to handle.  If we need to show the architecture of the web application in a
+> similar fashion to what we are now doing, we must keep in sync with what
+> other OWASP projects, such as the Guide are doing.  I think Mark mentioned
+> this in his comments, and this will be an ongoing struggle for the OWASP
+> leadership, but minimizing the instances where OWASP documents may be in
+> conflict will be something we will have to stay focused on as each project
+> matures.
+> 
+> 3) In the five common reasons to test a web application, what I feel is
+> often the main reason is either missing or doesn't jump out to me.  It seems
+> like the main reason we test is to try to locate our security
+> vulnerabilities, whether they are design or implementation problems, before
+> an attacker exploits them.  Our applications are constantly being "tested"
+> by attackers.  That could possibly fit into one of the reasons listed, and
+> while it may seem pretty basic, I think it's important to come out and say
+> something about it.
+> 
+> Again, those are my initial thoughts.  I'm really looking forward to how
+> this document fleshes out over the next year.
+> 
+>                  
+> Jeremy Poteet, CISSP
+> Chief Technology Officer
+> Technology Partners, Inc.
+> 1-877-636-1331 x105 (toll free)
+> 636-519-1221 x105
+> http://www.tech-partners.com
+>   
+> 
+> 
+> 
+> 
+> On 3/28/03 4:51 PM, "David Endler" <DEndler at iDefense.com> wrote:
+> 
+> > Hi guys,
+> > 
+> > As we're approaching the weekend, just wanted to remind you to please look
+> > over the 1st draff section and submit comments.  Only two people, Tom and
+> > Javier, have responded so far. Thanks again for all of your efforts,
+> > 
+> > -dave
+> > 
+> > p.s. Just in case you deleted the email, the rtf document is at
+> > http://www.owasp.org/testing/testing.zip
+> > 
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by:
+> > The Definitive IT and Networking Event. Be There!
+> > NetWorld+Interop Las Vegas 2003 -- Register today!
+> > http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> > _______________________________________________
+> > owasp-testing mailing list
+> > owasp-testing at lists.sourceforge.net
+> > https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by:
+> The Definitive IT and Networking Event. Be There!
+> NetWorld+Interop Las Vegas 2003 -- Register today!
+> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
+> _______________________________________________
+> owasp-testing mailing list
+> owasp-testing at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-testing
+> 
+
+
+
+
+From rhoades at mavensecurity.com  Mon Mar 31 13:05:02 2003
+From: rhoades at mavensecurity.com (David Rhoades)
+Date: Mon, 31 Mar 2003 13:05:02 -0500
+Subject: comments / feedback on draft Intro section RE: [OWASP-TESTING] nag nag nag - comments please
+Message-ID: <002301c2f7b0$1f106c70$737ba8c0@DFR>
+
+Some comments on the intro section (some may be repeats of others - sorry).
+
+Where practical I have put underscores to show where changes have been made.
+
+Page 8: Preface, paragraph 1
+Word change: To this day, not one web application technology has shown
+itself _immune_ to the inevitable discovery of vulnerabilities that affect
+its owners' and users' security and privacy.
+
+Also maybe: To this day, _no_ web application technology...
+
+
+Page 8: Preface, paragraph 3
+Missing comma: ...industry derived and proven standard_,_ to system
+owners... 
+
+
+Page 9: About OWASP, paragraph 1
+Missing word?: At the same time the commercial marketplace for web
+application _security_ started to evolve. 
+
+Word change: ...really only _addressed_ a small portion...
+
+Word change: ...really left _customers_ with a false sense of security.
+
+
+Page 9: Using this Document, paragraph 1
+Singular needs plural: ...TO SECURITY TESTING OF WEB APPLICATION_S_.
+
+Page 9: About the Authors
+Reword (removed "and"; added commas): ...for their time, knowledge, and
+dedication.
+
+Page 11: Intro - What are web apps
+Run on sentences - broke in half: ...INVENTORY MANAGEMENT ACROSS MULTIPLE
+VENDORS. FUNCTIONS CAN INCLUDE BOTH BUSINESS TO BUSINESS OR BUSINESS TO
+CONSUMER E-COMMERCE, WORK FLOW, SUPPLY CHAIN MANAGEMENT, AND LEGACY
+APPLICATIONS. 
+
+Removed "A": ...OFTEN CONNECTING TO SIMPLE DATABASES...
+
+
+Page 12: Presentation Tier
+Defined acronym; added comma: THE PRESENTATION TIER INCLUDES WEB SERVERS
+LIKE APACHE AND INTERNET INFORMATION SERVER _(IIS)_, AND WEB BROWSERS...
+
+
+Page 13: Data Tier:
+Made plural: ...INTEROPERABILITY WITH OTHER SYSTEM_S_ AND SOURCES.
+
+
+Page 13: What are Web Services
+General comment: Perhaps include an example of how a Web Service can act
+like a client and/or server at any given time.  The Web Service acts like a
+server to the end user (i.e. the web browser), but that same Web Service can
+act like a client when it requests a service or data from another Web
+Service.
+
+
+Page 14: Application Security Lifecycle
+Word choice: ...THAT IS TO SAY THAT TIME _DICTATES_ WHEN SPECIFIC TASKS
+SHOULD BE UNDERTAKEN. 
+
+Isolate sentence fragment with commas: ...AT ALL STAGES OF AN APPLICATION'S
+DEVELOPMENT, FROM REQUIREMENTS GATHERING TO CODING AND DEPLOYMENT, TO ENSURE
+THAT...
+
+Page 15: last sentence of "Application Security Lifecycle"
+removed comma: ...SECURITY SPECIFIED OR INTENDED IS THAT WHICH IS REALIZED.
+
+
+Page 15: Industry Best Practice
+Add comma to last item in list: ...focus on operating systems, network
+infrastructure, and information security management. 
+
+
+Page 15: Operational Security Lifecycle
+remove comma: How does a change in component X affect component Y? 
+
+needed rewording: Security is as good as the weakest link..
+Here's my attempt: Security is as good as the weakest link, and therefore
+makes logical sense to include security testing of web applications as part
+of operational readiness checks. 
+
+needed rewording: Testing should be carried out...
+Here's my attempt: Testing should be carried out on a periodic basis, and
+when changes occur to the application or its deployment environment.
+
+
+Page 15: Internal Standard/Policy
+made policy plural; added commas to separate list of items: ...defines
+policies, standards, and procedures for...
+
+[2nd sentence] slight reword: These policies, standards, and procedures...
+
+Comment: Should "policy" be "policies"?  I don't know if it matters.  I
+thought it sounded better plural, but now I'm having doubts.  We need a tech
+editor for this :-)
+
+
+Page 15: Regulatory Requirements
+
+reword needed: Some countries have passed laws that _require_ certain
+industries to take _specific_ security provisions.
+[Word "certain" was repeated twice in same sentence, and "which" was used
+incorrectly.]
+
+added "the": ...applications called _the_ Cardholder Information Security
+Program
+
+
+Page 16: last sentence for Intro section:
+
+reword: Although none of the above are specifically related to web
+applications, regulations and guidelines of this nature are likely to
+address web apps in the short term.
+
+
+David Rhoades
+Office: 1-703-729-3290
+Email:  rhoades at mavensecurity.com 
+----------------------------<>< 
+Maven Security Consulting, Inc. 
+www.mavensecurity.com
+
+
+
+

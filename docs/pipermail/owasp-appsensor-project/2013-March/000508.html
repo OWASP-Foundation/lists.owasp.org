@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] how to detect if a detection point is created and sone other questions
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20how%20to%20detect%20if%20a%20detection%20point%20is%0A%20created%20and%20sone%20other%20questions&In-Reply-To=%3CCAM8z%3DyJtrVRriNje%3DAHQ9sfu9Ri6RL8FC6ZU8%2BzE%3D5XO_qf7jg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000507.html">
+   <LINK REL="Next"  HREF="000509.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] how to detect if a detection point is created and sone other questions</H1>
+    <B>John Melton</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-appsensor-project%5D%20how%20to%20detect%20if%20a%20detection%20point%20is%0A%20created%20and%20sone%20other%20questions&In-Reply-To=%3CCAM8z%3DyJtrVRriNje%3DAHQ9sfu9Ri6RL8FC6ZU8%2BzE%3D5XO_qf7jg%40mail.gmail.com%3E"
+       TITLE="[Owasp-appsensor-project] how to detect if a detection point is created and sone other questions">jtmelton at gmail.com
+       </A><BR>
+    <I>Sat Mar  9 01:53:50 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000507.html">[Owasp-appsensor-project] how to detect if a detection point is	created and sone other questions
+</A></li>
+        <LI>Next message: <A HREF="000509.html">[Owasp-appsensor-project] how to detect if a detection point is created and sone other questions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#508">[ date ]</a>
+              <a href="thread.html#508">[ thread ]</a>
+              <a href="subject.html#508">[ subject ]</a>
+              <a href="author.html#508">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Panos,
+Great questions.
+
+There is no mechanism for checking if a detection point has been triggered.
+Depending on your needs, you could do it via the boolean setting you
+mentioned or possibly by wrapping the intrusion detector with your own
+custom class and attaching observers for notification if you wanted that
+feature. Note however that this only informs you that a detection point has
+been triggered. You'd have to determine the detection point by examining
+the &quot;code&quot;, ie AE8. Also note this is not a GUID, ie. multiple of these
+could be fired.
+
+As for checking which was the last response action executed, you could do
+something like the following:
+
+APPSENSOR.intrusionStore().getIntrusionRecordForUser(yourUserHere).getLastResponseAction(&quot;AE8&quot;);
+
+As for working with anonymous users, there's currently only support for
+logging really. You could augment the system to do certain things based on
+IP or other identifiers, but it would require you to extend our system.
+This is one of the challenges I'm trying to tackle in version 2 of the
+code, which I'm currently working on.
+
+Thanks,
+John
+
+
+On Fri, Mar 8, 2013 at 6:21 PM, panos &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">panosx13 at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> I was wondering if there is a way to detect in my code if a detection
+</I>&gt;<i> point is created.
+</I>&gt;<i>
+</I>&gt;<i> For example i have the code
+</I>&gt;<i>
+</I>&gt;<i> if ( checkIntrution() )
+</I>&gt;<i> {
+</I>&gt;<i>     new AppSensorException(&quot;AE8&quot;, &quot;Providing Only the Username &quot;,
+</I>&gt;<i> &quot;Provided Only the Username&quot;);
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> and I want in my code to check if the AE8 has been created is there any
+</I>&gt;<i> solution using only the Appsensor API?
+</I>&gt;<i>
+</I>&gt;<i> alternatively I have thought I way with a boolean variable
+</I>&gt;<i>
+</I>&gt;<i> for example
+</I>&gt;<i>
+</I>&gt;<i> boolean isCreated=false;
+</I>&gt;<i> if ( checkIntrution() )
+</I>&gt;<i> {
+</I>&gt;<i>     new AppSensorException(&quot;AE8&quot;, &quot;Providing Only the Username &quot;,
+</I>&gt;<i> &quot;Provided Only the Username&quot;);
+</I>&gt;<i>     isCreated=true;
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> ....
+</I>&gt;<i>
+</I>&gt;<i> if( isCreated )
+</I>&gt;<i> {
+</I>&gt;<i> ....
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Also I was wondering if there is a solution on detecting in which action
+</I>&gt;<i> is a Detection Point
+</I>&gt;<i>
+</I>&gt;<i> for example lets say that in esapi.properties I have this:
+</I>&gt;<i>
+</I>&gt;<i> IntrusionDetector.AE8.actions=**log,logout,disable
+</I>&gt;<i>
+</I>&gt;<i> is there a way to see in which action is a detection point in my source
+</I>&gt;<i> code ? for example I want to check if the action is in logout.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Also if a user in not authenticated as I have seen, Appsensor treats him
+</I>&gt;<i> like anonymous and the only action that can be applied in an anonymous is
+</I>&gt;<i> log.
+</I>&gt;<i>
+</I>&gt;<i> is there a solution if I want to disable access to an anonymous?
+</I>&gt;<i>
+</I>&gt;<i> Thanks in advance
+</I>&gt;<i>
+</I>&gt;<i> Panos
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.</A>**owasp.org&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.owasp.org/**mailman/listinfo/owasp-**appsensor-project&lt;https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/**mailman/listinfo/owasp-**appsensor-project&lt;https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130308/802a01a1/attachment.html">http://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20130308/802a01a1/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000507.html">[Owasp-appsensor-project] how to detect if a detection point is	created and sone other questions
+</A></li>
+	<LI>Next message: <A HREF="000509.html">[Owasp-appsensor-project] how to detect if a detection point is created and sone other questions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#508">[ date ]</a>
+              <a href="thread.html#508">[ thread ]</a>
+              <a href="subject.html#508">[ subject ]</a>
+              <a href="author.html#508">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

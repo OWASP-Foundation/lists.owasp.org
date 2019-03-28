@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20REST%20CS%20COMMENTS%3A%20HATEOAS&In-Reply-To=%3C5811e7ce-cb92-a761-eb82-a41afdc01e55%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000112.html">
+   <LINK REL="Next"  HREF="000115.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS</H1>
+    <B>Jan Wolff</B> 
+    <A HREF="mailto:owasp-cheat-sheets%40lists.owasp.org?Subject=Re%3A%20%5BOWASP-cheat-sheets%5D%20REST%20CS%20COMMENTS%3A%20HATEOAS&In-Reply-To=%3C5811e7ce-cb92-a761-eb82-a41afdc01e55%40owasp.org%3E"
+       TITLE="[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS">jan.wolff at owasp.org
+       </A><BR>
+    <I>Thu Nov 16 00:27:24 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000112.html">[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS
+</A></li>
+        <LI>Next message: <A HREF="000115.html">[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#114">[ date ]</a>
+              <a href="thread.html#114">[ thread ]</a>
+              <a href="subject.html#114">[ subject ]</a>
+              <a href="author.html#114">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>2) might depend on the context. I agree regarding stuff like search 
+queries for a web view, where only links should be displayed that can be 
+accessed by the user. In my opinion, a representation of the collection 
+ressource should not depend on the requestor. Think about a collection 
+of all customers a company might have. I would still want to see a 
+consistent view of the collection although I can't access the customer 
+details itself. Maybe this could be implemented in a REST-compliant way 
+by designing URIs in a way that the ressource implies the user specific 
+view. The following could only list only the customers of trader1.
+|<i><A HREF="https://api.example.com/users/trader1/customers">https://api.example.com/users/trader1/customers</A>
+</I>|<i>While this would still list all customers, but access would be restricted.
+</I>||<i><A HREF="https://api.example.com/customers">https://api.example.com/customers</A>
+</I>||<i>Does that make sense?
+</I>
+If filtering would be mandatory, that would also create problems for 
+distributed applications where the filtering depends on data that is not 
+owned by the same service. An example could be an HR applications that 
+allows you to only see data of subordinates but the actual data and the 
+org-chart are managed by different services on different nodes.
+
+HATEOS might also leak direct references since REST aims at identifying 
+ressources. Listing the following two URIs still suggests that there is 
+an item4. This kind of information leakage could be prevented by using 
+other identifiers but I would not put much emphasis on this. It is 
+information leakage after all.
+|<i><A HREF="https://api.example.com/resources/item3|">https://api.example.com/resources/item3|</A>
+</I>|<i><A HREF="https://api.example.com/resources/item5|">https://api.example.com/resources/item5|</A>
+</I>
+Best
+Jan
+
+
+Am 15.11.2017 um 03:20 schrieb Jim Manico:
+&gt;<i>
+</I>&gt;<i> Good, we can definitely add this to a HATEOAS section. This is 
+</I>&gt;<i> helpful. Easy for the attacker, easy on the developer but also easy on 
+</I>&gt;<i> those who are assessing and testing an REST app for security. Fair 
+</I>&gt;<i> summary?
+</I>&gt;<i>
+</I>&gt;<i> I would say that a REST service that displays links that the current 
+</I>&gt;<i> user does not have access to is breaking the rules of access control. 
+</I>&gt;<i> We should never display links that users do not have access to. How is 
+</I>&gt;<i> a UI developer to know that a link provided from HATEOAS results is 
+</I>&gt;<i> not to be rendered in a UI since the current user does not have access?
+</I>&gt;<i>
+</I>&gt;<i> Aloha, Jim
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 11/14/17 3:01 PM, Erlend Oftedal wrote:
+</I>&gt;&gt;<i> My &#8364; 0,02
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1) This goes both ways I think. Whenever I do a security test on a 
+</I>&gt;&gt;<i> RESTful self-describing API, it's much easier to know when I'm done. 
+</I>&gt;&gt;<i> I can see every path to a resource. I can test those paths. I can 
+</I>&gt;&gt;<i> often find example payloads for the services.&#160; For an old style 
+</I>&gt;&gt;<i> webapp where there is no API, it's hard to know if you've found 
+</I>&gt;&gt;<i> everything. You can browse the site, spider it etc. but there may be 
+</I>&gt;&gt;<i> edge cases that are hard to find. A specific change to a specific 
+</I>&gt;&gt;<i> entity has a clear path in a REST API, while in a non-RESTful app 
+</I>&gt;&gt;<i> multiple endpoints can subtly change the same thing.
+</I>&gt;&gt;<i> It's also easier to apply automated tests to a proper REST API as 
+</I>&gt;&gt;<i> it's meant to be machine readable, and we can catch a lot of the bugs 
+</I>&gt;&gt;<i> there.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2) There is the links, but then there is also whether or not you can 
+</I>&gt;&gt;<i> actually invoke those links. So I would say both showing the correct 
+</I>&gt;&gt;<i> links and then also blocking access to the absent links.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 14 November 2017 at 22:29, Johan Peeters &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">yo at johanpeeters.com</A> 
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">yo at johanpeeters.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I think you are right on HATEOAS.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     On 14 November 2017 at 21:21, Jim Manico &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jim.manico at owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">jim.manico at owasp.org</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>     &gt; Hey folks,
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; HATEOAS has several security implications and is core to
+</I>&gt;&gt;<i>     defining what REST is.
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; 1) The self describing nature makes it easy on the attacker
+</I>&gt;&gt;<i>     (with no a-priori knowledge) to traverse the depths of your
+</I>&gt;&gt;<i>     webservice.
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; 2) Access control around what links are displayed is critical.
+</I>&gt;&gt;<i>     You may need to show different links to different users for the
+</I>&gt;&gt;<i>     same resource if they have different permissions.
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; While 2 is &#8220;against REST&#8221; it&#8217;s a critical factor if you want to
+</I>&gt;&gt;<i>     support users with different permissions in a REST service.
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; --
+</I>&gt;&gt;<i>     &gt; Jim Manico
+</I>&gt;&gt;<i>     &gt; @Manicode
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>     &gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt; OWASP-cheat-sheets mailing list
+</I>&gt;&gt;<i>     &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">OWASP-cheat-sheets at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">OWASP-cheat-sheets at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     &gt; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets</A>
+</I>&gt;&gt;<i>     &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     --
+</I>&gt;&gt;<i>     Johan Peeters
+</I>&gt;&gt;<i>     <A HREF="https://www.johanpeeters.com">https://www.johanpeeters.com</A>
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     OWASP-cheat-sheets mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">OWASP-cheat-sheets at lists.owasp.org</A>
+</I>&gt;&gt;<i>     &lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">OWASP-cheat-sheets at lists.owasp.org</A>&gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets</A>
+</I>&gt;&gt;<i>     &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> OWASP-cheat-sheets mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">OWASP-cheat-sheets at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets</A>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20171116/8b50680d/attachment.html">http://lists.owasp.org/pipermail/owasp-cheat-sheets/attachments/20171116/8b50680d/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000112.html">[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS
+</A></li>
+	<LI>Next message: <A HREF="000115.html">[OWASP-cheat-sheets] REST CS COMMENTS: HATEOAS
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#114">[ date ]</a>
+              <a href="thread.html#114">[ thread ]</a>
+              <a href="subject.html#114">[ subject ]</a>
+              <a href="author.html#114">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cheat-sheets">More information about the OWASP-cheat-sheets
+mailing list</a><br>
+</body></html>

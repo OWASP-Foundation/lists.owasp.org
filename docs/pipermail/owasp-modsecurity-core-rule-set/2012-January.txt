@@ -1,0 +1,673 @@
+From RBarnett at trustwave.com  Wed Jan  4 22:21:52 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Wed, 4 Jan 2012 16:21:52 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Virtual Patch for ASP.Net Forms
+ Authentication Bypass Vulnerability (CVE-2011-3416)
+Message-ID: <CB2A3B30.3FE67%rbarnett@trustwave.com>
+
+Virtual Patch for ASP.Net Forms Authentication Bypass Vulnerability (CVE-2011-3416)
+http://blog.spiderlabs.com/2012/01/virtual-patch-for-aspnet-forms-authentication-bypass-vulnerability-cve-2011-3416.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From dbsinclair at multiservice.com  Thu Jan  5 14:39:06 2012
+From: dbsinclair at multiservice.com (David Sinclair)
+Date: Thu, 5 Jan 2012 14:39:06 +0000 (UTC)
+Subject: [Owasp-modsecurity-core-rule-set] =?utf-8?q?Inconsistent_Anomaly_?=
+	=?utf-8?q?scoring_in_modsecurity=5Fcrs=5F41=5Fsql=5Finjection=5Fat?=
+	=?utf-8?q?tacks=2Econf?=
+Message-ID: <loom.20120105T152215-752@post.gmane.org>
+
+In working on an implementation of ModSecurity 2.6.2 using rule set 2.2.3, I
+noticed that the scores assigned in the PHPIDS - Converted SQLI Filters section
+of  modsecurity_crs_41_sql_injection_attacks.conf are inconsistent with the rest
+of the file.  That particular section uses hard coded values, eg. 7, where the
+rest of the file uses the anomaly scoring values, eg. tx.critical_anomaly_score.
+ In order to properly implement Anomaly Scoring, it seems these converted rules
+should use anomaly scoring as well and follow the same severity levels and
+values.  Is there a reason this is not the case or should this particular group
+of rules be updated?
+
+
+From joakim at astrocalc.com  Sat Jan  7 14:14:42 2012
+From: joakim at astrocalc.com (Joakim Schramm)
+Date: Sat, 07 Jan 2012 15:14:42 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Potential false positive?
+Message-ID: <4F085352.3090801@astrocalc.com>
+
+Hi List,
+
+my first post here so hope I get it right.
+
+Setting up and testing a site I run in to what I think is a false 
+positive block, at least it doesn't make sense to me. The hit or hits I 
+may say as 3 rules seem to be triggered and a 4th as a result there of, 
+comes from an url item in a css file pointing to a image file. How that 
+can be judged as an critical web attack and sql injection attempt is 
+over my head, although I understand there probably exists a logical 
+explaination... and can it possibly be that these rules should exclude 
+common image files?
+
+Anyway, here is the related log lines and I hope it's understandable as 
+there is no way to format it here. I have disguised ip and host names.
+
+[Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity: 
+Warning. Pattern match 
+"(?i:(?:\\\\d(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+\\\\d)|(?:^admin\\\\s*(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)|(\\\\/\\\\*)+(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)+\\\\s?(?:--|#|\\\\/\\\\*|{)?)|(?:(\\"|'| 
+..." at REQUEST_FILENAME. [file 
+"/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "533"] [id "981244"] [msg "Detects basic SQL authentication bypass 
+attempts 1/3"] [data "div"] [severity "CRITICAL"] [tag 
+"WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"] 
+[hostname "shop.domain.com"] [uri 
+"/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id 
+"TwhAtsCoAWgAADYlFsAAAAAF"]
+[Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity: 
+Warning. Pattern match 
+"(?i:(?:@.+=\\\\s*\\\\(\\\\s*select)|(?:\\\\d+\\\\s*x?or|div|like|between|and\\\\s*\\\\d+\\\\s*[\\\\-+])|(?:\\\\/\\\\w+;?\\\\s+(?:having|and|x?or|div|like|between|and|select)\\\\W)|(?:\\\\d\\\\s+group\\\\s+by.+\\\\()|(?:(?:;|#|--)\\\\s*(?:drop|alter))|(?:(?:;|#|--)\\\\s*(?:update|insert)\\\\s 
+..." at REQUEST_FILENAME. [file 
+"/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "539"] [id "981248"] [msg "Detects chained SQL injection attempts 
+1/2"] [data "div"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag 
+"WEB_ATTACK/ID"] [hostname "shop.domain.com"] [uri 
+"/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id 
+"TwhAtsCoAWgAADYlFsAAAAAF"]
+[Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity: 
+Warning. Pattern match 
+"(?i:(?:(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s*\\\\*.+(?:x?or|div|like|between|and|id)\\\\W*(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\d)|(?:\\\\^(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98))|(?:^[\\\\w\\\\s(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)-]+( 
+..." at REQUEST_FILENAME. [file 
+"/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"] 
+[line "573"] [id "981243"] [msg "Detects classic SQL injection probings 
+2/2"] [data "div"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag 
+"WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"] [hostname "shop.domain.com"] 
+[uri "/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id 
+"TwhAtsCoAWgAADYlFsAAAAAF"]
+[Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity: 
+Warning. Operator GE matched 5 at TX:inbound_anomaly_score. [file 
+"/etc/modsecurity/base_rules/modsecurity_crs_60_correlation.conf"] [line 
+"37"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total Inbound 
+Score: 19, SQLi=, XSS=): 981243-Detects classic SQL injection probings 
+2/2"] [hostname "shop.domain.com"] [uri 
+"/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id 
+"TwhAtsCoAWgAADYlFsAAAAAF"]
+
+The css line that triggers looks like this:
+.dashboard .box .box-title { background:url(../images/bkg_divider1.gif) 
+0 100% repeat-x; padding:0 0 2px; margin:0 0 8px; text-align:right; }
+
+Nothing scary really but how can this false positive be avoided? Is it 
+best to improve the regexp or can well known image files be filtered out 
+any other way?
+
+TIA,
+
+Joakim
+
+From RBarnett at trustwave.com  Sat Jan  7 15:58:07 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Sat, 7 Jan 2012 09:58:07 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Potential false positive?
+In-Reply-To: <4F085352.3090801@astrocalc.com>
+References: <4F085352.3090801@astrocalc.com>
+Message-ID: <89CE2704-4E17-4681-AB8E-0AD55EDE0552@trustwave.com>
+
+Joakim,
+Thanks for posting to the list.  You can also open a jira ticket for the CRS here - https://www.modsecurity.org/tracker/
+
+Looks like we will want to review those SQL Injection rules to tune them a bit better.  We added a bunch of rules as a result of the SQLi Challenge results - http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html
+
+While these new rules do help to reduce false negatives for SQLi, there seem to be a fair amount of false positives.
+
+We can probably look to update the regex as this is triggering on "div". The quick fix for you would be to use SecRuleUpdateTargetById to remove REQUEST_FILENAME from the list - http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+
+Ryan
+
+On Jan 7, 2012, at 9:26 AM, "Joakim Schramm" <joakim at astrocalc.com> wrote:
+
+> Hi List,
+>
+> my first post here so hope I get it right.
+>
+> Setting up and testing a site I run in to what I think is a false
+> positive block, at least it doesn't make sense to me. The hit or hits I
+> may say as 3 rules seem to be triggered and a 4th as a result there of,
+> comes from an url item in a css file pointing to a image file. How that
+> can be judged as an critical web attack and sql injection attempt is
+> over my head, although I understand there probably exists a logical
+> explaination... and can it possibly be that these rules should exclude
+> common image files?
+>
+> Anyway, here is the related log lines and I hope it's understandable as
+> there is no way to format it here. I have disguised ip and host names.
+>
+> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+> Warning. Pattern match
+> "(?i:(?:\\\\d(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s+\\\\d)|(?:^admin\\\\s*(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)|(\\\\/\\\\*)+(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)+\\\\s?(?:--|#|\\\\/\\\\*|{)?)|(?:(\\"|'|
+> ..." at REQUEST_FILENAME. [file
+> "/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+> [line "533"] [id "981244"] [msg "Detects basic SQL authentication bypass
+> attempts 1/3"] [data "div"] [severity "CRITICAL"] [tag
+> "WEB_ATTACK/SQLI"] [tag "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"]
+> [hostname "shop.domain.com"] [uri
+> "/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id
+> "TwhAtsCoAWgAADYlFsAAAAAF"]
+> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+> Warning. Pattern match
+> "(?i:(?:@.+=\\\\s*\\\\(\\\\s*select)|(?:\\\\d+\\\\s*x?or|div|like|between|and\\\\s*\\\\d+\\\\s*[\\\\-+])|(?:\\\\/\\\\w+;?\\\\s+(?:having|and|x?or|div|like|between|and|select)\\\\W)|(?:\\\\d\\\\s+group\\\\s+by.+\\\\()|(?:(?:;|#|--)\\\\s*(?:drop|alter))|(?:(?:;|#|--)\\\\s*(?:update|insert)\\\\s
+> ..." at REQUEST_FILENAME. [file
+> "/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+> [line "539"] [id "981248"] [msg "Detects chained SQL injection attempts
+> 1/2"] [data "div"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+> "WEB_ATTACK/ID"] [hostname "shop.domain.com"] [uri
+> "/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id
+> "TwhAtsCoAWgAADYlFsAAAAAF"]
+> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+> Warning. Pattern match
+> "(?i:(?:(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\s*\\\\*.+(?:x?or|div|like|between|and|id)\\\\W*(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)\\\\d)|(?:\\\\^(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98))|(?:^[\\\\w\\\\s(\\"|'|`|\\xc2\\xb4|\\xe2\\x80\\x99|\\xe2\\x80\\x98)-]+(
+> ..." at REQUEST_FILENAME. [file
+> "/etc/modsecurity/base_rules/modsecurity_crs_41_sql_injection_attacks.conf"]
+> [line "573"] [id "981243"] [msg "Detects classic SQL injection probings
+> 2/2"] [data "div"] [severity "CRITICAL"] [tag "WEB_ATTACK/SQLI"] [tag
+> "WEB_ATTACK/ID"] [tag "WEB_ATTACK/LFI"] [hostname "shop.domain.com"]
+> [uri "/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id
+> "TwhAtsCoAWgAADYlFsAAAAAF"]
+> [Sat Jan 07 12:55:18 2012] [error] [client 213.xxx.xxx.xxx] ModSecurity:
+> Warning. Operator GE matched 5 at TX:inbound_anomaly_score. [file
+> "/etc/modsecurity/base_rules/modsecurity_crs_60_correlation.conf"] [line
+> "37"] [id "981204"] [msg "Inbound Anomaly Score Exceeded (Total Inbound
+> Score: 19, SQLi=, XSS=): 981243-Detects classic SQL injection probings
+> 2/2"] [hostname "shop.domain.com"] [uri
+> "/skin/frontend/domain/default/images/bkg_divider1.gif"] [unique_id
+> "TwhAtsCoAWgAADYlFsAAAAAF"]
+>
+> The css line that triggers looks like this:
+> .dashboard .box .box-title { background:url(../images/bkg_divider1.gif)
+> 0 100% repeat-x; padding:0 0 2px; margin:0 0 8px; text-align:right; }
+>
+> Nothing scary really but how can this false positive be avoided? Is it
+> best to improve the regexp or can well known image files be filtered out
+> any other way?
+>
+> TIA,
+>
+> Joakim
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From szotsaki at gmail.com  Sat Jan  7 18:40:19 2012
+From: szotsaki at gmail.com (=?utf-8?B?U3rFkXRzIMOBa29z?=)
+Date: Sat, 07 Jan 2012 19:40:19 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Filter out some cookies from the
+	SQL injection inspection
+Message-ID: <11054570.JooDCYRc8r@linux-suse>
+
+Dear List Members,
+
+There are some cookies which contain random values (as an id) and those 
+could be interpreted an SQL injection attack as of ModSec.
+
+I don't want the specific rules (981319, 981243 and 981244) to be disabled 
+just because of the cookies.
+These cookies are:
+- w3tc_referrer: a WordPress caching system (W3TC) cookie
+- utmctr: Google Analytics cookie
+In all of them there's a referrer URL from Google ending with the 
+following:
+[?] &ei=gVIHT57CLYzhswbdtOnbAw&usg=AFQjCNHyN4OXIHstXXorGoJgNR5fV1Ik3A
+
+The problems:
+981319: [data "Xor"]
+981243: [data "Div"] in an other URL from the word "Divine" (isn't it a bit 
+too strict?)
+981244: [data "DiV"]
+
+I tried to update the rule with the following:
+SecRuleUpdateTargetById 981319 "!REQUEST_COOKIES_NAMES:w3tc_referrer"
+but no use. 
+
+How can I disable the SQL injection checking for these cookie names?
+
+Sincerely,
+?kos Sz?ts
+
+From michael.haas10 at gmail.com  Sun Jan  8 01:50:10 2012
+From: michael.haas10 at gmail.com (Michael Haas)
+Date: Sun, 8 Jan 2012 02:50:10 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Filter out some cookies from
+ the SQL injection inspection
+In-Reply-To: <11054570.JooDCYRc8r@linux-suse>
+References: <11054570.JooDCYRc8r@linux-suse>
+Message-ID: <CAFW5hxCQbwZPZYVc6zaeAhZVpCuRwPT9TTDEDyMrgeKQvPrwew@mail.gmail.com>
+
+Hi,
+you need to use !REQUEST_COOKIES not !REQUEST_COOKIES_NAMES.
+
+Best Regards
+Michael
+
+2012/1/7 Sz?ts ?kos <szotsaki at gmail.com>:
+> Dear List Members,
+>
+> There are some cookies which contain random values (as an id) and those
+> could be interpreted an SQL injection attack as of ModSec.
+>
+> I don't want the specific rules (981319, 981243 and 981244) to be disabled
+> just because of the cookies.
+> These cookies are:
+> - w3tc_referrer: a WordPress caching system (W3TC) cookie
+> - utmctr: Google Analytics cookie
+> In all of them there's a referrer URL from Google ending with the
+> following:
+> [?] &ei=gVIHT57CLYzhswbdtOnbAw&usg=AFQjCNHyN4OXIHstXXorGoJgNR5fV1Ik3A
+>
+> The problems:
+> 981319: [data "Xor"]
+> 981243: [data "Div"] in an other URL from the word "Divine" (isn't it a bit
+> too strict?)
+> 981244: [data "DiV"]
+>
+> I tried to update the rule with the following:
+> SecRuleUpdateTargetById 981319 "!REQUEST_COOKIES_NAMES:w3tc_referrer"
+> but no use.
+>
+> How can I disable the SQL injection checking for these cookie names?
+>
+> Sincerely,
+> ?kos Sz?ts
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From joakim at astrocalc.com  Sun Jan  8 13:27:32 2012
+From: joakim at astrocalc.com (Joakim Schramm)
+Date: Sun, 08 Jan 2012 14:27:32 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Potential false positive?
+In-Reply-To: <89CE2704-4E17-4681-AB8E-0AD55EDE0552@trustwave.com>
+References: <4F085352.3090801@astrocalc.com>
+	<89CE2704-4E17-4681-AB8E-0AD55EDE0552@trustwave.com>
+Message-ID: <4F0999C4.7040100@astrocalc.com>
+
+On 07/01/2012 16:58, Ryan Barnett wrote:
+> Joakim,
+> Thanks for posting to the list.  You can also open a jira ticket for the CRS here - https://www.modsecurity.org/tracker/
+>
+
+Ryan,
+Thanks for replying so fast, I will do a report on this once I have all 
+my stuff up and running satisfactory. And ops unintentionally repled 
+back directly to you, instead of to list.
+
+> Looks like we will want to review those SQL Injection rules to tune them a bit better.  We added a bunch of rules as a result of the SQLi Challenge results - http://blog.spiderlabs.com/2011/07/modsecurity-sql-injection-challenge-lessons-learned.html
+>
+> While these new rules do help to reduce false negatives for SQLi, there seem to be a fair amount of false positives.
+>
+> We can probably look to update the regex as this is triggering on "div". The quick fix for you would be to use SecRuleUpdateTargetById to remove REQUEST_FILENAME from the list - http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html
+>
+> Ryan
+>
+
+I was able to remove the false positives by putting these lines in a 
+file loaded last
+
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME
+
+But as this opens requests for any filename to be vulnerable I also 
+tried with
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME:div
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME:div
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME:div
+
+as the example shows for ARGS as div was what triggered, and
+
+SecRuleUpdateTargetById 981244 !REQUEST_FILENAME:.gif$
+SecRuleUpdateTargetById 981248 !REQUEST_FILENAME:.gif$
+SecRuleUpdateTargetById 981243 !REQUEST_FILENAME:.gif$
+
+to exclude files ending with .gif, but I probably got these calls wrong 
+as regexp isn't my strong side if I say so. Not even sure if I could use 
+a regexp there to exclude files with certain extensions? Personally I 
+would like to exclude .gif, .png and .jpg as they basically are the only 
+ones used for web sites and I can't see any way how requesting an image 
+file could cause any harm?
+
+Regards,
+
+Joakim
+
+From dbsinclair at multiservice.com  Mon Jan  9 17:26:10 2012
+From: dbsinclair at multiservice.com (David Sinclair)
+Date: Mon, 9 Jan 2012 17:26:10 +0000 (UTC)
+Subject: [Owasp-modsecurity-core-rule-set]
+	=?utf-8?q?Inconsistent_Anomaly_?=
+	=?utf-8?q?scoring_in_modsecurity=5Fcrs=5F41=5Fsql=5Finjection=5Fat?=
+	=?utf-8?q?tacks=2Econf?=
+References: <loom.20120105T152215-752@post.gmane.org>
+Message-ID: <loom.20120109T180656-172@post.gmane.org>
+
+David Sinclair <dbsinclair at ...> writes:
+
+
+
+I went back to the modsecurity dashboard and did some research on the PHPIDS
+rules and discovered this is not a new issue.  I do think it needs to be
+reconsidered.  All of the rules in the section are severity 2, Critical and
+anomaly score 5, but have score values ranging from 3 to 7.  Having the values
+hard coded and on a different severity scale makes using anomaly scoring a bit
+difficult.  Am considering raising the tx.critical_anomaly_score and etc to
+higher values to be on a similar scale and similarly increasing the inbound
+anomaly score threshold.
+
+
+From RBarnett at trustwave.com  Mon Jan  9 18:14:42 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Mon, 9 Jan 2012 12:14:42 -0600
+Subject: [Owasp-modsecurity-core-rule-set] Inconsistent Anomaly scoring
+ in modsecurity_crs_41_sql_injection_attacks.conf
+In-Reply-To: <loom.20120109T180656-172@post.gmane.org>
+Message-ID: <CB30981D.40662%rbarnett@trustwave.com>
+
+
+On 1/9/12 12:26 PM, "David Sinclair" <dbsinclair at multiservice.com> wrote:
+
+>David Sinclair <dbsinclair at ...> writes:
+>
+>
+>
+>I went back to the modsecurity dashboard and did some research on the
+>PHPIDS
+>rules and discovered this is not a new issue.  I do think it needs to be
+>reconsidered.  All of the rules in the section are severity 2, Critical
+>and
+>anomaly score 5, but have score values ranging from 3 to 7.  Having the
+>values
+>hard coded and on a different severity scale makes using anomaly scoring
+>a bit
+>difficult.  Am considering raising the tx.critical_anomaly_score and etc
+>to
+>higher values to be on a similar scale and similarly increasing the
+>inbound
+>anomaly score threshold.
+>
+
+
+Understood.  We have gone back and forth on whether to use our macro
+expansion or the phpids point value.  I might talk with Mario (the phpids
+lead dev) to discuss the concepts of rule accuracy, maturity and severity.
+
+
+-Ryan
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From support at jsmcgraw.com  Sat Jan 14 00:10:10 2012
+From: support at jsmcgraw.com (Jonathan McGraw)
+Date: Fri, 13 Jan 2012 19:10:10 -0500
+Subject: [Owasp-modsecurity-core-rule-set]
+	Owasp-modsecurity-core-rule-set Digest, Vol 34, Issue 4
+In-Reply-To: <mailman.19.1326110403.16429.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.19.1326110403.16429.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <CA+bHUbLCORAu2AwJU5Dtbq7G3E2a4Bg-=+Tw8k2+P5y_vSAUgQ@mail.gmail.com>
+
+>to exclude files ending with .gif, but I probably got these calls wrong
+>as regexp isn't my strong side if I say so. Not even sure if I could use
+>a regexp there to exclude files with certain extensions? Personally I
+>would like to exclude .gif, .png and .jpg as they basically are the only
+>ones used for web sites and I can't see any way how requesting an image
+>file could cause any harm?
+>
+>Regards,
+>
+>Joakim
+
+Yeah, I could use some direction on this too. I tried using FilesMatch
+directive in my custom rules but no dice. Anyone have this working and
+able to share the syntax?
+
+From jamuse at gmail.com  Sat Jan 14 21:34:10 2012
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Sat, 14 Jan 2012 23:34:10 +0200
+Subject: [Owasp-modsecurity-core-rule-set]
+ Owasp-modsecurity-core-rule-set Digest, Vol 34, Issue 4
+In-Reply-To: <CA+bHUbLCORAu2AwJU5Dtbq7G3E2a4Bg-=+Tw8k2+P5y_vSAUgQ@mail.gmail.com>
+References: <mailman.19.1326110403.16429.owasp-modsecurity-core-rule-set@lists.owasp.org>
+	<CA+bHUbLCORAu2AwJU5Dtbq7G3E2a4Bg-=+Tw8k2+P5y_vSAUgQ@mail.gmail.com>
+Message-ID: <CANnPki=0QjXFgNTdZEx5MuxizcGVjLcK5JD6ZNuB=Jd07nzRJg@mail.gmail.com>
+
+On Sat, Jan 14, 2012 at 2:10 AM, Jonathan McGraw <support at jsmcgraw.com> wrote:
+>>to exclude files ending with .gif, but I probably got these calls wrong
+>>as regexp isn't my strong side if I say so. Not even sure if I could use
+>>a regexp there to exclude files with certain extensions? Personally I
+>>would like to exclude .gif, .png and .jpg as they basically are the only
+>>ones used for web sites and I can't see any way how requesting an image
+>>file could cause any harm?
+
+Hi Jonathan and Joakim,
+
+There are a few ways to do this. You can use the Apache LocationMatch
+or FileMatch directive like so:
+
+<FilesMatch "\.(gif|jpe?g|png)$">
+  SecRuleRemoveById 123456
+</FilesMatch>
+
+The ModSecurity colon operator also allows you to use regular
+expressions to specify the name to use. For example you can search all
+arguments that start with the string 'foo' via ARGS:/^foo/. Having
+said that, not all collections support parameters, REQUEST_FILENAME is
+one example where parameters are not supported. While that makes sense
+when using the SecRule directive, it appears to be a useful (missing)
+feature when used with SecRuleUpdateTargetById.
+
+--
+ - Josh
+
+From szotsaki at gmail.com  Wed Jan 18 09:54:58 2012
+From: szotsaki at gmail.com (=?utf-8?B?U3rFkXRzIMOBa29z?=)
+Date: Wed, 18 Jan 2012 10:54:58 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Not to log certain rules
+Message-ID: <2253586.uDeQeGTEKF@linux-suse>
+
+Dear list members,
+
+There are a lot of catches of the two rules: 960015 (Missing Accept header) 
+and 960020 (Pragma header trouble).
+
+I don't want to turn them off but also I don't want to see them in the log 
+file.
+
+I tried to update their actions with SecRuleUpdateActionById and SecAction, 
+but either it didn't work or the result was an instant 403.
+
+Could you please help me how to turn off the logging of these two (chained) 
+rules?
+
+I use ModSecurity 2.6.1-rc1 with core ruleset/2.2.2.
+
+Thank you very much,
+
+?kos Sz?ts
+
+From RBarnett at trustwave.com  Thu Jan 19 16:04:50 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Thu, 19 Jan 2012 10:04:50 -0600
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity Virtual Patching
+ Workshop/Training at OWASP AppSecDC 2012
+Message-ID: <CB3DA952.412D2%rbarnett@trustwave.com>
+
+OWASP has just announced that my 2-day ModSecurity Virtual Patching Workshop training class as part of AppSecDC 2012 is online - https://www.owasp.org/index.php/OWASP_AppSec_DC_2012/Training/Virtual_Patching_Workshop
+
+In this training, we will walk through the theory of Virtual Patching ? when, where and how to best use it.  We will be working through the "Virtual Patching: Best Practices" document and even be updating it as we go with feedback.  We will then have hands-on labs where our goal will be to virtually patch as many of the OWASP WebGoat vulnerabilities as possible.  We will also cover topics such as automatic virtual patch creation from web app scanner output (with a lab).
+
+Let me know if you have any questions or comments.  I hope you will join me for this in-depth workshop!
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+www.trustwave.com
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From tzury.by at reguluslabs.com  Mon Jan 23 09:06:03 2012
+From: tzury.by at reguluslabs.com (Tzury Bar Yochay)
+Date: Mon, 23 Jan 2012 11:06:03 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Rule# 973302 - suggestion in
+	regards to the regex part (avoid false positive)
+Message-ID: <CAN+tBVMBAA0iSY=pwQSgcQeJmFFX11-_c-0vJ3GTKjbksVb17Q@mail.gmail.com>
+
+I think this rule should match only in cases where the matching
+pattern?is a part of a value but not the *entire* value.
+e.g.
+".+application/x-shockwave-flash|image/svg\+xml|text/(css|html|ecmascript|javascript|vbscript|x-(javascript|scriptlet|vbscript)).+"
+instead of
+"application/x-shockwave-flash|image/svg\+xml|text/(css|html|ecmascript|javascript|vbscript|x-(javascript|scriptlet|vbscript))"
+
+
+if one wants to provide a mime type as an arg, the current rule will
+block it, however as in my suggestion it will not.
+in case of an attack, "text/javascript" or any other combination will
+always be a part of a tag, hence. never the entire arg.
+
+
+ARGS_POST:attachment[params][links][2][type] = "text/css"
+
+From tzury.by at reblaze.com  Wed Jan 25 08:59:41 2012
+From: tzury.by at reblaze.com (Tzury Bar Yochay)
+Date: Wed, 25 Jan 2012 10:59:41 +0200
+Subject: [Owasp-modsecurity-core-rule-set] syntax clean-up for rules 958291,
+	958230 and 958231
+Message-ID: <CAN+tBVMoZUAv5Qh3s8_YTU1zcG071B6C28aGdiDL5+mGuLpzmA@mail.gmail.com>
+
+referring?to rev - crs-2.2.3
+
+To keep things clean and consistent, the following 3 rules, should be:
+
+    ... {matched_var}',severity:'X' ...
+
+instead of:
+
+    ... {matched_var}'severity:'X' ...
+
+There is a missing comma before severity starts.
+
+
+SecRule REQUEST_HEADERS:Range "@beginsWith bytes=0-"
+"phase:2,rev:'2.2.3',t:none,block,msg:'Range: field exists and begins
+with 0.',logdata:'%{matched_var}'severity:'5',id:'958291',tag:'RULE_MATURITY/5',tag:'RULE_ACCURACY/7',tag:'https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',tag:'http://www.bad-behavior.ioerror.us/documentation/how-it-works/',setvar:'tx.msg=%{rule.msg}',setvar:tx.id=%{rule.id},setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}"
+
+SecRule REQUEST_HEADERS:Range|REQUEST_HEADERS:Request-Range
+"(\d+)\-(\d+)\,"
+"chain,capture,phase:2,rev:'2.2.3',t:none,block,msg:'Range: Invalid
+Last Byte Value.',logdata:'%{matched_var}'severity:'5',id:'958230',tag:'RULE_MATURITY/5',tag:'RULE_ACCURACY/7',tag:'https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',tag:'http://www.bad-behavior.ioerror.us/documentation/how-it-works/',setvar:'tx.msg=%{rule.msg}',setvar:tx.id=%{rule.id},setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}"
+? ? ? ? SecRule TX:2 "!@ge %{tx.1}"
+
+SecRule REQUEST_HEADERS:Range|REQUEST_HEADERS:Request-Range
+"^bytes=(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,\s?(\d+)?\-(\d+)?\,"
+"phase:2,capture,rev:'2.2.1',t:none,block,msg:'Range: Too many
+fields',logdata:'%{matched_var}'severity:'5',id:'958231',tag:'RULE_MATURITY/5',tag:'RULE_ACCURACY/7',tag:'https://www.owasp.org/index.php/ModSecurity_CRS_RuleID-%{tx.id}',tag:'PROTOCOL_VIOLATION/INVALID_HREQ',tag:'http://www.bad-behavior.ioerror.us/documentation/how-it-works/',setvar:'tx.msg=%{rule.msg}',setvar:tx.id=%{rule.id},setvar:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.protocol_violation_score=+%{tx.notice_anomaly_score},setvar:tx.%{rule.id}-PROTOCOL_VIOLATION/INVALID_HREQ-%{matched_var_name}=%{matched_var}"
+
+From RBarnett at trustwave.com  Fri Jan 27 19:59:54 2012
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 27 Jan 2012 13:59:54 -0600
+Subject: [Owasp-modsecurity-core-rule-set] HOIC DDoS Analysis and Detection
+Message-ID: <CB486C6A.41C17%rbarnett@trustwave.com>
+
+There is a new DDoS tool in the wild that Anonymous is using called HOIC.  We did some analysis and provided some ModSecurity rules -
+
+http://blog.spiderlabs.com/2012/01/hoic-ddos-analysis-and-detection.html
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+www.trustwave.com
+
+
+________________________________
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is STRICTLY PROHIBITED. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+
+From szotsaki at gmail.com  Tue Jan 31 12:34:42 2012
+From: szotsaki at gmail.com (=?utf-8?B?U3rFkXRzIMOBa29z?=)
+Date: Tue, 31 Jan 2012 13:34:42 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Not to log certain rules
+In-Reply-To: <2253586.uDeQeGTEKF@linux-suse>
+References: <2253586.uDeQeGTEKF@linux-suse>
+Message-ID: <2711980.LsjYV1K3u7@linux-suse>
+
+Dear List Members,
+
+This is a polite ping. Is there a way to disable logging of a certain rule?
+
+Thank you very much,
+?kos Sz?ts
+
+2012. janu?r 18. 10:54:58 d?tummal Sz?ts ?kos ezt ?rta:
+> Dear list members,
+> 
+> There are a lot of catches of the two rules: 960015 (Missing Accept
+> header) and 960020 (Pragma header trouble).
+> 
+> I don't want to turn them off but also I don't want to see them in the
+> log file.
+> 
+> I tried to update their actions with SecRuleUpdateActionById and
+> SecAction, but either it didn't work or the result was an instant 403.
+> 
+> Could you please help me how to turn off the logging of these two
+> (chained) rules?
+> 
+> I use ModSecurity 2.6.1-rc1 with core ruleset/2.2.2.
+> 
+> Thank you very much,
+> 
+> ?kos Sz?ts
+
+From jamuse at gmail.com  Tue Jan 31 13:00:17 2012
+From: jamuse at gmail.com (Josh Amishav-Zlatin)
+Date: Tue, 31 Jan 2012 15:00:17 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Not to log certain rules
+In-Reply-To: <2711980.LsjYV1K3u7@linux-suse>
+References: <2253586.uDeQeGTEKF@linux-suse> <2711980.LsjYV1K3u7@linux-suse>
+Message-ID: <CANnPki=aYjHPFy1-Pm+NK1nvVw_aVG_UJgxaKWU=2gc=X+jcjw@mail.gmail.com>
+
+On Tue, Jan 31, 2012 at 2:34 PM, Sz?ts ?kos <szotsaki at gmail.com> wrote:
+
+> Dear List Members,
+>
+> This is a polite ping. Is there a way to disable logging of a certain rule?
+>
+>
+Hi  ?kos,
+
+You can use the SecRuleUpdateActionById parameter for that,
+e.g. SecRuleUpdateActionById 12345 nolog
+
+--
+ - Josh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120131/0241c2fb/attachment.html>
+

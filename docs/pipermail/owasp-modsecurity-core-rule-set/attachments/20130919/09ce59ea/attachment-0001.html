@@ -1,0 +1,167 @@
+<tt>
+&lt;div&nbsp;dir=&quot;ltr&quot;&gt;Hello,&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;I&nbsp;researched&nbsp;this&nbsp;more&nbsp;and&nbsp;never&nbsp;found&nbsp;any&nbsp;small&nbsp;modification&nbsp;to&nbsp;modsecurity_crs_11_dos_protection.conf&nbsp;that&nbsp;would&nbsp;fix&nbsp;this&nbsp;problem,&nbsp;so&nbsp;I&nbsp;decided&nbsp;to&nbsp;rewrite&nbsp;the&nbsp;rule.&lt;/div&gt;&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;&lt;div&gt;I&nbsp;pasted&nbsp;in&nbsp;the&nbsp;rule&nbsp;I&#39;m&nbsp;using&nbsp;at&nbsp;the&nbsp;end&nbsp;of&nbsp;this&nbsp;email.&nbsp;I&#39;m&nbsp;far&nbsp;from&nbsp;a&nbsp;mod_security&nbsp;expert,&nbsp;but&nbsp;I&#39;ve&nbsp;been&nbsp;running&nbsp;this&nbsp;rule&nbsp;for&nbsp;a&nbsp;few&nbsp;months&nbsp;now&nbsp;and&nbsp;it&nbsp;seems&nbsp;to&nbsp;be&nbsp;working&nbsp;well&nbsp;in&nbsp;blocking&nbsp;most&nbsp;illegitimate&nbsp;clients&nbsp;while&nbsp;letting&nbsp;through&nbsp;virtually&nbsp;all&nbsp;legitimate&nbsp;ones.&nbsp;I&nbsp;haven&#39;t&nbsp;actually&nbsp;been&nbsp;attacked,&nbsp;as&nbsp;far&nbsp;as&nbsp;I&nbsp;know&nbsp;of,&nbsp;by&nbsp;anyone&nbsp;intent&nbsp;on&nbsp;actually&nbsp;bringing&nbsp;down&nbsp;the&nbsp;site,&nbsp;so&nbsp;I&#39;m&nbsp;not&nbsp;sure&nbsp;that&nbsp;it&nbsp;would&nbsp;work&nbsp;under&nbsp;extreme&nbsp;pressure&nbsp;or&nbsp;not.&nbsp;I&#39;d&nbsp;be&nbsp;very&nbsp;interested&nbsp;in&nbsp;hearing&nbsp;if&nbsp;other&nbsp;people&nbsp;tried&nbsp;it&nbsp;out,&nbsp;or&nbsp;made&nbsp;modifications&nbsp;to&nbsp;it,&nbsp;as&nbsp;I&nbsp;know&nbsp;it&nbsp;can&nbsp;be&nbsp;improved.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The&nbsp;rule&nbsp;is&nbsp;based&nbsp;on&nbsp;the modsecurity_crs_11_dos_protection.conf&nbsp;rule,&nbsp;along&nbsp;with&nbsp;some&nbsp;examples&nbsp;I&nbsp;read&nbsp;in&nbsp;a&nbsp;book. There&nbsp;are&nbsp;basically&nbsp;two&nbsp;separate&nbsp;parts&nbsp;to&nbsp;the&nbsp;rule,&nbsp;and&nbsp;only&nbsp;one&nbsp;or&nbsp;the&nbsp;other&nbsp;needs&nbsp;to&nbsp;be&nbsp;enabled&nbsp;if&nbsp;desired&nbsp;(but&nbsp;I&nbsp;use&nbsp;both&nbsp;as&nbsp;they&nbsp;work&nbsp;differently).&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;ID&nbsp;2106&nbsp;involves&nbsp;blocking&nbsp;an&nbsp;IP&nbsp;if&nbsp;it&nbsp;requests&nbsp;too&nbsp;quickly,&nbsp;which&nbsp;is&nbsp;similar&nbsp;to&nbsp;the&nbsp;broken&nbsp;DoS&nbsp;rule&nbsp;but&nbsp;does&nbsp;it&nbsp;a&nbsp;different&nbsp;way&nbsp;using&nbsp;the&nbsp;update_rate&nbsp;--&nbsp;this&nbsp;has&nbsp;limitations&nbsp;compared&nbsp;to&nbsp;the&nbsp;theoretical&nbsp;CRS&nbsp;DoS&nbsp;rule,&nbsp;but&nbsp;doesn&#39;t&nbsp;have&nbsp;that&nbsp;bug,&nbsp;so&nbsp;it&nbsp;works&nbsp;much&nbsp;better&nbsp;for&nbsp;me.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Rule&nbsp;2105&nbsp;actually&nbsp;keeps&nbsp;track&nbsp;of&nbsp;how&nbsp;much&nbsp;CPU&nbsp;time&nbsp;one&nbsp;IP&nbsp;is&nbsp;using&nbsp;and&nbsp;can&nbsp;block&nbsp;based&nbsp;on&nbsp;that.&nbsp;So&nbsp;that&#39;s&nbsp;more&nbsp;useful&nbsp;if&nbsp;you&nbsp;have&nbsp;some&nbsp;scripts&nbsp;that&nbsp;are&nbsp;&quot;heavier&quot;&nbsp;than&nbsp;other&nbsp;pages.&nbsp;I&nbsp;have&nbsp;notes&nbsp;in&nbsp;the&nbsp;code&nbsp;but&nbsp;the&nbsp;main&nbsp;weird&nbsp;thing&nbsp;about&nbsp;that&nbsp;rule&nbsp;is&nbsp;that&nbsp;mod_security&nbsp;2.6.x&nbsp;(which&nbsp;is&nbsp;what&nbsp;I&nbsp;have)&nbsp;uses&nbsp;duration&nbsp;in&nbsp;milliseconds&nbsp;and&nbsp;they&nbsp;changed&nbsp;it&nbsp;in&nbsp;2.7.x&nbsp;to&nbsp;use&nbsp;microseconds,&nbsp;so&nbsp;if&nbsp;you&nbsp;have&nbsp;2.7.x&nbsp;you&nbsp;need&nbsp;to&nbsp;multiply&nbsp;by&nbsp;1000&nbsp;in&nbsp;order&nbsp;to&nbsp;get&nbsp;the&nbsp;same&nbsp;result.&nbsp;If&nbsp;using&nbsp;this&nbsp;rule&nbsp;it&nbsp;is&nbsp;very&nbsp;important&nbsp;to&nbsp;adjust&nbsp;that&nbsp;based&nbsp;on&nbsp;the&nbsp;version&nbsp;of&nbsp;mod_security&nbsp;you&nbsp;are&nbsp;using,&nbsp;or&nbsp;else&nbsp;it&#39;s&nbsp;not&nbsp;going&nbsp;to&nbsp;work.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Rule&nbsp;2104&nbsp;adds&nbsp;a&nbsp;delay&nbsp;to&nbsp;fast&nbsp;requests,&nbsp;if&nbsp;they&nbsp;haven&#39;t&nbsp;met&nbsp;the&nbsp;block&nbsp;threshold.&nbsp;I&nbsp;added&nbsp;this&nbsp;after&nbsp;I&nbsp;found&nbsp;that&nbsp;some&nbsp;legitimate&nbsp;bots&nbsp;(like&nbsp;Bing)&nbsp;sometimes&nbsp;make&nbsp;a&nbsp;ton&nbsp;of&nbsp;requests&nbsp;simultaneously,&nbsp;and&nbsp;I&nbsp;think&nbsp;adding&nbsp;this&nbsp;delay&nbsp;gets&nbsp;them&nbsp;to&nbsp;slow&nbsp;down&nbsp;the&nbsp;requests&nbsp;a&nbsp;little.&nbsp;I&#39;ve&nbsp;found&nbsp;that&nbsp;when&nbsp;using&nbsp;it,&nbsp;I&nbsp;have&nbsp;almost&nbsp;no&nbsp;legitimate&nbsp;clients&nbsp;trigger&nbsp;a&nbsp;block.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;And&nbsp;note&nbsp;that&nbsp;this&nbsp;rule&nbsp;probably&nbsp;doesn&#39;t&nbsp;play&nbsp;well&nbsp;with&nbsp;the&nbsp;CRS&#39;s&nbsp;DoS&nbsp;rule&nbsp;so&nbsp;you&#39;d&nbsp;want&nbsp;to&nbsp;disable&nbsp;that&nbsp;one.&nbsp;If&nbsp;you&nbsp;do&nbsp;play&nbsp;with&nbsp;it&nbsp;and&nbsp;find&nbsp;a&nbsp;problem&nbsp;or&nbsp;make&nbsp;an&nbsp;improvement,&nbsp;please&nbsp;let&nbsp;me&nbsp;know!&nbsp;Thanks,&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Nick&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;------&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;Anti-Automation&nbsp;rule&nbsp;set&nbsp;for&nbsp;detecting&nbsp;Denial&nbsp;of&nbsp;Service&nbsp;Attacks.&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;This&nbsp;ruleset&nbsp;is&nbsp;designed&nbsp;to&nbsp;monitor&nbsp;both&nbsp;how&nbsp;much&nbsp;server&nbsp;time&nbsp;an&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;IP&nbsp;address&nbsp;uses&nbsp;and&nbsp;also&nbsp;how&nbsp;quickly&nbsp;an&nbsp;IP&nbsp;makes&nbsp;requests,&nbsp;and&lt;/div&gt;&lt;div&gt;#&nbsp;can&nbsp;block&nbsp;based&nbsp;on&nbsp;either&nbsp;factor.&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;RULE&nbsp;NOTE&nbsp;--&nbsp;IP.duration&nbsp;is&nbsp;in&nbsp;milliseconds&nbsp;in&nbsp;mod_security&nbsp;2.6.x.&lt;/div&gt;&lt;div&gt;#&nbsp;In&nbsp;mod_security&nbsp;2.7.x&nbsp;this&nbsp;will&nbsp;change&nbsp;to&nbsp;microseconds,&nbsp;which&nbsp;requires&nbsp;that&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;all&nbsp;these&nbsp;constant&nbsp;factors&nbsp;be&nbsp;multiplied&nbsp;by&nbsp;1000&nbsp;to&nbsp;stay&nbsp;the&nbsp;same&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;Settings&nbsp;of&nbsp;30000&nbsp;ms&nbsp;load&nbsp;until&nbsp;block&nbsp;and&nbsp;250/1&nbsp;deprecate&nbsp;factor&nbsp;effectively&lt;/div&gt;&lt;div&gt;#&nbsp;mean&nbsp;that&nbsp;with&nbsp;a&nbsp;4&nbsp;core&nbsp;machine,&nbsp;a&nbsp;client&nbsp;can&nbsp;burst&nbsp;up&nbsp;to&nbsp;using&nbsp;one&nbsp;whole&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;core&nbsp;for&nbsp;30s,&nbsp;or&nbsp;4&nbsp;cores&nbsp;for&nbsp;7.5s,&nbsp;before&nbsp;being&nbsp;blocked.&nbsp;If&nbsp;it&nbsp;doesn&#39;t&nbsp;use&lt;/div&gt;&lt;div&gt;#&nbsp;a&nbsp;full&nbsp;burst&nbsp;but&nbsp;still&nbsp;is&nbsp;requesting&nbsp;quickly,&nbsp;the&nbsp;250/1&nbsp;means&nbsp;that&nbsp;for&nbsp;every&lt;/div&gt;&lt;div&gt;#&nbsp;1&nbsp;second&nbsp;that&nbsp;elapses&nbsp;we&#39;ll&nbsp;subtract&nbsp;250&nbsp;ms&nbsp;of&nbsp;load,&nbsp;so&nbsp;over&nbsp;time&nbsp;a&nbsp;client&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;can&nbsp;use&nbsp;about&nbsp;1&nbsp;full&nbsp;core&nbsp;without&nbsp;triggering&nbsp;the&nbsp;ban.&nbsp;This&nbsp;may&nbsp;be&nbsp;too&nbsp;much&lt;/div&gt;&lt;div&gt;#&nbsp;but&nbsp;no&nbsp;legitimate&nbsp;client&nbsp;should&nbsp;use&nbsp;that&nbsp;much&nbsp;so&nbsp;it&nbsp;should&nbsp;be&nbsp;safe.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;Enforce&nbsp;an&nbsp;existing&nbsp;IP&nbsp;address&nbsp;block&nbsp;and&nbsp;log&nbsp;only&nbsp;1-time/minute&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;We&nbsp;don&#39;t&nbsp;want&nbsp;to&nbsp;get&nbsp;flooded&nbsp;by&nbsp;alerts&nbsp;during&nbsp;an&nbsp;attack&nbsp;or&nbsp;scan&nbsp;so&lt;/div&gt;&lt;div&gt;#&nbsp;we&nbsp;are&nbsp;only&nbsp;triggering&nbsp;an&nbsp;alert&nbsp;once/minute.&nbsp; You&nbsp;can&nbsp;adjust&nbsp;how&nbsp;often&lt;/div&gt;&lt;div&gt;#&nbsp;you&nbsp;want&nbsp;to&nbsp;receive&nbsp;status&nbsp;alerts&nbsp;by&nbsp;changing&nbsp;the&nbsp;expirevar&nbsp;setting&nbsp;below.&lt;/div&gt;<br>
+&lt;div&gt;#&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:DOS_BLOCK&nbsp;&quot;@eq&nbsp;1&quot;&nbsp;&quot;chain,phase:1,id:&#39;2100&#39;,drop,msg:&#39;Denial&nbsp;of&nbsp;Service&nbsp;(DoS)&nbsp;Attack&nbsp;Identified&nbsp;from&nbsp;%{remote_addr}&nbsp;(%{tx.dos_block_counter}&nbsp;hits&nbsp;since&nbsp;last&nbsp;alert)&#39;,setvar:ip.dos_block_counter=+1&quot;&lt;/div&gt;<br>
+&lt;div&gt; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;&amp;IP:DOS_BLOCK_FLAG&nbsp;&quot;@eq&nbsp;0&quot;&nbsp;&quot;setvar:ip.dos_block_flag=1,expirevar:ip.dos_block_flag=60,setvar:tx.dos_block_counter=%{ip.dos_block_counter},setvar:ip.dos_block_counter=0&quot;&lt;/div&gt;&lt;div&gt;<br>
+&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;Block&nbsp;and&nbsp;track&nbsp;#&nbsp;of&nbsp;requests&nbsp;but&nbsp;don&#39;t&nbsp;log&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:DOS_BLOCK&nbsp;&quot;@eq&nbsp;1&quot;&nbsp;&quot;phase:1,id:&#39;2101&#39;,t:none,drop,nolog,setvar:ip.dos_block_counter=+1&quot;&lt;/div&gt;&lt;div&gt;<br>
+&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;#&nbsp;skipAfter&nbsp;Check&lt;/div&gt;&lt;div&gt;#&nbsp;There&nbsp;are&nbsp;different&nbsp;scenarios&nbsp;where&nbsp;we&nbsp;don&#39;t&nbsp;want&nbsp;to&nbsp;do&nbsp;checks&nbsp;-&lt;/div&gt;&lt;div&gt;#&nbsp;1.&nbsp;If&nbsp;the&nbsp;current&nbsp;IP&nbsp;address&nbsp;has&nbsp;already&nbsp;been&nbsp;blocked&nbsp;due&nbsp;to&nbsp;high&nbsp;requests&lt;/div&gt;&lt;div&gt;<br>
+#&nbsp;In&nbsp;this&nbsp;case,&nbsp;we&nbsp;skip&nbsp;doing&nbsp;the&nbsp;request&nbsp;counts.&lt;/div&gt;&lt;div&gt;#&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:DOS_BLOCK&nbsp;&quot;@eq&nbsp;1&quot;&nbsp;&quot;phase:5,id:&#39;2102&#39;,t:none,nolog,pass,skipAfter:END_DOS_PROTECTION_CHECKS&quot;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&nbsp;Keep&nbsp;track&nbsp;of&nbsp;how&nbsp;much&nbsp;web&nbsp;server&nbsp;time&nbsp;is&nbsp;consumed&nbsp;by&nbsp;each&nbsp;IP&nbsp;address&lt;/div&gt;&lt;div&gt;#&nbsp;Decrease&nbsp;the&nbsp;load&nbsp;time&nbsp;by&nbsp;250&nbsp;ms&nbsp;every&nbsp;second&nbsp;that&nbsp;elapses&nbsp;so&nbsp;the&nbsp;load&nbsp;time&nbsp;decreases&nbsp;if&nbsp;the&nbsp;bot&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;lightens&nbsp;up&nbsp;on&nbsp;the&nbsp;requests.&lt;/div&gt;&lt;div&gt;SecRule&nbsp;REQUEST_BASENAME&nbsp;&quot;!\.(jpe?g|png|gif|js|css|ico)$&quot;&nbsp;&quot;phase:5,id:&#39;2103&#39;,t:none,nolog,pass,setvar:IP.load=+%{DURATION},deprecatevar:IP.load=250/1&quot;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;#&nbsp;If&nbsp;a&nbsp;bot&nbsp;is&nbsp;using&nbsp;a&nbsp;lot&nbsp;of&nbsp;time&nbsp;but&nbsp;isn&#39;t&nbsp;actually&nbsp;over&nbsp;the&nbsp;block&nbsp;threshold&nbsp;yet,&nbsp;slow&nbsp;it&nbsp;down.&lt;/div&gt;&lt;div&gt;#&nbsp;This&nbsp;is&nbsp;most&nbsp;useful&nbsp;for&nbsp;&quot;friendly&quot;&nbsp;bots&nbsp;like&nbsp;bingbot&nbsp;that&nbsp;are&nbsp;just&nbsp;being&nbsp;more&nbsp;aggressive&nbsp;than&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;we&#39;d&nbsp;like.&nbsp;If&nbsp;a&nbsp;bot&nbsp;is&nbsp;trying&nbsp;to&nbsp;do&nbsp;a&nbsp;denial-of-service&nbsp;attack,&nbsp;this&nbsp;could&nbsp;potentially&nbsp;be&lt;/div&gt;&lt;div&gt;#&nbsp;bad&nbsp;as&nbsp;this&nbsp;Apache&nbsp;process&nbsp;will&nbsp;just&nbsp;sit&nbsp;idle&nbsp;for&nbsp;the&nbsp;delay&nbsp;period.&nbsp;But&nbsp;I&#39;m&nbsp;not&nbsp;sure&nbsp;that&#39;s&lt;/div&gt;&lt;div&gt;<br>
+#&nbsp;all&nbsp;bad&nbsp;as&nbsp;we&nbsp;have&nbsp;a&nbsp;lot&nbsp;more&nbsp;processes&nbsp;than&nbsp;we&nbsp;have&nbsp;cores,&nbsp;so&nbsp;if&nbsp;this&nbsp;one&nbsp;is&nbsp;idle&nbsp;then&lt;/div&gt;&lt;div&gt;#&nbsp;another&nbsp;thread&nbsp;will&nbsp;be&nbsp;able&nbsp;to&nbsp;use&nbsp;the&nbsp;CPU&nbsp;time&nbsp;if&nbsp;there&nbsp;is&nbsp;a&nbsp;lot&nbsp;going&nbsp;on&nbsp;with&nbsp;the&nbsp;server&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:LOAD&nbsp;&quot;@ge&nbsp;15000&quot;&nbsp;&quot;phase:5,id:&#39;2104&#39;,t:none,log,pass,msg:&#39;Delaying&nbsp;aggressive&nbsp;IP&nbsp;%{remote_addr}&nbsp;-&nbsp;IP&nbsp;load&nbsp;too&nbsp;high:&nbsp;%{IP.load}&#39;,pause:5000&quot;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&nbsp;Block&nbsp;an&nbsp;IP&nbsp;address&nbsp;if&nbsp;it&nbsp;uses&nbsp;too&nbsp;much&nbsp;of&nbsp;the&nbsp;web&nbsp;server&#39;s&nbsp;time&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:LOAD&nbsp;&quot;@ge&nbsp;30000&quot;&nbsp;&quot;phase:5,id:&#39;2105&#39;,t:none,log,pass,msg:&#39;Potential&nbsp;Denial&nbsp;of&nbsp;Service&nbsp;(DoS)&nbsp;Attack&nbsp;from&nbsp;%{remote_addr}&nbsp;-&nbsp;IP&nbsp;load&nbsp;too&nbsp;high:&nbsp;%{IP.load}&#39;,setvar:ip.dos_block=1,expirevar:ip.dos_block=%{tx.dos_block_timeout}&quot;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;#&nbsp;Also&nbsp;block&nbsp;an&nbsp;IP&nbsp;address&nbsp;if&nbsp;it&nbsp;makes&nbsp;too&nbsp;many&nbsp;requests&nbsp;too&nbsp;quickly.&lt;/div&gt;&lt;div&gt;#&nbsp;IP.UPDATE_RATE&nbsp;contains&nbsp;the&nbsp;average&nbsp;number&nbsp;of&nbsp;requests&nbsp;per&nbsp;MINUTE,&nbsp;over&nbsp;the&nbsp;lifetime&nbsp;of&nbsp;the&nbsp;ip&nbsp;collection.&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;Note&nbsp;that&nbsp;since&nbsp;it&nbsp;is&nbsp;calculated&nbsp;over&nbsp;its&nbsp;lifetime,&nbsp;if&nbsp;the&nbsp;IP&nbsp;has&nbsp;been&nbsp;continually&nbsp;requesting&nbsp;pages&nbsp;for&lt;/div&gt;&lt;div&gt;#&nbsp;a&nbsp;long&nbsp;time&nbsp;and&nbsp;then&nbsp;all&nbsp;of&nbsp;a&nbsp;sudden&nbsp;ramps&nbsp;things&nbsp;up&nbsp;a&nbsp;lot,&nbsp;the&nbsp;average&nbsp;will&nbsp;rise&nbsp;very&nbsp;slowly.&nbsp;This&nbsp;is&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;more&nbsp;useful&nbsp;when&nbsp;they&nbsp;start&nbsp;out&nbsp;hitting&nbsp;consistently&nbsp;hard.&lt;/div&gt;&lt;div&gt;#&nbsp;IP.UPDATE_COUNTER&nbsp;is&nbsp;used&nbsp;to&nbsp;make&nbsp;sure&nbsp;it&nbsp;doesn&#39;t&nbsp;check&nbsp;the&nbsp;UPDATE_RATE&nbsp;if&nbsp;only&nbsp;a&nbsp;small&nbsp;number&nbsp;of&lt;/div&gt;&lt;div&gt;#&nbsp;requests&nbsp;have&nbsp;been&nbsp;made,&nbsp;because&nbsp;if&nbsp;an&nbsp;IP&nbsp;makes&nbsp;5&nbsp;requests&nbsp;in&nbsp;the&nbsp;same&nbsp;second&nbsp;we&nbsp;don&#39;t&nbsp;necessarily&nbsp;want&lt;/div&gt;<br>
+&lt;div&gt;#&nbsp;to&nbsp;block&nbsp;immediately&nbsp;if&nbsp;those&nbsp;are&nbsp;all&nbsp;the&nbsp;requests&nbsp;they&#39;ve&nbsp;made.&lt;/div&gt;&lt;div&gt;SecRule&nbsp;IP:UPDATE_COUNTER&nbsp;&quot;@ge&nbsp;50&quot;&nbsp;&quot;chain,phase:5,id:&#39;2106&#39;,t:none,log,pass,msg:&#39;Potential&nbsp;Denial&nbsp;of&nbsp;Service&nbsp;(DoS)&nbsp;Attack&nbsp;from&nbsp;%{remote_addr}&nbsp;-&nbsp;Request&nbsp;update&nbsp;rate:&nbsp;%{IP.UPDATE_RATE}&nbsp;too&nbsp;high&#39;&quot;&lt;/div&gt;<br>
+&lt;div&gt; &nbsp; &nbsp; &nbsp; &nbsp;SecRule&nbsp;IP:UPDATE_RATE&nbsp;&quot;@ge&nbsp;650&quot;&nbsp;&quot;setvar:ip.dos_block=1,expirevar:ip.dos_block=%{tx.dos_block_timeout}&quot;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;SecMarker&nbsp;END_DOS_PROTECTION_CHECKS&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;<br>
+&lt;div&gt;------&lt;/div&gt;&lt;/div&gt;&lt;div&nbsp;class=&quot;gmail_extra&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;On&nbsp;Thu,&nbsp;Sep&nbsp;19,&nbsp;2013&nbsp;at&nbsp;5:31&nbsp;AM,&nbsp;Slobodan&nbsp;Aleksić&nbsp;&lt;span&nbsp;dir=&quot;ltr&quot;&gt;&lt;&lt;a&nbsp;href=&quot;mailto:lists@aleksic.de&quot;&nbsp;target=&quot;_blank&quot;&gt;lists@aleksic.de&lt;/a&gt;&gt;&lt;/span&gt;&nbsp;wrote:&lt;br&gt;<br>
+&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0&nbsp;0&nbsp;0&nbsp;.8ex;border-left:1px&nbsp;#ccc&nbsp;solid;padding-left:1ex&quot;&gt;Hello&nbsp;list,&lt;br&gt;<br>
+&lt;br&gt;<br>
+we&nbsp;have&nbsp;the&nbsp;same&nbsp;problem&nbsp;as&nbsp;Nick&nbsp;mentioned.&lt;br&gt;<br>
+We&nbsp;have&nbsp;loadbalancers&nbsp;in&nbsp;front&nbsp;of&nbsp;Apache&nbsp;reverse&nbsp;proxies&nbsp;and&nbsp;when&lt;br&gt;<br>
+activating&nbsp;the&nbsp;modsecurity_crs_11_dos_protection.conf&nbsp;the&nbsp;loadbalancers&lt;br&gt;<br>
+are&nbsp;causing&nbsp;the&nbsp;rule&nbsp;to&nbsp;trigger.&lt;br&gt;<br>
+We&nbsp;counted&nbsp;the&nbsp;requests&nbsp;-&nbsp;*only*&nbsp;about&nbsp;120req/hour&nbsp;which&nbsp;is&nbsp;quiet&nbsp;normal.&lt;br&gt;<br>
+A&nbsp;whitelist&nbsp;is&nbsp;helping&nbsp;us,&nbsp;but&nbsp;what&nbsp;is&nbsp;with&nbsp;legitime&nbsp;requests&nbsp;like&nbsp;Nick&lt;br&gt;<br>
+mentioned?&nbsp;Any&nbsp;ideas&nbsp;or&nbsp;an&nbsp;improved&nbsp;version&nbsp;of&lt;br&gt;<br>
+modsecurity_crs_11_dos_protection.conf&nbsp;on&nbsp;the&nbsp;way&nbsp;?&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+Best&nbsp;regards&lt;br&gt;<br>
+&lt;div&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+On&nbsp;05/07/2013&nbsp;07:36&nbsp;PM,&nbsp;Nick&nbsp;wrote:&lt;br&gt;<br>
+&gt;&nbsp;I&#39;ve&nbsp;been&nbsp;experimenting&nbsp;with&nbsp;this&nbsp;modsecurity_crs_11_dos_protection.conf&lt;br&gt;<br>
+&gt;&nbsp;ruleset&nbsp;more.&nbsp;An&nbsp;outline&nbsp;of&nbsp;how&nbsp;it&nbsp;seems&nbsp;to&nbsp;work:&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;Every&nbsp;non-image&nbsp;request&nbsp;increments&nbsp;the&nbsp;ip.dos_counter&nbsp;counter.&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;If&nbsp;that&nbsp;counter&nbsp;is&nbsp;&gt;&nbsp;tx.dos_counter_threshold,&nbsp;it&nbsp;increments&lt;br&gt;<br>
+&gt;&nbsp;ip.dos_burst_counter,&nbsp;sets&nbsp;an&nbsp;expiration&nbsp;time&nbsp;on&nbsp;ip.dos_burst_counter,&lt;br&gt;<br>
+&gt;&nbsp;and&nbsp;clears&nbsp;ip.dos_counter&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;If&nbsp;ip.dos_burst_counter&nbsp;&gt;&nbsp;ip.dos_burst_threshold,&nbsp;it&nbsp;blocks&nbsp;the&lt;br&gt;<br>
+&gt;&nbsp;request&nbsp;until&nbsp;tx.dos_block_timeout&nbsp;seconds&nbsp;elapses&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;The&nbsp;rational&nbsp;behind&nbsp;the&nbsp;burst&nbsp;counter&nbsp;seems&nbsp;to&nbsp;be&nbsp;because&nbsp;mod_security&lt;br&gt;<br>
+&gt;&nbsp;expiration&nbsp;doesn&#39;t&nbsp;work&nbsp;based&nbsp;on&nbsp;the&nbsp;FIRST&nbsp;write&nbsp;to&nbsp;a&nbsp;variable,&nbsp;it&nbsp;works&lt;br&gt;<br>
+&gt;&nbsp;based&nbsp;on&nbsp;the&nbsp;most&nbsp;recent&nbsp;write.&nbsp;In&nbsp;my&nbsp;case,&nbsp;I&#39;m&nbsp;using&nbsp;a&nbsp;time&nbsp;slice&nbsp;of&nbsp;60&lt;br&gt;<br>
+&gt;&nbsp;seconds,&nbsp;but&nbsp;if&nbsp;a&nbsp;bot&nbsp;requests&nbsp;a&nbsp;page&nbsp;every&nbsp;10&nbsp;seconds&nbsp;for&nbsp;hours&nbsp;it&nbsp;will&lt;br&gt;<br>
+&gt;&nbsp;never&nbsp;expire&nbsp;ip_dos_counter,&nbsp;the&nbsp;only&nbsp;time&nbsp;that&nbsp;will&nbsp;happen&nbsp;is&nbsp;if&nbsp;they&lt;br&gt;<br>
+&gt;&nbsp;don&#39;t&nbsp;do&nbsp;any&nbsp;requests&nbsp;for&nbsp;60&nbsp;seconds.&nbsp;So,&nbsp;this&nbsp;burst&nbsp;counter&nbsp;is&nbsp;designed&lt;br&gt;<br>
+&gt;&nbsp;to&nbsp;try&nbsp;to&nbsp;get&nbsp;around&nbsp;this&nbsp;problem&nbsp;by&nbsp;waiting&nbsp;until&nbsp;the&nbsp;dos_counter&nbsp;is&lt;br&gt;<br>
+&gt;&nbsp;over&nbsp;the&nbsp;threshold&nbsp;(which&nbsp;doesn&#39;t&nbsp;really&nbsp;prove&nbsp;anything&nbsp;about&nbsp;how&nbsp;fast&lt;br&gt;<br>
+&gt;&nbsp;requests&nbsp;were&nbsp;being&nbsp;made,&nbsp;only&nbsp;that&nbsp;the&nbsp;user&nbsp;has&nbsp;done&nbsp;a&nbsp;bunch&nbsp;of&lt;br&gt;<br>
+&gt;&nbsp;requests&nbsp;without&nbsp;pausing)&nbsp;and&nbsp;then&nbsp;it&nbsp;increments&nbsp;the&nbsp;burst&nbsp;counter&nbsp;which&lt;br&gt;<br>
+&gt;&nbsp;has&nbsp;an&nbsp;expiration&nbsp;time&nbsp;(in&nbsp;my&nbsp;case,&nbsp;60&nbsp;seconds)&nbsp;and&nbsp;clears&nbsp;out&nbsp;the&lt;br&gt;<br>
+&gt;&nbsp;dos_counter.&nbsp;So,&nbsp;if&nbsp;the&nbsp;dos&nbsp;counter&nbsp;gets&nbsp;up&nbsp;to&nbsp;the&nbsp;threshold&nbsp;AGAIN,&nbsp;then&lt;br&gt;<br>
+&gt;&nbsp;it&nbsp;knows&nbsp;that&nbsp;those&nbsp;requests&nbsp;really&nbsp;all&nbsp;have&nbsp;come&nbsp;in&nbsp;the&nbsp;past&nbsp;60&lt;br&gt;<br>
+&gt;&nbsp;seconds,&nbsp;so&nbsp;it&nbsp;knows&nbsp;that&nbsp;the&nbsp;user&nbsp;is&nbsp;requesting&nbsp;too&nbsp;quickly.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Great&nbsp;in&nbsp;theory,&nbsp;but&nbsp;this&nbsp;is&nbsp;broken.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;The&nbsp;problem&nbsp;scenario:&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;A&nbsp;bot&nbsp;(bingbot&nbsp;in&nbsp;my&nbsp;case)&nbsp;has&nbsp;been&nbsp;requesting&nbsp;pages&nbsp;for&nbsp;the&nbsp;past&lt;br&gt;<br>
+&gt;&nbsp;hour.&nbsp;Averaging&nbsp;one&nbsp;or&nbsp;two&nbsp;requests&nbsp;per&nbsp;second.&nbsp;Nothing&nbsp;to&nbsp;worry&nbsp;about.&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;The&nbsp;dos_counter&nbsp;is&nbsp;over&nbsp;the&nbsp;threshold&nbsp;because&nbsp;it&nbsp;has&nbsp;been&nbsp;submitting&lt;br&gt;<br>
+&gt;&nbsp;requests&nbsp;for&nbsp;a&nbsp;long&nbsp;time&nbsp;without&nbsp;pausing&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;Sometimes&nbsp;it&nbsp;submits&nbsp;2-4&nbsp;requests&nbsp;virtually&nbsp;simultaneously&nbsp;(on&nbsp;the&lt;br&gt;<br>
+&gt;&nbsp;same&nbsp;second&nbsp;in&nbsp;the&nbsp;log)&lt;br&gt;<br>
+&gt;&nbsp;-&nbsp;It&nbsp;submits&nbsp;2&nbsp;or&nbsp;more&nbsp;requests&nbsp;simultaneously.&nbsp;For&nbsp;EACH&nbsp;REQUEST,&lt;br&gt;<br>
+&gt;&nbsp;mod_security&nbsp;sees&nbsp;that&nbsp;ip_dos_counter&nbsp;is&nbsp;over&nbsp;the&nbsp;threshold,&nbsp;so&nbsp;each&lt;br&gt;<br>
+&gt;&nbsp;request&nbsp;increments&nbsp;ip_dos_burst_counter.&nbsp;bingbot&nbsp;is&nbsp;now&nbsp;blocked.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;So&nbsp;this&nbsp;is&nbsp;an&nbsp;example&nbsp;where&nbsp;the&nbsp;bot&nbsp;was&nbsp;blocked&nbsp;even&nbsp;though&nbsp;it&nbsp;was&lt;br&gt;<br>
+&gt;&nbsp;operating&nbsp;at&nbsp;a&nbsp;far&nbsp;slower&nbsp;rate&nbsp;than&nbsp;the&nbsp;DoS&nbsp;settings&nbsp;specify.&nbsp;If&nbsp;those&nbsp;2&lt;br&gt;<br>
+&gt;&nbsp;requests&nbsp;would&nbsp;have&nbsp;been&nbsp;spaced&nbsp;apart&nbsp;by&nbsp;a&nbsp;second,&nbsp;it&nbsp;would&nbsp;not&nbsp;have&lt;br&gt;<br>
+&gt;&nbsp;been&nbsp;blocked.&nbsp;But,&nbsp;by&nbsp;submitting&nbsp;requests&nbsp;very&nbsp;close&nbsp;together,&nbsp;a&nbsp;bot&nbsp;can&lt;br&gt;<br>
+&gt;&nbsp;be&nbsp;blocked&nbsp;without&nbsp;really&nbsp;submitting&nbsp;that&nbsp;many&nbsp;requests&nbsp;very&nbsp;quickly.&lt;br&gt;<br>
+&gt;&nbsp;This&nbsp;is&nbsp;happening&nbsp;on&nbsp;my&nbsp;server&nbsp;at&nbsp;least&nbsp;every&nbsp;day.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;I&nbsp;am&nbsp;new&nbsp;to&nbsp;mod_security&nbsp;so&nbsp;I&#39;m&nbsp;still&nbsp;learning&nbsp;exactly&nbsp;how&nbsp;these&nbsp;rules&lt;br&gt;<br>
+&gt;&nbsp;work,&nbsp;but&nbsp;are&nbsp;there&nbsp;any&nbsp;solutions&nbsp;to&nbsp;this&nbsp;problem?&nbsp;The&nbsp;way&nbsp;this&nbsp;rule&nbsp;is&lt;br&gt;<br>
+&gt;&nbsp;set&nbsp;up,&nbsp;it&nbsp;seems&nbsp;to&nbsp;be&nbsp;operating&nbsp;on&nbsp;the&nbsp;principle&nbsp;that&nbsp;the&nbsp;rule&nbsp;is&lt;br&gt;<br>
+&gt;&nbsp;atomic&nbsp;when&nbsp;it&nbsp;clearly&nbsp;isn&#39;t.&nbsp;If&nbsp;dos_counter&nbsp;would&nbsp;be&nbsp;cleared&nbsp;before&nbsp;the&lt;br&gt;<br>
+&gt;&nbsp;burst&nbsp;counter&nbsp;is&nbsp;incremented,&nbsp;this&nbsp;problem&nbsp;wouldn&#39;t&nbsp;exist.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;I&#39;m&nbsp;also&nbsp;unclear&nbsp;on&nbsp;how&nbsp;this&nbsp;is&nbsp;coordinated&nbsp;across&nbsp;the&nbsp;multiple&nbsp;apache&lt;br&gt;<br>
+&gt;&nbsp;processes.&nbsp;I&nbsp;understand&nbsp;this&nbsp;to&nbsp;be&nbsp;a&nbsp;collection,&nbsp;which&nbsp;resides&nbsp;on&nbsp;disk,&lt;br&gt;<br>
+&gt;&nbsp;so&nbsp;I&#39;m&nbsp;not&nbsp;sure&nbsp;when&nbsp;mod_security&nbsp;writes&nbsp;this&nbsp;information&nbsp;to&nbsp;disk.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Does&nbsp;anyone&nbsp;have&nbsp;any&nbsp;pointers&nbsp;for&nbsp;where&nbsp;to&nbsp;look,&nbsp;or&nbsp;a&nbsp;different&nbsp;DoS&lt;br&gt;<br>
+&gt;&nbsp;ruleset&nbsp;to&nbsp;try?&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Or&nbsp;is&nbsp;DoS&nbsp;protection&nbsp;not&nbsp;something&nbsp;that&nbsp;is&nbsp;possible&nbsp;with&nbsp;mod_security,&lt;br&gt;<br>
+&gt;&nbsp;and&nbsp;I&nbsp;need&nbsp;another&nbsp;module?&nbsp;I&nbsp;don&#39;t&nbsp;need&nbsp;anything&nbsp;fancy,&nbsp;I&nbsp;just&nbsp;want&nbsp;to&lt;br&gt;<br>
+&gt;&nbsp;be&nbsp;able&nbsp;to&nbsp;limit&nbsp;an&nbsp;IP&nbsp;address&nbsp;to&nbsp;a&nbsp;certain&nbsp;number&nbsp;of&nbsp;requests&nbsp;within&nbsp;a&lt;br&gt;<br>
+&gt;&nbsp;time&nbsp;period.&nbsp;Thanks,&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;Nick&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp;On&nbsp;Mon,&nbsp;Apr&nbsp;29,&nbsp;2013&nbsp;at&nbsp;12:49&nbsp;PM,&nbsp;Nick&nbsp;&lt;&lt;a&nbsp;href=&quot;mailto:darknovanick@gmail.com&quot;&gt;darknovanick@gmail.com&lt;/a&gt;&lt;br&gt;<br>
+&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&nbsp;class=&quot;h5&quot;&gt;&gt;&nbsp;&lt;mailto:&lt;a&nbsp;href=&quot;mailto:darknovanick@gmail.com&quot;&gt;darknovanick@gmail.com&lt;/a&gt;&gt;&gt;&nbsp;wrote:&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;Hello,&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;I&#39;ve&nbsp;been&nbsp;setting&nbsp;up&nbsp;mod_security&nbsp;and&nbsp;enabled&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;the&nbsp;modsecurity_crs_11_dos_protection.conf&nbsp;rule.&nbsp;This&nbsp;is&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;mod_security&nbsp;2.6.8&nbsp;and&nbsp;CRS&nbsp;version&nbsp;2.2.5.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;I&nbsp;have&nbsp;initialized&nbsp;the&nbsp;settings&nbsp;with:&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;SecAction&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;&quot;id:&#39;900015&#39;,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;phase:1,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;t:none,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;setvar:&#39;tx.dos_burst_time_slice=60&#39;,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;setvar:&#39;tx.dos_counter_threshold=300&#39;,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;setvar:&#39;tx.dos_block_timeout=600&#39;,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;nolog,&nbsp;\&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp; &nbsp;pass&quot;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;This&nbsp;works&nbsp;and&nbsp;it&nbsp;is&nbsp;blocking&nbsp;some&nbsp;very&nbsp;aggressive&nbsp;bots&nbsp;the&nbsp;way&nbsp;it&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;should.&nbsp;But&nbsp;there&nbsp;is&nbsp;a&nbsp;problem.&nbsp;I&nbsp;have&nbsp;occasionally&nbsp;been&nbsp;getting&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;lines&nbsp;like&nbsp;this&nbsp;in&nbsp;the&nbsp;log:&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;Warning.&nbsp;Operator&nbsp;GE&nbsp;matched&nbsp;2&nbsp;at&nbsp;IP:dos_burst_counter.&nbsp;[file&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;&quot;/etc/httpd/modsecurity.d/activated_rules/modsecurity_crs_11_dos_protection.conf&quot;]&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;[line&nbsp;&quot;44&quot;]&nbsp;[id&nbsp;&quot;981049&quot;]&nbsp;[msg&nbsp;&quot;Potential&nbsp;Denial&nbsp;of&nbsp;Service&nbsp;(DoS)&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;Attack&nbsp;from&nbsp;65.55.24.236&nbsp;-&nbsp;#&nbsp;of&nbsp;Request&nbsp;Bursts:&nbsp;3&quot;]&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;This&nbsp;bot&nbsp;was&nbsp;actually&nbsp;bingbot.&nbsp;I&nbsp;am&nbsp;new&nbsp;to&nbsp;mod_security,&nbsp;but&nbsp;my&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;understanding&nbsp;of&nbsp;my&nbsp;settings&nbsp;is&nbsp;that&nbsp;it&nbsp;shouldn&#39;t&nbsp;block&nbsp;until&nbsp;a&nbsp;bot&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;has&nbsp;requested&nbsp;300&nbsp;pages&nbsp;in&nbsp;60&nbsp;seconds.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;When&nbsp;I&nbsp;check&nbsp;the&nbsp;logs&nbsp;I&nbsp;see&nbsp;that&nbsp;IP&nbsp;65.55.24.236&nbsp;has&nbsp;requested&nbsp;313&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;pages&nbsp;in&nbsp;1&nbsp;hour.&nbsp;In&nbsp;the&nbsp;60&nbsp;seconds&nbsp;before&nbsp;the&nbsp;DoS&nbsp;block&nbsp;happening,&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;this&nbsp;IP&nbsp;only&nbsp;requested&nbsp;6&nbsp;pages.&nbsp;This&nbsp;block&nbsp;obviously&nbsp;shouldn&#39;t&nbsp;be&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;happening.&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;I&nbsp;am&nbsp;grossly&nbsp;misunderstanding&nbsp;something,&nbsp;or&nbsp;what&nbsp;can&nbsp;I&nbsp;do&nbsp;to&nbsp;fix&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;this?&nbsp;Thanks,&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&nbsp; &nbsp; &nbsp;Nick&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&gt;&lt;br&gt;<br>
+&lt;/div&gt;&lt;/div&gt;&gt;&nbsp;This&nbsp;body&nbsp;part&nbsp;will&nbsp;be&nbsp;downloaded&nbsp;on&nbsp;demand.&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;<br>
+
+</tt>

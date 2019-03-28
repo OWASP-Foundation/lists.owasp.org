@@ -1,0 +1,901 @@
+From colin.watson at owasp.org  Wed Aug  3 09:11:58 2011
+From: colin.watson at owasp.org (Colin Watson)
+Date: Wed, 3 Aug 2011 14:11:58 +0100
+Subject: [Owasp-appsensor-project] New Unexpected Type/Quantity
+	Detection Points
+In-Reply-To: <AANLkTi=6tyAwm+JRu1JduUHKfZBQeksWgPuHmqDDPaKM@mail.gmail.com>
+References: <C8F48384.16AD2%rcbarnett@gmail.com>
+	<AANLkTimc1F-fgyx08WakOq1NsV8oBU42kckKDmOuXpOG@mail.gmail.com>
+	<AANLkTi=6tyAwm+JRu1JduUHKfZBQeksWgPuHmqDDPaKM@mail.gmail.com>
+Message-ID: <CAAxdBBkTwb5MkT9RKhFYNhu8YQHCffALZTyzUWjTvAhCcaQK2Q@mail.gmail.com>
+
+I have now at last added RE7 and RE8 to my document presented at AppSec DC 2010:
+
+https://www.owasp.org/index.php/File:Appsensor-planning.zip
+
+All the tables and charts have been updated.
+
+This document also includes mention of a response action called "ASR-P
+No Response" to be used when an event needs to be logged and a
+positive record that no AppSensor response was triggered.  E.g. an
+event which hasn't met the threshold.
+
+The wiki has been updated with to mention ASR-P.
+
+Colin
+
+On 28 January 2011 13:03, Colin Watson <colin.watson at owasp.org> wrote:
+> Added:
+>
+> http://www.owasp.org/index.php/AppSensor_DetectionPoints#RE7:_Unexpected_Quantity_of_Characters_in_Parameter
+>
+> http://www.owasp.org/index.php/AppSensor_DetectionPoints#RE8:_Unexpected_Type_of_Characters_in_Parameter
+>
+> http://www.owasp.org/index.php/OWASP_AppSensor_Project#tab=Detection_Points
+>
+> Colin
+>
+> On 2 November 2010 07:39, Colin Watson <colin.watson at owasp.org> wrote:
+>> Ryan
+>>
+>> I think these are worth adding. ?They are more general cases of the
+>> AuthenticationException ones. ?It is good to have both since
+>> thresholds and responses may be different.
+>>
+>> I have a chart of relationships between detection points in my
+>> presentation next week at AppSec DC 2010. ?RE7 and RE8 won't be on it
+>> though!
+>>
+>> Colin
+>>
+>> On 1 November 2010 18:47, Ryan Barnett <rcbarnett at gmail.com> wrote:
+>>> I suggest that we add a new Detection Point in the RequestException category
+>>> similar to the following AuthenticationException ones -
+>>>
+>>> 2.2.4?AE4: Unexpected Quantity of Characters in Username
+>>> <http://www.owasp.org/index.php/AppSensor_DetectionPoints#AE4:_Unexpected_Quantity_of_Characters_in_Username>
+>>> 2.2.5?AE5: Unexpected Quantity of Characters in Password
+>>> <http://www.owasp.org/index.php/AppSensor_DetectionPoints#AE5:_Unexpected_Quantity_of_Characters_in_Password>
+>>> 2.2.6?AE6: Unexpected Type of Character in Username
+>>> <http://www.owasp.org/index.php/AppSensor_DetectionPoints#AE6:_Unexpected_Type_of_Character_in_Username>
+>>> 2.2.7?AE7: Unexpected Type of Character in Password
+>>> <http://www.owasp.org/index.php/AppSensor_DetectionPoints#AE7:_Unexpected_Type_of_Character_in_Password>
+>>>
+>>> Instead of only focusing in on username/password parameters, the detection
+>>> should be something like -
+>>>
+>>> 2.1.7 RE7: Unexpected Quantity of Characters in Parameter
+>>> 2.1.8?RE8: Unexpected Type of Characters in Parameter
+>>>
+>>> BTW ? I am working on these types of application profiling/learning
+>>> detection points for additions to the ModSecurity CRS.
+>>>
+>>> -Ryan
+>>>
+>>> _______________________________________________
+>>> Owasp-appsensor-project mailing list
+>>> Owasp-appsensor-project at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>>
+>>>
+>>
+>
+
+From owen.k.berger at gmail.com  Thu Aug  4 21:52:19 2011
+From: owen.k.berger at gmail.com (Owen Berger)
+Date: Thu, 4 Aug 2011 18:52:19 -0700
+Subject: [Owasp-appsensor-project] Filter HashMaps and Thread Safety
+Message-ID: <CABrG9tkR9w53HH7tn46bK8rYUFqdjaQNwzjzSJNF9a3YpGxWfQ@mail.gmail.com>
+
+This is my first time on the appsensor list, so please let me know if my
+questions have been asked before and I missed it.
+
+-What is the best way to implement a thread-safe version of the Static
+HashMap used in the User Agent and Client IP filters?
+
+-Are the Maps thread-safe as is, e.g. as Static maps inside the filter, or
+would a singleton using a ConcurrentHashMap do the same or better job for a
+web application where state is needed?
+
+-I would like to make the maps subject to a cleaner that removes all of the
+old map entries utilizing a Job in Quartz, so is that still possible in the
+filter if I use the Static HashMap?
+
+Thanks for any help or direction,
+
+-Owen
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110804/56ac0d5a/attachment.html 
+
+From jtmelton at gmail.com  Fri Aug  5 08:39:42 2011
+From: jtmelton at gmail.com (John Melton)
+Date: Fri, 5 Aug 2011 08:39:42 -0400
+Subject: [Owasp-appsensor-project] Filter HashMaps and Thread Safety
+In-Reply-To: <CABrG9tkR9w53HH7tn46bK8rYUFqdjaQNwzjzSJNF9a3YpGxWfQ@mail.gmail.com>
+References: <CABrG9tkR9w53HH7tn46bK8rYUFqdjaQNwzjzSJNF9a3YpGxWfQ@mail.gmail.com>
+Message-ID: <CAM8z=y+S2=0wjrqd8LudpVTT61HzKiy=wUNOHnrbp8Lwgxq2LA@mail.gmail.com>
+
+Owen,
+I'm the lead dev, but am on vacation at the moment. I'll take care of these
+when I get back next week sometime.
+Thanks,
+John
+
+On Thu, Aug 4, 2011 at 9:52 PM, Owen Berger <owen.k.berger at gmail.com> wrote:
+
+> This is my first time on the appsensor list, so please let me know if my
+> questions have been asked before and I missed it.
+>
+Welcome - glad you're looking into it. If you want to [and are able] to
+share your use case, please do - we're interested in gathering info about
+how folks are using appsensor.
+
+>
+> -What is the best way to implement a thread-safe version of the Static
+> HashMap used in the User Agent and Client IP filters?
+>
+I updated the codebase recently to use concurrenthashmaps but I might have
+missed these places. I'll look when I get back from vacation.
+
+>
+> -Are the Maps thread-safe as is, e.g. as Static maps inside the filter, or
+> would a singleton using a ConcurrentHashMap do the same or better job for a
+> web application where state is needed?
+>
+These are not thread-safe as is as you mention. They were very simple
+examples as you can see, so are not "production" quality. If you end up
+making useful changes, please feel free to share back and we can improve
+them.
+
+>
+> -I would like to make the maps subject to a cleaner that removes all of the
+> old map entries utilizing a Job in Quartz, so is that still possible in the
+> filter if I use the Static HashMap?
+>
+I've thought a bit about your point of the "cleansing" routine. I don't
+think it would work well in it's current incarnation, but you should be able
+to move it out to a context style object, make it thread safe and then
+access it from both the filter and your quartz job.
+
+>
+> Thanks for any help or direction,
+>
+> -Owen
+>
+>
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110805/08360d62/attachment.html 
+
+From owen.k.berger at gmail.com  Fri Aug  5 19:27:06 2011
+From: owen.k.berger at gmail.com (Owen Berger)
+Date: Fri, 5 Aug 2011 16:27:06 -0700
+Subject: [Owasp-appsensor-project] Filter HashMaps and Thread Safety
+In-Reply-To: <CAM8z=y+S2=0wjrqd8LudpVTT61HzKiy=wUNOHnrbp8Lwgxq2LA@mail.gmail.com>
+References: <CABrG9tkR9w53HH7tn46bK8rYUFqdjaQNwzjzSJNF9a3YpGxWfQ@mail.gmail.com>
+	<CAM8z=y+S2=0wjrqd8LudpVTT61HzKiy=wUNOHnrbp8Lwgxq2LA@mail.gmail.com>
+Message-ID: <CABrG9tmW4vjZ=S=K4tphE3-HaDApLx7F3FzAQwTCU_2vkM-QUg@mail.gmail.com>
+
+I just checked the codebase, and you did change the maps in the filters to
+ConcurrentHashMaps. I was looking at an old post somewhere, and neglected to
+double-check for the latest version of the filter code, my  bad.
+
+I have implemented an AppSensorManager class that is a Singleton, and stores
+both HashMaps as ConcurrentHashMaps. The filters then call on the
+AppSensorManager when necessary to change or look up information in the
+maps.
+
+In order to clean the map, I gave each key/value pair an expiration, in the
+form of an object (value) which is mapped to the sessionID (key) :
+
+private static class ClientIpAndExpire {
+        private String clientIp;
+        private DateTime expiration;
+        private ClientIpAndExpire (String ip) {
+            this.clientIp = ip;
+            this.expiration = new DateTime().plusMinutes(30);
+        }
+    }
+
+ I then used Quartz to come in and clean the map at regular intervals,
+removing old sessionId/ClientIP mappings.
+
+Does this look like an okay implementation of those filters?  Please
+remember that I am an amateur developer and am interested in learning as
+much as possible, so any tweaks or flat-out problems that you see, please
+let me know about them.
+
+Thank you and enjoy your vacation.
+
+-Owen Berger
+
+p.s. I will put up a post about my use case in a couple of days.
+
+On Fri, Aug 5, 2011 at 5:39 AM, John Melton <jtmelton at gmail.com> wrote:
+
+> Owen,
+> I'm the lead dev, but am on vacation at the moment. I'll take care of these
+> when I get back next week sometime.
+> Thanks,
+> John
+>
+> On Thu, Aug 4, 2011 at 9:52 PM, Owen Berger <owen.k.berger at gmail.com>wrote:
+>
+>> This is my first time on the appsensor list, so please let me know if my
+>> questions have been asked before and I missed it.
+>>
+> Welcome - glad you're looking into it. If you want to [and are able] to
+> share your use case, please do - we're interested in gathering info about
+> how folks are using appsensor.
+>
+>>
+>> -What is the best way to implement a thread-safe version of the Static
+>> HashMap used in the User Agent and Client IP filters?
+>>
+> I updated the codebase recently to use concurrenthashmaps but I might have
+> missed these places. I'll look when I get back from vacation.
+>
+>>
+>> -Are the Maps thread-safe as is, e.g. as Static maps inside the filter, or
+>> would a singleton using a ConcurrentHashMap do the same or better job for a
+>> web application where state is needed?
+>>
+> These are not thread-safe as is as you mention. They were very simple
+> examples as you can see, so are not "production" quality. If you end up
+> making useful changes, please feel free to share back and we can improve
+> them.
+>
+>>
+>> -I would like to make the maps subject to a cleaner that removes all of
+>> the old map entries utilizing a Job in Quartz, so is that still possible in
+>> the filter if I use the Static HashMap?
+>>
+> I've thought a bit about your point of the "cleansing" routine. I don't
+> think it would work well in it's current incarnation, but you should be able
+> to move it out to a context style object, make it thread safe and then
+> access it from both the filter and your quartz job.
+>
+>>
+>> Thanks for any help or direction,
+>>
+>> -Owen
+>>
+>>
+>> _______________________________________________
+>> Owasp-appsensor-project mailing list
+>> Owasp-appsensor-project at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110805/b96dcca4/attachment.html 
+
+From jtmelton at gmail.com  Mon Aug 15 16:22:57 2011
+From: jtmelton at gmail.com (John Melton)
+Date: Mon, 15 Aug 2011 16:22:57 -0400
+Subject: [Owasp-appsensor-project] Filter HashMaps and Thread Safety
+In-Reply-To: <CABrG9tmW4vjZ=S=K4tphE3-HaDApLx7F3FzAQwTCU_2vkM-QUg@mail.gmail.com>
+References: <CABrG9tkR9w53HH7tn46bK8rYUFqdjaQNwzjzSJNF9a3YpGxWfQ@mail.gmail.com>
+	<CAM8z=y+S2=0wjrqd8LudpVTT61HzKiy=wUNOHnrbp8Lwgxq2LA@mail.gmail.com>
+	<CABrG9tmW4vjZ=S=K4tphE3-HaDApLx7F3FzAQwTCU_2vkM-QUg@mail.gmail.com>
+Message-ID: <CAM8z=yJzdqXM2S0Yi-u_OpAXsymOeko50XNQS8qUiOb0TbTE0g@mail.gmail.com>
+
+Owen,
+I think your implementation is a fine idea. Without seeing all your code,
+I'll just make some generic comments.
+- Not sure if you're duplicating functionality already included in
+appsensor, but the intrusionrecord/intrusionstore classes do keep track of
+intrusions on a per user basis.
+- Looks like you're quartz idea is great - clean up the maps regularly. I'm
+not a quartz user, but if the performance is good and you're taking care of
+the thread synchronization issues, then it sounds good to me.
+- Your expiration idea is a good one, and not being certain of your full
+implementation, looks reasonable. We do timestamp the intrusions in
+appsensor, so it's possible you could accomplish the same thing just by
+comparing the current time to that on the intrusion - just a thought.
+
+All in all, nice work. Please do let us know if you put up a post about your
+implementation. We'd love to see it.
+Thanks,
+John
+
+On Fri, Aug 5, 2011 at 7:27 PM, Owen Berger <owen.k.berger at gmail.com> wrote:
+
+> I just checked the codebase, and you did change the maps in the filters to
+> ConcurrentHashMaps. I was looking at an old post somewhere, and neglected to
+> double-check for the latest version of the filter code, my  bad.
+>
+> I have implemented an AppSensorManager class that is a Singleton, and
+> stores both HashMaps as ConcurrentHashMaps. The filters then call on the
+> AppSensorManager when necessary to change or look up information in the
+> maps.
+>
+> In order to clean the map, I gave each key/value pair an expiration, in the
+> form of an object (value) which is mapped to the sessionID (key) :
+>
+> private static class ClientIpAndExpire {
+>         private String clientIp;
+>         private DateTime expiration;
+>         private ClientIpAndExpire (String ip) {
+>             this.clientIp = ip;
+>             this.expiration = new DateTime().plusMinutes(30);
+>         }
+>     }
+>
+>  I then used Quartz to come in and clean the map at regular intervals,
+> removing old sessionId/ClientIP mappings.
+>
+> Does this look like an okay implementation of those filters?  Please
+> remember that I am an amateur developer and am interested in learning as
+> much as possible, so any tweaks or flat-out problems that you see, please
+> let me know about them.
+>
+> Thank you and enjoy your vacation.
+>
+> -Owen Berger
+>
+> p.s. I will put up a post about my use case in a couple of days.
+>
+>
+> On Fri, Aug 5, 2011 at 5:39 AM, John Melton <jtmelton at gmail.com> wrote:
+>
+>> Owen,
+>> I'm the lead dev, but am on vacation at the moment. I'll take care of
+>> these when I get back next week sometime.
+>> Thanks,
+>> John
+>>
+>> On Thu, Aug 4, 2011 at 9:52 PM, Owen Berger <owen.k.berger at gmail.com>wrote:
+>>
+>>> This is my first time on the appsensor list, so please let me know if my
+>>> questions have been asked before and I missed it.
+>>>
+>> Welcome - glad you're looking into it. If you want to [and are able] to
+>> share your use case, please do - we're interested in gathering info about
+>> how folks are using appsensor.
+>>
+>>>
+>>> -What is the best way to implement a thread-safe version of the Static
+>>> HashMap used in the User Agent and Client IP filters?
+>>>
+>> I updated the codebase recently to use concurrenthashmaps but I might have
+>> missed these places. I'll look when I get back from vacation.
+>>
+>>>
+>>> -Are the Maps thread-safe as is, e.g. as Static maps inside the filter,
+>>> or would a singleton using a ConcurrentHashMap do the same or better job for
+>>> a web application where state is needed?
+>>>
+>> These are not thread-safe as is as you mention. They were very simple
+>> examples as you can see, so are not "production" quality. If you end up
+>> making useful changes, please feel free to share back and we can improve
+>> them.
+>>
+>>>
+>>> -I would like to make the maps subject to a cleaner that removes all of
+>>> the old map entries utilizing a Job in Quartz, so is that still possible in
+>>> the filter if I use the Static HashMap?
+>>>
+>> I've thought a bit about your point of the "cleansing" routine. I don't
+>> think it would work well in it's current incarnation, but you should be able
+>> to move it out to a context style object, make it thread safe and then
+>> access it from both the filter and your quartz job.
+>>
+>>>
+>>> Thanks for any help or direction,
+>>>
+>>> -Owen
+>>>
+>>>
+>>> _______________________________________________
+>>> Owasp-appsensor-project mailing list
+>>> Owasp-appsensor-project at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>>>
+>>>
+>>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110815/b340166b/attachment.html 
+
+From theovn at owasp.org  Wed Aug 24 07:52:10 2011
+From: theovn at owasp.org (Theo van Niekerk)
+Date: Wed, 24 Aug 2011 13:52:10 +0200
+Subject: [Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+Message-ID: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+
+Hi
+
+I'm using my own SecurityConfiguration class for ESAPI. I have a requirement to protect/encrypt the Master key and the DefaultSecurityConfiguration setup can't do that.
+
+I want to use AppSensor, but it requires ESAPI to use the org.owasp.appsensor.AppSensorSecurityConfiguration.
+
+I can adapt my own SecurityConfiguration to include the AppSensorSecurityConfiguration stuff but how to I configure AppSensor to use this config. AppSensor ignores the -Dorg.owasp.esapi.SecurityConfiguration=... setting. 
+
+What to do?
+
+Cheers
+Theo
+
+From jtmelton at gmail.com  Wed Aug 24 08:54:43 2011
+From: jtmelton at gmail.com (John Melton)
+Date: Wed, 24 Aug 2011 08:54:43 -0400
+Subject: [Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+In-Reply-To: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+References: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+Message-ID: <CAM8z=y+gAVUp8rQ864Oy5jbhiBXWaOzAdmB+cv_Mb2mW78Oo2A@mail.gmail.com>
+
+Theo,
+In short, this is currently not possible with AppSensor. Could you file a
+bug at http://code.google.com/p/appsensor/issues/list so that we can track
+this and get the functionality added in to handle it?
+Also, just a quick question - if you can offer specifics, what are you doing
+generally to "encrypt/protect the key"? I know a lot of folks have
+complained that they would like to separate the master key out to another
+file, but it's not encrypted then - just filesystem controls on the actual
+key file. The issue is if you encrypt it, then you have another key to
+manage ... so what are you actually doing?
+
+Thanks,
+John
+
+On Wed, Aug 24, 2011 at 7:52 AM, Theo van Niekerk <theovn at owasp.org> wrote:
+
+> Hi
+>
+> I'm using my own SecurityConfiguration class for ESAPI. I have a
+> requirement to protect/encrypt the Master key and the
+> DefaultSecurityConfiguration setup can't do that.
+>
+> I want to use AppSensor, but it requires ESAPI to use the
+> org.owasp.appsensor.AppSensorSecurityConfiguration.
+>
+> I can adapt my own SecurityConfiguration to include the
+> AppSensorSecurityConfiguration stuff but how to I configure AppSensor to use
+> this config. AppSensor ignores the
+> -Dorg.owasp.esapi.SecurityConfiguration=... setting.
+>
+> What to do?
+>
+> Cheers
+> Theo
+> _______________________________________________
+> Owasp-appsensor-project mailing list
+> Owasp-appsensor-project at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110824/0353b268/attachment.html 
+
+From theovn at owasp.org  Wed Aug 24 09:24:52 2011
+From: theovn at owasp.org (Theo van Niekerk)
+Date: Wed, 24 Aug 2011 15:24:52 +0200
+Subject: [Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+In-Reply-To: <CAM8z=y+gAVUp8rQ864Oy5jbhiBXWaOzAdmB+cv_Mb2mW78Oo2A@mail.gmail.com>
+References: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+	<CAM8z=y+gAVUp8rQ864Oy5jbhiBXWaOzAdmB+cv_Mb2mW78Oo2A@mail.gmail.com>
+Message-ID: <E0FAB139-7B6E-49B0-9D46-1C558AAC9F7E@owasp.org>
+
+Hi John
+
+Thanks for your reply - I'll try and file a bug/issue.
+
+I store the Master-key (password protected) in a Key-store (also password protected).
+My app has an obscure webpage that asks for these 2 passwords to load the Master-key in memory where it is kept 
+The app won't run - returns 503 on most dynamic pages - unless the key is loaded.
+Downside is on a server restart, an operator needs to enter the passwords.
+Upside is that one can make the statement that 2 operators each with their own password are required to start the app. 
+I think that if you are not involved/aware of a server/app restart then you are doing something wrong.
+ 
+I don't mind sharing/contributing the code - it works for me, but it's not a work of art.
+
+Cheers
+Theo
+
+On 24 Aug 2011, at 14:54, John Melton wrote:
+
+> Theo,
+> In short, this is currently not possible with AppSensor. Could you file a
+> bug at http://code.google.com/p/appsensor/issues/list so that we can track
+> this and get the functionality added in to handle it?
+> Also, just a quick question - if you can offer specifics, what are you doing
+> generally to "encrypt/protect the key"? I know a lot of folks have
+> complained that they would like to separate the master key out to another
+> file, but it's not encrypted then - just filesystem controls on the actual
+> key file. The issue is if you encrypt it, then you have another key to
+> manage ... so what are you actually doing?
+> 
+> Thanks,
+> John
+> 
+> On Wed, Aug 24, 2011 at 7:52 AM, Theo van Niekerk <theovn at owasp.org> wrote:
+> 
+>> Hi
+>> 
+>> I'm using my own SecurityConfiguration class for ESAPI. I have a
+>> requirement to protect/encrypt the Master key and the
+>> DefaultSecurityConfiguration setup can't do that.
+>> 
+>> I want to use AppSensor, but it requires ESAPI to use the
+>> org.owasp.appsensor.AppSensorSecurityConfiguration.
+>> 
+>> I can adapt my own SecurityConfiguration to include the
+>> AppSensorSecurityConfiguration stuff but how to I configure AppSensor to use
+>> this config. AppSensor ignores the
+>> -Dorg.owasp.esapi.SecurityConfiguration=... setting.
+>> 
+>> What to do?
+>> 
+>> Cheers
+>> Theo
+>> _______________________________________________
+>> Owasp-appsensor-project mailing list
+>> Owasp-appsensor-project at lists.owasp.org
+>> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+>> 
+
+
+From jtmelton at gmail.com  Wed Aug 24 09:31:21 2011
+From: jtmelton at gmail.com (John Melton)
+Date: Wed, 24 Aug 2011 09:31:21 -0400
+Subject: [Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+In-Reply-To: <E0FAB139-7B6E-49B0-9D46-1C558AAC9F7E@owasp.org>
+References: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+	<CAM8z=y+gAVUp8rQ864Oy5jbhiBXWaOzAdmB+cv_Mb2mW78Oo2A@mail.gmail.com>
+	<E0FAB139-7B6E-49B0-9D46-1C558AAC9F7E@owasp.org>
+Message-ID: <CAM8z=yKeCWXUmzfvyKjsbbLDYNWC+YsKXTGyMro2GDec9rHVmQ@mail.gmail.com>
+
+Theo,
+That's an interesting solution. If you feel like you might want to exert the
+energy to contribute the code, I think it would probably fit better into
+ESAPI, so would suggest you email the esapi dev list with the paragraph
+description below, and get feedback from those guys. Then you can push the
+code into ESAPI as an optional key management solution. There are many
+possible solutions the key management issue, and the implementation of those
+are often difficult to get right b/c of certain nuances.
+Thanks,
+John
+
+On Wed, Aug 24, 2011 at 9:24 AM, Theo van Niekerk <theovn at owasp.org> wrote:
+
+> Hi John
+>
+> Thanks for your reply - I'll try and file a bug/issue.
+>
+> I store the Master-key (password protected) in a Key-store (also password
+> protected).
+> My app has an obscure webpage that asks for these 2 passwords to load the
+> Master-key in memory where it is kept
+> The app won't run - returns 503 on most dynamic pages - unless the key is
+> loaded.
+> Downside is on a server restart, an operator needs to enter the passwords.
+> Upside is that one can make the statement that 2 operators each with their
+> own password are required to start the app.
+> I think that if you are not involved/aware of a server/app restart then you
+> are doing something wrong.
+>
+> I don't mind sharing/contributing the code - it works for me, but it's not
+> a work of art.
+>
+> Cheers
+> Theo
+>
+> On 24 Aug 2011, at 14:54, John Melton wrote:
+>
+> > Theo,
+> > In short, this is currently not possible with AppSensor. Could you file a
+> > bug at http://code.google.com/p/appsensor/issues/list so that we can
+> track
+> > this and get the functionality added in to handle it?
+> > Also, just a quick question - if you can offer specifics, what are you
+> doing
+> > generally to "encrypt/protect the key"? I know a lot of folks have
+> > complained that they would like to separate the master key out to another
+> > file, but it's not encrypted then - just filesystem controls on the
+> actual
+> > key file. The issue is if you encrypt it, then you have another key to
+> > manage ... so what are you actually doing?
+> >
+> > Thanks,
+> > John
+> >
+> > On Wed, Aug 24, 2011 at 7:52 AM, Theo van Niekerk <theovn at owasp.org>
+> wrote:
+> >
+> >> Hi
+> >>
+> >> I'm using my own SecurityConfiguration class for ESAPI. I have a
+> >> requirement to protect/encrypt the Master key and the
+> >> DefaultSecurityConfiguration setup can't do that.
+> >>
+> >> I want to use AppSensor, but it requires ESAPI to use the
+> >> org.owasp.appsensor.AppSensorSecurityConfiguration.
+> >>
+> >> I can adapt my own SecurityConfiguration to include the
+> >> AppSensorSecurityConfiguration stuff but how to I configure AppSensor to
+> use
+> >> this config. AppSensor ignores the
+> >> -Dorg.owasp.esapi.SecurityConfiguration=... setting.
+> >>
+> >> What to do?
+> >>
+> >> Cheers
+> >> Theo
+> >> _______________________________________________
+> >> Owasp-appsensor-project mailing list
+> >> Owasp-appsensor-project at lists.owasp.org
+> >> https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project
+> >>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110824/480f6c06/attachment.html 
+
+From kevin.w.wall at gmail.com  Wed Aug 24 10:11:13 2011
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Wed, 24 Aug 2011 10:11:13 -0400
+Subject: [Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+In-Reply-To: <CAM8z=yKeCWXUmzfvyKjsbbLDYNWC+YsKXTGyMro2GDec9rHVmQ@mail.gmail.com>
+References: <B4D0A2F4-5EF9-4C4D-9626-00087A17377E@owasp.org>
+	<CAM8z=y+gAVUp8rQ864Oy5jbhiBXWaOzAdmB+cv_Mb2mW78Oo2A@mail.gmail.com>
+	<E0FAB139-7B6E-49B0-9D46-1C558AAC9F7E@owasp.org>
+	<CAM8z=yKeCWXUmzfvyKjsbbLDYNWC+YsKXTGyMro2GDec9rHVmQ@mail.gmail.com>
+Message-ID: <CAOPE6PgcAdxnstZJAbn1pGPnF7s+HWLby7xMSX+eBA7U0JUe+A@mail.gmail.com>
+
+On Wed, Aug 24, 2011 at 9:31 AM, John Melton <jtmelton at gmail.com> wrote:
+> Theo,
+> That's an interesting solution. If you feel like you might want to exert the
+> energy to contribute the code, I think it would probably fit better into
+> ESAPI, so would suggest you email the esapi dev list with the paragraph
+> description below, and get feedback from those guys. Then you can push the
+> code into ESAPI as an optional key management solution. There are many
+> possible solutions the key management issue, and the implementation of those
+> are often difficult to get right b/c of certain nuances.
+> Thanks,
+> John
+>
+> On Wed, Aug 24, 2011 at 9:24 AM, Theo van Niekerk <theovn at owasp.org> wrote:
+>>
+>> Hi John
+>>
+>> Thanks for your reply - I'll try and file a bug/issue.
+>>
+>> I store the Master-key (password protected) in a Key-store (also password
+>> protected).
+>> My app has an obscure webpage that asks for these 2 passwords to load the
+>> Master-key in memory where it is kept
+>> The app won't run - returns 503 on most dynamic pages - unless the key is
+>> loaded.
+>> Downside is on a server restart, an operator needs to enter the passwords.
+>> Upside is that one can make the statement that 2 operators each with their
+>> own password are required to start the app.
+>> I think that if you are not involved/aware of a server/app restart then
+>> you are doing something wrong.
+>>
+>> I don't mind sharing/contributing the code - it works for me, but it's not
+>> a work of art.
+
+This is something similar to the work I had tentatively planned for ESAPI 2.1.
+I was planning on doing it when I fix the broken public key crypto. Currently,
+in 2.0.x, the key pair is generated on the fly but never persisted, so as soon
+as the JVM process dies, the keys disappear as well. Next start-up, you get
+a different key pair, which makes the public key crypto in ESAPI 2.0 mostly
+useless.  I figured that in 2.1, I'd store / retrieve key pairs in a
+Java KeyStore
+and password protect the keystore as you have done. I was planning on
+offering other alternatives besides having an operations team manually
+enter a password, since generally most shops wish to take a lights-out
+approach, but there are other possibilities as well. I've already done
+things like this in a general key server that my AppSec team wrote
+at my day job, so I don't think it would be too hard. I probably could of
+had most of it done, but the crypto sections of code more or less had a
+code freeze for about 5 months while the NSA was reviewing it.
+
+However, ESAPI would definitely welcome you to contribute your
+code to the 'contrib' section. You may want to tidy it up or ask
+someone to review it and it's documentation before you contribute
+it, but in general, I think it would serve as a great stopgap until
+2.1 is available with a more integrated solution.
+
+Chris: What does Theo need to do to be able to commit to the ESAPI 'contrib'
+          section?
+
+Thanks,
+-kevin
+-- 
+Blog: http://off-the-wall-security.blogspot.com/
+"The most likely way for the world to be destroyed, most experts agree,
+is by accident. That's where we come in; we're computer professionals.
+We *cause* accidents." ? ? ? ?-- Nathaniel Borenstein
+
+From ryan.barnett at owasp.org  Tue Aug 30 18:03:38 2011
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Tue, 30 Aug 2011 18:03:38 -0400
+Subject: [Owasp-appsensor-project] Question about SE4: Substituting Another
+ User's Valid Session ID or Cookie
+Message-ID: <CA82D67A.31071%ryan.barnett@owasp.org>
+
+This email is more about implementation of Detection Points as I am in the
+process implementing AppSensor Detection Points in the OWASP ModSecurity
+CRS.
+
+I am currently looking at the Session Exception category and have a question
+about SE4 -
+https://www.owasp.org/index.php/AppSensor_DetectionPoints#SE4:_Substituting_
+Another_User.27s_Valid_Session_ID_or_Cookie
+
+SE4, SE5 and SE6 all seem to be related to Session Hijacking where an
+attacker is able to somehow obtain an authenticated user's SessionID and
+they then simultaneously log into the application.  At this point, Detection
+Points SE5 and SE6 would most likely trigger as the Source IP/Range and the
+User-Agent string values would most likely change.  Without correlating
+SE5/SE6, how would you suggest SE4 be detected?  How would you know that the
+SessionID/Cookie data is not correct for that user?  In ModSecurity CRS, we
+use the SessionID as the key for persistent storage of data.  The Session
+Hijacking rules grab the User-Agent and IP block hashes and save them in the
+Session collection.  If there is ever a mismatch, they alerts for SE5 and
+SE6 are triggered.
+
+I am not sure how to trigger SE4 on its own.
+
+Suggestions welcome.
+
+-Ryan
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110830/46079ede/attachment.html 
+
+From kevin.w.wall at gmail.com  Tue Aug 30 19:36:30 2011
+From: kevin.w.wall at gmail.com (Kevin W. Wall)
+Date: Tue, 30 Aug 2011 19:36:30 -0400
+Subject: [Owasp-appsensor-project] Question about SE4: Substituting
+ Another User's Valid Session ID or Cookie
+In-Reply-To: <CA82D67A.31071%ryan.barnett@owasp.org>
+References: <CA82D67A.31071%ryan.barnett@owasp.org>
+Message-ID: <CAOPE6PiT4rHjHnzm9MxE0-LO9bEXxuJuTnFpo5=s5A78gWvbQg@mail.gmail.com>
+
+On Tue, Aug 30, 2011 at 6:03 PM, Ryan Barnett <ryan.barnett at owasp.org> wrote:
+> This email is more about implementation of Detection Points as I am in the
+> process implementing AppSensor Detection Points in the OWASP ModSecurity
+> CRS.
+> I am currently looking at the Session Exception category and have a question
+> about SE4 -
+> https://www.owasp.org/index.php/AppSensor_DetectionPoints#SE4:_Substituting_Another_User.27s_Valid_Session_ID_or_Cookie
+> SE4, SE5 and SE6 all seem to be related to Session Hijacking where an
+> attacker is able to somehow obtain an authenticated user's SessionID and
+> they then simultaneously log into the application. ?At this point, Detection
+> Points SE5 and SE6 would most likely trigger as the Source IP/Range and the
+> User-Agent string values would most likely change. ?Without correlating
+> SE5/SE6, how would you suggest SE4 be detected? ?How would you know that the
+> SessionID/Cookie data is not correct for that user? ?In ModSecurity CRS, we
+> use the SessionID as the key for persistent storage of data. ?The Session
+> Hijacking rules grab the User-Agent and IP block hashes and save them in the
+> Session collection. ?If there is ever a mismatch, they alerts for SE5 and
+> SE6 are triggered.
+> I am not sure how to trigger SE4 on its own.
+> Suggestions welcome.
+
+I guess that 'SE4' could depend on how you interpret the term 'Session Cookie',
+or perhaps just how it is implemented. If we are talking about
+something other than
+the normal, run-of-the-mill 'JSESSIONID' or 'ASPSESSIONID' cookies /
+identifiers that
+are generally used for session identity, then I could see one way that
+this could happen.
+Suppose instead of merely using hashed-based session identifiers or ones from a
+cryptographically strong PRNG, one instead created an *encrypted*
+cookie and used
+them for session identities.
+
+On could include any reasonably unchanging HTTP request header values in
+the encrypted session identifier (e.g., Locale:, User-Agent, the names [or even
+values] of other cookies that are present, etc.) BTW, it is also
+common to include a
+last update time and the user name in such cookies.
+
+So, in the example that Ryan was discussing, lets suppose that the
+session cookie
+itself contained the encrypted value for the User-Agent header in it
+along with other
+things (e.g., probably a cryptographically secure random # of N-bits).  So Eve
+is playing the role of the passive attacker and steals Alice's encrypted session
+cookie and then plays it back to the site. The server gets the cookie, decrypts
+it, and checks the individual values. Lo and behold it finds a
+discrepancy between
+Alice's User-Agent value (from the decrypted cookie) and Eve's User-Agent
+value. The conclusion is that one cookie was substituted for another.
+
+So that is one way that SE4 could happen.
+
+And lest you think that this is a far-fetched example, it actually is pretty
+common with "web application management" systems such as CA's SiteMinder
+or RSA Security's Access Manager.
+
+HTH,
+-kevin
+--
+Blog: http://off-the-wall-security.blogspot.com/
+"The most likely way for the world to be destroyed, most experts agree,
+is by accident. That's where we come in; we're computer professionals.
+We *cause* accidents." ? ? ? ?-- Nathaniel Borenstein
+
+From ryan.barnett at owasp.org  Wed Aug 31 17:17:00 2011
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Wed, 31 Aug 2011 17:17:00 -0400
+Subject: [Owasp-appsensor-project] Implementing OWASP AppSensor Detection
+ Points in the OWASP ModSecurity Core Rule Set
+Message-ID: <CA841D0C.313C1%ryan.barnett@owasp.org>
+
+Please forgive the cross postings, but I wanted to make sure that all
+relevant parties were informed of this update.  I have begun the process of
+implementing the OWASP AppSensor Detection Points
+(https://www.owasp.org/index.php/AppSensor_DetectionPoints) within the OWASP
+ModSecurity Core Rule Set
+(https://www.owasp.org/index.php/Category:OWASP_ModSecurity_Core_Rule_Set_Pr
+oject).  
+
+I am pleased to announce that I have just made an update to the OWASP CRS
+SVN repository that fully implements the Request Exception (RE) category -
+https://www.owasp.org/index.php/AppSensor_DetectionPoints#RequestException.
+See the following blog post for more details -
+http://blog.spiderlabs.com/2011/08/implementing-appsensor-detection-points-i
+n-modsecurity.html
+
+The major change in this version vs. the earlier one outlined in this blog
+post 
+(http://blog.spiderlabs.com/2011/02/modsecurity-advanced-topic-of-the-week-r
+eal-time-application-profiling.html) is that both the profiling and
+detection logic has been moved to Lua scripts.  With the increased logic
+capabilities of Lua, we are now able to more accurately profile the
+application in real-time by analyzing traffic and automatically generating
+profiles for the following resource characteristics -
+* Enforcing the expected Request Method(s)
+* Enforce the number of expected parameters (min-max range)
+* Enforce parameter names
+* Enforce parameter lengths (min-max range)
+* Enforce Character Classes
+> * Flag (e.g. - /path/to/foo.php?param)
+> * Digits  (e.g. - /path/to/foo.php?param=1234)
+> * Alpha  (e.g. - /path/to/foo.php?param=abcd)
+> * AlphaNumeric  (e.g. - /path/to/foo.php?param=abcd1234)
+> * Email  (e.g. - /path/to/foo.php?param=foo at bar.com)
+> * Path  (e.g. - /path/to/foo.php?param=/dir/somefile.txt)
+> * URL  (e.g. - /path/to/foo.php?param=http://somehost/dir/file.txt)
+> * SafeText  (e.g. - /path/to/foo.php?param=some_data-12)
+The updated rules files are in the /experimental_rules directory -
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/experi
+mental_rules/
+Look in the /lua folder to find the 2 scripts -
+http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/lua/
+
+I encourage people to test out these new rules and to report back their
+experiences ? both good and bad.
+
+FYI ? I also wanted to thank Josh Zlatin for assisting with the initial Lua
+script creation.
+
+Cheers.
+
+--
+Ryan Barnett
+OWASP ModSecurity Core Rule Set Project Leader
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110831/d776cc3b/attachment.html 
+

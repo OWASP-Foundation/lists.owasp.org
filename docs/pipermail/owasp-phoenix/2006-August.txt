@@ -1,0 +1,440 @@
+From email at iseric.com  Mon Aug  7 19:51:46 2006
+From: email at iseric.com (Eric Swanson)
+Date: Mon, 7 Aug 2006 16:51:46 -0700
+Subject: [Owasp-phoenix] Application and Execution Context Identities
+Message-ID: <8232fd8f544d4778959cccbb32639604@iseric.com>
+
+
+		I have been researching issues with validating application identity and execution context (environment) recently.
+
+What are your thoughts/comments/suggestions/etc?  (interested in platform independant solutions as well as specific guidelines/toolkits/libraries/software/etc.)
+
+One of the most difficult scenarios I have brainstormed has been:
+A client has a Microsoft-based website hosted by a 3rd party.  The host exposes a SQL Server database so that the client can connect remotely.  The client's website stores a single encrypted connection string to communicate with the database.  Now, if an attacker were to obtain all of the website's files, they could execute the application from a completely different domain, including writing their own code to interface with the application.
+
+*This example can be extended to any publically exposed service that requires authentication parameters, but relies on the application to provide them without requiring user interaction (web services, XML-RPC, AJAX, remoting, etc.).
+
+I have identified a couple of ways to help protect an application from out-of-context execution, but none of them are fail-safe:
+
+				Store and communicate an application identifier somewhere other than the website file system that the website code can access.  This may not be possible in many hosted environments.  This also does not protect your application from someone with access to this "secret" location, or a compromised system.
+
+				Store and communicate a list of trusted domains and IPs.  These can be spoofed.  Web farms and network communications can also introduce elements of complexity.
+
+		Additionally, many programmers do not take the time to secure execution of their code in a web environment (i.e. once someone obtains the website's code they often have "free reign" over the code's execution).  As you can see, the concern isn't simply the application-supplied authentication credentials (like a database connection string), but the direct manipulation of an application's code execution (like writing a custom class to initialize the website's data access layer and carry out a series of unsavory commands).
+
+Ideally, all of a website's support services (databases, application server APIs, etc.) would only be exposed on an internal network not available to the public so that communications inherently depend on internal execution context.  However, the reality is much different.
+
+Eric Swanson
+http://www.ericis.com/ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/1a070e02/attachment.html 
+
+From email at iseric.com  Mon Aug  7 20:27:10 2006
+From: email at iseric.com (Eric Swanson)
+Date: Mon, 7 Aug 2006 17:27:10 -0700
+Subject: [Owasp-phoenix] [Owasp-dotnet] Application and Execution
+	Context Identities
+Message-ID: <539045bb9b074dd8ac5b48abfac96d3a@iseric.com>
+
+
+		All -  
+		Is it possible to locally install another
+domain's SSL certificate and effectively impersonate the domain without
+receiving certificate errors? 
+
+Mike,
+
+Storing an encryption key on the server in a hosted environment usually
+means that it is written to a file, which can be located within the
+web root itself (for many hosts).  Hosts may provide a separate, additional directory
+that is not relative to the website's root for storage.  However, this situation
+still allows your application to be copied with the appropriate key
+file and executed elsewhere.  For shared Windows-based hosting, access to the server's registry is rarely allowed.  The separate, private, and secure local directory is an excellent additional measure of securing keys. 
+
+*I am attempting to identify multiple solutions that might allow an application to reliably and securely identify itself and it's execution context.  I am attempting to identify as many solutions as possible between "store a key somewhere, somehow" and "read the server's physical serial number".
+
+Eric Swanson
+http://www.ericis.com/ 
+
+----------------------------------------
+
+				From: mikeiscool <michaelslists at gmail.com>
+Sent: Monday, August 07, 2006 5:01 PM
+To: email at iseric.com
+Subject: SPAM-LOW:  Re: [Owasp-dotnet] Application and Execution Context Identities 
+
+On 8/8/06, Eric Swanson  wrote:
+>  I have been researching issues with validating application identity and
+> execution context (environment) recently.
+>
+> What are your thoughts/comments/suggestions/etc?
+> (interested in platform independant solutions as well as specific
+> guidelines/toolkits/libraries/software/etc.)
+>
+> One of the most difficult scenarios I have brainstormed has been:
+> A client has a Microsoft-based website hosted by a 3rd party.  The host
+> exposes a SQL Server database so that the client can connect remotely.  The
+> client's website stores a single encrypted connection string to communicate
+> with the database.  Now, if an attacker were to obtain all of the website's
+> files, they could execute the application from a completely different
+> domain, including writing their own code to interface with the application.
+>
+> *This example can be extended to any publically exposed service that
+> requires authentication parameters, but relies on the application to provide
+> them without requiring user interaction (web services, XML-RPC, AJAX,
+> remoting, etc.).
+>
+> I have identified a couple of ways to help protect an application from
+> out-of-context execution, but none of them are fail-safe:
+>
+>
+> Store and communicate an application identifier somewhere other than the
+> website file system that the website code can access.  This may not be
+> possible in many hosted environments.  This also does not protect your
+> application from someone with access to this "secret" location, or a
+> compromised system.
+>
+> Store and communicate a list of trusted domains and IPs.  These can be
+> spoofed.  Web farms and network communications can also introduce elements
+> of complexity.
+>  Additionally, many programmers do not take the time to secure execution of
+> their code in a web environment (i.e. once someone obtains the website's
+> code they often have "free reign" over the code's execution).  As you can
+> see, the concern isn't simply the application-supplied authentication
+> credentials (like a database connection string), but the direct manipulation
+> of an application's code execution (like writing a custom class to
+> initialize the website's data access layer and carry out a series of
+> unsavory commands).
+>
+> Ideally, all of a website's support services (databases, application server
+> APIs, etc.) would only be exposed on an internal network not available to
+> the public so that communications inherently depend on internal execution
+> context.  However, the reality is much different.
+
+As usual the answer to how to secure a hardcoded file is to keep the
+password of the server. If your attack scenario is someone stealing
+the source code [i.e some file download attack, or stolen backup tapes
+or something], then it's trivial to protect it with a required 'server
+initialisation' phase.
+
+That is, until you have visit: https://foo/setKey.whatever and entered
+in the application key, the system cannot run.
+
+The app will then use the key, decrypt the connection string or
+whatever else, and then release the key. We can then narrow the attack
+scenario down to someone accessing a live running server and copying
+the runtime to disk, or finding the connection string in memory. Alot
+harder then simplying getting source files ...
+
+> Eric Swanson
+> http://www.ericis.com/
+
+-- mic
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/26ad901f/attachment.html 
+
+From dinis at ddplus.net  Thu Aug 31 18:14:28 2006
+From: dinis at ddplus.net (Dinis Cruz)
+Date: Thu, 31 Aug 2006 18:14:28 -0400
+Subject: [Owasp-phoenix] OWASP Autumn Of Code 2006
+Message-ID: <21f989342ddc443ba83346f5957333f6@ddplus.net>
+
+
+
+For Immediate Release
+
+				OWASP Autumn Of Code 2006
+
+				London, United Kingdom, August 31, 2006
+
+The Open Web Application Security Project (OWASP) is launching
+today a new project aimed at financially sponsoring contributions to OWASP Projects.
+
+The new project, called "OWASP Autumn of Code 2006", aims to
+sponsor 8 individuals (4 at $3,500 USD and 4 at $5,000 USD) to work on
+existing OWASP Projects. The objective is to improve the selected
+projects to a the level of completeness and professionalism required
+for its wide use and deployment.
+
+There are no geographical, age or any other form of restrictions
+of who can apply for an "OWASP Autumn of Code 2006" sponsorship. The
+only requirement is that the candidate shows the potential to
+accomplish the project's objectives and the commitment to dedicate the
+time required to complete it in the allocated time frame (projects must
+be completed by 31st December 2006).
+
+Prospective candidates should visit the page https://www.owasp.org/index.php/Owasp_Autumn_Of_Code_2006 for project ideas, rules and information on how to apply.
+
+				Project Schedule:
+
+				 31th August - 'OWASP Autumn of Code' initiative is officially launched 
+
+				 18th September - Deadline for project proposals
+
+				 25th September - Publish of selected projects
+
+				 1st October - Project starts 
+
+				 15th October - Update of Project status on OWASP Conference in Seattle
+
+				 15th November - Participants and to report on project status 
+
+				 31st December - Project Completion 
+
+The "OWASP Autumn of Code 2006" project leader is Dinis Cruz (based in London, UK) who can be contacted for further details.
+
+				About OWASP
+
+The Open Web Application Security Project (OWASP) is 501c3
+not-for-profit foundation dedicated to enabling organizations to
+develop, purchase, and maintain applications that can be trusted.
+OWASP's open source projects and local chapters produce free, unbiased,
+open-source documentation and tools. The OWASP community
+also facilitates conferences, local chapters, papers, presentations,
+and mailing lists. More information can be found at www.owasp.org.
+
+				ENDS
+
+				Contacts
+
+Dinis Cruz, OWASP Autumn of Code Project Leader,
+
+E-mail: dinis.cruz at owasp.net 
+
+Andrew van der Stock, OWASP Executive Director, 
+
+E-mail: vanderaj at owasp.org
+
+Jeff Williams, OWASP Chair (Alternative contact for all OWASP matters), 
+
+E-mail:jeff.williams at owasp.org
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060831/e440c075/attachment.html 
+
+From email at iseric.com  Mon Aug  7 19:51:46 2006
+From: email at iseric.com (Eric Swanson)
+Date: Mon, 7 Aug 2006 16:51:46 -0700
+Subject: [Owasp-phoenix] Application and Execution Context Identities
+Message-ID: <8232fd8f544d4778959cccbb32639604@iseric.com>
+
+
+		I have been researching issues with validating application identity and execution context (environment) recently.
+
+What are your thoughts/comments/suggestions/etc?  (interested in platform independant solutions as well as specific guidelines/toolkits/libraries/software/etc.)
+
+One of the most difficult scenarios I have brainstormed has been:
+A client has a Microsoft-based website hosted by a 3rd party.  The host exposes a SQL Server database so that the client can connect remotely.  The client's website stores a single encrypted connection string to communicate with the database.  Now, if an attacker were to obtain all of the website's files, they could execute the application from a completely different domain, including writing their own code to interface with the application.
+
+*This example can be extended to any publically exposed service that requires authentication parameters, but relies on the application to provide them without requiring user interaction (web services, XML-RPC, AJAX, remoting, etc.).
+
+I have identified a couple of ways to help protect an application from out-of-context execution, but none of them are fail-safe:
+
+				Store and communicate an application identifier somewhere other than the website file system that the website code can access.  This may not be possible in many hosted environments.  This also does not protect your application from someone with access to this "secret" location, or a compromised system.
+
+				Store and communicate a list of trusted domains and IPs.  These can be spoofed.  Web farms and network communications can also introduce elements of complexity.
+
+		Additionally, many programmers do not take the time to secure execution of their code in a web environment (i.e. once someone obtains the website's code they often have "free reign" over the code's execution).  As you can see, the concern isn't simply the application-supplied authentication credentials (like a database connection string), but the direct manipulation of an application's code execution (like writing a custom class to initialize the website's data access layer and carry out a series of unsavory commands).
+
+Ideally, all of a website's support services (databases, application server APIs, etc.) would only be exposed on an internal network not available to the public so that communications inherently depend on internal execution context.  However, the reality is much different.
+
+Eric Swanson
+http://www.ericis.com/ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/1a070e02/attachment-0002.html 
+
+From email at iseric.com  Mon Aug  7 20:27:10 2006
+From: email at iseric.com (Eric Swanson)
+Date: Mon, 7 Aug 2006 17:27:10 -0700
+Subject: [Owasp-phoenix] [Owasp-dotnet] Application and Execution
+	Context Identities
+Message-ID: <539045bb9b074dd8ac5b48abfac96d3a@iseric.com>
+
+
+		All -  
+		Is it possible to locally install another
+domain's SSL certificate and effectively impersonate the domain without
+receiving certificate errors? 
+
+Mike,
+
+Storing an encryption key on the server in a hosted environment usually
+means that it is written to a file, which can be located within the
+web root itself (for many hosts).  Hosts may provide a separate, additional directory
+that is not relative to the website's root for storage.  However, this situation
+still allows your application to be copied with the appropriate key
+file and executed elsewhere.  For shared Windows-based hosting, access to the server's registry is rarely allowed.  The separate, private, and secure local directory is an excellent additional measure of securing keys. 
+
+*I am attempting to identify multiple solutions that might allow an application to reliably and securely identify itself and it's execution context.  I am attempting to identify as many solutions as possible between "store a key somewhere, somehow" and "read the server's physical serial number".
+
+Eric Swanson
+http://www.ericis.com/ 
+
+----------------------------------------
+
+				From: mikeiscool <michaelslists at gmail.com>
+Sent: Monday, August 07, 2006 5:01 PM
+To: email at iseric.com
+Subject: SPAM-LOW:  Re: [Owasp-dotnet] Application and Execution Context Identities 
+
+On 8/8/06, Eric Swanson  wrote:
+>  I have been researching issues with validating application identity and
+> execution context (environment) recently.
+>
+> What are your thoughts/comments/suggestions/etc?
+> (interested in platform independant solutions as well as specific
+> guidelines/toolkits/libraries/software/etc.)
+>
+> One of the most difficult scenarios I have brainstormed has been:
+> A client has a Microsoft-based website hosted by a 3rd party.  The host
+> exposes a SQL Server database so that the client can connect remotely.  The
+> client's website stores a single encrypted connection string to communicate
+> with the database.  Now, if an attacker were to obtain all of the website's
+> files, they could execute the application from a completely different
+> domain, including writing their own code to interface with the application.
+>
+> *This example can be extended to any publically exposed service that
+> requires authentication parameters, but relies on the application to provide
+> them without requiring user interaction (web services, XML-RPC, AJAX,
+> remoting, etc.).
+>
+> I have identified a couple of ways to help protect an application from
+> out-of-context execution, but none of them are fail-safe:
+>
+>
+> Store and communicate an application identifier somewhere other than the
+> website file system that the website code can access.  This may not be
+> possible in many hosted environments.  This also does not protect your
+> application from someone with access to this "secret" location, or a
+> compromised system.
+>
+> Store and communicate a list of trusted domains and IPs.  These can be
+> spoofed.  Web farms and network communications can also introduce elements
+> of complexity.
+>  Additionally, many programmers do not take the time to secure execution of
+> their code in a web environment (i.e. once someone obtains the website's
+> code they often have "free reign" over the code's execution).  As you can
+> see, the concern isn't simply the application-supplied authentication
+> credentials (like a database connection string), but the direct manipulation
+> of an application's code execution (like writing a custom class to
+> initialize the website's data access layer and carry out a series of
+> unsavory commands).
+>
+> Ideally, all of a website's support services (databases, application server
+> APIs, etc.) would only be exposed on an internal network not available to
+> the public so that communications inherently depend on internal execution
+> context.  However, the reality is much different.
+
+As usual the answer to how to secure a hardcoded file is to keep the
+password of the server. If your attack scenario is someone stealing
+the source code [i.e some file download attack, or stolen backup tapes
+or something], then it's trivial to protect it with a required 'server
+initialisation' phase.
+
+That is, until you have visit: https://foo/setKey.whatever and entered
+in the application key, the system cannot run.
+
+The app will then use the key, decrypt the connection string or
+whatever else, and then release the key. We can then narrow the attack
+scenario down to someone accessing a live running server and copying
+the runtime to disk, or finding the connection string in memory. Alot
+harder then simplying getting source files ...
+
+> Eric Swanson
+> http://www.ericis.com/
+
+-- mic
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060807/26ad901f/attachment-0002.html 
+
+From dinis at ddplus.net  Thu Aug 31 18:14:28 2006
+From: dinis at ddplus.net (Dinis Cruz)
+Date: Thu, 31 Aug 2006 18:14:28 -0400
+Subject: [Owasp-phoenix] OWASP Autumn Of Code 2006
+Message-ID: <21f989342ddc443ba83346f5957333f6@ddplus.net>
+
+
+
+For Immediate Release
+
+				OWASP Autumn Of Code 2006
+
+				London, United Kingdom, August 31, 2006
+
+The Open Web Application Security Project (OWASP) is launching
+today a new project aimed at financially sponsoring contributions to OWASP Projects.
+
+The new project, called "OWASP Autumn of Code 2006", aims to
+sponsor 8 individuals (4 at $3,500 USD and 4 at $5,000 USD) to work on
+existing OWASP Projects. The objective is to improve the selected
+projects to a the level of completeness and professionalism required
+for its wide use and deployment.
+
+There are no geographical, age or any other form of restrictions
+of who can apply for an "OWASP Autumn of Code 2006" sponsorship. The
+only requirement is that the candidate shows the potential to
+accomplish the project's objectives and the commitment to dedicate the
+time required to complete it in the allocated time frame (projects must
+be completed by 31st December 2006).
+
+Prospective candidates should visit the page https://www.owasp.org/index.php/Owasp_Autumn_Of_Code_2006 for project ideas, rules and information on how to apply.
+
+				Project Schedule:
+
+				 31th August - 'OWASP Autumn of Code' initiative is officially launched 
+
+				 18th September - Deadline for project proposals
+
+				 25th September - Publish of selected projects
+
+				 1st October - Project starts 
+
+				 15th October - Update of Project status on OWASP Conference in Seattle
+
+				 15th November - Participants and to report on project status 
+
+				 31st December - Project Completion 
+
+The "OWASP Autumn of Code 2006" project leader is Dinis Cruz (based in London, UK) who can be contacted for further details.
+
+				About OWASP
+
+The Open Web Application Security Project (OWASP) is 501c3
+not-for-profit foundation dedicated to enabling organizations to
+develop, purchase, and maintain applications that can be trusted.
+OWASP's open source projects and local chapters produce free, unbiased,
+open-source documentation and tools. The OWASP community
+also facilitates conferences, local chapters, papers, presentations,
+and mailing lists. More information can be found at www.owasp.org.
+
+				ENDS
+
+				Contacts
+
+Dinis Cruz, OWASP Autumn of Code Project Leader,
+
+E-mail: dinis.cruz at owasp.net 
+
+Andrew van der Stock, OWASP Executive Director, 
+
+E-mail: vanderaj at owasp.org
+
+Jeff Williams, OWASP Chair (Alternative contact for all OWASP matters), 
+
+E-mail:jeff.williams at owasp.org
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-phoenix/attachments/20060831/e440c075/attachment-0002.html 
+

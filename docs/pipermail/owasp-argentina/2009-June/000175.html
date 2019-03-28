@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-argentina] Un intento de análisis taint dinámico en Python
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%0A%09%3D%3Fiso-8859-1%3Fq%3FUn_intento_de_an%3DE1lisis_taint_d%3F%3D%0A%09%3D%3Fiso-8859-1%3Fq%3Fin%3DE1mico_en_Python%3F%3D&In-Reply-To=cdfaf8b20906020539x2cfb97b6p6ec52e3bfa70d70b%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <LINK REL="Previous"  HREF="000182.html">
+   <LINK REL="Next"  HREF="000190.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-argentina] Un intento de análisis taint dinámico en Python </H1>
+    <B>Juanjo Conti</B> 
+    <A HREF="mailto:owasp-argentina%40lists.owasp.org?Subject=%5BOwasp-argentina%5D%0A%09%3D%3Fiso-8859-1%3Fq%3FUn_intento_de_an%3DE1lisis_taint_d%3F%3D%0A%09%3D%3Fiso-8859-1%3Fq%3Fin%3DE1mico_en_Python%3F%3D&In-Reply-To=cdfaf8b20906020539x2cfb97b6p6ec52e3bfa70d70b%40mail.gmail.com"
+       TITLE="[Owasp-argentina] Un intento de análisis taint dinámico en Python">jjconti en gmail.com
+       </A><BR>
+    <I>Mar Jun  2 17:27:55 EDT 2009</I>
+    <P><UL>
+        <LI>Mensaje anterior: <A HREF="000182.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+        <LI>Próximo mensaje: <A HREF="000190.html">[Owasp-argentina] Python Tainted Mode
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#175">[ fecha ]</a>
+              <a href="thread.html#175">[ hilo ]</a>
+              <a href="subject.html#175">[ asunto ]</a>
+              <a href="author.html#175">[ autor ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i>
+</I>&gt;<i> Corrí los programas, ví las diferencias en el código, veo que esta
+</I>&gt;<i> funcionando bien =)
+</I>&gt;<i>
+</I>&gt;<i> Ahora... hay una parte del código que no la entiendo, y creo que es
+</I>&gt;<i> porque no entiendo que son las properties de python [0] ? Las partes
+</I>&gt;<i> que no entiendo son las que dicen:
+</I>&gt;<i>
+</I>&gt;<i> @cleaner
+</I>&gt;<i> def limpiarSQLi(s):
+</I>&gt;<i>
+</I>&gt;<i> @ssinc
+</I>&gt;<i> def guardarDB(valor):
+</I>
+cleaner, ssinc y untrusted son decoradores[0], decoran la función para
+agregarle cierto comportamiento.
+
+Lo del @ es azúcar sintáctica:
+
+@miDecorador
+def aDecorar():
+    pass
+
+es equivalente a:
+
+def aDecorar():
+    pass
+
+aDecorar = miDecorador(aDecorar)
+
+Fijate que en dyntaint.py tengo que usar esta segunda forma para
+decorar raw_input por que no tengo acceso a su definición.
+
+&gt;<i>
+</I>&gt;<i> Osea, especificamente que es lo que hacen el @cleaner, @ssinc? Que
+</I>&gt;<i> modificación le aplican al guardarDB? Esto es lo que hace que
+</I>&gt;<i> &quot;cleaner&quot; sea llamado antes de limpiarSQLi? Esto no es una propiedad,
+</I>&gt;<i> o si?
+</I>
+cleaner no es llamado antes de guardarDB. cleaner es llamado luego de
+definir guardarDB y:
+
+- recibe al objeto función guardarDB como argumento.
+- define una nueva función &quot;inner&quot; que recibe argumentos genéricos.
+- en el cuerpo de la función &quot;inner&quot; se realizan algunas acciones (la
+decoración, lo que no tenía la función original)
+- y se llama a la función argumento (guardarDB) con los argumentos
+genéricos como parámetros.
+- cleaner retorna la función &quot;inner&quot;.
+
+[0] <A HREF="http://www.juanjoconti.com.ar/2008/07/11/decoradores-en-python-i/">http://www.juanjoconti.com.ar/2008/07/11/decoradores-en-python-i/</A>
+-- 
+Juanjo Conti
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Mensaje anterior: <A HREF="000182.html">[Owasp-argentina] Un intento de análisis taint dinámico en Python
+</A></li>
+	<LI>Próximo mensaje: <A HREF="000190.html">[Owasp-argentina] Python Tainted Mode
+</A></li>
+         <LI> <B>Mensajes ordenados por:</B> 
+              <a href="date.html#175">[ fecha ]</a>
+              <a href="thread.html#175">[ hilo ]</a>
+              <a href="subject.html#175">[ asunto ]</a>
+              <a href="author.html#175">[ autor ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-argentina">Más información sobre la lista de distribución Owasp-argentina </a><br>
+</body></html>

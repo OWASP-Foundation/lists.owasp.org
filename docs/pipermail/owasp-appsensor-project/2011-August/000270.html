@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] Filter HashMaps and Thread Safety
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20Filter%20HashMaps%20and%20Thread%20Safety&In-Reply-To=CABrG9tmW4vjZ%3DS%3DK4tphE3-HaDApLx7F3FzAQwTCU_2vkM-QUg%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000269.html">
+   <LINK REL="Next"  HREF="000273.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] Filter HashMaps and Thread Safety</H1>
+    <B>John Melton</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20Filter%20HashMaps%20and%20Thread%20Safety&In-Reply-To=CABrG9tmW4vjZ%3DS%3DK4tphE3-HaDApLx7F3FzAQwTCU_2vkM-QUg%40mail.gmail.com"
+       TITLE="[Owasp-appsensor-project] Filter HashMaps and Thread Safety">jtmelton at gmail.com
+       </A><BR>
+    <I>Mon Aug 15 16:22:57 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000269.html">[Owasp-appsensor-project] Filter HashMaps and Thread Safety
+</A></li>
+        <LI>Next message: <A HREF="000273.html">[Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#270">[ date ]</a>
+              <a href="thread.html#270">[ thread ]</a>
+              <a href="subject.html#270">[ subject ]</a>
+              <a href="author.html#270">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Owen,
+I think your implementation is a fine idea. Without seeing all your code,
+I'll just make some generic comments.
+- Not sure if you're duplicating functionality already included in
+appsensor, but the intrusionrecord/intrusionstore classes do keep track of
+intrusions on a per user basis.
+- Looks like you're quartz idea is great - clean up the maps regularly. I'm
+not a quartz user, but if the performance is good and you're taking care of
+the thread synchronization issues, then it sounds good to me.
+- Your expiration idea is a good one, and not being certain of your full
+implementation, looks reasonable. We do timestamp the intrusions in
+appsensor, so it's possible you could accomplish the same thing just by
+comparing the current time to that on the intrusion - just a thought.
+
+All in all, nice work. Please do let us know if you put up a post about your
+implementation. We'd love to see it.
+Thanks,
+John
+
+On Fri, Aug 5, 2011 at 7:27 PM, Owen Berger &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">owen.k.berger at gmail.com</A>&gt; wrote:
+
+&gt;<i> I just checked the codebase, and you did change the maps in the filters to
+</I>&gt;<i> ConcurrentHashMaps. I was looking at an old post somewhere, and neglected to
+</I>&gt;<i> double-check for the latest version of the filter code, my  bad.
+</I>&gt;<i>
+</I>&gt;<i> I have implemented an AppSensorManager class that is a Singleton, and
+</I>&gt;<i> stores both HashMaps as ConcurrentHashMaps. The filters then call on the
+</I>&gt;<i> AppSensorManager when necessary to change or look up information in the
+</I>&gt;<i> maps.
+</I>&gt;<i>
+</I>&gt;<i> In order to clean the map, I gave each key/value pair an expiration, in the
+</I>&gt;<i> form of an object (value) which is mapped to the sessionID (key) :
+</I>&gt;<i>
+</I>&gt;<i> private static class ClientIpAndExpire {
+</I>&gt;<i>         private String clientIp;
+</I>&gt;<i>         private DateTime expiration;
+</I>&gt;<i>         private ClientIpAndExpire (String ip) {
+</I>&gt;<i>             this.clientIp = ip;
+</I>&gt;<i>             this.expiration = new DateTime().plusMinutes(30);
+</I>&gt;<i>         }
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>  I then used Quartz to come in and clean the map at regular intervals,
+</I>&gt;<i> removing old sessionId/ClientIP mappings.
+</I>&gt;<i>
+</I>&gt;<i> Does this look like an okay implementation of those filters?  Please
+</I>&gt;<i> remember that I am an amateur developer and am interested in learning as
+</I>&gt;<i> much as possible, so any tweaks or flat-out problems that you see, please
+</I>&gt;<i> let me know about them.
+</I>&gt;<i>
+</I>&gt;<i> Thank you and enjoy your vacation.
+</I>&gt;<i>
+</I>&gt;<i> -Owen Berger
+</I>&gt;<i>
+</I>&gt;<i> p.s. I will put up a post about my use case in a couple of days.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Aug 5, 2011 at 5:39 AM, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Owen,
+</I>&gt;&gt;<i> I'm the lead dev, but am on vacation at the moment. I'll take care of
+</I>&gt;&gt;<i> these when I get back next week sometime.
+</I>&gt;&gt;<i> Thanks,
+</I>&gt;&gt;<i> John
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Thu, Aug 4, 2011 at 9:52 PM, Owen Berger &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">owen.k.berger at gmail.com</A>&gt;wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> This is my first time on the appsensor list, so please let me know if my
+</I>&gt;&gt;&gt;<i> questions have been asked before and I missed it.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> Welcome - glad you're looking into it. If you want to [and are able] to
+</I>&gt;&gt;<i> share your use case, please do - we're interested in gathering info about
+</I>&gt;&gt;<i> how folks are using appsensor.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -What is the best way to implement a thread-safe version of the Static
+</I>&gt;&gt;&gt;<i> HashMap used in the User Agent and Client IP filters?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> I updated the codebase recently to use concurrenthashmaps but I might have
+</I>&gt;&gt;<i> missed these places. I'll look when I get back from vacation.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -Are the Maps thread-safe as is, e.g. as Static maps inside the filter,
+</I>&gt;&gt;&gt;<i> or would a singleton using a ConcurrentHashMap do the same or better job for
+</I>&gt;&gt;&gt;<i> a web application where state is needed?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> These are not thread-safe as is as you mention. They were very simple
+</I>&gt;&gt;<i> examples as you can see, so are not &quot;production&quot; quality. If you end up
+</I>&gt;&gt;<i> making useful changes, please feel free to share back and we can improve
+</I>&gt;&gt;<i> them.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -I would like to make the maps subject to a cleaner that removes all of
+</I>&gt;&gt;&gt;<i> the old map entries utilizing a Job in Quartz, so is that still possible in
+</I>&gt;&gt;&gt;<i> the filter if I use the Static HashMap?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> I've thought a bit about your point of the &quot;cleansing&quot; routine. I don't
+</I>&gt;&gt;<i> think it would work well in it's current incarnation, but you should be able
+</I>&gt;&gt;<i> to move it out to a context style object, make it thread safe and then
+</I>&gt;&gt;<i> access it from both the filter and your quartz job.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks for any help or direction,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -Owen
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-appsensor-project mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">Owasp-appsensor-project at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110815/b340166b/attachment.html">https://lists.owasp.org/pipermail/owasp-appsensor-project/attachments/20110815/b340166b/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000269.html">[Owasp-appsensor-project] Filter HashMaps and Thread Safety
+</A></li>
+	<LI>Next message: <A HREF="000273.html">[Owasp-appsensor-project] Custom AppSensorSecurityConfiguration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#270">[ date ]</a>
+              <a href="thread.html#270">[ thread ]</a>
+              <a href="subject.html#270">[ subject ]</a>
+              <a href="author.html#270">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

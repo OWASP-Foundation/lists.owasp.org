@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-italy] Come proteggere le password e le chiavi nei file	di configurazione
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-italy%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-italy%5D%20Come%20proteggere%20le%20password%20e%20le%20chiavi%20nei%20file%0A%09di%20configurazione&In-Reply-To=%3CF251396A-F723-4C56-A9E6-54AC7B62CE73%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000552.html">
+   <LINK REL="Next"  HREF="000551.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-italy] Come proteggere le password e le chiavi nei file	di configurazione</H1>
+    <B>Giorgio Fedon</B> 
+    <A HREF="mailto:owasp-italy%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-italy%5D%20Come%20proteggere%20le%20password%20e%20le%20chiavi%20nei%20file%0A%09di%20configurazione&In-Reply-To=%3CF251396A-F723-4C56-A9E6-54AC7B62CE73%40gmail.com%3E"
+       TITLE="[Owasp-italy] Come proteggere le password e le chiavi nei file	di configurazione">giorgio.fedon at gmail.com
+       </A><BR>
+    <I>Wed Aug 14 21:59:54 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000552.html">[Owasp-italy] Come proteggere le password e le chiavi nei file	di configurazione
+</A></li>
+        <LI>Next message: <A HREF="000551.html">[Owasp-italy] Come proteggere le password e le chiavi nei file	di	configurazione
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#550">[ date ]</a>
+              <a href="thread.html#550">[ thread ]</a>
+              <a href="subject.html#550">[ subject ]</a>
+              <a href="author.html#550">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Buonasera,
+
+il tema della segretezza dei segreti nei file di configurazione &#232; un tema molto dibattuto. Il mio personale punto di vista &#232; che la soluzione migliore al problema dipende dal contesto tecnologico infrastrutturale utilizzato. 
+
+Bisogna quindi come regola generale seguire le best practice del proprio application server in termini di sicurezza delle configurazioni. 
+
+E' bene premettere che i file di configurazione devono essere accessibili solo localmente: a meno di non sfruttare vulnerabilit&#224; che lo permettano, tali file non sono raggiungibili da un attaccante remoto. 
+
+Ragionando in tale senso ammettendo che si voglia proteggere il file di configurazione da vulnerabilit&#224; remote che permettano un parziale accesso alle risorse di sistema (es la vulnerabilit&#224; permette la lettura dei file e.g. path traversal ma non la lettura diretta della memora ram e.g. esecuzione nativa di codice ) si pu&#243; utilizzare ad esempio il sandboxing offerto dagli application server pi&#249; evoluti. Il file di configurazione viene letto dall'utente principale e viene messo a disposizione (   sotto forma di interfacce e connettori )  all'application pool  che girando con un altro utente viene configurato per non essere in grado di leggere i file originari di configurazione. 
+
+Alcune infrastrutture applicative permettono anche di aggiungere un layer di cifratura implementato in modo corretto seguendo i principi di defense in depth e segregation. Il punto di riferimento in questo ambito &#232; da lungo tempo Microsoft con i suoi Data Security Provider. Mi auguro in futuro di vedere tali implementazioni anche in ambito Java.
+
+Esistono inoltre anche soluzioni hardware chiamate con acronimo HSM per proteggere tali informazioni, ma essendo soluzioni particolari necessitano di ulteriori approfondimenti.
+
+In igni caso &#232; bene precisare che Il sandboxing garantito dall'application server &#232; generalmente inefficace contro vulnerabilit&#224; critiche quali esecuzione di codice. Tramite tali vilnerabilit&#224; &#232; possibile difatti accedere direttamente ai connector dei provider di accesso-dati. 
+
+Del resto, l'applicazione deve poter usare il proprio database per funzionare correttamente.
+
+Si sconsiglia inoltre di creare soluzioni veloci in casa senza aver approfondito prima cosa mette a disposizione l'application server del proprio vendor di riferimento.
+
+Un comune errore nelle soluzioni &quot;fai da te&quot; &#232; quello di applicare un layer di cifratura inadeguato. Tale soluzione pu&#243; non costituire segregation nel caso in cui ad esempio la chiave sia disponibile allo stesso livello di trust raggiungibile da una potenziale vulnerabilit&#224; da cui ci si vuole proteggere.
+
+Un attaccante pu&#243; ad esempio prima leggere la chiave e poi decifrare il file se la soluzione non &#232; studiata correttamente.
+
+
+Inviato da iPhone
+
+Il giorno 01/ago/2013, alle ore 16:32, Claudio Signorini &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-italy">othellico at gmail.com</A>&gt; ha scritto:
+
+&gt;<i> Ciao a tutti,
+</I>&gt;<i> cercando in giro ho capito che il tema &#232; sentito, ma sinceramente non ho trovato una risposta valida che sia una.
+</I>&gt;<i> Parto dall'inizio.
+</I>&gt;<i> 
+</I>&gt;<i> Per lo pi&#249; la mia azienda si occupa dello sviluppo di servizi web. Quindi web application Java che esponiamo in internet a cui i clienti accedono, si autenticano, lavorano, etc etc etc.
+</I>&gt;<i> I nostri servizi hanno spesso bisogno di utilizzare altri servizi: alcuni interni altri esterni. Ma &#232; normale, per accedere ad un servizio, che sia necessario utilizzare una password o una chiave privata (nel senso pi&#249; generico del termine).
+</I>&gt;<i> Il problema che stiamo cercando di risolvere &#232;: dove &#232; sicuro scrivere tali password/chiavi?
+</I>&gt;<i> 
+</I>&gt;<i> Alcune risposte sono state:
+</I>&gt;<i> 
+</I>&gt;<i> - in un file di configurazione, ovvero in chiaro sulle macchine su cui gira l'applicazione -&gt; non &#232; accettabile, perch&#233; se un attaccante prende il controllo della macchina o riesce ad accedere al file pu&#242; leggere il file di configurazione e leggere pertanto la password;
+</I>&gt;<i> 
+</I>&gt;<i> - annegate nel codice dell'applicazione -&gt; non &#232; accettabile perch&#233; verrebbero scritte nei repository dei sorgenti e quindi tutti gli sviluppatori potrebbero leggere tali password; inoltre essendo le nostre applicazioni scritte in Java (e non potendo offuscare tutti i binari) &#232; come scrivere le stesse password in chiaro su un file di configurazione;
+</I>&gt;<i> 
+</I>&gt;<i> - in un file di configurazione ma cifrate -&gt; non &#232; accettabile: per cifrare serve una chiave e dove scrivo la chiave? il problema &#232; solo stato spostato;
+</I>&gt;<i> 
+</I>&gt;<i> - in un archivio (database relazionale, directory service, ...) accessibile solo da pochi: ma per accedere all'archivio avrei bisogno di una password, e siamo di nuovo al punto di prima.
+</I>&gt;<i> 
+</I>&gt;<i> Immagino che questo problema non sia solo della nostra azienda. E, come dicevo, ho trovato altri che hanno posto domande simili. Ma non ho trovato risposte valide.
+</I>&gt;<i> Voi cosa ne dite? Come avete risolto voi questo problema?
+</I>&gt;<i> 
+</I>&gt;<i> GRAZIE!
+</I>&gt;<i> 
+</I>&gt;<i> Claudio Signorini
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-italy mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-italy">Owasp-italy at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-italy">https://lists.owasp.org/mailman/listinfo/owasp-italy</A>
+</I></PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000552.html">[Owasp-italy] Come proteggere le password e le chiavi nei file	di configurazione
+</A></li>
+	<LI>Next message: <A HREF="000551.html">[Owasp-italy] Come proteggere le password e le chiavi nei file	di	configurazione
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#550">[ date ]</a>
+              <a href="thread.html#550">[ thread ]</a>
+              <a href="subject.html#550">[ subject ]</a>
+              <a href="author.html#550">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-italy">More information about the Owasp-italy
+mailing list</a><br>
+</body></html>

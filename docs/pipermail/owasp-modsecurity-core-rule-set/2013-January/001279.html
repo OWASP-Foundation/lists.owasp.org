@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] experimental brute_force	protection rule
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20experimental%20brute_force%0A%09protection%20rule&In-Reply-To=%3C4D4373D703ED1C41BE658211EED9530B16B35E62%40ueastfexch02.UEA.AC.UK%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001278.html">
+   <LINK REL="Next"  HREF="001280.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] experimental brute_force	protection rule</H1>
+    <B>Paul Beckett (ITCS)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20experimental%20brute_force%0A%09protection%20rule&In-Reply-To=%3C4D4373D703ED1C41BE658211EED9530B16B35E62%40ueastfexch02.UEA.AC.UK%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] experimental brute_force	protection rule">P.Beckett at uea.ac.uk
+       </A><BR>
+    <I>Mon Jan 14 13:22:21 UTC 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001278.html">[Owasp-modsecurity-core-rule-set] ModSecurity Mitigations for Ruby	on Rails XML Exploits
+</A></li>
+        <LI>Next message: <A HREF="001280.html">[Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1279">[ date ]</a>
+              <a href="thread.html#1279">[ thread ]</a>
+              <a href="subject.html#1279">[ subject ]</a>
+              <a href="author.html#1279">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm pretty new to this list, so apologies if this is the wrong place for this.
+
+I've just been looking at the experimental brute force protection rules in OWASP CRS v2.2.7. Currently I still have the default brute_force_protected_urls value of &quot;/login.jsp /partner_login.php&quot;, and was initially surprised to see that the home-page of my site triggered these rules. I think this is because the homepage &quot;/&quot; is always going to be within &quot;/login.jsp&quot; and will therefore never bypass rule 981039.
+
+For me, matching the home-page of my site, wasn't my expected behaviour for this rule. To avoid matching the site home-page I guess I could either remove the leading slash in the brute_force_protected_urls , or for sites that only require protecting a single URL I could change the @within operator to be @streq. Any other thoughts / ideas would be welcome.
+
+Cheers,
+Paul
+
+modsecurity_crs_10_setup.conf:
+
+SecAction \
+
+  &quot;id:'900014', \
+
+  phase:1, \
+
+  t:none, \
+
+  setvar:'tx.brute_force_protected_urls=/login.jsp /partner_login.php', \
+
+  setvar:'tx.brute_force_burst_time_slice=60', \
+
+  setvar:'tx.brute_force_counter_threshold=10', \
+
+  setvar:'tx.brute_force_block_timeout=300', \
+
+  nolog, \
+
+  pass&quot;
+
+
+
+
+
+modsecurity_crs_11_brute_force.conf
+
+SecRule IP:BRUTE_FORCE_BLOCK &quot;@eq 1&quot; &quot;chain,phase:1,id:'981036',block,msg:'Brute Force Attack Identified from %{remote_addr} (%{tx.brute_force_block_counter} hits since last alert)',setvar:ip.brute_force_block_counter=+1&quot;
+
+        SecRule &amp;IP:BRUTE_FORCE_BLOCK_FLAG &quot;@eq 0&quot; &quot;setvar:ip.brute_force_block_flag=1,expirevar:ip.brute_force_block_flag=60,setvar:tx.brute_force_block_counter=%{ip.brute_force_block_counter},setvar:ip.brute_force_block_counter=0&quot;
+
+
+
+#
+
+# Block and track # of requests but don't log
+
+SecRule IP:BRUTE_FORCE_BLOCK &quot;@eq 1&quot; &quot;phase:1,id:'981037',block,nolog,setvar:ip.brute_force_block_counter=+1&quot;
+
+
+
+#
+
+# skipAfter Checks
+
+# There are different scenarios where we don't want to do checks -
+
+# 1. If the user has not defined any URLs for Brute Force Protection in the 10 config file
+
+# 2. If the current URL is not listed as a protected URL
+
+# 3. If the current IP address has already been blocked due to high requests
+
+# In these cases, we skip doing the request counts.
+
+#
+
+SecRule &amp;TX:BRUTE_FORCE_PROTECTED_URLS &quot;@eq 0&quot; &quot;phase:5,id:'981038',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS&quot;
+
+SecRule REQUEST_FILENAME &quot;!@within %{tx.brute_force_protected_urls}&quot; &quot;phase:5,id:'981039',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS&quot;
+
+SecRule IP:BRUTE_FORCE_BLOCK &quot;@eq 1&quot; &quot;phase:5,id:'981040',t:none,nolog,pass,skipAfter:END_BRUTE_FORCE_PROTECTION_CHECKS&quot;
+
+
+
+#
+
+# Brute Force Counter
+
+# Count the number of requests to these resoures
+
+#
+
+SecAction &quot;phase:5,id:'981041',t:none,nolog,pass,setvar:ip.brute_force_counter=+1&quot;
+
+
+
+#
+
+# Check Brute Force Counter
+
+# If the request count is greater than or equal to 50 within 5 mins,
+
+# we then set the burst counter
+
+#
+
+SecRule IP:BRUTE_FORCE_COUNTER &quot;@gt %{tx.brute_force_counter_threshold}&quot; &quot;phase:5,id:'981042',t:none,nolog,pass,t:none,setvar:ip.brute_force_burst_counter=+1,expirevar:ip.brute_force_burst_counter=%{tx.brute_force_burst_time_slice},setvar:!ip.brute_force_counter&quot;
+
+
+
+#
+
+# Check Brute Force Burst Counter and set Block
+
+# Check the burst counter - if greater than or equal to 2, then we set the IP
+
+# block variable for 5 mins and issue an alert.
+
+#
+
+SecRule IP:BRUTE_FORCE_BURST_COUNTER &quot;@ge 2&quot; &quot;phase:5,id:'981043',t:none,log,pass,msg:'Potential Brute Force Attack from %{remote_addr} - # of Request Bursts: %{ip.brute_force_burst_counter}',setvar:ip.brute_force_block=1,expirevar:ip.brute_force_block=%{tx.brute_force_block_timeout}&quot;
+
+
+
+SecMarker END_BRUTE_FORCE_PROTECTION_CHECKS
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130114/c86c27a6/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130114/c86c27a6/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001278.html">[Owasp-modsecurity-core-rule-set] ModSecurity Mitigations for Ruby	on Rails XML Exploits
+</A></li>
+	<LI>Next message: <A HREF="001280.html">[Owasp-modsecurity-core-rule-set] experimental brute_force protection rule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1279">[ date ]</a>
+              <a href="thread.html#1279">[ thread ]</a>
+              <a href="subject.html#1279">[ subject ]</a>
+              <a href="author.html#1279">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

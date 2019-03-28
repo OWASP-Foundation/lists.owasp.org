@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] allow:request
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20allow%3Arequest&In-Reply-To=CA67212E.2E931%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000830.html">
+   <LINK REL="Next"  HREF="000832.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] allow:request</H1>
+    <B>David Sinclair</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20allow%3Arequest&In-Reply-To=CA67212E.2E931%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] allow:request">dbsinclair at multiservice.com
+       </A><BR>
+    <I>Tue Aug  9 17:46:21 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000830.html">[Owasp-modsecurity-core-rule-set] allow:request
+</A></li>
+        <LI>Next message: <A HREF="000832.html">[Owasp-modsecurity-core-rule-set] allow:request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#831">[ date ]</a>
+              <a href="thread.html#831">[ thread ]</a>
+              <a href="subject.html#831">[ subject ]</a>
+              <a href="author.html#831">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The SecRuleEngine variable is set to DetectionOnly.  I guess that makes
+sense if it only detecting but wish it had been documented a bit more.
+Thank you for the help and quick response.
+
+David B. Sinclair
+Security Manager
+Email:   <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dbsinclair at multiservice.com</A>
+-----Original Message-----
+From: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>]
+Sent: Tuesday, August 09, 2011 4:41 PM
+To: David Sinclair; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+Subject: Re: [Owasp-modsecurity-core-rule-set] allow:request
+
+What is your SecRuleEngine set to?  If it is DetectionOnly then it will
+not execute allow actions as they are considered disruptive.  If this is
+the case, then you can add &quot;ctl:ruleEngine=On&quot; to your rule to trigger the
+allow.  Remember though, that this has now enabled blocking mode for this
+transaction which means that any phase 3 and 4 rules may trigger blocks.
+If you don't want that, then you should add another phase:3 rule to your
+custom rules file to &quot;ctl:ruleEngine=DetectionOnly&quot;.
+
+-Ryan
+
+From: David Sinclair
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dbsinclair at multiservice.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dbsinclair at multiservice.com</A>&gt;&gt;
+Date: Tue, 9 Aug 2011 16:37:12 -0500
+To:
+&quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:owasp-modsecurity-
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">core-rule-set at lists.owasp.org</A>&gt;&quot;
+&lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:owasp-modsecurity-
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">core-rule-set at lists.owasp.org</A>&gt;&gt;
+Subject: [Owasp-modsecurity-core-rule-set] allow:request
+
+I am rather new to modsecurity rules and am having trouble understanding
+the functionality of allow:request.  From this debug logsnippet, I have
+written a custom rule, modsecurity_crs_15_custom_rules.conf,  that is
+designed to allow the GET of a .dtd and skip the remainder of request
+phase processing with allow:request.  However, this log shows that the
+processing of the rules in the request phases continues with crs_20 that I
+am trying to avoid.  Is there something that I have missed?
+
+ Warning. Operator EQ matched 0 at TX. [file
+&quot;/etc/httpd/conf/modsecurity_crs/modsecurity_crs_10_config.conf&quot;] [line
+&quot;309&quot;] [id &quot;98
+ Rule returned 1.
+ Match -&gt; mode NEXT_RULE.
+ Recipe: Invoking rule 2ad8c7cf62e0; [file
+&quot;/etc/httpd/conf/modsecurity_crs/base_rules/modsecurity_crs_15_custom_rule
+s.conf&quot;] [line
+ Rule 2ad8c7cf62e0: SecRule &quot;REQUEST_METHOD&quot; &quot;@rx ^GET$&quot;
+&quot;phase:1,chain,nolog,t:none,severity:6,rev:1.0.0,allow:request,msg:'Allow
+ Transformation completed in 1 usec.
+ Executing operator &quot;rx&quot; with param &quot;^GET$&quot; against REQUEST_METHOD.
+ Target value: &quot;GET&quot;
+ Operator completed in 2 usec.
+ Rule returned 1.
+ Match -&gt; mode NEXT_RULE.
+ Recipe: Invoking rule 2ad8c7cf6ea0; [file
+&quot;/etc/httpd/conf/modsecurity_crs/base_rules/modsecurity_crs_15_custom_rule
+s.conf&quot;] [line
+ Rule 2ad8c7cf6ea0: SecRule &quot;REQUEST_FILENAME&quot; &quot;@rx ^/dtd/.*[.]dtd$&quot;
+&quot;t:none&quot;
+ Transformation completed in 1 usec.
+ Executing operator &quot;rx&quot; with param &quot;^/dtd/.*[.]dtd$&quot; against
+REQUEST_FILENAME.
+ Target value: &quot;/dtd/BCSSRequest-v1.1.dtd&quot;
+ Operator completed in 3 usec.
+ Warning. Pattern match &quot;^/dtd/.*[.]dtd$&quot; at REQUEST_FILENAME. [file
+&quot;/etc/httpd/conf/modsecurity_crs/base_rules/modsecurity_crs_15
+ Rule returned 1.
+ Match -&gt; mode NEXT_RULE.
+ Recipe: Invoking rule 2ad8c7cf9ef8; [file
+&quot;/etc/httpd/conf/modsecurity_crs/base_rules/modsecurity_crs_20_protocol_vi
+olations.conf&quot;
+ Rule 2ad8c7cf9ef8: SecRule &quot;REQUEST_LINE&quot; &quot;!@rx
+^(?:(?:[a-z]{3,10}\\s+(?:\\w{3,7}?://[\\w\\-\\./]*(?::\\d+)?)?/[^?#]*(?:\\
+?[^#\\s]
+ T (0) lowercase: &quot;get /dtd/bcssrequest-v1.1.dtd http/1.0&quot;
+ Transformation completed in 9 usec.
+ Executing operator &quot;!rx&quot; with param
+&quot;^(?:(?:[a-z]{3,10}\\s+(?:\\w{3,7}?://[\\w\\-\\./]*(?::\\d+)?)?/[^?#]*(?:\
+\?[^#\\s]*)?(?:#[\\S
+ Target value: &quot;get /dtd/bcssrequest-v1.1.dtd http/1.0&quot;
+ Operator completed in 8 usec.
+ Rule returned 0.
+ No match, not chained -&gt; mode NEXT_RULE.
+
+David B. Sinclair
+Security Manager
+Email:   <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dbsinclair at multiservice.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">dbsinclair at multiservice.com</A>&gt;
+
+
+--------------------------------------------------------------------------
+-------------
+This email is intended solely for the use of the addressee and may
+contain information that is confidential, proprietary, or both.
+If you receive this email in error please immediately notify the
+sender and delete the email.
+--------------------------------------------------------------------------
+-------------
+
+
+
+________________________________
+This transmission may contain information that is privileged,
+confidential, and/or exempt from disclosure under applicable law. If you
+are not the intended recipient, you are hereby notified that any
+disclosure, copying, distribution, or use of the information contained
+herein (including any reliance thereon) is STRICTLY PROHIBITED. If you
+received this transmission in error, please immediately contact the sender
+and destroy the material in its entirety, whether in electronic or hard
+copy format.
+
+---------------------------------------------------------------------------------------
+This email is intended solely for the use of the addressee and may
+contain information that is confidential, proprietary, or both.
+If you receive this email in error please immediately notify the
+sender and delete the email.
+---------------------------------------------------------------------------------------
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000830.html">[Owasp-modsecurity-core-rule-set] allow:request
+</A></li>
+	<LI>Next message: <A HREF="000832.html">[Owasp-modsecurity-core-rule-set] allow:request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#831">[ date ]</a>
+              <a href="thread.html#831">[ thread ]</a>
+              <a href="subject.html#831">[ subject ]</a>
+              <a href="author.html#831">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Correct place for custom scoring	rules
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Correct%20place%20for%20custom%20scoring%0A%09rules&In-Reply-To=%3C5c3c83f3-d6f9-23fe-8834-1f3438f08472%40apra.it%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002416.html">
+   <LINK REL="Next"  HREF="002418.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Correct place for custom scoring	rules</H1>
+    <B>Cristian Mammoli</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Correct%20place%20for%20custom%20scoring%0A%09rules&In-Reply-To=%3C5c3c83f3-d6f9-23fe-8834-1f3438f08472%40apra.it%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Correct place for custom scoring	rules">c.mammoli at apra.it
+       </A><BR>
+    <I>Mon Jul 17 10:29:16 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002416.html">[Owasp-modsecurity-core-rule-set] XSS false negative ?
+</A></li>
+        <LI>Next message: <A HREF="002418.html">[Owasp-modsecurity-core-rule-set] Correct place for custom scoring rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2417">[ date ]</a>
+              <a href="thread.html#2417">[ thread ]</a>
+              <a href="subject.html#2417">[ subject ]</a>
+              <a href="author.html#2417">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi, I'm using crs 3 in &quot;anomaly score mode&quot; and I would like to add a 
+couple of custom rules to &quot;lower&quot; the anomaly score before the final 
+evaliuation
+
+For example I would like to reduce the anomaly score by 2 if the origin 
+country is my own (Italy) or if the origin IP is from some ip address block
+
+Actually I'm including the following file in my &quot;master&quot; modsecurity 
+config file:
+
+IncludeOptional /etc/httpd/modsecurity.d/*.conf
+IncludeOptional /etc/httpd/crs/crs-setup.conf
+IncludeOptional /etc/httpd/crs/rules/*.conf
+
+For example I created the following rule:
+
+SecAction \
+  &quot;id:10009,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:'tx.low_risk_country_codes=IT'&quot;
+
+SecRule TX:LOW_RISK_COUNTRY_CODES &quot;!^$&quot; \
+  &quot;msg:'Client IP is from a LOW Risk Country Location.',\
+   id:10010,\
+   severity:'INFO',\
+   nolog,\
+   phase:request,\
+   pass,\
+   t:none,\
+   chain&quot;
+   SecRule TX:REAL_IP &quot;@geoLookup&quot; \
+    &quot;chain&quot;
+     SecRule GEO:COUNTRY_CODE &quot;@within %{tx.low_risk_country_codes}&quot; \
+      &quot;setvar:'tx.msg=%{rule.msg}',\
+       setvar:tx.anomaly_score=-%{tx.notice_anomaly_score}
+
+But where do I put it to have it processed before the final score is 
+analyzed for rejection?
+
+Thanks
+
+
+-- 
+Mammoli Cristian
+System administrator
+T. +39 0731 22911
+Via Brodolini 6 | 60035 Jesi (an)
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002416.html">[Owasp-modsecurity-core-rule-set] XSS false negative ?
+</A></li>
+	<LI>Next message: <A HREF="002418.html">[Owasp-modsecurity-core-rule-set] Correct place for custom scoring rules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2417">[ date ]</a>
+              <a href="thread.html#2417">[ thread ]</a>
+              <a href="subject.html#2417">[ subject ]</a>
+              <a href="author.html#2417">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

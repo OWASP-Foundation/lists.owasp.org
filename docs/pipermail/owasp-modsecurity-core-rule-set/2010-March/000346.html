@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Unknown blockage
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Unknown%20blockage&In-Reply-To=201003251443.21297.ryan.barnett%40breach.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000345.html">
+   <LINK REL="Next"  HREF="000347.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Unknown blockage</H1>
+    <B>AFaller at excelsior.edu</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Unknown%20blockage&In-Reply-To=201003251443.21297.ryan.barnett%40breach.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Unknown blockage">AFaller at excelsior.edu
+       </A><BR>
+    <I>Thu Mar 25 15:29:24 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000345.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42,	46, and 49
+</A></li>
+        <LI>Next message: <A HREF="000347.html">[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#346">[ date ]</a>
+              <a href="thread.html#346">[ thread ]</a>
+              <a href="subject.html#346">[ subject ]</a>
+              <a href="author.html#346">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi - 
+
+I'm upgrading from Core Rules 1.x to 2.0.6, and for the life of me I can't 
+figure out whats blocking a bunch of requests going to images, css and 
+auxilary files after I set my secdefaultaction from pass --&gt; fail.
+
+I'm running modsec 2.5.12 on httpd 2.2.14 on redhat 4 in a proxy 
+situation.  Below is the audit log of a failed transaction.  I've scrubbed 
+some cookies, IPs and such.  Many of the rules that it matched on don't 
+make sense - for instance two seem to reference content in my GET, but as 
+you can see from the audit log - that is not true.
+
+basically, I switch from SecDefaultAction &quot;phase:2,pass&quot; to 
+SecDefaultAction &quot;phase:2,deny&quot; and things blow up.
+
+Thanks in advance.
+
+--c7bc2307-A--
+[25/Mar/2010:15:17:52 --0400] S6u24KwQx3QAAD98Wq4AAAAF xxxxxx 4913 xxxxxxx 
+8081
+--c7bc2307-B--
+GET /portal/page/portal/EC_Images/Navigation/SHADOW_WHITE.gif HTTP/1.1
+Host: portaltest.xxxxxxxxxxxx
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.2) 
+Gecko/20100316 Firefox/3.6.2 (.NET CLR 3.5.30729)
+Accept: image/png,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive: 115
+Connection: keep-alive
+Referer: <A HREF="https://portaltest.xxxxxxxxx">https://portaltest.xxxxxxxxx</A>
+Cookie: ZZZZZZZZZZZZZ
+Cache-Control: max-age=0
+--c7bc2307-F--
+HTTP/1.1 403 Forbidden
+Last-Modified: Wed, 28 May 2008 15:12:28 GMT
+ETag: &quot;1958230-432-44e4bd7454f00&quot;
+Accept-Ranges: bytes
+Vary: User-Agent
+Keep-Alive: timeout=15, max=199
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html
+--c7bc2307-H--
+Action: Intercepted (phase 4)
+Stopwatch: 1269544672616177 32476 (1886 4785 -)
+Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); 
+core ruleset/2.0.6.
+Server: Apache/2.2.14 (Unix) mod_ssl/2.2.14 OpenSSL/0.9.7a mod_jk/1.2.28
+--c7bc2307-K--
+SecAction 
+&quot;phase:1,auditlog,t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}&quot;
+SecAction &quot;phase:1,auditlog,t:none,nolog,pass,setvar:tx.paranoid_mode=0&quot;
+SecAction 
+&quot;phase:1,auditlog,t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=20&quot;
+SecAction 
+&quot;phase:1,auditlog,t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=15&quot;
+SecAction 
+&quot;phase:1,auditlog,t:none,nolog,pass,setvar:tx.critical_anomaly_score=20,setvar:tx.error_anomaly_score=15,setvar:tx.warning_anomaly_score=10,setvar:tx.notice_anomaly_score=5&quot;
+SecAction &quot;phase:1,auditlog,t:none,nolog,pass,setvar:tx.max_num_args=255&quot;
+SecAction 
+&quot;phase:1,auditlog,t:none,nolog,pass,setvar:'tx.allowed_methods=GET HEAD 
+POST 
+OPTIONS',setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded 
+multipart/form-data text/xml 
+application/xml',setvar:'tx.allowed_http_versions=HTTP/0.9 HTTP/1.0 
+HTTP/1.1',setvar:'tx.restricted_extensions=.asa .asax .ascx .axd .backup 
+.bak .bat .cdx .cer .cfg .cmd .com .config .conf .cs .csproj .csr .dat .db 
+.dbf .dll .dos .htr .htw .ida .idc .idq .inc .ini .key .licx .lnk .log 
+.mdb .old .pass .pdb .pol .printer .pwd .resources .resx .sql .sys .vb 
+.vbs .vbproj .vsdisco .webinfo .xsd 
+.xsx',setvar:'tx.restricted_headers=Lock-Token Content-Range Translate via 
+if'&quot;
+SecRule &quot;REQUEST_METHOD&quot; &quot;@rx ^(?:GET|HEAD)$&quot; 
+&quot;phase:2,chain,rev:2.0.6,t:none,pass,nolog,auditlog,msg:'GET or HEAD 
+requests with 
+bodies',severity:2,id:960011,tag:PROTOCOL_VIOLATION/EVASION,tag:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,tag:<A HREF="http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3&quot;">http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3&quot;</A>
+SecRule &quot;&amp;REQUEST_HEADERS:Content-Type&quot; &quot;@eq 0&quot; 
+&quot;phase:2,deny,chain,rev:2.0.6,t:none,nolog,auditlog,msg:'Request 
+Containing Content, but Missing Content-Type header',id:960904,severity:5&quot;
+SecRule &quot;&amp;TX:MAX_NUM_ARGS&quot; &quot;@eq 1&quot; 
+&quot;phase:2,chain,t:none,pass,nolog,auditlog,msg:'Too many arguments in 
+request',id:960335,severity:4,rev:2.0.6&quot;
+SecRule &quot;REQUEST_BASENAME&quot; &quot;@rx \\.(.*)$&quot; 
+&quot;phase:2,chain,capture,t:none,t:urlDecodeUni,t:lowercase,pass,nolog,auditlog,msg:'URL 
+file extension is restricted by 
+policy',severity:2,id:960035,tag:POLICY/EXT_RESTRICTED,tag:WASCTC/WASC-15,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,logdata:%{TX.0}&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,t:none,nolog,skipAfter:END_SESSION_FIXATION&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,t:none,nolog,skipAfter:END_FILE_INJECTION&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,t:none,nolog,skipAfter:END_COMMAND_ACCESS&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,t:none,nolog,skipAfter:END_COMMAND_INJECTION&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,rev:2.0.6,t:none,nolog,skipAfter:END_SQL_INJECTION_WEAK&quot;
+SecRule &quot;TX:PARANOID_MODE&quot; &quot;!@eq 1&quot; 
+&quot;phase:2,t:none,nolog,skipAfter:END_XSS_CHECK&quot;
+SecRule &quot;RESPONSE_BODY&quot; &quot;!@pm iframe&quot; 
+&quot;phase:4,rev:2.0.6,t:none,capture,t:urlDecodeUni,t:htmlEntityDecode,t:lowercase,nolog,skipAfter:END_IFRAME_CHECK&quot;
+SecRule &quot;RESPONSE_BODY&quot; &quot;!@pmFromFile modsecurity_50_outbound.data&quot; 
+&quot;phase:4,rev:2.0.6,t:none,capture,t:urlDecodeUni,t:htmlEntityDecode,nolog,skipAfter:END_OUTBOUND_CHECK&quot;
+--c7bc2307-Z--
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <A HREF="https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100325/5aea6eb2/attachment.html">https://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20100325/5aea6eb2/attachment.html</A> 
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000345.html">[Owasp-modsecurity-core-rule-set] CRS 2.0.6 Optional Rules: 42,	46, and 49
+</A></li>
+	<LI>Next message: <A HREF="000347.html">[Owasp-modsecurity-core-rule-set] Ha:  Unknown blockage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#346">[ date ]</a>
+              <a href="thread.html#346">[ thread ]</a>
+              <a href="subject.html#346">[ subject ]</a>
+              <a href="author.html#346">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

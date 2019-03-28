@@ -1,0 +1,1884 @@
+From marion.m.belden at boeing.com  Sat May  2 17:11:38 2015
+From: marion.m.belden at boeing.com (Belden, Marion M)
+Date: Sat, 2 May 2015 17:11:38 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Question: ModSecurity 2.9.x,
+	IIS 8 in block mode
+Message-ID: <199000AB84C22B49AA611F5D94766B86554336DA@XCH-BLV-203.nw.nos.boeing.com>
+
+Will ModSecurity 2.9.x run in block mode if using IIS 8, Server 2012? Or is an Apache proxy required?
+
+Thank you,
+Marion
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150502/cc96640e/attachment.html>
+
+From CSanders at trustwave.com  Fri May  8 17:39:39 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Fri, 8 May 2015 17:39:39 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Question: ModSecurity 2.9.x,
+ IIS 8 in block mode
+In-Reply-To: <199000AB84C22B49AA611F5D94766B8655435B25@XCH-BLV-203.nw.nos.boeing.com>
+References: <199000AB84C22B49AA611F5D94766B86554336DA@XCH-BLV-203.nw.nos.boeing.com>
+	<D1724566.5112%csanders@trustwave.com>
+	<199000AB84C22B49AA611F5D94766B8655435B25@XCH-BLV-203.nw.nos.boeing.com>
+Message-ID: <F684BDD553BAF1479F5380EDAD3BE3711EA28602@SKYMB1.trustwave.com>
+
+After testing ModSecurity 2.9 with IIS 8 on server 2k12, I can confirm that it does work with the block directive. The following base configuration resulted in a 403 page when triggered using the following base configuration:
+
+SecRule On
+SecDefaultAction "phase:2,deny,status:403,log"
+SecRule ARGS:test "@rx test" "id:1,block,msg:'test mesg'"
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: <Belden>, Marion M <marion.m.belden at boeing.com<mailto:marion.m.belden at boeing.com>>
+Date: Saturday, May 2, 2015 at 1:11 PM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Question: ModSecurity 2.9.x, IIS 8 in block mode
+
+Will ModSecurity 2.9.x run in block mode if using IIS 8, Server 2012? Or is an Apache proxy required?
+
+Thank you,
+Marion
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150508/1a189e44/attachment.html>
+
+From asiayaisa at hotmail.com  Tue May 12 23:34:22 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Tue, 12 May 2015 20:34:22 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+	positives from my own server IP
+Message-ID: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+
+Hi!I don't know if anyone experiences the same issue as us here, but I suppose at least this might contribute to all.I installed OWASP rules on a Centos running 2 Joomla sites with nearly 5,000 unique visitors a day.I was fortunate enough to identify and disable 12 rules that delivered a bunch of false positives (one of them locked down the server when one of us in the team submitted a security scan from CSF/LFD...).So, now it is running fine but one rule still delivers near 1,000 false positives a day and oddly enough having our own server IP as source!And severity level for ALL of the hits are NOTICE. So, this is not so much troublesome, except for the extra load on the server and the log size. I rotate it automatically everynight but it comes out at nearly 0,3 GB as standard size.So, what I am trying to do but don't know exactly how is to implent something like this in a file named modsecurity_crs_15_localrules.conf:SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW"> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009"where XXX.YYY.Z.WWW is my server's IP address.Does anyone know if this is correct and if it can actually work to keep my server out of this rule execution?Tks a lot!All the best!Luiz Guilherme 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150512/e5ed89fa/attachment.html>
+
+From barry_pollard at hotmail.com  Wed May 13 09:07:24 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Wed, 13 May 2015 10:07:24 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+Message-ID: <DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+
+That would work though I personally prefer to use @ipMatch which also allows you to match multiple IPs:
+
+SecRule REMOTE_ADDR "@ipMatch?XXX.YYY.Z.WWW XXX.YYY.Z.VVVV"??"id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009"?
+
+A few other things to note:
+1) 960009 is a phase 2 rule and you have specified phase 1 in your rule below. I'm pretty sure that rules cannot see other rules outside of their phase so it needs to be in the same phase. So I've updated this to phase 2 in my version above.
+2) Your rule must have it's own id (as of ModSecurity 2.7) so I've given it an id of 1000. Make sure this doesn't clash with any existing rule you have. Principal is anything less than 99,999 are your own use. See here for more info: https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id
+3) You could disable ModSecurity completely for internal addresses with a ctl:ruleEngine=off rule. Personally I don't like that as I want them on for testing purposes so we're not caught out with a rule that only runs in production so think just disabling the specific rules is a better option.
+
+However I think it would be good to understand why you need to do this at all.
+
+Rule 960009 checks for requests missing a user agent. All decent browsers send a user agent hence why this rule is in place as the lack of a user agent is probably due to some script or such like, so it is a good rule.
+
+So why are you getting so many requests from internal addresses without a user agent and should you fix that rather than add the above rule to get around that?
+
+I can think of two reasons:
+
+1) Monitoring scripts or tools which are not quite as compliant as web browsers. So perhaps change these to also report the user agent as that could be useful information to know (though with third party tools that might not always be possible).
+
+2) Needlessly connecting to Apache. We use Apache to server up static pages and also in proxy mode to pass dynamic requests on to an application server. After installing mod security and noticing similar to you, we investigated and discovered some of our dynamic applications were needlessly making calls to Apache, just to connect back to the app server again. It was actually better to change them to connect directly to the app server, which resolved the issue, as well as saving network traffic and a (admittedly small amount of) Apache load.
+
+Thanks,
+Barry
+
+________________________________
+> From: asiayaisa at hotmail.com 
+> To: owasp-modsecurity-core-rule-set at lists.owasp.org 
+> Date: Tue, 12 May 2015 20:34:22 -0300 
+> Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false 
+> positives from my own server IP 
+> 
+> Hi! 
+> 
+> I don't know if anyone experiences the same issue as us here, but I 
+> suppose at least this might contribute to all. 
+> 
+> I installed OWASP rules on a Centos running 2 Joomla sites with nearly 
+> 5,000 unique visitors a day. 
+> 
+> I was fortunate enough to identify and disable 12 rules that delivered 
+> a bunch of false positives (one of them locked down the server when one 
+> of us in the team submitted a security scan from CSF/LFD...). 
+> 
+> So, now it is running fine but one rule still delivers near 1,000 false 
+> positives a day and oddly enough having our own server IP as source! 
+> 
+> And severity level for ALL of the hits are NOTICE. So, this is not so 
+> much troublesome, except for the extra load on the server and the log 
+> size. I rotate it automatically everynight but it comes out at nearly 
+> 0,3 GB as standard size. 
+> 
+> So, what I am trying to do but don't know exactly how is to implent 
+> something like this in a file named modsecurity_crs_15_localrules.conf: 
+> 
+> SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+>> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> where XXX.YYY.Z.WWW is my server's IP address. 
+> 
+> Does anyone know if this is correct and if it can actually work to keep 
+> my server out of this rule execution? 
+> 
+> Tks a lot! 
+> 
+> All the best! 
+> Luiz Guilherme 
+> 
+> _______________________________________________ 
+> Owasp-modsecurity-core-rule-set mailing list 
+> Owasp-modsecurity-core-rule-set at lists.owasp.org 
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 
+ 		 	   		  
+
+From CSanders at trustwave.com  Wed May 13 12:24:07 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Wed, 13 May 2015 12:24:07 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+Message-ID: <D178B6DC.5799%csanders@trustwave.com>
+
+Hey Luiz,
+It looks like the rule in question deals with lack of a user agent, probably from some sort of internal requests or scripts. In any event, your method should work fine. The one thing I will advise is to use the ?new? (modsecurity 2.7 or greater) ipmatch (https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#ipMatch) directive. You should find this makes your code more resilient and readable. If you run into problems keep us updated.
+
+Also, if you find any requests that are made as part of the default installation that cause issues (for instance on /bob/test.php the comment parameter includes stuff that looks like XSS but really isn?t) for a product like Joomla we would consider adding that to the exceptions file.
+
+Thanks for your question, good luck!
+
+
+
+From: Guilherme Y <asiayaisa at hotmail.com<mailto:asiayaisa at hotmail.com>>
+Date: Tuesday, May 12, 2015 at 7:34 PM
+To: "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+
+Hi!
+
+I don't know if anyone experiences the same issue as us here, but I suppose at least this might contribute to all.
+
+I installed OWASP rules on a Centos running 2 Joomla sites with nearly 5,000 unique visitors a day.
+
+I was fortunate enough to identify and disable 12 rules that delivered a bunch of false positives (one of them locked down the server when one of us in the team submitted a security scan from CSF/LFD...).
+
+So, now it is running fine but one rule still delivers near 1,000 false positives a day and oddly enough having our own server IP as source!
+
+And severity level for ALL of the hits are NOTICE. So, this is not so much troublesome, except for the extra load on the server and the log size. I rotate it automatically everynight but it comes out at nearly 0,3 GB as standard size.
+
+So, what I am trying to do but don't know exactly how is to implent something like this in a file named modsecurity_crs_15_localrules.conf:
+
+SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW"
+> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009"
+
+where XXX.YYY.Z.WWW is my server's IP address.
+
+Does anyone know if this is correct and if it can actually work to keep my server out of this rule execution?
+
+Tks a lot!
+
+All the best!
+Luiz Guilherme
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150513/566d8fec/attachment.html>
+
+From asiayaisa at hotmail.com  Fri May 15 12:15:43 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Fri, 15 May 2015 09:15:43 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>,
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+Message-ID: <SNT151-W21EE0F52692C5FE67FA8EDB6C70@phx.gbl>
+
+
+
+
+Many thanks Barry!I appreciate your sharing of your own experience, pretty much exactly the same we face here.Yes, one of our apps generates too many useless connections to Apache. We will work on a new version optimizing this but it will take a while, perhaps a couple of months, and in the meantime we will have to work around with an exception rule.Our mod_security install is standard, e.g. we don't have any exceptions configured yet.So I am not sure as where to put that rule.OWASP is in this path: /usr/local/apache/conf/modsec_vendor_configs/OWASPAnd there's only conf file there: modsecurity_crs_10_setup.confIs it OK to place the @ipmatch exception rule in a file namedmodsecurity_crs_15_localrules.confunder this same folder?  Tks a lot!All the best!Luiz
+
+> From: barry_pollard at hotmail.com
+> To: asiayaisa at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> Date: Wed, 13 May 2015 10:07:24 +0100
+> 
+> That would work though I personally prefer to use @ipMatch which also allows you to match multiple IPs:
+> 
+> SecRule REMOTE_ADDR "@ipMatch XXX.YYY.Z.WWW XXX.YYY.Z.VVVV"  "id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> A few other things to note:
+> 1) 960009 is a phase 2 rule and you have specified phase 1 in your rule below. I'm pretty sure that rules cannot see other rules outside of their phase so it needs to be in the same phase. So I've updated this to phase 2 in my version above.
+> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've given it an id of 1000. Make sure this doesn't clash with any existing rule you have. Principal is anything less than 99,999 are your own use. See here for more info: https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id
+> 3) You could disable ModSecurity completely for internal addresses with a ctl:ruleEngine=off rule. Personally I don't like that as I want them on for testing purposes so we're not caught out with a rule that only runs in production so think just disabling the specific rules is a better option.
+> 
+> However I think it would be good to understand why you need to do this at all.
+> 
+> Rule 960009 checks for requests missing a user agent. All decent browsers send a user agent hence why this rule is in place as the lack of a user agent is probably due to some script or such like, so it is a good rule.
+> 
+> So why are you getting so many requests from internal addresses without a user agent and should you fix that rather than add the above rule to get around that?
+> 
+> I can think of two reasons:
+> 
+> 1) Monitoring scripts or tools which are not quite as compliant as web browsers. So perhaps change these to also report the user agent as that could be useful information to know (though with third party tools that might not always be possible).
+> 
+> 2) Needlessly connecting to Apache. We use Apache to server up static pages and also in proxy mode to pass dynamic requests on to an application server. After installing mod security and noticing similar to you, we investigated and discovered some of our dynamic applications were needlessly making calls to Apache, just to connect back to the app server again. It was actually better to change them to connect directly to the app server, which resolved the issue, as well as saving network traffic and a (admittedly small amount of) Apache load.
+> 
+> Thanks,
+> Barry
+> 
+> ________________________________
+> > From: asiayaisa at hotmail.com 
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org 
+> > Date: Tue, 12 May 2015 20:34:22 -0300 
+> > Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false 
+> > positives from my own server IP 
+> > 
+> > Hi! 
+> > 
+> > I don't know if anyone experiences the same issue as us here, but I 
+> > suppose at least this might contribute to all. 
+> > 
+> > I installed OWASP rules on a Centos running 2 Joomla sites with nearly 
+> > 5,000 unique visitors a day. 
+> > 
+> > I was fortunate enough to identify and disable 12 rules that delivered 
+> > a bunch of false positives (one of them locked down the server when one 
+> > of us in the team submitted a security scan from CSF/LFD...). 
+> > 
+> > So, now it is running fine but one rule still delivers near 1,000 false 
+> > positives a day and oddly enough having our own server IP as source! 
+> > 
+> > And severity level for ALL of the hits are NOTICE. So, this is not so 
+> > much troublesome, except for the extra load on the server and the log 
+> > size. I rotate it automatically everynight but it comes out at nearly 
+> > 0,3 GB as standard size. 
+> > 
+> > So, what I am trying to do but don't know exactly how is to implent 
+> > something like this in a file named modsecurity_crs_15_localrules.conf: 
+> > 
+> > SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+> >> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> > 
+> > where XXX.YYY.Z.WWW is my server's IP address. 
+> > 
+> > Does anyone know if this is correct and if it can actually work to keep 
+> > my server out of this rule execution? 
+> > 
+> > Tks a lot! 
+> > 
+> > All the best! 
+> > Luiz Guilherme 
+> > 
+> > _______________________________________________ 
+> > Owasp-modsecurity-core-rule-set mailing list 
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org 
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 
+>  		 	   		  
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/57316fef/attachment.html>
+
+From asiayaisa at hotmail.com  Fri May 15 14:51:13 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Fri, 15 May 2015 11:51:13 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>,
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+Message-ID: <SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+
+
+
+
+Hi Barry!Well, it didn't work...This is what I did:My mod_security conf and rules files are set up like this:
+              
+
+modsecurity_crs_15_customrules.conf file has only this line:
+SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009"
+I restarted Apache, but rule 960009 still process that IP as source.
+What did I do wrong?
+There is also a file named /usr/local/apache/conf/modsec2.whitelist.conf with just this on it:
+# ConfigServer ModSecurity whitelist file<LocationMatch .*></LocationMatch>
+I'm confused, don't know in which files this directive should go or what else should I have done.Tks!All the best!Luiz
+> From: barry_pollard at hotmail.com
+> To: asiayaisa at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> Date: Wed, 13 May 2015 10:07:24 +0100
+> 
+> That would work though I personally prefer to use @ipMatch which also allows you to match multiple IPs:
+> 
+> SecRule REMOTE_ADDR "@ipMatch XXX.YYY.Z.WWW XXX.YYY.Z.VVVV"  "id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> A few other things to note:
+> 1) 960009 is a phase 2 rule and you have specified phase 1 in your rule below. I'm pretty sure that rules cannot see other rules outside of their phase so it needs to be in the same phase. So I've updated this to phase 2 in my version above.
+> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've given it an id of 1000. Make sure this doesn't clash with any existing rule you have. Principal is anything less than 99,999 are your own use. See here for more info: https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id
+> 3) You could disable ModSecurity completely for internal addresses with a ctl:ruleEngine=off rule. Personally I don't like that as I want them on for testing purposes so we're not caught out with a rule that only runs in production so think just disabling the specific rules is a better option.
+> 
+> However I think it would be good to understand why you need to do this at all.
+> 
+> Rule 960009 checks for requests missing a user agent. All decent browsers send a user agent hence why this rule is in place as the lack of a user agent is probably due to some script or such like, so it is a good rule.
+> 
+> So why are you getting so many requests from internal addresses without a user agent and should you fix that rather than add the above rule to get around that?
+> 
+> I can think of two reasons:
+> 
+> 1) Monitoring scripts or tools which are not quite as compliant as web browsers. So perhaps change these to also report the user agent as that could be useful information to know (though with third party tools that might not always be possible).
+> 
+> 2) Needlessly connecting to Apache. We use Apache to server up static pages and also in proxy mode to pass dynamic requests on to an application server. After installing mod security and noticing similar to you, we investigated and discovered some of our dynamic applications were needlessly making calls to Apache, just to connect back to the app server again. It was actually better to change them to connect directly to the app server, which resolved the issue, as well as saving network traffic and a (admittedly small amount of) Apache load.
+> 
+> Thanks,
+> Barry
+> 
+> ________________________________
+> > From: asiayaisa at hotmail.com 
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org 
+> > Date: Tue, 12 May 2015 20:34:22 -0300 
+> > Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false 
+> > positives from my own server IP 
+> > 
+> > Hi! 
+> > 
+> > I don't know if anyone experiences the same issue as us here, but I 
+> > suppose at least this might contribute to all. 
+> > 
+> > I installed OWASP rules on a Centos running 2 Joomla sites with nearly 
+> > 5,000 unique visitors a day. 
+> > 
+> > I was fortunate enough to identify and disable 12 rules that delivered 
+> > a bunch of false positives (one of them locked down the server when one 
+> > of us in the team submitted a security scan from CSF/LFD...). 
+> > 
+> > So, now it is running fine but one rule still delivers near 1,000 false 
+> > positives a day and oddly enough having our own server IP as source! 
+> > 
+> > And severity level for ALL of the hits are NOTICE. So, this is not so 
+> > much troublesome, except for the extra load on the server and the log 
+> > size. I rotate it automatically everynight but it comes out at nearly 
+> > 0,3 GB as standard size. 
+> > 
+> > So, what I am trying to do but don't know exactly how is to implent 
+> > something like this in a file named modsecurity_crs_15_localrules.conf: 
+> > 
+> > SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+> >> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> > 
+> > where XXX.YYY.Z.WWW is my server's IP address. 
+> > 
+> > Does anyone know if this is correct and if it can actually work to keep 
+> > my server out of this rule execution? 
+> > 
+> > Tks a lot! 
+> > 
+> > All the best! 
+> > Luiz Guilherme 
+> > 
+> > _______________________________________________ 
+> > Owasp-modsecurity-core-rule-set mailing list 
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org 
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 
+>  		 	   		  
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/96cb193b/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: files.png
+Type: image/png
+Size: 14858 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/96cb193b/attachment-0001.png>
+
+From barry_pollard at hotmail.com  Fri May 15 15:39:54 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Fri, 15 May 2015 16:39:54 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>,
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>,
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+Message-ID: <DUB116-W46D518CEEF6E96A6D43DFA82C70@phx.gbl>
+
+I've no idea how your set up works to be honest.
+
+I presume something in your main httpd.conf apache file is loading modsecurity_crs_10_setup.conf file (either directly or by importing another file which imports this)?
+I also presume something else is loading your individual rules files. Perhaps all of the in the rules directory?
+So just sticking a new file in the same folder as?modsecurity_crs_10_setup.conf file?won't necessary cause apache to load it.
+
+So your choices are:
+1) Add that rule to?modsecurity_crs_10_setup.conf file itself.
+2) Move your?modsecurity_crs_15_customrules.conf file to your rules folder (assuming everything in this folder is loaded).
+3) Add another import to load?modsecurity_crs_15_customrules.conf file from the current location.
+
+I would also suggest you take out the "nolog" bit initially, so you can see if your rule is actually firing.
+
+Could also turn on ModSecurity debug to see how the rules are being processed (WARNING: they will quickly log a lot of data in the log file, depending on what debug level you have, so don't suggest you do this in production).
+
+Thanks,
+Barry
+
+________________________________
+> From: asiayaisa at hotmail.com 
+> To: barry_pollard at hotmail.com; 
+> owasp-modsecurity-core-rule-set at lists.owasp.org 
+> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> false positives from my own server IP 
+> Date: Fri, 15 May 2015 11:51:13 -0300 
+> 
+> Hi Barry! 
+> Well, it didn't work... 
+> This is what I did: 
+> My mod_security conf and rules files are set up like this: 
+> 
+> 
+> [https://dub116.afx.ms/att/GetInline.aspx?messageid=d22250f7-fb11-11e4-bebd-002264c248c8&attindex=1&cp=-1&attdepth=1&imgsrc=cid%3ainlineImage0&cid=324504f792fde428&hm__login=barry_pollard&hm__domain=hotmail.com&ip=10.211.96.8&d=d1933&mf=4&hm__ts=Fri%2c%2015%20May%202015%2015%3a31%3a23%20GMT&st=%28000117783B0E2E2B%29&hm__ha=01_9a077cbe7d859370e3ee32f20340e92d0f18b5481315fdc64ae96640a7964c9c&oneredir=1] 
+> 
+> 
+> 
+> modsecurity_crs_15_customrules.conf file has only this line: 
+> 
+> SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" 
+> "id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> I restarted Apache, but rule 960009 still process that IP as source. 
+> 
+> What did I do wrong? 
+> 
+> There is also a file 
+> named /usr/local/apache/conf/modsec2.whitelist.conf with just this on 
+> it: 
+> 
+> # ConfigServer ModSecurity whitelist file 
+> <LocationMatch .*> 
+> </LocationMatch> 
+> 
+> I'm confused, don't know in which files this directive should go or 
+> what else should I have done. 
+> Tks! 
+> All the best! 
+> Luiz 
+> 
+>> From: barry_pollard at hotmail.com 
+>> To: asiayaisa at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org 
+>> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> false positives from my own server IP 
+>> Date: Wed, 13 May 2015 10:07:24 +0100 
+>> 
+>> That would work though I personally prefer to use @ipMatch which also 
+> allows you to match multiple IPs: 
+>> 
+>> SecRule REMOTE_ADDR "@ipMatch XXX.YYY.Z.WWW 
+> XXX.YYY.Z.VVVV" "id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+>> 
+>> A few other things to note: 
+>> 1) 960009 is a phase 2 rule and you have specified phase 1 in your 
+> rule below. I'm pretty sure that rules cannot see other rules outside 
+> of their phase so it needs to be in the same phase. So I've updated 
+> this to phase 2 in my version above. 
+>> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've 
+> given it an id of 1000. Make sure this doesn't clash with any existing 
+> rule you have. Principal is anything less than 99,999 are your own use. 
+> See here for more info: 
+> https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id 
+>> 3) You could disable ModSecurity completely for internal addresses 
+> with a ctl:ruleEngine=off rule. Personally I don't like that as I want 
+> them on for testing purposes so we're not caught out with a rule that 
+> only runs in production so think just disabling the specific rules is a 
+> better option. 
+>> 
+>> However I think it would be good to understand why you need to do 
+> this at all. 
+>> 
+>> Rule 960009 checks for requests missing a user agent. All decent 
+> browsers send a user agent hence why this rule is in place as the lack 
+> of a user agent is probably due to some script or such like, so it is a 
+> good rule. 
+>> 
+>> So why are you getting so many requests from internal addresses 
+> without a user agent and should you fix that rather than add the above 
+> rule to get around that? 
+>> 
+>> I can think of two reasons: 
+>> 
+>> 1) Monitoring scripts or tools which are not quite as compliant as 
+> web browsers. So perhaps change these to also report the user agent as 
+> that could be useful information to know (though with third party tools 
+> that might not always be possible). 
+>> 
+>> 2) Needlessly connecting to Apache. We use Apache to server up static 
+> pages and also in proxy mode to pass dynamic requests on to an 
+> application server. After installing mod security and noticing similar 
+> to you, we investigated and discovered some of our dynamic applications 
+> were needlessly making calls to Apache, just to connect back to the app 
+> server again. It was actually better to change them to connect directly 
+> to the app server, which resolved the issue, as well as saving network 
+> traffic and a (admittedly small amount of) Apache load. 
+>> 
+>> Thanks, 
+>> Barry 
+>> 
+>> ________________________________ 
+>>> From: asiayaisa at hotmail.com 
+>>> To: owasp-modsecurity-core-rule-set at lists.owasp.org 
+>>> Date: Tue, 12 May 2015 20:34:22 -0300 
+>>> Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false 
+>>> positives from my own server IP 
+>>> 
+>>> Hi! 
+>>> 
+>>> I don't know if anyone experiences the same issue as us here, but I 
+>>> suppose at least this might contribute to all. 
+>>> 
+>>> I installed OWASP rules on a Centos running 2 Joomla sites with nearly 
+>>> 5,000 unique visitors a day. 
+>>> 
+>>> I was fortunate enough to identify and disable 12 rules that delivered 
+>>> a bunch of false positives (one of them locked down the server when one 
+>>> of us in the team submitted a security scan from CSF/LFD...). 
+>>> 
+>>> So, now it is running fine but one rule still delivers near 1,000 false 
+>>> positives a day and oddly enough having our own server IP as source! 
+>>> 
+>>> And severity level for ALL of the hits are NOTICE. So, this is not so 
+>>> much troublesome, except for the extra load on the server and the log 
+>>> size. I rotate it automatically everynight but it comes out at nearly 
+>>> 0,3 GB as standard size. 
+>>> 
+>>> So, what I am trying to do but don't know exactly how is to implent 
+>>> something like this in a file named modsecurity_crs_15_localrules.conf: 
+>>> 
+>>> SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+>>>> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+>>> 
+>>> where XXX.YYY.Z.WWW is my server's IP address. 
+>>> 
+>>> Does anyone know if this is correct and if it can actually work to keep 
+>>> my server out of this rule execution? 
+>>> 
+>>> Tks a lot! 
+>>> 
+>>> All the best! 
+>>> Luiz Guilherme 
+>>> 
+>>> _______________________________________________ 
+>>> Owasp-modsecurity-core-rule-set mailing list 
+>>> Owasp-modsecurity-core-rule-set at lists.owasp.org 
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set 
+>> 
+ 		 	   		  
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: files.png
+Type: image/png
+Size: 14858 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/874ed3b0/attachment-0001.png>
+
+From info at otherdata.com  Fri May 15 16:02:04 2015
+From: info at otherdata.com (Otherdata)
+Date: Fri, 15 May 2015 10:02:04 -0600
+Subject: [Owasp-modsecurity-core-rule-set]
+	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 5
+In-Reply-To: <mailman.2201.1431701545.1098.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.2201.1431701545.1098.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <8HZm3.2577c649fe.001101d08f28$85e4c2d0$91ae4870$@otherdata.com>
+
+We had to disable rules 960009 and 960015 also as they were causing a lot of
+false positives for legitimate website visitors.  I think a lot of
+valid/different web browsers don't conform to Accept and User agent headers
+properly.
+
+Wes
+
+-----Original Message-----
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org
+[mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf
+Of owasp-modsecurity-core-rule-set-request at lists.owasp.org
+Sent: May 15, 2015 8:52 AM
+To: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 5
+
+Send Owasp-modsecurity-core-rule-set mailing list submissions to
+	owasp-modsecurity-core-rule-set at lists.owasp.org
+
+To subscribe or unsubscribe via the World Wide Web, visit
+	
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+or, via email, send a message with subject or body 'help' to
+	owasp-modsecurity-core-rule-set-request at lists.owasp.org
+
+You can reach the person managing the list at
+	owasp-modsecurity-core-rule-set-owner at lists.owasp.org
+
+When replying, please edit your Subject line so it is more specific than
+"Re: Contents of Owasp-modsecurity-core-rule-set digest..."
+
+
+Today's Topics:
+
+   1. Re: Rule 960009 generates false positives from my own server
+      IP (Guilherme Y)
+   2. Re: Rule 960009 generates false positives from my own server
+      IP (Guilherme Y)
+
+
+----------------------------------------------------------------------
+
+Message: 1
+Date: Fri, 15 May 2015 09:15:43 -0300
+From: Guilherme Y <asiayaisa at hotmail.com>
+To: Barry Pollard <barry_pollard at hotmail.com>,
+	"owasp-modsecurity-core-rule-set at lists.owasp.org"
+	<owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates
+	false positives from my own server IP
+Message-ID: <SNT151-W21EE0F52692C5FE67FA8EDB6C70 at phx.gbl>
+Content-Type: text/plain; charset="iso-8859-1"
+
+
+
+
+Many thanks Barry!I appreciate your sharing of your own experience, pretty
+much exactly the same we face here.Yes, one of our apps generates too many
+useless connections to Apache. We will work on a new version optimizing this
+but it will take a while, perhaps a couple of months, and in the meantime we
+will have to work around with an exception rule.Our mod_security install is
+standard, e.g. we don't have any exceptions configured yet.So I am not sure
+as where to put that rule.OWASP is in this path:
+/usr/local/apache/conf/modsec_vendor_configs/OWASPAnd there's only conf file
+there: modsecurity_crs_10_setup.confIs it OK to place the @ipmatch exception
+rule in a file namedmodsecurity_crs_15_localrules.confunder this same
+folder?  Tks a lot!All the best!Luiz
+
+> From: barry_pollard at hotmail.com
+> To: asiayaisa at hotmail.com; 
+> owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> false positives from my own server IP
+> Date: Wed, 13 May 2015 10:07:24 +0100
+> 
+> That would work though I personally prefer to use @ipMatch which also
+allows you to match multiple IPs:
+> 
+> SecRule REMOTE_ADDR "@ipMatch XXX.YYY.Z.WWW XXX.YYY.Z.VVVV"
+"id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> A few other things to note:
+> 1) 960009 is a phase 2 rule and you have specified phase 1 in your rule
+below. I'm pretty sure that rules cannot see other rules outside of their
+phase so it needs to be in the same phase. So I've updated this to phase 2
+in my version above.
+> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've 
+> given it an id of 1000. Make sure this doesn't clash with any existing 
+> rule you have. Principal is anything less than 99,999 are your own 
+> use. See here for more info: 
+> https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id
+> 3) You could disable ModSecurity completely for internal addresses with a
+ctl:ruleEngine=off rule. Personally I don't like that as I want them on for
+testing purposes so we're not caught out with a rule that only runs in
+production so think just disabling the specific rules is a better option.
+> 
+> However I think it would be good to understand why you need to do this at
+all.
+> 
+> Rule 960009 checks for requests missing a user agent. All decent browsers
+send a user agent hence why this rule is in place as the lack of a user
+agent is probably due to some script or such like, so it is a good rule.
+> 
+> So why are you getting so many requests from internal addresses without a
+user agent and should you fix that rather than add the above rule to get
+around that?
+> 
+> I can think of two reasons:
+> 
+> 1) Monitoring scripts or tools which are not quite as compliant as web
+browsers. So perhaps change these to also report the user agent as that
+could be useful information to know (though with third party tools that
+might not always be possible).
+> 
+> 2) Needlessly connecting to Apache. We use Apache to server up static
+pages and also in proxy mode to pass dynamic requests on to an application
+server. After installing mod security and noticing similar to you, we
+investigated and discovered some of our dynamic applications were needlessly
+making calls to Apache, just to connect back to the app server again. It was
+actually better to change them to connect directly to the app server, which
+resolved the issue, as well as saving network traffic and a (admittedly
+small amount of) Apache load.
+> 
+> Thanks,
+> Barry
+> 
+> ________________________________
+> > From: asiayaisa at hotmail.com
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> > Date: Tue, 12 May 2015 20:34:22 -0300
+> > Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> > false positives from my own server IP
+> > 
+> > Hi! 
+> > 
+> > I don't know if anyone experiences the same issue as us here, but I 
+> > suppose at least this might contribute to all.
+> > 
+> > I installed OWASP rules on a Centos running 2 Joomla sites with 
+> > nearly
+> > 5,000 unique visitors a day. 
+> > 
+> > I was fortunate enough to identify and disable 12 rules that 
+> > delivered a bunch of false positives (one of them locked down the 
+> > server when one of us in the team submitted a security scan from
+CSF/LFD...).
+> > 
+> > So, now it is running fine but one rule still delivers near 1,000 
+> > false positives a day and oddly enough having our own server IP as
+source!
+> > 
+> > And severity level for ALL of the hits are NOTICE. So, this is not 
+> > so much troublesome, except for the extra load on the server and the 
+> > log size. I rotate it automatically everynight but it comes out at 
+> > nearly
+> > 0,3 GB as standard size. 
+> > 
+> > So, what I am trying to do but don't know exactly how is to implent 
+> > something like this in a file named modsecurity_crs_15_localrules.conf:
+> > 
+> > SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+> >> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> > 
+> > where XXX.YYY.Z.WWW is my server's IP address. 
+> > 
+> > Does anyone know if this is correct and if it can actually work to 
+> > keep my server out of this rule execution?
+> > 
+> > Tks a lot! 
+> > 
+> > All the best! 
+> > Luiz Guilherme
+> > 
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list 
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule
+> > -set
+>  		 	   		  
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL:
+<http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachment
+s/20150515/57316fef/attachment-0001.html>
+
+------------------------------
+
+Message: 2
+Date: Fri, 15 May 2015 11:51:13 -0300
+From: Guilherme Y <asiayaisa at hotmail.com>
+To: Barry Pollard <barry_pollard at hotmail.com>,
+	"owasp-modsecurity-core-rule-set at lists.owasp.org"
+	<owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates
+	false positives from my own server IP
+Message-ID: <SNT151-W8090E4C8A5B2180D931898B6C70 at phx.gbl>
+Content-Type: text/plain; charset="iso-8859-1"
+
+
+
+
+Hi Barry!Well, it didn't work...This is what I did:My mod_security conf and
+rules files are set up like this:
+              
+
+modsecurity_crs_15_customrules.conf file has only this line:
+SecRule REMOTE_ADDR "@ipMatch 999.99.99.99"
+"id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009"
+I restarted Apache, but rule 960009 still process that IP as source.
+What did I do wrong?
+There is also a file named /usr/local/apache/conf/modsec2.whitelist.conf
+with just this on it:
+# ConfigServer ModSecurity whitelist file<LocationMatch .*></LocationMatch>
+I'm confused, don't know in which files this directive should go or what
+else should I have done.Tks!All the best!Luiz
+> From: barry_pollard at hotmail.com
+> To: asiayaisa at hotmail.com; 
+> owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: RE: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> false positives from my own server IP
+> Date: Wed, 13 May 2015 10:07:24 +0100
+> 
+> That would work though I personally prefer to use @ipMatch which also
+allows you to match multiple IPs:
+> 
+> SecRule REMOTE_ADDR "@ipMatch XXX.YYY.Z.WWW XXX.YYY.Z.VVVV"
+"id:1000,phase:2,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> 
+> A few other things to note:
+> 1) 960009 is a phase 2 rule and you have specified phase 1 in your rule
+below. I'm pretty sure that rules cannot see other rules outside of their
+phase so it needs to be in the same phase. So I've updated this to phase 2
+in my version above.
+> 2) Your rule must have it's own id (as of ModSecurity 2.7) so I've 
+> given it an id of 1000. Make sure this doesn't clash with any existing 
+> rule you have. Principal is anything less than 99,999 are your own 
+> use. See here for more info: 
+> https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id
+> 3) You could disable ModSecurity completely for internal addresses with a
+ctl:ruleEngine=off rule. Personally I don't like that as I want them on for
+testing purposes so we're not caught out with a rule that only runs in
+production so think just disabling the specific rules is a better option.
+> 
+> However I think it would be good to understand why you need to do this at
+all.
+> 
+> Rule 960009 checks for requests missing a user agent. All decent browsers
+send a user agent hence why this rule is in place as the lack of a user
+agent is probably due to some script or such like, so it is a good rule.
+> 
+> So why are you getting so many requests from internal addresses without a
+user agent and should you fix that rather than add the above rule to get
+around that?
+> 
+> I can think of two reasons:
+> 
+> 1) Monitoring scripts or tools which are not quite as compliant as web
+browsers. So perhaps change these to also report the user agent as that
+could be useful information to know (though with third party tools that
+might not always be possible).
+> 
+> 2) Needlessly connecting to Apache. We use Apache to server up static
+pages and also in proxy mode to pass dynamic requests on to an application
+server. After installing mod security and noticing similar to you, we
+investigated and discovered some of our dynamic applications were needlessly
+making calls to Apache, just to connect back to the app server again. It was
+actually better to change them to connect directly to the app server, which
+resolved the issue, as well as saving network traffic and a (admittedly
+small amount of) Apache load.
+> 
+> Thanks,
+> Barry
+> 
+> ________________________________
+> > From: asiayaisa at hotmail.com
+> > To: owasp-modsecurity-core-rule-set at lists.owasp.org
+> > Date: Tue, 12 May 2015 20:34:22 -0300
+> > Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates 
+> > false positives from my own server IP
+> > 
+> > Hi! 
+> > 
+> > I don't know if anyone experiences the same issue as us here, but I 
+> > suppose at least this might contribute to all.
+> > 
+> > I installed OWASP rules on a Centos running 2 Joomla sites with 
+> > nearly
+> > 5,000 unique visitors a day. 
+> > 
+> > I was fortunate enough to identify and disable 12 rules that 
+> > delivered a bunch of false positives (one of them locked down the 
+> > server when one of us in the team submitted a security scan from
+CSF/LFD...).
+> > 
+> > So, now it is running fine but one rule still delivers near 1,000 
+> > false positives a day and oddly enough having our own server IP as
+source!
+> > 
+> > And severity level for ALL of the hits are NOTICE. So, this is not 
+> > so much troublesome, except for the extra load on the server and the 
+> > log size. I rotate it automatically everynight but it comes out at 
+> > nearly
+> > 0,3 GB as standard size. 
+> > 
+> > So, what I am trying to do but don't know exactly how is to implent 
+> > something like this in a file named modsecurity_crs_15_localrules.conf:
+> > 
+> > SecRule REMOTE_ADDR "@streq XXX.YYY.Z.WWW" 
+> >> "phase:1,t:none,pass,nolog,ctl:ruleRemoveById=960009" 
+> > 
+> > where XXX.YYY.Z.WWW is my server's IP address. 
+> > 
+> > Does anyone know if this is correct and if it can actually work to 
+> > keep my server out of this rule execution?
+> > 
+> > Tks a lot! 
+> > 
+> > All the best! 
+> > Luiz Guilherme
+> > 
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list 
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule
+> > -set
+>  		 	   		  
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL:
+<http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachment
+s/20150515/96cb193b/attachment.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: files.png
+Type: image/png
+Size: 14858 bytes
+Desc: not available
+URL:
+<http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachment
+s/20150515/96cb193b/attachment.png>
+
+------------------------------
+
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+End of Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 5
+**************************************************************
+
+
+From CSanders at trustwave.com  Fri May 15 16:48:07 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Fri, 15 May 2015 16:48:07 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+Message-ID: <D17B9B37.7046%csanders@trustwave.com>
+
+ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209). Hope this isn?t too confusing :)
+
+From: Guilherme Y <asiayaisa at hotmail.com<mailto:asiayaisa at hotmail.com>>
+Date: Friday, May 15, 2015 at 10:51 AM
+To: Barry Pollard <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>>, "owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>" <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+
+ctl:ruleRemoveById
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/4207f9d1/attachment.html>
+
+From asiayaisa at hotmail.com  Fri May 15 23:53:04 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Fri, 15 May 2015 20:53:04 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <D17B9B37.7046%csanders@trustwave.com>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>,
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>,
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>,
+	<D17B9B37.7046%csanders@trustwave.com>
+Message-ID: <SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+
+Tks Chaim!But now I really got confused.I am tring to use this line:
+SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" You?re telling me to use this:
+"ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass" SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" YIs this right?I probably got it all wrong....Tks a lot!Best regards!Luiz
+From: CSanders at trustwave.com
+To: asiayaisa at hotmail.com; barry_pollard at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+Date: Fri, 15 May 2015 16:48:07 +0000
+
+
+
+
+
+
+ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209).
+ Hope this isn?t too confusing :)
+
+
+
+
+
+
+From: Guilherme Y <asiayaisa at hotmail.com>
+
+Date: Friday, May 15, 2015 at 10:51 AM
+
+To: Barry Pollard <barry_pollard at hotmail.com>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+
+
+
+
+
+ctl:ruleRemoveById
+
+
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information
+ contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150515/96368582/attachment-0001.html>
+
+From barry_pollard at hotmail.com  Sat May 16 05:38:19 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Sat, 16 May 2015 06:38:19 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+	positives from my own server IP
+In-Reply-To: <SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+	<D17B9B37.7046%csanders@trustwave.com>
+	<SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+Message-ID: <DUB406-EAS2976B3847DC98A14B6A790482C60@phx.gbl>
+
+No. Chaim is saying you cannot remove rule 960009 if it's already been defined previously in your config.
+
+Some overrides need to be defined before the rule they are overriding and some after, depending on what command you use to do the override. It's a bit confusing alright which was why it was discussed to change on the link Chaim gave - though ultimately it looks like they decided to leave as is.
+
+Anyway, it's important to understand how your rules are loaded. Let's you have something like this in your config:
+
+   Include modsecurity_crs_10_setup.conf
+   Include rules/*.conf
+
+Then rule 960009 is defined in rules/modsecurity_crs_21_protocol_anomalies.conf. So you must define your rule, which switches off that rule for certain scenarios, before that file is loaded.
+
+There are lots of ways to do this. You could change your setup to something like this, for example:
+
+   Include my_modsecurity_before_rules.conf
+   Include modsecurity_crs_10_setup.conf
+   Include rules/*.conf
+   Include my_modsecurity_after_rules.conf
+
+Then your new rule should go in the my_modsecurity_before_rules.conf file so it is processed before any of the other rules.
+
+Or you could add to a rules/modsecurity_crs_15_customrules.conf file, which will automatically be included with above code and, as they are loaded in alphabetical order, this file would be loaded before the rules/modsecurity_crs_21_protocol_anomalies.conf file.
+
+Point is, that if you add your rule to the my_modsecurity_after_overrides.conf file, in above example, then it won't work as rule 960009 will have already been loaded and will be defined at that stage, so it will be too late so you can't use ctl:ruleRemoveById on it.
+
+My personal preference is to put any "before" rules and tweaks directly the modsecurity_crs_10_setup.conf file (since you have to edit this file anyway to define your own customisations) and the also have an "after" rules file where any other rules and tweaks are defined. I also don't like * including files as sounds risky to me, so have an individual "Include" line for each rules file I want included, in the order I want it included. So my set up looks something like this:
+
+   Include conf/modsecurity/modsecurity_crs_10_setup.conf
+   Include conf/modsecurity/crs/base_rules/modsecurity_crs_20_protocol_violations.conf
+   Include conf/modsecurity/crs/base_rules/modsecurity_crs_21_protocol_anomalies.conf
+   ...etc.
+   Include conf/modsecurity/my_custom_rules.conf
+
+And I make any edits in either modsecurity_crs_10_setup.conf (for tweaks I want before the rest of the rules load) or in my_custom_rules.conf (for tweaks I want after the rest of the rules load). I never edit anything in the conf/modsecurity/crs/ folder which makes it easy to drop a new version of the crs rules in here.
+
+But it's all a personal preference as to how you set it up. The downside with this flexibility, is that it's difficult to help people like you, when they ask for help without knowing exactly how they've set their own ModSecurity up.
+
+Thanks,
+Barry
+
+> On 16 May 2015, at 00:53, Guilherme Y <asiayaisa at hotmail.com> wrote:
+> 
+> Tks Chaim!
+> But now I really got confused.
+> I am tring to use this line:
+> 
+> SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" 
+> You?re telling me to use this:
+> 
+> "ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass" SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" 
+> YIs this right?
+> I probably got it all wrong....
+> Tks a lot!
+> Best regards!
+> Luiz
+> 
+> From: CSanders at trustwave.com
+> To: asiayaisa at hotmail.com; barry_pollard at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> Date: Fri, 15 May 2015 16:48:07 +0000
+> 
+> ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209). Hope this isn?t too confusing :)
+> 
+> From: Guilherme Y <asiayaisa at hotmail.com>
+> Date: Friday, May 15, 2015 at 10:51 AM
+> To: Barry Pollard <barry_pollard at hotmail.com>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> 
+> ctl:ruleRemoveById 
+> 
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information  contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/dc2161b4/attachment.html>
+
+From morris at eml.cc  Sat May 16 13:21:56 2015
+From: morris at eml.cc (Morris Taylor)
+Date: Sat, 16 May 2015 21:21:56 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+References: <D17B9B37.7046%csanders@trustwave.com>
+	<SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+Message-ID: <1431782516.2585047.270337641.5A46287E@webmail.messagingengine.com>
+
+Hello Luiz,
+
+Seems no one mentioned that the rule should be "placed" after the rule
+your are going to disable. Therefore, according to the CRS repository,
+we can find the rule with the id "960009" is located in
+"modsecurity_crs_21_protocol_anomalies.conf". You have to put your
+whitelist rule after it, thus, you may create a file named "mod
+security_crs_60_disable_rid.conf" and put your whitelist rule into it.
+While the rule file is ready, you can restart your web server and
+everything should works well.
+
+--
+BR, Morris
+
+
+On Sat, May 16, 2015, at 07:53 AM, Guilherme Y wrote:
+> Tks Chaim! But now I really got confused. I am tring to use this line:
+>
+> SecRule REMOTE_ADDR "@ipMatch 999.99.99.99"
+> "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" You?re telling
+> me to use this:
+>
+> "ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass"SecRule
+> REMOTE_ADDR "@ipMatch 999.99.99.99" YIs this right? I probably got it
+> all wrong.... Tks a lot! Best regards! Luiz
+>
+>
+> From: CSanders at trustwave.com To: asiayaisa at hotmail.com;
+> barry_pollard at hotmail.com;
+> owasp-modsecurity-core-rule-set at lists.owasp.org Subject: Re:
+> [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+> positives from my own server IP Date: Fri, 15 May 2015 16:48:07 +0000
+>
+> ctl:ruleRemoveById must appear BEFORE the rule in question. Where as
+> SecRuleRemoveByID must appear after. See the excerpt from this issue
+> (https://github.com/SpiderLabs/ModSecurity/issues/209).
+ Hope this isn?t too confusing :)
+>
+>
+> *From: *Guilherme Y <asiayaisa at hotmail.com> *Date: *Friday, May 15,
+> 2015 at 10:51 AM *To: *Barry Pollard <barry_pollard at hotmail.com>,
+> "owasp-modsecurity-core-rule-set at lists.owasp.org"
+> <owasp-modsecurity-core-rule-set at lists.owasp.org> *Subject: *Re:
+> [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+> positives from my own server IP
+>
+> ctl:ruleRemoveById
+>
+>
+This transmission may contain information that is privileged,
+confidential, and/or exempt from disclosure under applicable law. If you
+are not the intended recipient, you are hereby notified that any
+disclosure, copying, distribution, or use of the information contained
+herein (including any reliance thereon) is strictly prohibited. If you
+received this transmission in error, please immediately contact the
+sender and destroy the material in its entirety, whether in electronic
+or hard copy format.
+> _________________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/ede01c57/attachment.html>
+
+From asiayaisa at hotmail.com  Sat May 16 16:40:46 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Sat, 16 May 2015 13:40:46 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <DUB406-EAS2976B3847DC98A14B6A790482C60@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+	<D17B9B37.7046%csanders@trustwave.com>
+	<SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>,
+	<DUB406-EAS2976B3847DC98A14B6A790482C60@phx.gbl>
+Message-ID: <SNT151-W222A7700970551283F08B4B6C60@phx.gbl>
+
+Tks so much Barry!I totally agree with you that it gets difficult to explain such things to a newbie like me, but I plead you to concede that it is very difficult to understand mod_security OWASP setup because it seems to be very different from what is described in https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id or https://www.trustwave.com/Resources/SpiderLabs-Blog/ModSecurity-Advanced-Topic-of-the-Week--(Updated)-Exception-Handling/ or from what you describe in your kind message below.
+For instance, my installation has no such file rules/modsecurity_crs_21_protocol_anomalies.conf or conf/modsecurity/crs/ or my_modsecurity_before_rules.conf, or even  Include my_modsecurity_after_rules.conf.
+I only have this folder/files structure:
+/usr/local/apache/conf/modsec_vendor_configs/OWASPand then:/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/usr/local/apache/conf/modsec_vendor_configs/OWASP/util
+My rules folder have a bunch of files duplicated: each duplicate has the suffix.BAD, like this one exampe:REQUEST-13-SCANNER-DETECTION.conf.BADREQUEST-13-SCANNER-DETECTION.confand so on.
+I don't have the faintest idea why it got that way.
+I feel a lack in documentation and I also agree with you that flexibility is a must. But good standards need clear placeholders where all users may easily find where to customize. And definitely there will be always this need for cutomization in a product like firewall rules. 
+Well, those are just facts and feelings to share.
+Anyway, I thank you again very much because your keen observations and one particularly useful suggestion solved my 960009 issue!I followed your preference and included the ipmatch directive in modsecurity_crs_10_setup.conf, since it is a "before" kind of tweak.(I would say, in my defence, that no user could ever have guessed this by his own, I believe.)And it worked like a charm!No more false positives from my own server IP and rule 960009!I will toast you a beer for that in a short while (because it's Saturday!)!So now, the only other false positive filling up my audit log is rule  960015 on Google's IPs! I still couldn't figure out a way to exclude this.I thought of using the same ipmatch directive but Google has so many IPs and they seem to change networks from time to time that it might not be a good idea.I would appreciate to know how you guys do this.Another thig that intrigues me about mod_security and OWASP is the audit log itself. I log rotate it every night at daily crons, but when I look at the Hits Listin CPanel, under Security Center/Mod_Security/Tools, all hits since the very first day (May 2nd) I installed OWASP are there. I wonder where they keep them because in a short time it will become the largest file in the server! Any tips as where to find this file are welcome!
+Tks a lot Barry!And enjoy the weekend!Cheers!Luiz 
+From: barry_pollard at hotmail.com
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+Date: Sat, 16 May 2015 06:38:19 +0100
+CC: csanders at trustwave.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+To: asiayaisa at hotmail.com
+
+No. Chaim is saying you cannot remove rule 960009 if it's already been defined previously in your config.
+Some overrides need to be defined before the rule they are overriding and some after, depending on what command you use to do the override. It's a bit confusing alright which was why it was discussed to change on the link Chaim gave - though ultimately it looks like they decided to leave as is.
+Anyway, it's important to understand how your rules are loaded. Let's you have something like this in your config:
+   Include modsecurity_crs_10_setup.conf   Include rules/*.conf
+Then rule 960009 is defined in rules/modsecurity_crs_21_protocol_anomalies.conf. So you must define your rule, which switches off that rule for certain scenarios, before that file is loaded.
+There are lots of ways to do this. You could change your setup to something like this, for example:
+   Include my_modsecurity_before_rules.conf   Include modsecurity_crs_10_setup.conf   Include rules/*.conf   Include my_modsecurity_after_rules.conf
+Then your new rule should go in the my_modsecurity_before_rules.conf file so it is processed before any of the other rules.
+Or you could add to a rules/modsecurity_crs_15_customrules.conf file, which will automatically be included with above code and, as they are loaded in alphabetical order, this file would be loaded before the rules/modsecurity_crs_21_protocol_anomalies.conf file.
+Point is, that if you add your rule to the my_modsecurity_after_overrides.conf file, in above example, then it won't work as rule 960009 will have already been loaded and will be defined at that stage, so it will be too late so you can't use ctl:ruleRemoveById on it.
+My personal preference is to put any "before" rules and tweaks directly the modsecurity_crs_10_setup.conf file (since you have to edit this file anyway to define your own customisations) and the also have an "after" rules file where any other rules and tweaks are defined. I also don't like * including files as sounds risky to me, so have an individual "Include" line for each rules file I want included, in the order I want it included. So my set up looks something like this:
+   Include conf/modsecurity/modsecurity_crs_10_setup.conf   Include conf/modsecurity/crs/base_rules/modsecurity_crs_20_protocol_violations.conf   Include conf/modsecurity/crs/base_rules/modsecurity_crs_21_protocol_anomalies.conf   ...etc.   Include conf/modsecurity/my_custom_rules.conf
+And I make any edits in either modsecurity_crs_10_setup.conf (for tweaks I want before the rest of the rules load) or in my_custom_rules.conf (for tweaks I want after the rest of the rules load). I never edit anything in the conf/modsecurity/crs/ folder which makes it easy to drop a new version of the crs rules in here.
+But it's all a personal preference as to how you set it up. The downside with this flexibility, is that it's difficult to help people like you, when they ask for help without knowing exactly how they've set their own ModSecurity up.
+Thanks,Barry
+On 16 May 2015, at 00:53, Guilherme Y <asiayaisa at hotmail.com> wrote:
+
+
+
+
+Tks Chaim!But now I really got confused.I am tring to use this line:
+SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" You?re telling me to use this:
+"ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass" SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" YIs this right?I probably got it all wrong....Tks a lot!Best regards!Luiz
+From: CSanders at trustwave.com
+To: asiayaisa at hotmail.com; barry_pollard at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+Date: Fri, 15 May 2015 16:48:07 +0000
+
+
+
+
+
+
+ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209).
+ Hope this isn?t too confusing :)
+
+
+
+
+
+
+From: Guilherme Y <asiayaisa at hotmail.com>
+
+Date: Friday, May 15, 2015 at 10:51 AM
+
+To: Barry Pollard <barry_pollard at hotmail.com>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+
+
+
+
+
+ctl:ruleRemoveById
+
+
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information
+ contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+ 		 	   		  
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/bb93d61b/attachment-0001.html>
+
+From barry_pollard at hotmail.com  Sat May 16 17:17:07 2015
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Sat, 16 May 2015 18:17:07 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+	positives from my own server IP
+In-Reply-To: <SNT151-W222A7700970551283F08B4B6C60@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+	<D17B9B37.7046%csanders@trustwave.com>
+	<SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+	<DUB406-EAS2976B3847DC98A14B6A790482C60@phx.gbl>
+	<SNT151-W222A7700970551283F08B4B6C60@phx.gbl>
+Message-ID: <DUB406-EAS3421D8806F5341ECFDFE0E682C60@phx.gbl>
+
+Sounds like you have a non-standard install. Saying that the before_rules and after_rules files were only example files I made up.
+
+I can't recommend Ivan Ristic's Modsecurity handbook enough available at feistyduck.com. He's the original author of ModSecurity but has since moved on. It's were I learned how to use it. Quite cheap and the install section is available free. Only for old versions so bit out of date but nearly all still relevant. Main thing missing is that id is now mandatory.
+
+I turned 960015 off completely as didn't find it that useful and lots of false positives.
+
+SecRuleRemoveById 960015
+
+Which annoyingly had to be specified AFTER rule 960015 is defined. Or you could use the ctl version, for a rule which will match always, and specify it before.
+
+Finally it sounds like you have SecAuditLog set to On (log everything) rather than DetectionOnly (log only traffic which fails a rule).
+
+Have a good weekend! 
+
+Thanks,
+Barry
+
+> On 16 May 2015, at 17:40, Guilherme Y <asiayaisa at hotmail.com> wrote:
+> 
+> Tks so much Barry!
+> I totally agree with you that it gets difficult to explain such things to a newbie like me, but I plead you to concede that it is very difficult to understand mod_security OWASP setup because it seems to be very different from what is described in https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id 
+> or https://www.trustwave.com/Resources/SpiderLabs-Blog/ModSecurity-Advanced-Topic-of-the-Week--(Updated)-Exception-Handling/ 
+> or from what you describe in your kind message below.
+> 
+> For instance, my installation has no such file 
+> rules/modsecurity_crs_21_protocol_anomalies.conf 
+> or conf/modsecurity/crs/ 
+> or my_modsecurity_before_rules.conf, 
+> or even  Include my_modsecurity_after_rules.conf.
+> 
+> I only have this folder/files structure:
+> 
+> /usr/local/apache/conf/modsec_vendor_configs/OWASP
+> and then:
+> /usr/local/apache/conf/modsec_vendor_configs/OWASP/rules
+> /usr/local/apache/conf/modsec_vendor_configs/OWASP/util
+> 
+> My rules folder have a bunch of files duplicated: each duplicate has the suffix.BAD, like this one exampe:
+> REQUEST-13-SCANNER-DETECTION.conf.BAD
+> REQUEST-13-SCANNER-DETECTION.conf
+> and so on.
+> 
+> I don't have the faintest idea why it got that way.
+> 
+> I feel a lack in documentation and I also agree with you that flexibility is a must. But good standards need clear placeholders where all users may easily find where to customize. And definitely there will be always this need for cutomization in a product like firewall rules. 
+> 
+> Well, those are just facts and feelings to share.
+> 
+> Anyway, I thank you again very much because your keen observations and one particularly useful suggestion solved my 960009 issue!
+> I followed your preference and included the ipmatch directive in modsecurity_crs_10_setup.conf, since it is a "before" kind of tweak.
+> (I would say, in my defence, that no user could ever have guessed this by his own, I believe.)
+> And it worked like a charm!
+> No more false positives from my own server IP and rule 960009!
+> I will toast you a beer for that in a short while (because it's Saturday!)!
+> So now, the only other false positive filling up my audit log is rule  960015 on Google's IPs! I still couldn't figure out a way to exclude this.I thought of using the same ipmatch directive but Google has so many IPs and they seem to change networks from time to time that it might not be a good idea.
+> I would appreciate to know how you guys do this.
+> Another thig that intrigues me about mod_security and OWASP is the audit log itself. I log rotate it every night at daily crons, but when I look at the Hits Listin CPanel, under Security Center/Mod_Security/Tools, all hits since the very first day (May 2nd) I installed OWASP are there. I wonder where they keep them because in a short time it will become the largest file in the server! 
+> Any tips as where to find this file are welcome!
+> 
+> Tks a lot Barry!
+> And enjoy the weekend!
+> Cheers!
+> Luiz
+>  
+> 
+> From: barry_pollard at hotmail.com
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> Date: Sat, 16 May 2015 06:38:19 +0100
+> CC: csanders at trustwave.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+> To: asiayaisa at hotmail.com
+> 
+> No. Chaim is saying you cannot remove rule 960009 if it's already been defined previously in your config.
+> 
+> Some overrides need to be defined before the rule they are overriding and some after, depending on what command you use to do the override. It's a bit confusing alright which was why it was discussed to change on the link Chaim gave - though ultimately it looks like they decided to leave as is.
+> 
+> Anyway, it's important to understand how your rules are loaded. Let's you have something like this in your config:
+> 
+>    Include modsecurity_crs_10_setup.conf
+>    Include rules/*.conf
+> 
+> Then rule 960009 is defined in rules/modsecurity_crs_21_protocol_anomalies.conf. So you must define your rule, which switches off that rule for certain scenarios, before that file is loaded.
+> 
+> There are lots of ways to do this. You could change your setup to something like this, for example:
+> 
+>    Include my_modsecurity_before_rules.conf
+>    Include modsecurity_crs_10_setup.conf
+>    Include rules/*.conf
+>    Include my_modsecurity_after_rules.conf
+> 
+> Then your new rule should go in the my_modsecurity_before_rules.conf file so it is processed before any of the other rules.
+> 
+> Or you could add to a rules/modsecurity_crs_15_customrules.conf file, which will automatically be included with above code and, as they are loaded in alphabetical order, this file would be loaded before the rules/modsecurity_crs_21_protocol_anomalies.conf file.
+> 
+> Point is, that if you add your rule to the my_modsecurity_after_overrides.conf file, in above example, then it won't work as rule 960009 will have already been loaded and will be defined at that stage, so it will be too late so you can't use ctl:ruleRemoveById on it.
+> 
+> My personal preference is to put any "before" rules and tweaks directly the modsecurity_crs_10_setup.conf file (since you have to edit this file anyway to define your own customisations) and the also have an "after" rules file where any other rules and tweaks are defined. I also don't like * including files as sounds risky to me, so have an individual "Include" line for each rules file I want included, in the order I want it included. So my set up looks something like this:
+> 
+>    Include conf/modsecurity/modsecurity_crs_10_setup.conf
+>    Include conf/modsecurity/crs/base_rules/modsecurity_crs_20_protocol_violations.conf
+>    Include conf/modsecurity/crs/base_rules/modsecurity_crs_21_protocol_anomalies.conf
+>    ...etc.
+>    Include conf/modsecurity/my_custom_rules.conf
+> 
+> And I make any edits in either modsecurity_crs_10_setup.conf (for tweaks I want before the rest of the rules load) or in my_custom_rules.conf (for tweaks I want after the rest of the rules load). I never edit anything in the conf/modsecurity/crs/ folder which makes it easy to drop a new version of the crs rules in here.
+> 
+> But it's all a personal preference as to how you set it up. The downside with this flexibility, is that it's difficult to help people like you, when they ask for help without knowing exactly how they've set their own ModSecurity up.
+> 
+> Thanks,
+> Barry
+> 
+> On 16 May 2015, at 00:53, Guilherme Y <asiayaisa at hotmail.com> wrote:
+> 
+> Tks Chaim!
+> But now I really got confused.
+> I am tring to use this line:
+> 
+> SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" 
+> You?re telling me to use this:
+> 
+> "ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass" SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" 
+> YIs this right?
+> I probably got it all wrong....
+> Tks a lot!
+> Best regards!
+> Luiz
+> 
+> From: CSanders at trustwave.com
+> To: asiayaisa at hotmail.com; barry_pollard at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> Date: Fri, 15 May 2015 16:48:07 +0000
+> 
+> ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209). Hope this isn?t too confusing :)
+> 
+> From: Guilherme Y <asiayaisa at hotmail.com>
+> Date: Friday, May 15, 2015 at 10:51 AM
+> To: Barry Pollard <barry_pollard at hotmail.com>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+> 
+> ctl:ruleRemoveById 
+> 
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150516/c59f1092/attachment-0001.html>
+
+From asiayaisa at hotmail.com  Mon May 18 01:56:23 2015
+From: asiayaisa at hotmail.com (Guilherme Y)
+Date: Sun, 17 May 2015 22:56:23 -0300
+Subject: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false
+ positives from my own server IP
+In-Reply-To: <DUB406-EAS3421D8806F5341ECFDFE0E682C60@phx.gbl>
+References: <SNT151-W3243A3C6D00315A20629ECB6DA0@phx.gbl>
+	<DUB116-W101B0B55A161038185BA35282D90@phx.gbl>
+	<SNT151-W8090E4C8A5B2180D931898B6C70@phx.gbl>
+	<D17B9B37.7046%csanders@trustwave.com>
+	<SNT151-W5263550BE7DDA8C7D0B54EB6C70@phx.gbl>
+	<DUB406-EAS2976B3847DC98A14B6A790482C60@phx.gbl>
+	<SNT151-W222A7700970551283F08B4B6C60@phx.gbl>,
+	<DUB406-EAS3421D8806F5341ECFDFE0E682C60@phx.gbl>
+Message-ID: <SNT151-W887AF069927C88C9AC831BB6C40@phx.gbl>
+
+Tks so much Barry!
+Pretty much standard modsecurity install: installed from WHM, enabled vendor OWASP and that was it. Maybe my Centos has some oddities...
+I understood your examples as part of the flexibility, that's OK. But newbies like me are not very imaginative and most (like me!) need these examples as part of the documentation so that at least we get to know what are the possibilities. If it wasn't for your kind help I would be sitting still staring and wondering what I did wrong!
+I had Modsecurity configured to log noteworthy transactions only but just a while ago I found out why my modsec_audit.log was filling up so fast: I had a permissions issue on var/cpanel/Secdatadir folder that was restraining Apache httpd user to write in there. Also my Apcahe error_log was growing excessively because of this issue. Fixed the group/owner and it all worked out as it should!
+I also appreciated your suggestion of disabling 960015 and already did it. Thank you very much for that too.
+BTW, I have disabled the following rules:958977 - it seems to deal with PHP injection and I don't know if I did right to disable it, do you agree with this? 960015 - that one! - your suggestion worked out just right981138 - blocks Google bot for bad IP reputation - I thought it's OK to disable, didn't you?981175 - blocks Google bot for bad IP reputation - I thought it's OK to disable, didn't you?981204 - it seems to issue a Warning from anomaly score and blocks our iPhone app - had to disable981242 - this blocks entirely one of my apps - had to disable981245 - has to do with SQL authentication and seems to block logins from our iPhone app - had to disable981246 - has to do with login SQL auth and seems to block logins from our iPhone app - had to disable981257 - this blocks entirely one of my apps - had to disable
+I did not block but found the following rules already blocked after installing the OWASP rules vendor (I don't have the faintest idea why):970901973337981205990002Any idea why this is so? Is it OK to leave these disabled?
+PS.: I still did not find any hint in the documentation as to where (which file) hits are stored. I flushed modsec_audit.log but all hits since May 2nd still show up at WHM/Security Center/Modsecurity Tools. If you ever find an answer to this, please let me know, just out of curiosity.
+Thank you again!Have a great week, live long and prosper!All the best!Luiz
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+From: barry_pollard at hotmail.com
+Date: Sat, 16 May 2015 18:17:07 +0100
+CC: csanders at trustwave.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+To: asiayaisa at hotmail.com
+
+Sounds like you have a non-standard install. Saying that the before_rules and after_rules files were only example files I made up.
+I can't recommend Ivan Ristic's Modsecurity handbook enough available at feistyduck.com. He's the original author of ModSecurity but has since moved on. It's were I learned how to use it. Quite cheap and the install section is available free. Only for old versions so bit out of date but nearly all still relevant. Main thing missing is that id is now mandatory.
+I turned 960015 off completely as didn't find it that useful and lots of false positives.
+SecRuleRemoveById 960015
+Which annoyingly had to be specified AFTER rule 960015 is defined. Or you could use the ctl version, for a rule which will match always, and specify it before.
+Finally it sounds like you have SecAuditLog set to On (log everything) rather than DetectionOnly (log only traffic which fails a rule).
+Have a good weekend! 
+
+Thanks,Barry
+On 16 May 2015, at 17:40, Guilherme Y <asiayaisa at hotmail.com> wrote:
+
+
+
+
+Tks so much Barry!I totally agree with you that it gets difficult to explain such things to a newbie like me, but I plead you to concede that it is very difficult to understand mod_security OWASP setup because it seems to be very different from what is described in https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#id or https://www.trustwave.com/Resources/SpiderLabs-Blog/ModSecurity-Advanced-Topic-of-the-Week--(Updated)-Exception-Handling/ or from what you describe in your kind message below.
+For instance, my installation has no such file rules/modsecurity_crs_21_protocol_anomalies.conf or conf/modsecurity/crs/ or my_modsecurity_before_rules.conf, or even  Include my_modsecurity_after_rules.conf.
+I only have this folder/files structure:
+/usr/local/apache/conf/modsec_vendor_configs/OWASPand then:/usr/local/apache/conf/modsec_vendor_configs/OWASP/rules/usr/local/apache/conf/modsec_vendor_configs/OWASP/util
+My rules folder have a bunch of files duplicated: each duplicate has the suffix.BAD, like this one exampe:REQUEST-13-SCANNER-DETECTION.conf.BADREQUEST-13-SCANNER-DETECTION.confand so on.
+I don't have the faintest idea why it got that way.
+I feel a lack in documentation and I also agree with you that flexibility is a must. But good standards need clear placeholders where all users may easily find where to customize. And definitely there will be always this need for cutomization in a product like firewall rules. 
+Well, those are just facts and feelings to share.
+Anyway, I thank you again very much because your keen observations and one particularly useful suggestion solved my 960009 issue!I followed your preference and included the ipmatch directive in modsecurity_crs_10_setup.conf, since it is a "before" kind of tweak.(I would say, in my defence, that no user could ever have guessed this by his own, I believe.)And it worked like a charm!No more false positives from my own server IP and rule 960009!I will toast you a beer for that in a short while (because it's Saturday!)!So now, the only other false positive filling up my audit log is rule  960015 on Google's IPs! I still couldn't figure out a way to exclude this.I thought of using the same ipmatch directive but Google has so many IPs and they seem to change networks from time to time that it might not be a good idea.I would appreciate to know how you guys do this.Another thig that intrigues me about mod_security and OWASP is the audit log itself. I log rotate it every night at daily crons, but when I look at the Hits Listin CPanel, under Security Center/Mod_Security/Tools, all hits since the very first day (May 2nd) I installed OWASP are there. I wonder where they keep them because in a short time it will become the largest file in the server! Any tips as where to find this file are welcome!
+Tks a lot Barry!And enjoy the weekend!Cheers!Luiz 
+From: barry_pollard at hotmail.com
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+Date: Sat, 16 May 2015 06:38:19 +0100
+CC: csanders at trustwave.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+To: asiayaisa at hotmail.com
+
+No. Chaim is saying you cannot remove rule 960009 if it's already been defined previously in your config.
+Some overrides need to be defined before the rule they are overriding and some after, depending on what command you use to do the override. It's a bit confusing alright which was why it was discussed to change on the link Chaim gave - though ultimately it looks like they decided to leave as is.
+Anyway, it's important to understand how your rules are loaded. Let's you have something like this in your config:
+   Include modsecurity_crs_10_setup.conf   Include rules/*.conf
+Then rule 960009 is defined in rules/modsecurity_crs_21_protocol_anomalies.conf. So you must define your rule, which switches off that rule for certain scenarios, before that file is loaded.
+There are lots of ways to do this. You could change your setup to something like this, for example:
+   Include my_modsecurity_before_rules.conf   Include modsecurity_crs_10_setup.conf   Include rules/*.conf   Include my_modsecurity_after_rules.conf
+Then your new rule should go in the my_modsecurity_before_rules.conf file so it is processed before any of the other rules.
+Or you could add to a rules/modsecurity_crs_15_customrules.conf file, which will automatically be included with above code and, as they are loaded in alphabetical order, this file would be loaded before the rules/modsecurity_crs_21_protocol_anomalies.conf file.
+Point is, that if you add your rule to the my_modsecurity_after_overrides.conf file, in above example, then it won't work as rule 960009 will have already been loaded and will be defined at that stage, so it will be too late so you can't use ctl:ruleRemoveById on it.
+My personal preference is to put any "before" rules and tweaks directly the modsecurity_crs_10_setup.conf file (since you have to edit this file anyway to define your own customisations) and the also have an "after" rules file where any other rules and tweaks are defined. I also don't like * including files as sounds risky to me, so have an individual "Include" line for each rules file I want included, in the order I want it included. So my set up looks something like this:
+   Include conf/modsecurity/modsecurity_crs_10_setup.conf   Include conf/modsecurity/crs/base_rules/modsecurity_crs_20_protocol_violations.conf   Include conf/modsecurity/crs/base_rules/modsecurity_crs_21_protocol_anomalies.conf   ...etc.   Include conf/modsecurity/my_custom_rules.conf
+And I make any edits in either modsecurity_crs_10_setup.conf (for tweaks I want before the rest of the rules load) or in my_custom_rules.conf (for tweaks I want after the rest of the rules load). I never edit anything in the conf/modsecurity/crs/ folder which makes it easy to drop a new version of the crs rules in here.
+But it's all a personal preference as to how you set it up. The downside with this flexibility, is that it's difficult to help people like you, when they ask for help without knowing exactly how they've set their own ModSecurity up.
+Thanks,Barry
+On 16 May 2015, at 00:53, Guilherme Y <asiayaisa at hotmail.com> wrote:
+
+
+
+
+Tks Chaim!But now I really got confused.I am tring to use this line:
+SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" "id:1000,phase:2,t:none,pass,ctl:ruleRemoveById=960009" You?re telling me to use this:
+"ctl:ruleRemoveById=960009,id:1000,phase:2,t:none,pass" SecRule REMOTE_ADDR "@ipMatch 999.99.99.99" YIs this right?I probably got it all wrong....Tks a lot!Best regards!Luiz
+From: CSanders at trustwave.com
+To: asiayaisa at hotmail.com; barry_pollard at hotmail.com; owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+Date: Fri, 15 May 2015 16:48:07 +0000
+
+
+
+
+
+
+ctl:ruleRemoveById must appear BEFORE the rule in question. Where as SecRuleRemoveByID must appear after. See the excerpt from this issue (https://github.com/SpiderLabs/ModSecurity/issues/209).
+ Hope this isn?t too confusing :)
+
+
+
+
+
+
+From: Guilherme Y <asiayaisa at hotmail.com>
+
+Date: Friday, May 15, 2015 at 10:51 AM
+
+To: Barry Pollard <barry_pollard at hotmail.com>, "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+
+Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates false positives from my own server IP
+
+
+
+
+
+ctl:ruleRemoveById
+
+
+
+
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information
+ contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+ 		 	   		  
+ 		 	   		  
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150517/c4ff19f5/attachment-0001.html>
+
+From rclemings at gmail.com  Mon May 18 14:27:47 2015
+From: rclemings at gmail.com (Russell Clemings)
+Date: Mon, 18 May 2015 07:27:47 -0700
+Subject: [Owasp-modsecurity-core-rule-set]
+	Owasp-modsecurity-core-rule-set Digest, Vol 73, Issue 11
+In-Reply-To: <mailman.2254.1431914261.1098.owasp-modsecurity-core-rule-set@lists.owasp.org>
+References: <mailman.2254.1431914261.1098.owasp-modsecurity-core-rule-set@lists.owasp.org>
+Message-ID: <CAN7RX0bJJFePFjMpShbFXhYgWhYrse2iBFg1V60sYEY_5KVZPg@mail.gmail.com>
+
+FWIW, you're not the only one having a lot of trouble with
+Cpanel's OWASP implementation.
+
+Setting up logrotate helps keep the modsec_audit.log under control. Here's
+what I did:
+
+1. Create a file /etc/logrotate.d/modsec_audit.log (644 root/root)
+2. Give it these contents:
+
+/usr/local/apache/logs/modsec_audit.log {
+ missingok
+ notifempty
+ daily
+ copytruncate
+ compress
+}
+
+I'll probably have to add "rotate 7" or something to keep it from storing
+copies forever, but for now I'm just deleting the old ones manually.
+
+I had to increase both of these to 10000 (default was 1500):
+Perl Compatible Regular Expressions Library Match Limit
+Perl Compatible Regular Expressions Library Match Limit Recursion
+
+(see WHM/Security Center/ModSecurity Configuration, then scroll to the
+bottom)
+
+I also had to disable 950901 (SQL injection) because it was blocking pretty
+much every edit on my Drupal site. I hope it gets revised soon (or that I
+can figure and fix the problem) because preventing SQL injection is kind of
+important.
+
+Finally, I'm seeing lots of lines like this in modsec_debug.log. Neither my
+ISP or Cpanel could figure out what's causing them or whether it's a
+problem. Most are on /user/register or /user/login:
+
+4775:[18/May/2015:10:21:48 --0400]
+[my.domain.tld/sid#9cf1c90][rid#a71a050][/user/register][1] Rule processing
+failed.
+
+
+
+On Sun, May 17, 2015 at 6:57 PM, <
+owasp-modsecurity-core-rule-set-request at lists.owasp.org> wrote:
+
+>
+> Message: 1
+> Date: Sun, 17 May 2015 22:56:23 -0300
+> From: Guilherme Y <asiayaisa at hotmail.com>
+> To: Barry Pollard <barry_pollard at hotmail.com>
+> Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org"
+>         <owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] Rule 960009 generates
+>         false positives from my own server IP
+> Message-ID: <SNT151-W887AF069927C88C9AC831BB6C40 at phx.gbl>
+> Content-Type: text/plain; charset="windows-1252"
+>
+> Tks so much Barry!
+> Pretty much standard modsecurity install: installed from WHM, enabled
+> vendor OWASP and that was it. Maybe my Centos has some oddities...
+> I understood your examples as part of the flexibility, that's OK. But
+> newbies like me are not very imaginative and most (like me!) need these
+> examples as part of the documentation so that at least we get to know what
+> are the possibilities. If it wasn't for your kind help I would be sitting
+> still staring and wondering what I did wrong!
+> I had Modsecurity configured to log noteworthy transactions only but just
+> a while ago I found out why my modsec_audit.log was filling up so fast: I
+> had a permissions issue on var/cpanel/Secdatadir folder that was
+> restraining Apache httpd user to write in there. Also my Apcahe error_log
+> was growing excessively because of this issue. Fixed the group/owner and it
+> all worked out as it should!
+> I also appreciated your suggestion of disabling 960015 and already did it.
+> Thank you very much for that too.
+> BTW, I have disabled the following rules:958977 - it seems to deal with
+> PHP injection and I don't know if I did right to disable it, do you agree
+> with this? 960015 - that one! - your suggestion worked out just right981138
+> - blocks Google bot for bad IP reputation - I thought it's OK to disable,
+> didn't you?981175 - blocks Google bot for bad IP reputation - I thought
+> it's OK to disable, didn't you?981204 - it seems to issue a Warning from
+> anomaly score and blocks our iPhone app - had to disable981242 - this
+> blocks entirely one of my apps - had to disable981245 - has to do with SQL
+> authentication and seems to block logins from our iPhone app - had to
+> disable981246 - has to do with login SQL auth and seems to block logins
+> from our iPhone app - had to disable981257 - this blocks entirely one of my
+> apps - had to disable
+> I did not block but found the following rules already blocked after
+> installing the OWASP rules vendor (I don't have the faintest idea
+> why):970901973337981205990002Any idea why this is so? Is it OK to leave
+> these disabled?
+> PS.: I still did not find any hint in the documentation as to where (which
+> file) hits are stored. I flushed modsec_audit.log but all hits since May
+> 2nd still show up at WHM/Security Center/Modsecurity Tools. If you ever
+> find an answer to this, please let me know, just out of curiosity.
+> Thank you again!Have a great week, live long and prosper!All the best!Luiz
+>
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150518/1b5e8926/attachment.html>
+
+From thatsdeepak at gmail.com  Wed May 20 03:54:53 2015
+From: thatsdeepak at gmail.com (deepak akula)
+Date: Wed, 20 May 2015 11:54:53 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Require information on
+	modsecurity_crs_11_dos_protection.conf
+Message-ID: <CAHuMxUG0iKHMUM9kqxkJB=m5w12TKB5RHbQGf3b84qMfnkVKtg@mail.gmail.com>
+
+Hi All,
+
+I would like to know more about the experimental rules related to the
+following rules.
+
+modsecurity_crs_11_brute_force.conf
+modsecurity_crs_11_dos_protection.conf
+modsecurity_crs_11_slow_dos_protection.conf
+
+As per my knowledge, these rules should block the users when the conditions
+mentioned in the modsecurity_crs_10_config.conf file are met. I am trying
+to simulate the dos attack by modifying the properties as mentioned below
+but my IP is not getting blocked even after multiple tries.
+
+SecAction \
+  "id:'900015', \
+  phase:1, \
+  t:none, \
+  setvar:'tx.dos_burst_time_slice=40', \
+  setvar:'tx.dos_counter_threshold=3', \
+  setvar:'tx.dos_block_timeout=20', \
+  nolog, \
+  pass"
+
+Am I missing anything or is blocking dependent on any other properties? Mod
+security is 'On' and not in detection mode. Environment is unix and the
+required conf files are added in the httpd.conf. Have not modified anything
+in modsecurity_crs_11_dos_protection.conf file.
+
+I am new to mod security rules, so any information would be of great help.
+
+
+>From the logs I am able to see the following lines. Tried to print the dos
+counter value but nothing is being displayed.
+
+Message: Warning. Match of "rx \\.(jpe?g|png|gif|js|css|ico)$" against
+"REQUEST_BASENAME" required. [file
+"/etc/httpd/modsecurity-crs/experimental_rules/modsecurity_crs_11_dos_protection.conf"]
+[line "30"] [id "981047"] [msg "counter is  "]
+
+
+Regards,
+Deepak.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150520/83f9a041/attachment.html>
+
+From jenny_p1 at yahoo.com  Thu May 21 13:47:56 2015
+From: jenny_p1 at yahoo.com (Jenny Parker)
+Date: Thu, 21 May 2015 13:47:56 +0000 (UTC)
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity
+Message-ID: <837377232.3408271.1432216076983.JavaMail.yahoo@mail.yahoo.com>
+
+In ModSecurity, I'm getting a lot of false positives. Is there anyway to 'zero out' the cookie value for any cookies causing false positives???
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150521/0e8f9168/attachment.html>
+
+From azcappy at azcappy.com  Mon May 25 09:39:02 2015
+From: azcappy at azcappy.com (Keith D. Holler)
+Date: Mon, 25 May 2015 02:39:02 -0700
+Subject: [Owasp-modsecurity-core-rule-set] httpbl.org blocking search engine
+	web crawlers
+Message-ID: <fef937037eadb94de8933ce34310fafc@azcappy.com>
+
+ 
+
+I had to write my own rule and disable the OWASP httpbl.org rule because
+httpbl.org has all of the search engine crawlers like MSNBot and Google
+Bot on the list but in the low threat levels like 3 and 10. Mine only
+blocks threat levels higher than 20 to prevent hosted sites from not
+being crawled by search engines. Why hasn't OWASP implemented a similar
+rule instead of blocking all? 
+-- 
+
+KEITH D. HOLLER
+_President/Senior Network Engineer_
+AZCAPPY NETWORK SERVICES
+_Quality Network Services Since 1995_
+Network Operations Center (NOC)
+Glendale, Arizona 85301, USA
+(623) 931-0809 Office
+(866) 931-0809 Toll Free
+BBB Accredited [1]
+Find us on Ethical Arizona [2]
+Find us on the web [3]
+Find us on Yelp [4]
+Find us on facebook [5]
+Find us on Twitter [6]
+ 
+
+Links:
+------
+[1]
+http://www.bbb.org/phoenix/business-reviews/internet-web-hosting/azcappy-network-services-in-glendale-az-1000036203
+[2] http://www.ethicalaz.com/azcappynetworkservices
+[3] http://www.azcappy.com
+[4] http://www.yelp.com/biz/azcappy-network-services-glendale-2
+[5] http://www.facebook.com/AzcappyNetworkServices
+[6] http://www.twitter.com/AZCAPPY
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150525/a112ef1b/attachment.html>
+
+From CSanders at trustwave.com  Tue May 26 12:19:55 2015
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Tue, 26 May 2015 12:19:55 +0000
+Subject: [Owasp-modsecurity-core-rule-set] httpbl.org blocking search
+ engine	web crawlers
+In-Reply-To: <fef937037eadb94de8933ce34310fafc@azcappy.com>
+References: <fef937037eadb94de8933ce34310fafc@azcappy.com>
+Message-ID: <F684BDD553BAF1479F5380EDAD3BE3711EB3CEC8@SKYMB1.trustwave.com>
+
+I added this feature about two months back. See https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/v3.0.0-dev/modsecurity_crs_10_setup.conf.example#L273-L294. It might be that you were not on OWASP CRS 3.0 or using an older version. It was a popular  feature request. With the rule I pushed anyone can filter project honeypot blacklists by what type of threats they want blocked. Would this address your concerns or does it need something else?
+
+Chaim Sanders
+Security Researcher, SpiderLabs
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of Keith D. Holler
+Sent: Monday, May 25, 2015 5:39 AM
+To: Owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: [Owasp-modsecurity-core-rule-set] httpbl.org blocking search engine web crawlers
+
+
+I had to write my own rule and disable the OWASP httpbl.org<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWDTYu27XmA&s=5&u=http%3a%2f%2fhttpbl%2eorg> rule because httpbl.org<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWDTYu27XmA&s=5&u=http%3a%2f%2fhttpbl%2eorg> has all of the search engine crawlers like MSNBot and Google Bot on the list but in the low threat levels like 3 and 10. Mine only blocks threat levels higher than 20 to prevent hosted sites from not being crawled by search engines. Why hasn't OWASP implemented a similar rule instead of blocking all?
+--
+
+Keith D. Holler
+President/Senior Network Engineer
+
+AZCAPPY Network Services
+Quality Network Services Since 1995
+
+Network Operations Center (NOC)
+Glendale, Arizona 85301, USA
+(623) 931-0809 Office
+
+(866) 931-0809 Toll Free
+BBB Accredited<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWGHSvjTXlA&s=5&u=http%3a%2f%2fwww%2ebbb%2eorg%2fphoenix%2fbusiness-reviews%2finternet-web-hosting%2fazcappy-network-services-in-glendale-az-1000036203>
+Find us on Ethical Arizona<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWGTa6WSGzw&s=5&u=http%3a%2f%2fwww%2eethicalaz%2ecom%2fazcappynetworkservices>
+
+Find us on the web<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWGHdvmODyg&s=5&u=http%3a%2f%2fwww%2eazcappy%2ecom>
+Find us on Yelp<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWDbc62CHzw&s=5&u=http%3a%2f%2fwww%2eyelp%2ecom%2fbiz%2fazcappy-network-services-glendale-2>
+Find us on facebook<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWGHd5WPVzg&s=5&u=http%3a%2f%2fwww%2efacebook%2ecom%2fAzcappyNetworkServices>
+Find us on Twitter<http://scanmail.trustwave.com/?c=4062&d=8fLi1TJ50Z9Ztf-C3GjQN43FH6K3BsouWGbevjfWlA&s=5&u=http%3a%2f%2fwww%2etwitter%2ecom%2fAZCAPPY>
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150526/c118e012/attachment.html>
+

@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-cincinnati] [Owasp-webgoat] WebGoat 5.2,	data layer access control fix
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20%5BOwasp-webgoat%5D%20WebGoat%205.2%2C%0A%09data%20layer%20access%20control%20fix&In-Reply-To=DA235E4D5FD3CE4C8B77382F0837274C53C73D%40EXCHMAIL01.corp.medplus.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000097.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-cincinnati] [Owasp-webgoat] WebGoat 5.2,	data layer access control fix</H1>
+    <B>Marco M. Morana</B> 
+    <A HREF="mailto:owasp-cincinnati%40lists.owasp.org?Subject=%5BOwasp-cincinnati%5D%20%5BOwasp-webgoat%5D%20WebGoat%205.2%2C%0A%09data%20layer%20access%20control%20fix&In-Reply-To=DA235E4D5FD3CE4C8B77382F0837274C53C73D%40EXCHMAIL01.corp.medplus.com"
+       TITLE="[Owasp-cincinnati] [Owasp-webgoat] WebGoat 5.2,	data layer access control fix">marco.m.morana at gmail.com
+       </A><BR>
+    <I>Sat Aug  2 10:03:44 EDT 2008</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000097.html">[Owasp-cincinnati] Last Meeting Presentation and Announcement of	August Meeting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#96">[ date ]</a>
+              <a href="thread.html#96">[ thread ]</a>
+              <a href="subject.html#96">[ subject ]</a>
+              <a href="author.html#96">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yan
+
+I think you are right and you've got my point, if these client parameters
+are checked at API (server) level before processing you are OK.  
+
+On the other hand if you want to be conservative you can also enforce RBAC
+at the SQL level. In security the concept of being redundant is referred as
+security in depth (also multi layer security) and is applied as a way to
+mitigate threats at different trust boundaries (e.g. client, server,
+middle-tier components, backend)
+
+Regards
+
+Marco
+
+p.s. I congratulate you as being you one of the most prolific and engaged
+members of the list, to the next meeting, please come forward, I have some
+OWASP goodies for you (pen, CD, pins )
+
+-----Original Message-----
+From: Zhou, Yan [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">yzhou at medplus.com</A>] 
+Sent: Friday, August 01, 2008 3:54 PM
+To: Marco M. Morana
+Subject: RE: [Owasp-webgoat] WebGoat 5.2, data layer access control fix
+
+Thanks Marco. 
+
+I see your point, it is certainly a good one. 
+
+But with WebGoat, the user id is the authenticated user (not available
+through URL parameter), and subjectUserId: is the employee the
+authenticated user wants to change (passed in through parameter). 
+
+One may change parameter to operate on a different employee, but the API
+would ensure that a user only change employees that he is authorized,
+too. 
+
+I think that the API and the SQL following it both do the same thing,
+either one would work, but having both is redundant.
+
+Thanks, 
+Yan Zhou
+
+-----Original Message-----
+From: Marco M. Morana [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">marco.m.morana at gmail.com</A>] 
+Sent: Monday, December 01, 2008 9:28 PM
+To: Zhou, Yan
+Subject: FW: [Owasp-webgoat] WebGoat 5.2, data layer access control fix
+
+Yan
+
+Please find herein my comments to your email, sorry being late.
+
+1). The solution from WebGoat suggests the following for fixing data
+layer access control.  However, I thought that only one of them is
+sufficient,  either the function call or the SQL access would do the
+job, not both. Am I missing
+something?
+[Morana, Marco M] as I look at the code you have a check for
+authorization controls on the code that processes the query. Here you
+pass parameters to the API:&quot; isAuthorizedForEmployee&quot;. The potential
+problem could be on how these parameters are passed to the function. If
+these are under control of a user via the client it can be potentially
+be changed to elevate the privileges. The typical example could be of
+such parameters being URL parameters and captured from the client via a
+web proxy and changed. I put the emphasis on potentially because really
+depends on how these parameters are passed to the API.
+So here you need to make sure that validation of these parameters is
+performed on the server side outside the API call
+
+More specifically you ask if you also need a control on the SQL access.
+You can certainly restrict on the DB access to the tables depending on
+the userIDs. Typically this is good for security because adds another
+layer of control. The problem is often times not feasible for
+administration pursposes, setting RBAC for each user accessing a table
+is a huge administration burden. Typically it can be done by setting
+permissions to store procedures for a limited set of accounts (e.g.
+fuctional IDs) so there is a limited set of changes required by the DBA.
+ 
+
+                  if (isAuthorizedForEmployee(s, userId, subjectUserId))
+
+                  {     ...
+
+                        //String query = &quot;SELECT * FROM employee WHERE
+userid = &quot; + subjectUserId;
+
+                        String query = &quot;SELECT * FROM employee,ownership
+WHERE employee.userid = ownership.employee_id and &quot;
++&quot;ownership.employer_id = &quot; + userId + &quot; and ownership.employee_id = &quot; +
+subjectUserId;      // STAGE 4 - FIX
+[Morana, Marco M] The problem of this concatenated query is also SQL
+injection!
+
+                        ...
+
+                  }     
+
+                  else
+
+                  {
+
+                        throw new UnauthorizedException();
+
+                  }
+
+ 
+
+2) How can I get SQL access to the data model, I was not able to find
+any instructions on browsing through the database tables directly. 
+[Morana, Marco M] Good question, not sure the DB schema is available I
+would direct the question to Webgoat mailing list.
+
+ 
+
+Thanks, 
+
+[Morana, Marco M] 
+Regards, Marco
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+Confidentiality Notice: The information contained in this electronic
+transmission is confidential and may be legally privileged. It is
+intended
+only for the addressee(s) named above. If you are not an intended
+recipient,
+be aware that any disclosure, copying, distribution or use of the
+information contained in this transmission is prohibited and may be
+unlawful. If you have received this transmission in error, please notify
+us
+by telephone (513) 229-5500 or by email (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">postmaster at MedPlus.com</A>). After
+replying, please erase it from your computer system.
+
+
+
+_______________________________________________
+Owasp-webgoat mailing list
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">Owasp-webgoat at lists.owasp.org</A>
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-webgoat">https://lists.owasp.org/mailman/listinfo/owasp-webgoat</A>
+
+
+
+
+
+
+
+
+
+
+
+Confidentiality Notice: The information contained in this electronic
+transmission is confidential and may be legally privileged. It is intended
+only for the addressee(s) named above. If you are not an intended recipient,
+be aware that any disclosure, copying, distribution or use of the
+information contained in this transmission is prohibited and may be
+unlawful. If you have received this transmission in error, please notify us
+by telephone (513) 229-5500 or by email (<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">postmaster at MedPlus.com</A>). After
+replying, please erase it from your computer system.
+
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000097.html">[Owasp-cincinnati] Last Meeting Presentation and Announcement of	August Meeting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#96">[ date ]</a>
+              <a href="thread.html#96">[ thread ]</a>
+              <a href="subject.html#96">[ subject ]</a>
+              <a href="author.html#96">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-cincinnati">More information about the Owasp-cincinnati
+mailing list</a><br>
+</body></html>

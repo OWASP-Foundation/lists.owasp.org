@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CA712B19.2F8DB%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000838.html">
+   <LINK REL="Next"  HREF="000846.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?</H1>
+    <B>Paul McGarry</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20981242%20SQL%20Injection%0A%20detection%20false%20positives%3F&In-Reply-To=CA712B19.2F8DB%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?">paul at paulmcgarry.com
+       </A><BR>
+    <I>Thu Aug 18 01:15:22 EDT 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000838.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+        <LI>Next message: <A HREF="000846.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#841">[ date ]</a>
+              <a href="thread.html#841">[ thread ]</a>
+              <a href="subject.html#841">[ subject ]</a>
+              <a href="author.html#841">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks for the feedback.
+
+On Wed, Aug 17, 2011 at 10:36 PM, Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt; wrote:
+&gt;<i> Thanks for the feedback Paul. &#160;FYI - you can review some of the reference
+</I>
+&gt;<i> For the specific rule you mentioned - 981242 - this is a converted phpids
+</I>
+Incidently there seems to be a double usage of that ID (and others
+near it, 981231-981246 actually) in
+modsecurity_crs_41_sql_injection_attacks.conf
+
+&gt;<i> rule. &#160;You can review example test payloads that they use here -
+</I>&gt;<i> <A HREF="https://dev.itratos.de/projects/php-ids/repository/entry/trunk/tests/IDS/Mo">https://dev.itratos.de/projects/php-ids/repository/entry/trunk/tests/IDS/Mo</A>
+</I>&gt;<i> nitorTest.php. &#160;Look for the public function testSQLIList() sections.
+</I>
+I think previously I have ended up disabling many the PHP-IDS based
+rules because of the false positives.
+
+Is there some difference between how PHP-IDS executes the rules and
+how modsecurity treats them?
+
+I note that if I put:
+<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">a_a_axoraaaaaa at aaaaa.com</A>
+in the box on
+<A HREF="https://demo.phpids.org/">https://demo.phpids.org/</A>
+it poses no problem
+
+while accessing
+
+<A HREF="http://testing/index.php?email=a_a_axoraaaaaa%40aaaa.com">http://testing/index.php?email=a_a_axoraaaaaa%40aaaa.com</A>
+
+generates:
+
+Message: Warning. Pattern match
+&quot;(?i:(\\!\\=|\\&amp;\\&amp;|\\|\\||&gt;&gt;|&lt;&lt;|&gt;=|&lt;=|&lt;&gt;|&lt;=&gt;|xor|rlike|regexp|isnull)|(?:not\\s+between\\s+0\\s+and)|(?:is\\s+null)|(like\\s+null)|(?:(?:^|\\W)in[+\\s]*\\([\\s\\d\&quot;]+[^()]*\\))|(?:xor|&lt;&gt;|rlike(?:\\s+binary)?)|(?:regexp\\s+binary))&quot;
+at ARGS:email. [file
+&quot;/etc/httpd/conf.d/modsecurity-crs_2.2.1/base_rules/modsecurity_crs_41_sql_injection_attacks.conf&quot;]
+[line &quot;52&quot;] [id &quot;981212&quot;] [rev &quot;2.2.1&quot;] [msg &quot;SQL Injection Attack:
+SQL Operator Detected&quot;] [data &quot;xor&quot;] [severity &quot;CRITICAL&quot;] [tag
+&quot;WEB_ATTACK/SQL_INJECTION&quot;] [tag &quot;WASCTC/WASC-19&quot;] [tag
+&quot;OWASP_TOP_10/A1&quot;] [tag &quot;OWASP_AppSensor/CIE1&quot;] [tag &quot;PCI/6.5.2&quot;]
+
+Similarly
+3 Orchard Street
+on the PHP_IDS demo is fine and
+<A HREF="http://testing/index.php?street=3+Orchard+Street">http://testing/index.php?street=3+Orchard+Street</A>
+gives me warnings (981248 on &quot;3 Or&quot; and 981242 on &quot;3 Orc&quot;)
+
+Ironically the rules seem to cause the most problems in places where
+they might be most useful, ie where the user is actually entitled to
+enter 'free text' and validation will more likely be looser than on
+fields containing more defined parameters. (The anomoly score tends to
+get ramped up too, such as when there is an email and an email_confirm
+field on the same page or the street name appears twice in a
+submission as part of both the cardholder info and shipping address.)
+
+I do not believe the stuff I work on is vulnerable to SQL injection
+but we all know about defence in depth. It would be nice to have as
+much turned on as possible on (for example) a page collecting credit
+card info but some of the rules seem too loose to be usable in
+practice with real world input the forms should be able to receive.
+
+Paul
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000838.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+	<LI>Next message: <A HREF="000846.html">[Owasp-modsecurity-core-rule-set] 981242 SQL Injection detection false positives?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#841">[ date ]</a>
+              <a href="thread.html#841">[ thread ]</a>
+              <a href="subject.html#841">[ subject ]</a>
+              <a href="author.html#841">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

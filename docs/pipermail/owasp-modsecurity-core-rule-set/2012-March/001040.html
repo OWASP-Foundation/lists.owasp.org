@@ -1,0 +1,356 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] anomaly score not calculated ?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20anomaly%20score%20not%20calculated%20%3F&In-Reply-To=%3CNDBBLMJIGLJAFKPADIIJCEBFHLAA.mark%40intcom.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001039.html">
+   <LINK REL="Next"  HREF="001041.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?</H1>
+    <B>Mark Boos (IntCom)</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20anomaly%20score%20not%20calculated%20%3F&In-Reply-To=%3CNDBBLMJIGLJAFKPADIIJCEBFHLAA.mark%40intcom.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?">mark at intcom.nl
+       </A><BR>
+    <I>Mon Mar 19 13:33:41 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001039.html">[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?
+</A></li>
+        <LI>Next message: <A HREF="001041.html">[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1040">[ date ]</a>
+              <a href="thread.html#1040">[ thread ]</a>
+              <a href="subject.html#1040">[ subject ]</a>
+              <a href="author.html#1040">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Ryan,
+
+But in section H of that audit log is:
+
+&gt;&gt;<i> [id &quot;960017&quot;] [rev &quot;2.0.10&quot;] [msg &quot;Host header is a numeric IP address&quot;]
+</I>[severity &quot;CRITICAL&quot;]
+
+I look for the word CRITICAL, so I thought that it would have score 5 so it
+would be above the max anomaly score.
+
+And in K isnt it strange that there are variables reported instead of
+numbers ?:
+
+&gt;&gt;<i> msg:'Inbound Anomaly Score Exceeded (Total Score: %{TX.ANOMALY_SCORE},
+</I>SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}): Last Matched Message:
+%{tx.msg}'
+
+
+Regards
+Mark
+
+&gt;<i> -----Oorspronkelijk bericht-----
+</I>&gt;<i> Van: Ryan Barnett [mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>]
+</I>&gt;<i> Verzonden: maandag 19 maart 2012 14:15
+</I>&gt;<i> Aan: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mark at intcom.nl</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> Onderwerp: Re: [Owasp-modsecurity-core-rule-set] anomaly score not
+</I>&gt;<i> calculated ?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Mark,
+</I>&gt;<i>
+</I>&gt;<i> I would suggest that you use the latest CRS version as there are other
+</I>&gt;<i> bugs that we have fixed.
+</I>&gt;<i>
+</I>&gt;<i> Looking at the example audit log entry you provided, that message &quot;Host
+</I>&gt;<i> header is a numeric IP address&quot; only results in a NOTICE level anomaly
+</I>&gt;<i> score increase - setvar:tx.anomaly_score=+%{tx.notice_anomaly_score}
+</I>&gt;<i>
+</I>&gt;<i> Here is the complete rule -
+</I>&gt;<i>
+</I>&gt;<i> SecRule REQUEST_HEADERS:Host &quot;^[\d.:]+$&quot;
+</I>&gt;<i> &quot;phase:2,rev:'2.0.10',t:none,block,msg:'Host header is a numeric IP
+</I>&gt;<i> address',
+</I>&gt;<i> severity:'2',id:'960017',tag:'PROTOCOL_VIOLATION/IP_HOST',tag:'WAS
+</I>&gt;<i> CTC/WASC-
+</I>&gt;<i> 21',tag:'OWASP_TOP_10/A7',tag:'PCI/6.5.10',tag:'<A HREF="http://technet.mic">http://technet.mic</A>
+</I>&gt;<i> rosoft.co
+</I>&gt;<i> m/en-us/magazine/2005.01.hackerbasher.aspx',setvar:'tx.msg=%{rule.
+</I>&gt;<i> msg}',set
+</I>&gt;<i> var:tx.anomaly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_
+</I>&gt;<i> score=+%{
+</I>&gt;<i> tx.notice_anomaly_score},setvar:tx.%{rule.id}-POLICY/IP_HOST-%{mat
+</I>&gt;<i> ched_var_
+</I>&gt;<i> name}=%{matched_var}'&quot;
+</I>&gt;<i>
+</I>&gt;<i> So, when this transaction gets to the 40 Inbound Blocking file this
+</I>&gt;<i> ruleset is processed -
+</I>&gt;<i>
+</I>&gt;<i> # Alert and Block based on Anomaly Scores
+</I>&gt;<i> #
+</I>&gt;<i> SecRule TX:ANOMALY_SCORE &quot;@gt 0&quot; \
+</I>&gt;<i>     &quot;chain,phase:2,t:none,deny,log,msg:'Inbound Anomaly Score Exceeded
+</I>&gt;<i> (Total Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+</I>&gt;<i> XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}',logdata:'Last
+</I>&gt;<i> Matched Data:
+</I>&gt;<i> %{matched_var}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbou
+</I>&gt;<i> nd_anomal
+</I>&gt;<i> y_score=%{tx.anomaly_score}&quot;
+</I>&gt;<i>   SecRule TX:ANOMALY_SCORE &quot;@ge %{tx.inbound_anomaly_score_level}&quot; chain
+</I>&gt;<i>     SecRule TX:ANOMALY_SCORE_BLOCKING &quot;@streq on&quot; chain
+</I>&gt;<i>       SecRule TX:/^\d/ &quot;(.*)&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Section K of your audit log shows that the first SecRule matches -
+</I>&gt;<i>
+</I>&gt;<i> SecRule &quot;TX:ANOMALY_SCORE&quot; &quot;@gt 0&quot;
+</I>&gt;<i> &quot;phase:2,chain,t:none,deny,log,msg:'Inbound Anomaly Score Exceeded (Total
+</I>&gt;<i> Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+</I>&gt;<i> XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}',logdata:'Last
+</I>&gt;<i> Matched
+</I>&gt;<i> Data:
+</I>&gt;<i> %{matched_var}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbou
+</I>&gt;<i> nd_anomal
+</I>&gt;<i> y
+</I>&gt;<i> _score=%{tx.anomaly_score}&quot;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> But, then it gets to the second SecRule that checks that the anomaly score
+</I>&gt;<i> if @ge your tx.inbound_anomaly_score_level, it doesn't match.  This is
+</I>&gt;<i> because the only 1 rule with the NOTICE level matched.  The bottom line is
+</I>&gt;<i> that this transaction's anomaly score was below your blocking threshold.
+</I>&gt;<i>
+</I>&gt;<i> Hope this helps,
+</I>&gt;<i> Ryan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 3/19/12 8:16 AM, &quot;Mark Boos (IntCom)&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">mark at intcom.nl</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt;Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;An introduction: I use ModSecurity for 5 weeks now, on a relatively quiet
+</I>&gt;<i> &gt;internet server. I am not a very experienced ModSecurity user, but the
+</I>&gt;<i> &gt;traditional score installation worked just fine. I hope you forgive me my
+</I>&gt;<i> &gt;shortcomings in knowledge.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;I have a problem with the anomaly method: there are warnings and critical
+</I>&gt;<i> &gt;errors in the log files, but it seems no action is being taken after the
+</I>&gt;<i> &gt;maximum score (5) is exceeded.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Installation:
+</I>&gt;<i> &gt;- Debian stable with apache 2.2.16
+</I>&gt;<i> &gt;- libapache-mod-security 2.5.12-1
+</I>&gt;<i> &gt;- crs_2.0.10 rule files (downloaded because the latest and greatest
+</I>&gt;<i> &gt;crs_2.2.3 didnt work either)
+</I>&gt;<i> &gt;*modsecurity_crs_20_protocol_violations.conf
+</I>&gt;<i> &gt;*modsecurity_crs_21_protocol_anomalies.conf
+</I>&gt;<i> &gt;*modsecurity_crs_23_request_limits.conf
+</I>&gt;<i> &gt;*modsecurity_crs_35_bad_robots.conf
+</I>&gt;<i> &gt;*modsecurity_crs_40_generic_attacks.conf
+</I>&gt;<i> &gt;*modsecurity_crs_45_trojans.conf
+</I>&gt;<i> &gt;*modsecurity_crs_49_inbound_blocking.conf
+</I>&gt;<i> &gt;*modsecurity_crs_59_outbound_blocking.conf
+</I>&gt;<i> &gt;*modsecurity_crs_60_correlation.conf
+</I>&gt;<i> &gt;- latest slr
+</I>&gt;<i> &gt;*modsecurity_slr_10_ip_reputation.conf
+</I>&gt;<i> &gt;*modsecurity_slr_46_joomla_attacks.conf
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;In modsecurity_crs_10_config.conf the anomaly configuration:
+</I>&gt;<i> &gt;----------------------------------------------------------------------
+</I>&gt;<i> &gt;SecDefaultAction &quot;phase:2,pass,log&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;SecAction &quot;phase:1,t:none,nolog,pass, \
+</I>&gt;<i> &gt;setvar:tx.critical_anomaly_score=5, \
+</I>&gt;<i> &gt;setvar:tx.error_anomaly_score=4, \
+</I>&gt;<i> &gt;setvar:tx.warning_anomaly_score=3, \
+</I>&gt;<i> &gt;setvar:tx.notice_anomaly_score=2&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;SecAction
+</I>&gt;<i> &gt;&quot;phase:1,t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5&quot;
+</I>&gt;<i> &gt;SecAction
+</I>&gt;<i> &gt;&quot;phase:1,t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;SecAction &quot;phase:1,t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on&quot;
+</I>&gt;<i> &gt;----------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;This results in mod-security audit log for example:
+</I>&gt;<i> &gt;----------------------------------------------------------------------
+</I>&gt;<i> &gt;--f3f66479-A--
+</I>&gt;<i> &gt;[15/Mar/2012:13:08:09 +0100] T2HbqX8AAAEAAEXDCtoAAAAG 93.94.***.** 43988
+</I>&gt;<i> &gt;95.142.***.** 80
+</I>&gt;<i> &gt;--f3f66479-B--
+</I>&gt;<i> &gt;GET /translators.html HTTP/1.1
+</I>&gt;<i> &gt;TE: deflate,gzip;q=0.3
+</I>&gt;<i> &gt;Keep-Alive: 300
+</I>&gt;<i> &gt;Connection: Keep-Alive, TE
+</I>&gt;<i> &gt;Host: 95.142.165.25
+</I>&gt;<i> &gt;User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; MSIE 5.5; Windows NT 5.1)
+</I>&gt;<i> &gt;Opera 7.01 [en]
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;--f3f66479-F--
+</I>&gt;<i> &gt;HTTP/1.1 404 Not Found
+</I>&gt;<i> &gt;Vary: Accept-Encoding
+</I>&gt;<i> &gt;Content-Length: 214
+</I>&gt;<i> &gt;Keep-Alive: timeout=15, max=100
+</I>&gt;<i> &gt;Connection: Keep-Alive
+</I>&gt;<i> &gt;Content-Type: text/html; charset=iso-8859-1
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;--f3f66479-H--
+</I>&gt;<i> &gt;Message: Warning. Pattern match &quot;^[\d.:]+$&quot; at
+</I>&gt;<i> REQUEST_HEADERS:Host. [file
+</I>&gt;<i> &gt;&quot;/etc/apache2/mod-security/activated_rules/modsecurity_crs_21_pro
+</I>tocol_ano
+&gt;<i> &gt;ma
+</I>&gt;<i> &gt;lies.conf&quot;] [line &quot;97&quot;] [id &quot;960017&quot;] [rev &quot;2.0.10&quot;] [msg &quot;Host header is
+</I>&gt;<i> &gt;a
+</I>&gt;<i> &gt;numeric IP address&quot;] [severity &quot;CRITICAL&quot;] [tag
+</I>&gt;<i> &gt;&quot;PROTOCOL_VIOLATION/IP_HOST&quot;] [tag &quot;WASCTC/WASC-21&quot;] [tag
+</I>&gt;<i> &gt;&quot;OWASP_TOP_10/A7&quot;]
+</I>&gt;<i> &gt;[tag &quot;PCI/6.5.10&quot;] [tag
+</I>&gt;<i> &gt;&quot;<A HREF="http://technet.microsoft.com/en-us/magazine/2005.01.hackerbasher.aspx">http://technet.microsoft.com/en-us/magazine/2005.01.hackerbasher.aspx</A>&quot;]
+</I>&gt;<i> &gt;Apache-Error: [file &quot;/tmp/buildd/apache2-2.2.16/server/core.c&quot;] [line
+</I>&gt;<i> &gt;3648]
+</I>&gt;<i> &gt;[level 3] File does not exist:
+</I>&gt;<i> &gt;/var/www/vhosts/intcom.nl/httpdocs/translators.html
+</I>&gt;<i> &gt;Stopwatch: 1331813289736227 5847 (554 5505 -)
+</I>&gt;<i> &gt;Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;<i> &gt;core
+</I>&gt;<i> &gt;ruleset/2.0.10.
+</I>&gt;<i> &gt;Server: Apache/2.2.16 (Debian) PHP/5.3.3-7+squeeze8 with Suhosin-Patch
+</I>&gt;<i> &gt;mod_ssl/2.2.16 OpenSSL/0.9.8o
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;--f3f66479-K--
+</I>&gt;<i> &gt;SecAction
+</I>&gt;<i> &gt;&quot;phase:1,t:none,nolog,pass,setvar:tx.critical_anomaly_score=5,set
+</I>&gt;<i> var:tx.er
+</I>&gt;<i> &gt;ro
+</I>&gt;<i> &gt;r_anomaly_score=4,setvar:tx.warning_anomaly_score=3,setvar:tx.not
+</I>ice_anoma
+&gt;<i> &gt;ly
+</I>&gt;<i> &gt;_score=2&quot;
+</I>&gt;<i> &gt;SecAction
+</I>&gt;<i> &gt;&quot;phase:1,t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level=5&quot;
+</I>&gt;<i> &gt;SecAction
+</I>&gt;<i> &gt;&quot;phase:1,t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level=4&quot;
+</I>&gt;<i> &gt;SecAction &quot;phase:1,t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on&quot;
+</I>&gt;<i> &gt;SecRule &quot;REQUEST_METHOD&quot; &quot;@rx ^(?:GET|HEAD)$&quot;
+</I>&gt;<i> &gt;&quot;phase:1,log,chain,rev:2.0.10,t:none,block,msg:'GET or HEAD requests with
+</I>&gt;<i> &gt;bodies',severity:2,id:960011,tag:PROTOCOL_VIOLATION/EVASION,tag:W
+</I>&gt;<i> ASCTC/WAS
+</I>&gt;<i> &gt;C-
+</I>&gt;<i> &gt;21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,tag:<A HREF="http://www.w3.org/Proto">http://www.w3.org/Proto</A>
+</I>&gt;<i> cols/rfc2
+</I>&gt;<i> &gt;61
+</I>&gt;<i> &gt;6/rfc2616-sec4.html#sec4.3&quot;
+</I>&gt;<i> &gt;SecRule &quot;REMOTE_ADDR&quot; &quot;@rx .*&quot;
+</I>&gt;<i> &gt;&quot;phase:1,chain,t:none,log,block,id:2200000,msg:'SLR: Client IP in
+</I>&gt;<i> &gt;Blacklist.',tag:AUTOMATION/MALICIOUS,setvar:tx.ip_blacklist=/%{ma
+</I>&gt;<i> tched_var
+</I>&gt;<i> &gt;}/
+</I>&gt;<i> &gt;&quot;
+</I>&gt;<i> &gt;SecRule &quot;REQUEST_METHOD&quot; &quot;!@rx ^OPTIONS$&quot;
+</I>&gt;<i> &gt;&quot;phase:2,log,chain,rev:2.0.10,t:none,block,msg:'Request Missing an Accept
+</I>&gt;<i> &gt;Header',severity:2,id:960015,tag:PROTOCOL_VIOLATION/MISSING_HEADE
+</I>&gt;<i> R_ACCEPT,
+</I>&gt;<i> &gt;ta
+</I>&gt;<i> &gt;g:WASCTC/WASC-21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10&quot;
+</I>&gt;<i> &gt;SecRule &quot;&amp;REQUEST_HEADERS:Content-Type&quot; &quot;@eq 0&quot;
+</I>&gt;<i> &gt;&quot;phase:2,log,chain,rev:2.0.10,t:none,block,msg:'Request Containing
+</I>&gt;<i> &gt;Content,
+</I>&gt;<i> &gt;but Missing Content-Type header',id:960904,severity:5&quot;
+</I>&gt;<i> &gt;SecRule &quot;REQUEST_HEADERS:Host&quot; &quot;@rx ^[\\d.:]+$&quot;
+</I>&gt;<i> &gt;&quot;phase:2,log,rev:2.0.10,t:none,block,msg:'Host header is a numeric IP
+</I>&gt;<i> &gt;address',severity:2,id:960017,tag:PROTOCOL_VIOLATION/IP_HOST,tag:
+</I>&gt;<i> WASCTC/WA
+</I>&gt;<i> &gt;SC
+</I>&gt;<i> &gt;-21,tag:OWASP_TOP_10/A7,tag:PCI/6.5.10,tag:<A HREF="http://technet.microso">http://technet.microso</A>
+</I>&gt;<i> ft.com/en
+</I>&gt;<i> &gt;-u
+</I>&gt;<i> &gt;s/magazine/2005.01.hackerbasher.aspx,setvar:tx.msg=%{rule.msg},se
+</I>&gt;<i> tvar:tx.a
+</I>&gt;<i> &gt;no
+</I>&gt;<i> &gt;maly_score=+%{tx.notice_anomaly_score},setvar:tx.policy_score=+%{
+</I>&gt;<i> tx.notice
+</I>&gt;<i> &gt;_a
+</I>&gt;<i> &gt;nomaly_score},setvar:tx.%{rule.id}-POLICY/IP_HOST-%{matched_var_n
+</I>&gt;<i> ame}=%{ma
+</I>&gt;<i> &gt;tc
+</I>&gt;<i> &gt;hed_var}'&quot;
+</I>&gt;<i> &gt;SecRule &quot;TX:ANOMALY_SCORE&quot; &quot;@gt 0&quot;
+</I>&gt;<i> &gt;&quot;phase:2,chain,t:none,deny,log,msg:'Inbound Anomaly Score Exceeded (Total
+</I>&gt;<i> &gt;Score: %{TX.ANOMALY_SCORE}, SQLi=%{TX.SQL_INJECTION_SCORE},
+</I>&gt;<i> &gt;XSS=%{TX.XSS_SCORE}): Last Matched Message: %{tx.msg}',logdata:'Last
+</I>&gt;<i> &gt;Matched
+</I>&gt;<i> &gt;Data:
+</I>&gt;<i> &gt;%{matched_var}',setvar:tx.inbound_tx_msg=%{tx.msg},setvar:tx.inbo
+</I>&gt;<i> und_anoma
+</I>&gt;<i> &gt;ly
+</I>&gt;<i> &gt;_score=%{tx.anomaly_score}&quot;
+</I>&gt;<i> &gt;SecRule &quot;TX:INBOUND_ANOMALY_SCORE&quot; &quot;@gt 0&quot;
+</I>&gt;<i> &gt;&quot;phase:5,chain,t:none,log,noauditlog,skipAfter:END_CORRELATION,ms
+</I>&gt;<i> g:'Inboun
+</I>&gt;<i> &gt;d
+</I>&gt;<i> &gt;Anomaly Score (Total Inbound Score: %{TX.INBOUND_ANOMALY_SCORE},
+</I>&gt;<i> &gt;SQLi=%{TX.SQL_INJECTION_SCORE}, XSS=%{TX.XSS_SCORE}):
+</I>&gt;<i> &gt;%{tx.inbound_tx_msg}'&quot;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;--f3f66479-Z--
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;----------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;It looks like the variables aren't being filled ?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Thank you for your time.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Regards
+</I>&gt;<i> &gt;Mark
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;_______________________________________________
+</I>&gt;<i> &gt;Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> &gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> &gt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This transmission may contain information that is privileged,
+</I>&gt;<i> confidential, and/or exempt from disclosure under applicable law.
+</I>&gt;<i> If you are not the intended recipient, you are hereby notified
+</I>&gt;<i> that any disclosure, copying, distribution, or use of the
+</I>&gt;<i> information contained herein (including any reliance thereon) is
+</I>&gt;<i> STRICTLY PROHIBITED. If you received this transmission in error,
+</I>&gt;<i> please immediately contact the sender and destroy the material in
+</I>&gt;<i> its entirety, whether in electronic or hard copy format.
+</I>&gt;<i>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001039.html">[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?
+</A></li>
+	<LI>Next message: <A HREF="001041.html">[Owasp-modsecurity-core-rule-set] anomaly score not calculated ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1040">[ date ]</a>
+              <a href="thread.html#1040">[ thread ]</a>
+              <a href="subject.html#1040">[ subject ]</a>
+              <a href="author.html#1040">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

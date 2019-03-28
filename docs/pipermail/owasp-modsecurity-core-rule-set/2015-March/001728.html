@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%0A%20modsecurity_crs_11_dos_protection.conf&In-Reply-To=%3CDUB129-W623FC001CA5BC37A30743D82190%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001727.html">
+   <LINK REL="Next"  HREF="001723.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf</H1>
+    <B>Barry Pollard</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Questions%20about%0A%20modsecurity_crs_11_dos_protection.conf&In-Reply-To=%3CDUB129-W623FC001CA5BC37A30743D82190%40phx.gbl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf">barry_pollard at hotmail.com
+       </A><BR>
+    <I>Wed Mar 11 15:37:48 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001727.html">[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf
+</A></li>
+        <LI>Next message: <A HREF="001723.html">[Owasp-modsecurity-core-rule-set] block CONNECT
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1728">[ date ]</a>
+              <a href="thread.html#1728">[ thread ]</a>
+              <a href="subject.html#1728">[ subject ]</a>
+              <a href="author.html#1728">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Interesting to know.
+
+The other thing I'm thinking about is do I need to track each request? For DoS checks (back to original subject!) ideally you would track each request, but it could be argued that DoS checks in webserver are only of limited use anyway (as a real DoS could attack the webserver itself), so I'm more worried about protecting only certain URLs that give up dynamic content via my app server and therefore that are more vulnerable to DoS attacks.
+
+So I'm thinking of the following:
+Move the initcol rules for the IP config to phase 2 (and also update the modsecurity_crs_11_dos_protection.conf phase 1 rules from phase 2), plus have some &quot;ignore static content&quot; rules which &quot;allow&quot; static content at the end of phase 1, thus skipping phase 2.
+That should dramatically reduce the number of IP addresses tracked in the collection and should hopefully I see less errors.
+
+The reason I'm doing the &quot;allow&quot; at the end of phase 1 is so that basic checks (e.g. protocol anomolies, bad robots...etc) are still followed in phase 1.
+And I'll also need to use the ctl:ruleEngine=On setting as part of my rule to force the use fo &quot;allow&quot; during DetectionOnly mode.
+
+Thoughts on this? Obviously this is deviating from the DoS rules as they were intended in the CRS and think I'll probably take a copy of the rules in modsecurity_crs_11_dos_protection.conf rather than directly edit them.
+
+Thanks,
+Barry
+
+________________________________
+&gt;<i> From: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A> 
+</I>&gt;<i> To: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at owasp.org</A>; <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A> 
+</I>&gt;<i> CC: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A> 
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Questions about 
+</I>&gt;<i> modsecurity_crs_11_dos_protection.conf 
+</I>&gt;<i> Date: Wed, 11 Mar 2015 12:13:06 +0000 
+</I>&gt;<i> 
+</I>&gt;<i> It should be noted for the purposes of this discussion that there is an 
+</I>&gt;<i> experimental build of mod security with memcache support 
+</I>&gt;<i> (<A HREF="https://github.com/SpiderLabs/ModSecurity/tree/memcache_collections">https://github.com/SpiderLabs/ModSecurity/tree/memcache_collections</A>). 
+</I>&gt;<i> 
+</I>&gt;<i> From: Josh Amishav-Zlatin &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jamuse at owasp.org</A>&gt;&gt; 
+</I>&gt;<i> Date: Wednesday, March 11, 2015 at 4:37 AM 
+</I>&gt;<i> To: Barry Pollard 
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt;&gt; 
+</I>&gt;<i> Cc: Chaim Sanders 
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">csanders at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">csanders at trustwave.com</A>&gt;&gt;, 
+</I>&gt;<i> &quot;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&quot; 
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;&gt; 
+</I>&gt;<i> Subject: Re: [Owasp-modsecurity-core-rule-set] Questions about 
+</I>&gt;<i> modsecurity_crs_11_dos_protection.conf 
+</I>&gt;<i> 
+</I>&gt;<i> Hi Barry, 
+</I>&gt;<i> 
+</I>&gt;<i> FWIW, we've run into similar issues and re-implemented some rules to 
+</I>&gt;<i> use Redis for storage instead. This had to be implemented via Lua 
+</I>&gt;<i> scripting though, which takes a slight performance hit. Having said 
+</I>&gt;<i> that, there is an open ticket to implement an alternative shared 
+</I>&gt;<i> persistent storage mechanism: 
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://github.com/SpiderLabs/ModSecurity/issues/378&lt;http://scanmail.trustwave.com/?c=4062&amp;d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wPR_Yvt2BA&amp;s=5&amp;u=https://github.com/SpiderLabs/ModSecurity/issues/378">https://github.com/SpiderLabs/ModSecurity/issues/378&lt;http://scanmail.trustwave.com/?c=4062&amp;d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wPR_Yvt2BA&amp;s=5&amp;u=https://github.com/SpiderLabs/ModSecurity/issues/378</A>&gt; 
+</I>&gt;<i> 
+</I>&gt;<i> -- 
+</I>&gt;<i> - Josh 
+</I>&gt;<i> 
+</I>&gt;<i> On Wed, Mar 11, 2015 at 9:49 AM, Barry Pollard 
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">barry_pollard at hotmail.com</A>&gt;&gt; wrote: 
+</I>&gt;<i> Thanks for those answers Chaim. Make sense to me. 
+</I>&gt;<i> 
+</I>&gt;<i> I do think the use of SDBM for storage for large scale tracking like 
+</I>&gt;<i> for IP addresses is a problem (with ModSecurity rather than with the 
+</I>&gt;<i> core rule set but not that that matters). Unfortunately it just doesn't 
+</I>&gt;<i> work for even relatively small amounts of traffic. 
+</I>&gt;<i> 
+</I>&gt;<i> Not sure how you could resolve it and I know nothing about ModSecurity 
+</I>&gt;<i> is written, or about writing really high performing systems like this, 
+</I>&gt;<i> but came up with below suggestions after a bit of a think. Not sure how 
+</I>&gt;<i> feasible any of these are. 
+</I>&gt;<i> 
+</I>&gt;<i> * Split out IP.pag into several files based on hashed IP address so 
+</I>&gt;<i> bottle neck is not on one file. Would need to be hashed IP address in 
+</I>&gt;<i> case your customer based is skewed towards certain IP ranges. Could 
+</I>&gt;<i> also configure number of files to split across, so busier sites have 
+</I>&gt;<i> larger number of IP.pag files, if the hashing algorithm could take that 
+</I>&gt;<i> config number into account. 
+</I>&gt;<i> 
+</I>&gt;<i> * Have a minimum update time e.g. If hit from IP in last 1 second then 
+</I>&gt;<i> don't bother saving another hit as record is reasonably up to date. 
+</I>&gt;<i> Again time could be configurable. Would obviously impact any DoS/Brute 
+</I>&gt;<i> force rules since we'd be filtering out hits here. 
+</I>&gt;<i> 
+</I>&gt;<i> * Make it easier to ignore the problem by ignoring certain alerts (e.g. 
+</I>&gt;<i> deleting stale collections fails... etc.) unless in high log level, and 
+</I>&gt;<i> add a safe way of ModSecurity clearing down the file and starting again 
+</I>&gt;<i> at certain times (e.g. daily/weekly) or after it reaches a certain 
+</I>&gt;<i> size. Massive fudge but could be short term solution. 
+</I>&gt;<i> 
+</I>&gt;<i> * Use some other persistent storage. Though I'd imagine, given the 
+</I>&gt;<i> potential rate of data updates for a busy site, this would also be a 
+</I>&gt;<i> problem in whatever we move to. 
+</I>&gt;<i> 
+</I>&gt;<i> * Use in-memory storage - though guess that would raise questions on 
+</I>&gt;<i> memory requirements and how to share between different 
+</I>&gt;<i> threads/processes. 
+</I>&gt;<i> 
+</I>&gt;<i> * Have dedicated process/program to manage collections that all other 
+</I>&gt;<i> threads/processes talk via. Could address some of the issues with in 
+</I>&gt;<i> using in-memory storage raised above. Then again could bring in whole 
+</I>&gt;<i> raft of other problems :-) 
+</I>&gt;<i> 
+</I>&gt;<i> * Store less. Collections do seem to be quite large. Could you have a 
+</I>&gt;<i> minimal set for things like IP address with just last access time/num 
+</I>&gt;<i> hits? For rules that require more things tracked (e.g. Brute force 
+</I>&gt;<i> attempts on a specific URL) they could be tracked in a separate &quot;full&quot; 
+</I>&gt;<i> collection which would have a larger record set, but with less entries. 
+</I>&gt;<i> 
+</I>&gt;<i> * Reduce blocking time in code making the SDBM update. Imagine the code 
+</I>&gt;<i> is probably pretty tight here already but obviously any reduction here 
+</I>&gt;<i> would have benefit. Had a quick look myself (more out of nosiness) but 
+</I>&gt;<i> the C code scared me too much (been a while!). 
+</I>&gt;<i> 
+</I>&gt;<i> * Look into how other modules (e.g. mod_evasive) handle this problem to 
+</I>&gt;<i> see if can learn anything from them. 
+</I>&gt;<i> 
+</I>&gt;<i> Am sure you've probably already considered these and better solutions 
+</I>&gt;<i> but thought I'd suggest them anyway. 
+</I>&gt;<i> 
+</I>&gt;<i> Thanks, 
+</I>&gt;<i> Barry 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> On 11 Mar 2015, at 03:54, Chaim Sanders 
+</I>&gt;<i> &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">CSanders at trustwave.com</A>&gt;&gt; wrote: 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> we 
+</I>&gt;<i> _______________________________________________ 
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list 
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&lt;mailto:<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt; 
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;http://scanmail.trustwave.com/?c=4062&amp;d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wKcqY65yWQ&amp;s=5&amp;u=https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set&lt;http://scanmail.trustwave.com/?c=4062&amp;d=zP7_1EIfkGQmqzNdTgH9sZIg1Bsu-kZ-wKcqY65yWQ&amp;s=5&amp;u=https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>&gt; 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ________________________________ 
+</I>&gt;<i> 
+</I>&gt;<i> This transmission may contain information that is privileged, 
+</I>&gt;<i> confidential, and/or exempt from disclosure under applicable law. If 
+</I>&gt;<i> you are not the intended recipient, you are hereby notified that any 
+</I>&gt;<i> disclosure, copying, distribution, or use of the information contained 
+</I>&gt;<i> herein (including any reliance thereon) is strictly prohibited. If you 
+</I>&gt;<i> received this transmission in error, please immediately contact the 
+</I>&gt;<i> sender and destroy the material in its entirety, whether in electronic 
+</I>&gt;<i> or hard copy format. 
+</I> 		 	   		  
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001727.html">[Owasp-modsecurity-core-rule-set] Questions about modsecurity_crs_11_dos_protection.conf
+</A></li>
+	<LI>Next message: <A HREF="001723.html">[Owasp-modsecurity-core-rule-set] block CONNECT
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1728">[ date ]</a>
+              <a href="thread.html#1728">[ thread ]</a>
+              <a href="subject.html#1728">[ subject ]</a>
+              <a href="author.html#1728">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

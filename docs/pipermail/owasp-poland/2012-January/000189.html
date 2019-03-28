@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-poland] No i mamy kolejny remote code execution w Struts2 ; )
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-poland%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-poland%5D%20No%20i%20mamy%20kolejny%20remote%20code%20execution%20w%20Struts2%20%3B%20%29&In-Reply-To=%3C4F1EE25D.8070600%40securing.pl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000188.html">
+   <LINK REL="Next"  HREF="000191.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-poland] No i mamy kolejny remote code execution w Struts2 ; )</H1>
+    <B>Slawomir Jasek</B> 
+    <A HREF="mailto:owasp-poland%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-poland%5D%20No%20i%20mamy%20kolejny%20remote%20code%20execution%20w%20Struts2%20%3B%20%29&In-Reply-To=%3C4F1EE25D.8070600%40securing.pl%3E"
+       TITLE="[Owasp-poland] No i mamy kolejny remote code execution w Struts2 ; )">slawek at securing.pl
+       </A><BR>
+    <I>Tue Jan 24 16:54:53 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000188.html">[Owasp-poland] JBoss
+</A></li>
+        <LI>Next message: <A HREF="000191.html">[Owasp-poland] No i mamy kolejny remote code execution w Struts2 ; )
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#189">[ date ]</a>
+              <a href="thread.html#189">[ thread ]</a>
+              <a href="subject.html#189">[ subject ]</a>
+              <a href="author.html#189">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+W&#322;a&#347;nie wysz&#322;a kolejna poprawka do Struts2, na ten sam b&#322;&#261;d o kt&#243;rym
+m&#243;wi&#322;em w prezentacji. Zgodnie z ponurym przeczuciem &#380;e to jeszcze nie
+koniec, niechlubny przyk&#322;ad w dziale &quot;Fix Timelines&quot; dorobi&#322; si&#281; wi&#281;c
+kolejnej poprawki, kt&#243;r&#261; wypada&#322;oby tam oznaczy&#263; &quot;Fix #6&quot; ;)
+
+
+Co prawda w poprzedniej poprawce dopuszczalne znaki w nazwach parametr&#243;w
+zosta&#322;y ograniczone, jednak ca&#322;y czas mo&#380;liwe jest wstawianie nawias&#243;w
+(). I te znaki zosta&#322;y wykorzystane tym razem.
+Ot&#243;&#380; w OGNL-u kod (aaa)(bbb) oznacza, &#380;e &quot;aaa&quot; zostanie rekursywnie
+zinterpretowane jako wyra&#380;enie (dzi&#281;ki tzw. &quot;expression evaluation&quot;). Co
+prawda nie mo&#380;emy przes&#322;a&#263; wprost w miejsce &quot;aaa&quot; w nazwie parametru
+kodu OGNL - bo blokuj&#261; nas znaki specjalne, mo&#380;emy jednak go ustawi&#263; w
+warto&#347;ci, a nie w nazwie, dodatkowego parametru przes&#322;anego do aplikacji.
+
+Przyk&#322;adowy exploit b&#281;dzie mia&#322; wi&#281;c posta&#263;:
+
+
+/myaction?aaa=&lt;kod OGNL&gt;&amp;(aaa)('bbb')=
+
+
+a praktyczne wykonanie dowolnego kodu na serwerze b&#281;dzie si&#281; tylko
+nieznacznie r&#243;&#380;ni&#263; od tego co pokaza&#322;em na filmiku w prezentacji.
+Czyli w warto&#347;ci aaa= przekazujemy payload, kt&#243;ry wykona si&#281; podczas
+ewaluowania jako OGNL nazwy parametru &quot;(aaa)('bbb')&quot;.
+
+
+
+Przy okazji - ja w celu sprawdzenia z zewn&#261;trz czy aplikacja jest
+podatna, zamiast wykonywa&#263; inwazyjn&#261; komend&#281; na serwerze, przechwytuj&#281;
+httpResponse w serwlecie, i zmuszam go do zwr&#243;cenia kodu b&#322;&#281;du, np.
+sendError(413). W ten spos&#243;b od razu w przegl&#261;darce wiem czy exploit
+zadzia&#322;a&#322;, a na serwerze nie wykonuj&#281; nic w shellu ;)
+
+
+
+Obej&#347;ciem problemu, zamiast bolesnej aktualizacji, mo&#380;e by&#263; odpowiednie
+ustawienie parametru konfiguracyjnego Struts: acceptParamNames. &#379;eby
+obs&#322;u&#380;y&#263; grudniowe podatno&#347;ci nale&#380;y wyrzuci&#263; z niego &quot;bia&#322;e znaki&quot;, a
+teraz jeszcze dodatkowo specjalnie potraktowa&#263; nawiasy. W niekt&#243;rych
+instalacjach mo&#380;e to troch&#281; napsu&#263;, ale da si&#281; problem rozwi&#261;za&#263;.
+
+
+Poni&#380;ej kr&#243;tka historia jak si&#281; zmienia&#322;y dopuszczalne znaki w nazwie
+parametru:
+
+
+Struts do 2.3.1 - poprawka wprowadzona w 2010 r. ze wzgl&#281;du na
+CVE-2010-1870:
+
+private String acceptedParamNames = &quot;[a-zA-Z0-9\\.\\]\\[\\(\\)_'\\s]+&quot;;
+
+
+
+Struts 2.3.1.1 poprawka 25 grudnia 2011 ze wzgl&#281;du na
+<A HREF="https://www.sec-consult.com/files/20120104-0_Apache_Struts2_Multiple_Critical_Vulnerabilities.txt">https://www.sec-consult.com/files/20120104-0_Apache_Struts2_Multiple_Critical_Vulnerabilities.txt</A>
+
+private String acceptedParamNames = &quot;[a-zA-Z0-9\\.\\]\\[\\(\\)_']+&quot;;
+
+
+
+Struts 2.3.1.2 poprawka 22 stycznia 2012 na CVE-2011-3923
+
+private String acceptedParamNames =
+&quot;\\w+((\\.\\w+)|(\\[\\d+\\])|(\\(\\d+\\))|(\\['\\w+'\\])|(\\('\\w+'\\)))*&quot;;
+
+
+
+Ciekawe co jeszcze da si&#281; tutaj wykombinowa&#263; i czy b&#281;dzie nast&#281;pny fix ;)
+
+
+
+
+Wi&#281;cej informacji:
+
+<A HREF="http://blog.o0o.nu/2012/01/cve-2011-3923-yet-another-struts2.html">http://blog.o0o.nu/2012/01/cve-2011-3923-yet-another-struts2.html</A>
+<A HREF="https://cwiki.apache.org/confluence/display/WW/S2-009">https://cwiki.apache.org/confluence/display/WW/S2-009</A>
+CVE: CVE-2011-3923
+
+
+
+pozdrawiam
+S&#322;awek
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000188.html">[Owasp-poland] JBoss
+</A></li>
+	<LI>Next message: <A HREF="000191.html">[Owasp-poland] No i mamy kolejny remote code execution w Struts2 ; )
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#189">[ date ]</a>
+              <a href="thread.html#189">[ thread ]</a>
+              <a href="subject.html#189">[ subject ]</a>
+              <a href="author.html#189">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-poland">More information about the Owasp-poland
+mailing list</a><br>
+</body></html>

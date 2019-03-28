@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Rule without an ID
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20without%20an%20ID&In-Reply-To=%3CCAONsccVCsKLpO-GbU5DFYNUbuh9fEMs-WRXHhXtD7DqbA4NhyQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Rule without an ID</H1>
+    <B>Phill Watkins</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Rule%20without%20an%20ID&In-Reply-To=%3CCAONsccVCsKLpO-GbU5DFYNUbuh9fEMs-WRXHhXtD7DqbA4NhyQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Rule without an ID">phill.watkins at gmail.com
+       </A><BR>
+    <I>Wed Jan 29 11:48:34 UTC 2014</I>
+    <P><UL>
+        
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1498">[ date ]</a>
+              <a href="thread.html#1498">[ thread ]</a>
+              <a href="subject.html#1498">[ subject ]</a>
+              <a href="author.html#1498">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I'm having difficulty discovering which rule is causing a false positive
+because it doesn't display an ID in the message.
+
+To give a bit of background, I'm accessing the Transmission BitTorrent web
+client via a reverse proxy.
+
+Yesterday I decided to replace the aging interface with a better one
+(Shift). In doing so I've had to disable a number of rules related to SQL
+injection which is being caused by the web interface requesting/sending
+information to the RPC interface (also behind the proxy).
+
+Here is a message from the apache error log:
+
+[Tue Jan 28 12:37:43 2014] [error] [client hidden] ModSecurity: Access
+denied with code 403 (phase 2). Pattern match
+&quot;\\\\b(?i:having)\\\\b\\\\s+(\\\\d{1,10}|'[^=]{1,10}')\\\\s*?[=&lt;&gt;]|(?i:\\\\bexecute(\\\\s{1,5}[\\\\w\\\\.$]{1,5}\\\\s{0,3})?\\\\()|\\\\bhaving\\\\b
+?(?:\\\\d{1,10}|[\\\\'\\&quot;][^=]{1,10}[\\\\'\\&quot;])
+?[=&lt;&gt;]+|(?i:\\\\bcreate\\\\s+?table.{0,20}?\\\\()|(?i:\\\\blike\\\\W*?char\\\\W*?\\\\()|(?i:(?:(select(.*
+...&quot; at
+ARGS_NAMES:{&quot;method&quot;:&quot;torrent-get&quot;,&quot;arguments&quot;:{&quot;ids&quot;:[1],&quot;fields&quot;:[&quot;activityDate&quot;,&quot;addedDate&quot;,&quot;bandwidthPriority&quot;,&quot;comment&quot;,&quot;corruptEver&quot;,&quot;creator&quot;,&quot;display&quot;,&quot;dateCreated&quot;,&quot;desiredAvailable&quot;,&quot;doneDate&quot;,&quot;downloadDir&quot;,&quot;downloadedEver&quot;,&quot;downloadLimit&quot;,&quot;downloadLimited&quot;,&quot;error&quot;,&quot;errorString&quot;,&quot;eta&quot;,&quot;files&quot;,&quot;fileStats&quot;,&quot;hashString&quot;,&quot;haveUnchecked&quot;,&quot;haveValid&quot;,&quot;honorsSessionLimits&quot;,&quot;id&quot;,&quot;index&quot;,&quot;isFinished&quot;,&quot;isPrivate&quot;,&quot;isStalled&quot;,&quot;leftUntilDone&quot;,&quot;location&quot;,&quot;magnetLink&quot;,&quot;manualAnnounceTime&quot;,&quot;maxConnectedPeers&quot;,&quot;metadataPercentComplete&quot;,&quot;name&quot;,&quot;peer-limit&quot;,&quot;peers&quot;,&quot;peersConnected&quot;,&quot;peersFrom&quot;,&quot;peersGettingFromUs&quot;,&quot;peersSendingToUs&quot;,&quot;percentDone&quot;,&quot;pieces&quot;,&quot;pieceCount&quot;,&quot;pieceSize&quot;,&quot;priorities&quot;,&quot;queuePosition
+[hostname &quot;hidden&quot;] [uri &quot;/transmission/rpc&quot;] [unique_id
+&quot;Uuekl38AAQEAAGl0A0wAAAAF&quot;]
+
+Here is the related audit log:
+
+--c0e6d529-A--
+[28/Jan/2014:12:37:43 +0000] Uuekl38AAQEAAGl0A0wAAAAF hidden 59127 hidden
+443
+--c0e6d529-B--
+POST /transmission/rpc HTTP/1.1
+Host: hidden
+Connection: keep-alive
+Content-Length: 1095
+Authorization: Basic hidden
+Origin: <A HREF="https://hidden">https://hidden</A>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+Gecko) Chrome/32.0.1700.77 Safari/537.36
+Content-type: application/x-www-form-urlencoded; charset=UTF-8
+Accept: text/javascript, text/html, application/xml, text/xml, */*
+X-Prototype-Version: 1.7.1
+X-Requested-With: XMLHttpRequest
+X-Transmission-Session-Id: KoILIz4o114SctLDgPVavN2EghQIxpbbXp49cBsSjVw8JVny
+Referer: <A HREF="https://hidden/transmission/web/">https://hidden/transmission/web/</A>
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-GB,en-US;q=0.8,en;q=0.6
+Cookie: compact_display_state=false
+
+--c0e6d529-C--
+{&quot;method&quot;:&quot;torrent-get&quot;,&quot;arguments&quot;:{&quot;ids&quot;:[1],&quot;fields&quot;:[&quot;activityDate&quot;,&quot;addedDate&quot;,&quot;bandwidthPriority&quot;,&quot;comment&quot;,&quot;corruptEver&quot;,&quot;creator&quot;,&quot;display&quot;,&quot;dateCreated&quot;,&quot;desiredAvailable&quot;,&quot;doneDate&quot;,&quot;downloadDir&quot;,&quot;downloadedEver&quot;,&quot;downloadLimit&quot;,&quot;downloadLimited&quot;,&quot;error&quot;,&quot;errorString&quot;,&quot;eta&quot;,&quot;files&quot;,&quot;fileStats&quot;,&quot;hashString&quot;,&quot;haveUnchecked&quot;,&quot;haveValid&quot;,&quot;honorsSessionLimits&quot;,&quot;id&quot;,&quot;index&quot;,&quot;isFinished&quot;,&quot;isPrivate&quot;,&quot;isStalled&quot;,&quot;leftUntilDone&quot;,&quot;location&quot;,&quot;magnetLink&quot;,&quot;manualAnnounceTime&quot;,&quot;maxConnectedPeers&quot;,&quot;metadataPercentComplete&quot;,&quot;name&quot;,&quot;peer-limit&quot;,&quot;peers&quot;,&quot;peersConnected&quot;,&quot;peersFrom&quot;,&quot;peersGettingFromUs&quot;,&quot;peersSendingToUs&quot;,&quot;percentDone&quot;,&quot;pieces&quot;,&quot;pieceCount&quot;,&quot;pieceSize&quot;,&quot;priorities&quot;,&quot;queuePosition&quot;,&quot;rateDownload&quot;,&quot;rateUpload&quot;,&quot;recheckProgress&quot;,&quot;secondsDownloading&quot;,&quot;secondsSeeding&quot;,&quot;seedIdleLimit&quot;,&quot;seedIdleMode&quot;,&quot;seedRatioLimit&quot;,&quot;seedRatioMode&quot;,&quot;selected&quot;,&quot;sizeWhenDone&quot;,&quot;startDate&quot;,&quot;status&quot;,&quot;trackers&quot;,&quot;trackerAdd&quot;,&quot;trackerRemove&quot;,&quot;trackerReplace&quot;,&quot;trackerStats&quot;,&quot;totalSize&quot;,&quot;torrentFile&quot;,&quot;uploadedEver&quot;,&quot;uploadLimit&quot;,&quot;uploadLimited&quot;,&quot;uploadRatio&quot;,&quot;wanted&quot;,&quot;webseeds&quot;,&quot;webseedsSendingToUs&quot;]}}
+--c0e6d529-F--
+HTTP/1.1 403 Forbidden
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Length: 183
+Keep-Alive: timeout=5, max=33
+Connection: Keep-Alive
+Content-Type: text/html; charset=iso-8859-1
+
+--c0e6d529-E--
+&lt;!DOCTYPE HTML PUBLIC &quot;-//IETF//DTD HTML 2.0//EN&quot;&gt;
+&lt;html&gt;&lt;head&gt;
+&lt;title&gt;403 Forbidden&lt;/title&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;h1&gt;Forbidden&lt;/h1&gt;
+&lt;p&gt;You don't have permission to access /transmission/rpc
+on this server.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;
+
+--c0e6d529-H--
+Message: Access denied with code 403 (phase 2). Pattern match
+&quot;\\b(?i:having)\\b\\s+(\\d{1,10}|'[^=]{1,10}')\\s*?[=&lt;&gt;]|(?i:\\bexecute(\\s{1,5}[\\w\\.$]{1,5}\\s{0,3})?\\()|\\bhaving\\b
+?(?:\\d{1,10}|[\\'\&quot;][^=]{1,10}[\\'\&quot;])
+?[=&lt;&gt;]+|(?i:\\bcreate\\s+?table.{0,20}?\\()|(?i:\\blike\\W*?char\\W*?\\()|(?i:(?:(select(.*
+...&quot; at
+ARGS_NAMES:{&quot;method&quot;:&quot;torrent-get&quot;,&quot;arguments&quot;:{&quot;ids&quot;:[1],&quot;fields&quot;:[&quot;activityDate&quot;,&quot;addedDate&quot;,&quot;bandwidthPriority&quot;,&quot;comment&quot;,&quot;corruptEver&quot;,&quot;creator&quot;,&quot;display&quot;,&quot;dateCreated&quot;,&quot;desiredAvailable&quot;,&quot;doneDate&quot;,&quot;downloadDir&quot;,&quot;downloadedEver&quot;,&quot;downloadLimit&quot;,&quot;downloadLimited&quot;,&quot;error&quot;,&quot;errorString&quot;,&quot;eta&quot;,&quot;files&quot;,&quot;fileStats&quot;,&quot;hashString&quot;,&quot;haveUnchecked&quot;,&quot;haveValid&quot;,&quot;honorsSessionLimits&quot;,&quot;id&quot;,&quot;index&quot;,&quot;isFinished&quot;,&quot;isPrivate&quot;,&quot;isStalled&quot;,&quot;leftUntilDone&quot;,&quot;location&quot;,&quot;magnetLink&quot;,&quot;manualAnnounceTime&quot;,&quot;maxConnectedPeers&quot;,&quot;metadataPercentComplete&quot;,&quot;name&quot;,&quot;peer-limit&quot;,&quot;peers&quot;,&quot;peersConnected&quot;,&quot;peersFrom&quot;,&quot;peersGettingFromUs&quot;,&quot;peersSendingToUs&quot;,&quot;percentDone&quot;,&quot;pieces&quot;,&quot;pieceCount&quot;,&quot;pieceSize&quot;,&quot;priorities&quot;,&quot;queuePosition
+Action: Intercepted (phase 2)
+Apache-Handler: proxy-server
+Stopwatch: 1390912663932099 11850 (- - -)
+Stopwatch2: 1390912663932099 11850; combined=8383, p1=338, p2=7959, p3=0,
+p4=0, p5=86, sr=68, sw=0, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.7.5 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+OWASP_CRS/2.2.8.
+Server: Apache
+
+Any help would be greatly appreciated.
+
+Thanks.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140129/dc74b55d/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140129/dc74b55d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1498">[ date ]</a>
+              <a href="thread.html#1498">[ thread ]</a>
+              <a href="subject.html#1498">[ subject ]</a>
+              <a href="author.html#1498">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

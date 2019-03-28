@@ -1,0 +1,241 @@
+From lists at dawes.za.net  Tue Mar 29 11:24:23 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Tue, 29 Mar 2005 18:24:23 +0200
+Subject: [OWASP-WEBGOAT]Creating lessons
+Message-ID: <42498137.6040405@dawes.za.net>
+
+Hi folks,
+
+I'm wanting to create a new lesson. What is the easiest way of doing 
+this? Can I do it with the standard webgoat standalone zip downloaded 
+from SourceForge, or do I have to check it out of CVS?
+
+thanks
+
+Rogan
+-- 
+Rogan Dawes
+
+*ALL* messages to discard at dawes.za.net will be dropped, and added
+to my blacklist. Please respond to "lists AT dawes DOT za DOT net"
+
+
+
+From lists at dawes.za.net  Tue Mar 29 11:38:50 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Tue, 29 Mar 2005 18:38:50 +0200
+Subject: [OWASP-WEBGOAT]startup script
+Message-ID: <4249849A.3080906@dawes.za.net>
+
+Hi folks,
+
+I just downloaded the latest webgoat, and had some difficulties getting 
+it to work on my Win2k, JDK 1.4 setup.
+
+You may want to include some more information about downloading the 
+compatibility library for 1.4 (or possibly just including it in the 
+download). I had to go and get it from the Tomcat download pages, but it 
+was a bit of a mission working out which version of Tomcat was bundled 
+with WebGoat . . . .
+
+Eventually, I just guessed, but I don't think I was right! It works 
+anyway, though!
+
+Secondly, the webgoat.bat script overrides the JAVA_HOME environment 
+setting:
+
+@echo off
+set CATALINA_HOME=.\tomcat
+set JAVA_HOME=".\java"                    <- see here
+if not "%JAVA_HOME%" == "" goto gotHome
+if exist ".\java" goto gotJava
+
+This should probably only happen at the "gotJava" label, I think? I had 
+to comment that out to get it to work properly.
+
+Regards,
+
+Rogan
+-- 
+Rogan Dawes
+
+*ALL* messages to discard at dawes.za.net will be dropped, and added
+to my blacklist. Please respond to "lists AT dawes DOT za DOT net"
+
+
+
+From bruce.mayhew at aspectsecurity.com  Tue Mar 29 14:43:30 2005
+From: bruce.mayhew at aspectsecurity.com (Bruce Mayhew)
+Date: Tue, 29 Mar 2005 14:43:30 -0500
+Subject: [OWASP-WEBGOAT]Creating lessons
+References: <42498137.6040405@dawes.za.net>
+Message-ID: <01cb01c53497$968ff510$6e01a8c0@intranet.aspectsecurity.com>
+
+I have had several people ask for development environments lately.   The 
+SourceForge project is really out of date.  The WebGoat distribution has all 
+the source files but doesn't contain any of the build files.  I will try and 
+straighten this mess out this weekend.  If you need it sooner let me know...
+
+Bruce.
+
+
+
+----- Original Message ----- 
+From: "Rogan Dawes" <lists at dawes.za.net>
+To: <owasp-webgoat at lists.sourceforge.net>
+Sent: Tuesday, March 29, 2005 11:24 AM
+Subject: [OWASP-WEBGOAT]Creating lessons
+
+
+> Hi folks,
+>
+> I'm wanting to create a new lesson. What is the easiest way of doing this? 
+> Can I do it with the standard webgoat standalone zip downloaded from 
+> SourceForge, or do I have to check it out of CVS?
+>
+> thanks
+>
+> Rogan
+> -- 
+> Rogan Dawes
+>
+> *ALL* messages to discard at dawes.za.net will be dropped, and added
+> to my blacklist. Please respond to "lists AT dawes DOT za DOT net"
+>
+>
+> -------------------------------------------------------
+> SF email is sponsored by - The IT Product Guide
+> Read honest & candid reviews on hundreds of IT Products from real users.
+> Discover which products truly live up to the hype. Start reading now.
+> http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+> _______________________________________________
+> OWASP-WEBGOAT mailing list
+> OWASP-WEBGOAT at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/owasp-webgoat
+> 
+
+
+
+
+From lists at dawes.za.net  Tue Mar 29 09:37:33 2005
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Tue, 29 Mar 2005 16:37:33 +0200
+Subject: [OWASP-WEBGOAT]Predictable cookie lesson
+Message-ID: <4249682D.10400@dawes.za.net>
+
+Hi folks,
+
+I am wanting to demonstrate brute forcing a weak session cookie in 
+webscarab.
+
+My idea is to have webgoat "reserve" every n'th cookie (where n is a 
+preselected number, e.g. 29), and respond with a "Congratulations" page.
+
+i.e. the user requests the lesson page, without a cookie. Webgoat issues 
+a cookie based on a simple algorithm, e.g. incrementing a counter, and 
+using the time in 10th's of a second, base64 encoded. The page itself 
+looks like a login screen.
+
+i.e.
+
+Cookie1 = Base64Enc(Seq++ + ":" + time)
+Cookie2 = Base64Enc(Seq++ + ":" + time)
+
+BUT, if seq mod n == 0 increment seq (to provide a target)
+
+Then, if the user requests a page with a (ANY) cookie, simply reshow the 
+login screen, UNLESS:
+
+The (cookie sequence number mod n)== 0 AND (cookie time mod n) == 0. If 
+so, then show the user a "SUCCESS" page.
+
+The idea is that the user will sample the cookies with WebScarab's 
+sessionid plugin, graph the results, and see a pattern of incrementing 
+values. Looking at the parts separately, they should see that there are 
+two independent "counters". One increments for each request, one 
+increments based on the time between requests. Every n'th request 
+results in a skip, where "another user" has accessed the site.
+
+Identifying the missing value in the simple counter indicates a 
+sessionID that has been allocated to a "different user". Brute forcing 
+the time value in the space using the webscarab "scripted" plugin gets 
+the user access to the "different user".
+
+The reason I am using a simple "mod n" approach is to eliminate having 
+to actually store valid session identifiers somewhere. This can lead to 
+multiple values matching in a time interval, if the time mod n value is 
+greater than the gap between known cookies. This is probably not really 
+significant. More of a problem would be if the time gap is too small, 
+that the time mod n does not fall within the gap allowed.
+
+This could be improved if we actually record the sessionid's "allocated" 
+as targets. I have no idea if this is possible, given the stateless 
+nature of a web app? The list of allocated id's could be expired every 5 
+minutes, or limited to 100 or so long, or similar.
+
+What do you think? How difficult would this be to implement?
+
+Rogan
+
+P.S. Please include me in your replies, as I am not subscribed to this list.
+-- 
+Rogan Dawes
+
+*ALL* messages to discard at dawes.za.net will be dropped, and added
+to my blacklist. Please respond to "lists AT dawes DOT za DOT net"
+
+
+
+From lists at dawes.za.net  Wed Mar 30 17:45:55 2005
+From: lists at dawes.za.net (lists at dawes.za.net)
+Date: Wed, 30 Mar 2005 16:45:55 -0600
+Subject: [OWASP-WEBGOAT]Weak Session ID lesson
+Message-ID: <1112222755.424b2c231a19d@webmail.zipa.com>
+
+Hi folks,
+
+Here is my first stab at the lesson. It show up as "Predictable Session
+Identifier" under "Broken Authentication and Session Management".
+
+Using WebScarab to sample cookies should show you a pattern of
+
+WG_SESSIONID=(ddddd)(ddddddddddd)
+
+where the two parts increment independently
+
+The first part is a 5 digit sequence number, incremented by 1 each time a
+cookie
+is requested. The second part is the time in milliseconds divided by 10.
+
+Every now and then, you should see the first sequence skip a number. This
+indicates that "someone else" has logged in, and was allocated that sequence
+number. Now the only variable is the time.
+
+We know that the time is purely increasing. So the target time value is
+somewhere between the value in the cookie we received before, and the cookie we
+received afterwards. If we are using WebScarab to sample cookies, the time
+range
+will be pretty small (about 10-20 possible values), particularly if the server
+is local.
+
+You can then either use the proxy manual intercept method to insert the values
+one after the other (tedious), or you can use the "Scripted" plugin to test
+them automatically.
+
+A successful guess will not include the string "Please sign in to your
+account",
+and can be tested quite easily.
+
+Please let me know what you think.
+
+Regards,
+
+Rogan
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: WeakSessionID.java
+Type: text/x-java
+Size: 8218 bytes
+Desc: not available
+Url : http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20050330/611179dc/attachment.bin 
+

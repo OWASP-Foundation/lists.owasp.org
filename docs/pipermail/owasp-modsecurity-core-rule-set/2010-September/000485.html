@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Deprecated PHP function problem
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Deprecated%20PHP%20function%0A%20problem&In-Reply-To=3027005cf22be69814401a68cce87c3e.squirrel%40www.troodos.org.uk">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000484.html">
+   <LINK REL="Next"  HREF="000486.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Deprecated PHP function problem</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Deprecated%20PHP%20function%0A%20problem&In-Reply-To=3027005cf22be69814401a68cce87c3e.squirrel%40www.troodos.org.uk"
+       TITLE="[Owasp-modsecurity-core-rule-set] Deprecated PHP function problem">RBarnett at trustwave.com
+       </A><BR>
+    <I>Fri Sep 10 15:24:10 EDT 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000484.html">[Owasp-modsecurity-core-rule-set] Deprecated PHP function problem
+</A></li>
+        <LI>Next message: <A HREF="000486.html">[Owasp-modsecurity-core-rule-set] Deprecated PHP function	problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#485">[ date ]</a>
+              <a href="thread.html#485">[ thread ]</a>
+              <a href="subject.html#485">[ subject ]</a>
+              <a href="author.html#485">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 9/10/10 3:14 PM, &quot;Arthur Dent&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">misc.lists at blueyonder.co.uk</A>&gt; wrote:
+
+&gt;<i> -----BEGIN PGP SIGNED MESSAGE-----
+</I>&gt;<i> Hash: SHA1
+</I>&gt;<i> 
+</I>&gt;<i> Hello all,
+</I>&gt;<i> 
+</I>&gt;<i> I have Squirrelmail (a webmail application) running on my server. Whenever
+</I>&gt;<i> I use the GPG plugin module whilst composing and sending mail (such as
+</I>&gt;<i> this one) I get a raft of alerts in ModSec.
+</I>&gt;<i> 
+</I>&gt;<i> The problem relates to the fact that the Squirrelmail code for the plugin
+</I>&gt;<i> uses a deprecated php function. This seems to upset ModSec and it issues a
+</I>&gt;<i> &quot;Multiple URL Encoding Detected&quot; or &quot;directory traversal&quot; warning.
+</I>&gt;<i> 
+</I>
+Hey Arthur,
+ModSecurity is not the one complaining about the deprecated php function,
+that is an Apache generated message and ModSecurity is just listing it along
+side other other messages.
+
+As for the ones that are being triggered by ModSec, it seems as though the
+squirrelmail ARGS:addbasepath payload is including a local path of
+some-sort.  If you want to allow this, then I would add a rule to your
+modsecurity_crs_48_local_exceptions.conf file that will inspect this saved
+TX data and then re-adjust the anomaly score back down (decrease it by 5 as
+that is what the false positive has done) -
+
+SecRule TX:'/^900010.*ARGS:addbasepath/' &quot;.*&quot;
+&quot;phase:2,t:none,nolog,pass,setvar:tx.anomaly_score=-5&quot;
+
+Let me know if this helps.
+-Ryan
+
+
+&gt;<i> I have reported this to the Squirrelmail team and they are aware of it. It
+</I>&gt;<i> will not however be fixed in the near future as it is, after all, merely a
+</I>&gt;<i> warning not an error from the Squirrelmail point of view.
+</I>&gt;<i> 
+</I>&gt;<i> My question is - how do I allow for this in ModSec without disabling the
+</I>&gt;<i> rule?
+</I>&gt;<i> 
+</I>&gt;<i> Example
+</I>&gt;<i> =======
+</I>&gt;<i> 
+</I>&gt;<i> - --922b274e-H--
+</I>&gt;<i> Message: Pattern match
+</I>&gt;<i> &quot;(?:(?:\/|\\)?\.+(\/|\\)(?:\.+)?)|(?:\w+\.exe\??\s)|(?:;\s*\w+\s*\/[\w*-]+\/)|
+</I>&gt;<i> (?:\d\.\dx\|)|(?:%(?:c0\.|af\.|5c\.))|(?:\/(?:%2e){2})&quot;
+</I>&gt;<i> at ARGS:addbasepath. [file
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_41_phpids_filters.conf&quot;]
+</I>&gt;<i> [line &quot;86&quot;] [id &quot;900010&quot;] [msg &quot;Detects basic directory traversal&quot;] [data
+</I>&gt;<i> &quot;../..&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;WEB_ATTACK/DT&quot;] [tag &quot;WEB_ATTACK/ID&quot;]
+</I>&gt;<i> [tag &quot;WEB_ATTACK/LFI&quot;]
+</I>&gt;<i> Message: Warning. Operator LT matched 20 at TX:inbound_anomaly_score.
+</I>&gt;<i> [file
+</I>&gt;<i> &quot;/etc/httpd/modsecurity.d/base_rules/modsecurity_crs_60_correlation.conf&quot;]
+</I>&gt;<i> [line &quot;31&quot;] [msg &quot;Inbound Anomaly Score (Total Inbound Score: 5, SQLi=,
+</I>&gt;<i> XSS=): 900010-Detects basic directory traversal&quot;]
+</I>&gt;<i> Apache-Error: [file
+</I>&gt;<i> &quot;/builddir/build/BUILD/php-5.3.3/sapi/apache2handler/sapi_apache2.c&quot;]
+</I>&gt;<i> [line 326] [level 3] PHP Deprecated:  Function eregi() is deprecated in
+</I>&gt;<i> /usr/share/squirrelmail/plugins/gpg/gpg_pref_functions.php on line 57,
+</I>&gt;<i> referer:
+</I>&gt;<i> <A HREF="https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e">https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e</A>
+</I>&gt;<i> rror=1&amp;session=1
+</I>&gt;<i> Apache-Error: [file
+</I>&gt;<i> &quot;/builddir/build/BUILD/php-5.3.3/sapi/apache2handler/sapi_apache2.c&quot;]
+</I>&gt;<i> [line 326] [level 3] PHP Deprecated:  Function eregi() is deprecated in
+</I>&gt;<i> /usr/share/squirrelmail/plugins/gpg/gpg_pref_functions.php on line 57,
+</I>&gt;<i> referer:
+</I>&gt;<i> <A HREF="https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e">https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e</A>
+</I>&gt;<i> rror=1&amp;session=1
+</I>&gt;<i> Apache-Error: [file
+</I>&gt;<i> &quot;/builddir/build/BUILD/php-5.3.3/sapi/apache2handler/sapi_apache2.c&quot;]
+</I>&gt;<i> [line 326] [level 3] PHP Deprecated:  Function eregi() is deprecated in
+</I>&gt;<i> /usr/share/squirrelmail/plugins/gpg/gpg_pref_functions.php on line 57,
+</I>&gt;<i> referer:
+</I>&gt;<i> <A HREF="https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e">https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e</A>
+</I>&gt;<i> rror=1&amp;session=1
+</I>&gt;<i> 
+</I>&gt;<i> [ Snip - about 50 or so of the same thing... ]
+</I>&gt;<i> 
+</I>&gt;<i> Apache-Error: [file
+</I>&gt;<i> &quot;/builddir/build/BUILD/php-5.3.3/sapi/apache2handler/sapi_apache2.c&quot;]
+</I>&gt;<i> [line 326] [level 3] PHP Deprecated:  Function eregi() is deprecated in
+</I>&gt;<i> /usr/share/squirrelmail/plugins/gpg/gpg_pref_functions.php on line 57,
+</I>&gt;<i> referer:
+</I>&gt;<i> <A HREF="https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e">https://www.mydomain.com/webmail/plugins/gpg/gpg_encrypt.php?encrypt_on_send_e</A>
+</I>&gt;<i> rror=1&amp;session=1
+</I>&gt;<i> Apache-Handler: php5-script
+</I>&gt;<i> Stopwatch: 1284144444492963 143505 (553 8540 -)
+</I>&gt;<i> Response-Body-Transformed: Dechunked
+</I>&gt;<i> Producer: ModSecurity for Apache/2.5.12 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+</I>&gt;<i> core ruleset/2.0.8.
+</I>&gt;<i> Server: Apache/2.2.16 (Fedora)
+</I>&gt;<i> 
+</I>&gt;<i> - --922b274e-Z--
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> Version: GnuPG v1.4.10 (GNU/Linux)
+</I>&gt;<i> 
+</I>&gt;<i> iEYEARECAAYFAkyKg5wACgkQ75heFf3niHKcygCdFaXosQzeifLuseJJxJLGjcTM
+</I>&gt;<i> kFgAoKWxs5i1KwXwx2e33j0MaGfRTACF
+</I>&gt;<i> =kR0r
+</I>&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>&gt;<i> 
+</I>
+
+--
+Ryan Barnett
+Senior Security Researcher
+Trustwave - SpiderLabs
+Email: <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">rbarnett at trustwave.com</A>
+Phone: (703) 794-2248
+Cell: (571) 382-0476
+www.trustwave.com
+
+This transmission may contain information that is privileged, confidential,
+and/or exempt from disclosure under applicable law. If you are not the
+intended recipient, you are hereby notified that any disclosure, copying,
+distribution, or use of the information contained herein (including any
+reliance thereon) is STRICTLY PROHIBITED. If you received this transmission
+in error, please immediately contact the sender and destroy the material in
+its entirety, whether in electronic or hard copy format. Thank you.
+
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000484.html">[Owasp-modsecurity-core-rule-set] Deprecated PHP function problem
+</A></li>
+	<LI>Next message: <A HREF="000486.html">[Owasp-modsecurity-core-rule-set] Deprecated PHP function	problem
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#485">[ date ]</a>
+              <a href="thread.html#485">[ thread ]</a>
+              <a href="subject.html#485">[ subject ]</a>
+              <a href="author.html#485">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

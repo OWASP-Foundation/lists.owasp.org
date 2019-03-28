@@ -1,0 +1,41 @@
+<tt>
+ &lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;Ryan,&lt;br&gt;&lt;br&gt;Thanks&nbsp;for&nbsp;the&nbsp;input.&nbsp;I&nbsp;believe&nbsp;that&nbsp;I&nbsp;can&nbsp;refer&nbsp;the&nbsp;custom-rules-file&nbsp;in&nbsp;apache.conf.&nbsp;Is&nbsp;there&nbsp;any&nbsp;particular&nbsp;name&nbsp;I&nbsp;need&nbsp;to&nbsp;give&nbsp;for&nbsp;that&nbsp;custom&nbsp;rules&nbsp;file&nbsp;?&nbsp;(like&nbsp;modsecurity_crs_55*.conf)&nbsp;Then&nbsp;what&nbsp;should&nbsp;be&nbsp;the&nbsp;number&nbsp;to&nbsp;execute&nbsp;the&nbsp;contained&nbsp;rule&nbsp;with&nbsp;the&nbsp;right&nbsp;priority&nbsp;?&nbsp;&lt;br&gt;<br>
+&lt;br&gt;Thanks.&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;blockquote&nbsp;class=&quot;gmail_quote&quot;&nbsp;style=&quot;margin:0pt&nbsp;0pt&nbsp;0pt&nbsp;0.8ex;border-left:1px&nbsp;solid&nbsp;rgb(204,204,204);padding-left:1ex&quot;&gt;&lt;div&nbsp;style=&quot;font-size:14px;font-family:Calibri,sans-serif;word-wrap:break-word&quot;&gt;<br>
+&lt;span&gt;&lt;blockquote&nbsp;style=&quot;padding:0pt&nbsp;0pt&nbsp;0pt&nbsp;5px;margin:0pt&nbsp;0pt&nbsp;0pt&nbsp;5px&quot;&gt;&lt;div&gt;&lt;div&gt;&lt;div&nbsp;class=&quot;gmail_quote&quot;&gt;<br>
+&lt;/div&gt;<br>
+This&nbsp;solution&nbsp;is&nbsp;fine&nbsp;for&nbsp;me.&nbsp;I&nbsp;gave&nbsp;this&nbsp;in&nbsp;apache.conf&nbsp;as&nbsp;follows.&nbsp;But&nbsp;it&nbsp;is&nbsp;not&nbsp;working&nbsp;(still&nbsp;forbidden).<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+Is&nbsp;it&nbsp;Location&nbsp;or&nbsp;LocationMatch&nbsp;?&nbsp;Thanks.&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;IfModule&nbsp;security2_module&gt;&lt;br&gt;<br>
+         &nbsp;&lt;Location&nbsp;/iredadmin/login/&gt;&lt;br&gt;<br>
+           &nbsp;SecRuleRemoveById&nbsp;960010&lt;br&gt;<br>
+         &nbsp;&lt;/Location&gt;&lt;br&gt;<br>
+&lt;br&gt;<br>
+         &nbsp;Include&nbsp;modsecurity_crs/modsecurity_crs_10_setup.conf&lt;br&gt;<br>
+         &nbsp;Include&nbsp;modsecurity_crs/activated_rules/*.conf&lt;br&gt;<br>
+&lt;br&gt;<br>
+&lt;/IfModule&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;/blockquote&gt;<br>
+&lt;/span&gt;<br>
+&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;div&gt;The&nbsp;reason&nbsp;this&nbsp;does&nbsp;not&nbsp;work&nbsp;is&nbsp;because&nbsp;rule&nbsp;ID&nbsp;960010&nbsp;runs&nbsp;in&nbsp;phase:1&nbsp;and&nbsp;by&nbsp;placing&nbsp;the&nbsp;SecRuleRemoveById&nbsp;directive&nbsp;within&nbsp;an&nbsp;Apache&nbsp;scope&nbsp;location,&nbsp;it&nbsp;won&#39;t&nbsp;execute&nbsp;until&nbsp;the&nbsp;end&nbsp;of&nbsp;phase:2.&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;div&gt;You&nbsp;might&nbsp;want&nbsp;to&nbsp;do&nbsp;this&nbsp;instead&nbsp;in&nbsp;a&nbsp;custom&nbsp;rules&nbsp;file&nbsp;that&nbsp;runs&nbsp;before&nbsp;the&nbsp;other&nbsp;rules&nbsp;-&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;div&gt;SecRule&nbsp;REQUEST_FILENAME&nbsp;&quot;@beginsWith&nbsp;/iredadmin/login/&quot;&nbsp;&quot;phase:1,id:123,t:none,nolog,pass,ctl:ruleRemoveById=960010&quot;&lt;/div&gt;<br>
+&lt;div&gt;&lt;br&gt;<br>
+&lt;/div&gt;<br>
+&lt;div&gt;-Ryan&lt;/div&gt;<br>
+&lt;br&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;br&gt;&lt;/div&gt;&lt;br&gt;<br>
+
+</tt>

@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] How to prevent request body logging?
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20How%20to%20prevent%20request%20body%0A%20logging%3F&In-Reply-To=%3C556F18B7.4030502%40kyoshiro.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001761.html">
+   <LINK REL="Next"  HREF="001763.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] How to prevent request body logging?</H1>
+    <B>Lo&#239;c Gomez</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20How%20to%20prevent%20request%20body%0A%20logging%3F&In-Reply-To=%3C556F18B7.4030502%40kyoshiro.org%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] How to prevent request body logging?">owasp-crs at kyoshiro.org
+       </A><BR>
+    <I>Wed Jun  3 15:09:43 UTC 2015</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001761.html">[Owasp-modsecurity-core-rule-set] How to prevent request body	logging?
+</A></li>
+        <LI>Next message: <A HREF="001763.html">[Owasp-modsecurity-core-rule-set] Searchable ruleset list
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1762">[ date ]</a>
+              <a href="thread.html#1762">[ thread ]</a>
+              <a href="subject.html#1762">[ subject ]</a>
+              <a href="author.html#1762">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Le 03/06/2015 16:22, Charles Farinella a &#233;crit :
+&gt;<i> Thanks for the suggestions, but I don't think either of these will
+</I>&gt;<i> solve our problem permanently.
+</I>&gt;<i>
+</I>&gt;<i> The 'nolog' option is rule or status code dependent and we want to
+</I>&gt;<i> make sure that *no* request bodies are ever printed to the Nginx log.
+</I>&gt;<i> The 'SecAuditLogParts' option seems to only affect what gets sent to
+</I>&gt;<i> the audit logs, we've tried this.  Mod_security docs say that
+</I>&gt;<i> &quot;Messages at levels 1-3 are *always* copied to the Apache error
+</I>&gt;<i> log.&quot;   We are assuming that this applies equally to Nginx logs, and
+</I>&gt;<i> this is what we need to address.
+</I>&gt;<i>
+</I>&gt;<i> We have clients sending credit card numbers in request bodies and they
+</I>&gt;<i> are triggering mod_security SQL injection rules which then write these
+</I>&gt;<i> bodies to the Nginx logs exposing the CC number.
+</I>&gt;<i>
+</I>&gt;<i> We know that we can disable these specific rules, but are afraid that
+</I>&gt;<i> at some future time, or after an upgrade, these or some other rules
+</I>&gt;<i> will be triggered again exposing sensitive information.
+</I>&gt;<i>
+</I>&gt;<i> Does OWASP have a &quot;best practices&quot; procedure for protecting this kind
+</I>&gt;<i> of data in a PCI environment?
+</I>&gt;<i> How can we prevent *all* level 1-3 messages from being sent to the
+</I>&gt;<i> Nginx log?
+</I>&gt;<i>
+</I>&gt;<i> Thanks again for your help.
+</I>&gt;<i>
+</I>&gt;<i> --charlie
+</I>&gt;<i>
+</I>
+Hello Charlie,
+
+We had the exact same issue at my workplace, and I found a semi solution
+only : disable logging of rules, and add a new rule to log only final
+result of anomaly score with last matched rule ID (see attached
+15-custom-config.conf).
+
+Now remains the audit rules adding specifically audit flags we don't
+want, so I made a script and run it against my rules directory to
+generate an additionnal rule file included AT THE END (99-xxx). It
+generates something like that (script is attached):
+
+    SecRuleUpdateActionById 950120 ctl:auditLogParts=-E,chain
+    [...]
+    SecRuleUpdateActionById 973337 nolog
+    [...]
+    SecRuleUpdateActionById 981205 &quot;logdata:'Matched rules:
+    %{tx.counter}; Rule list: %{matched_rule-1} %{matched_rule-2}
+    %{matched_rule-3} %{matched_rule-4} %{matched_rule-5}
+    %{matched_rule-6} %{matched_rule-7} %{matched_rule-8}
+    %{matched_rule-9} %{matched_rule-10} %{matched_rule-11}
+    %{matched_rule-12} %{matched_rule-13} %{matched_rule-14}
+    %{matched_rule-15} %{matched_rule-16} %{matched_rule-17}
+    %{matched_rule-18} %{matched_rule-19} %{matched_rule-20}',log,auditlog&quot;
+
+On some rules, the keyword &quot;chain&quot; is specified. In fact current
+modsecurity needs us to specify again this keyword when we update a
+chained action.
+The last parts here are an attempt to fetch the rule IDs that matched
+since they don't get logged. Although it doesn't work, but keep it so it
+replaces the logdata of these rules, which can contain sensitive
+information. It was coupled with a rule included before all
+(20-track-ids.conf) containing only this (currently disabled) :
+#SecRule TX:/^\d/ &quot;.&quot;
+&quot;phase:2,id:'45',t:none,nolog,noauditlog,pass,setvar:tx.counter=+1,setvar:tx.matched_rule-%{tx.counter}=%{matched_var_name}&quot;
+I'm interested by feedback if you manage to log a list of matched rule ids !
+
+Since we don't get that much information of matched rules, except when
+the request get blocked, I added some rules which kinda copies the
+blocking rule (without the block part of course) from
+base_rules/modsecurity_crs_49_inbound_blocking.conf when the anomaly
+score is not exceeded. See attached 99-log-low-anomalies.conf.
+As you can see in the 99- file, I also had to alter the last matched
+data variable when SecRule was matching a parameter containing sensitive
+data. We use JSON parsing so we can use that, but XML parsing does not
+provide parameter name, so I hope you're in REST API and not SOAP.
+
+The result is : we always get a summary of what happened when score is
+not 0, with the ID of last matched rule, but not all the IDs.
+
+Maybe modsecurity / OWASP team could make a PCI compliant version of the
+rules / software, because it is indeed hard to work with as it is when
+you need to avoid sensitive data being logged.
+
+I hope I didn't forget anything, and it helps you on your modsecurity
+journey ^^
+
+--
+Lo&#239;c Gomez
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0001.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0001.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 15-custom-config.conf.gz
+Type: application/gzip
+Size: 767 bytes
+Desc: not available
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0003.bin">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0003.bin</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 99-log-low-anomalies.conf.gz
+Type: application/gzip
+Size: 524 bytes
+Desc: not available
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0004.bin">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0004.bin</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: modsecurity-no-bodies.sh.gz
+Type: application/gzip
+Size: 653 bytes
+Desc: not available
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0005.bin">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20150603/273b6cb2/attachment-0005.bin</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001761.html">[Owasp-modsecurity-core-rule-set] How to prevent request body	logging?
+</A></li>
+	<LI>Next message: <A HREF="001763.html">[Owasp-modsecurity-core-rule-set] Searchable ruleset list
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1762">[ date ]</a>
+              <a href="thread.html#1762">[ thread ]</a>
+              <a href="subject.html#1762">[ subject ]</a>
+              <a href="author.html#1762">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

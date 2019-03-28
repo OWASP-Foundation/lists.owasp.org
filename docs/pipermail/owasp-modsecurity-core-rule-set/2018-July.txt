@@ -1,0 +1,907 @@
+From ilia.shakitko at accenture.com  Fri Jul  6 14:53:31 2018
+From: ilia.shakitko at accenture.com (Shakitko, Ilia)
+Date: Fri, 6 Jul 2018 14:53:31 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Can't process with allowing
+ "application/x-git-upload-pack-request" in CRS
+Message-ID: <97934822-11CE-48AE-B5A2-60C7F88D896C@accenture.com>
+
+Hi ModSecurity CRS Mailing List members,
+
+I am running into issue with CI for my GitLab. After enabling mod_security (crs-3.0.0), I?ve got few errors and latest one I am not able to resolve ? it relates to the request content type (application/x-git-upload-pack-request) is not allowed by policy. I found two places where I can add exception to allow content types, but enabling this doesn?t work -> please see the log below.
+
+Files:
+/usr/local/owasp-modsecurity-crs-3.0.0/crs-setup.conf
+and
+/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-901-INITIALIZATION.conf
+
+Result is still:
+
+ModSecurity: Warning. Matched "Operator Rx' with parameter^application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json|text/plain|application/x-git-upload-pack-request'$' against variable TX:0' (Value:application/x-git-upload-pack-request' ) [file "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf"] [line "911"] [id "920420"] [rev "2"] [msg "Request content type is not allowed by policy"] [data "application/x-git-upload-pack-request"] [severity "2"] [ver "OWASP_CRS/3.0.0"] [maturity "9"] [accuracy "9"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"] [hostname "23.100.14.202"] [uri "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id "153088618260.910992"] [ref "v0,4o0,37o0,37v232,37"]
+ModSecurity: Access denied with code 403 (phase 2). Matched "Operator Ge' with parameter5' against variable TX:ANOMALY_SCORE' (Value:5' ) [file "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-949-BLOCKING-EVALUATION.conf"] [line "36"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded (Total Score: 5)"] [data ""] [severity "2"] [ver ""] [maturity "0"] [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-generic"] [hostname "23.100.14.202"] [uri "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id "153088618260.910992"] [ref ""]
+
+What am I doing wrong? And how to win the challenge? Looks like the changes I mage should just work?
+
+Thank you in advance.
+
+Met vriendelijke groet / With kind regards,
+
+Ilia Shakitko
+
+
+
+________________________________
+
+This message is for the designated recipient only and may contain privileged, proprietary, or otherwise confidential information. If you have received it in error, please notify the sender immediately and delete the original. Any other use of the e-mail by you is prohibited. Where allowed by local law, electronic communications with Accenture and its affiliates, including e-mail and instant messaging (including content), may be scanned by our systems for the purposes of information security and assessment of internal compliance with Accenture policy. Your privacy is important to us. Accenture uses your personal data only in compliance with data protection laws. For further information on how Accenture processes your personal data, please see our privacy statement at https://www.accenture.com/us-en/privacy-policy.
+______________________________________________________________________________________
+
+www.accenture.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180706/ee396aa0/attachment.html>
+
+From chaim at chaimsanders.com  Fri Jul  6 21:03:09 2018
+From: chaim at chaimsanders.com (Chaim Sanders)
+Date: Fri, 6 Jul 2018 22:03:09 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Can't process with allowing
+ "application/x-git-upload-pack-request" in CRS
+In-Reply-To: <97934822-11CE-48AE-B5A2-60C7F88D896C@accenture.com>
+References: <97934822-11CE-48AE-B5A2-60C7F88D896C@accenture.com>
+Message-ID: <CAE8hE=qhEF6Z3iFnoAU5aR7o-fnxcSNZ-RTfo8M8hD5t8m-8Dg@mail.gmail.com>
+
+For completeness can we have the version of CRS and the version of modsec
+you're running?
+
+On Fri, Jul 6, 2018, 3:56 PM Shakitko, Ilia <ilia.shakitko at accenture.com>
+wrote:
+
+> Hi ModSecurity CRS Mailing List members,
+>
+>
+>
+> I am running into issue with CI for my GitLab. After enabling mod_security
+> (crs-3.0.0), I?ve got few errors and latest one I am not able to resolve ?
+> it relates to the request content type (
+> application/x-git-upload-pack-request) is not allowed by policy. I found
+> two places where I can add exception to allow content types, but enabling
+> this doesn?t work -> please see the log below.
+>
+>
+>
+> *Files:*
+>
+> /usr/local/owasp-modsecurity-crs-3.0.0/crs-setup.conf
+>
+> and
+>
+>
+> /usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-901-INITIALIZATION.conf
+>
+>
+>
+> *Result is still:*
+>
+>
+>
+> ModSecurity: Warning. Matched "Operator Rx' with parameter^application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json|text/plain|application/x-git-upload-pack-request'$'
+> against variable TX:0' (Value:application/x-git-upload-pack-request' )
+> [file
+> "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf"]
+> [line "911"] [id "920420"] [rev "2"] [msg "Request content type is not
+> allowed by policy"] [data "application/x-git-upload-pack-request"]
+> [severity "2"] [ver "OWASP_CRS/3.0.0"] [maturity "9"] [accuracy "9"] [tag
+> "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag
+> "attack-protocol"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag
+> "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag
+> "PCI/12.1"] [hostname "23.100.14.202"] [uri
+> "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id
+> "153088618260.910992"] [ref "v0,4o0,37o0,37v232,37"]
+> ModSecurity: Access denied with code 403 (phase 2). Matched "Operator Ge'
+> with parameter5' against variable TX:ANOMALY_SCORE' (Value:5' ) [file
+> "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-949-BLOCKING-EVALUATION.conf"]
+> [line "36"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded
+> (Total Score: 5)"] [data ""] [severity "2"] [ver ""] [maturity "0"]
+> [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag
+> "platform-multi"] [tag "attack-generic"] [hostname "23.100.14.202"] [uri
+> "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id
+> "153088618260.910992"] [ref ""]
+>
+>
+>
+> What am I doing wrong? And how to win the challenge? Looks like the
+> changes I mage should just work?
+>
+>
+>
+> Thank you in advance.
+>
+>
+>
+> Met vriendelijke groet / With kind regards,
+>
+>
+>
+> *Ilia Shakitko*
+>
+>
+>
+>
+>
+> ------------------------------
+>
+> This message is for the designated recipient only and may contain
+> privileged, proprietary, or otherwise confidential information. If you have
+> received it in error, please notify the sender immediately and delete the
+> original. Any other use of the e-mail by you is prohibited. Where allowed
+> by local law, electronic communications with Accenture and its affiliates,
+> including e-mail and instant messaging (including content), may be scanned
+> by our systems for the purposes of information security and assessment of
+> internal compliance with Accenture policy. Your privacy is important to us.
+> Accenture uses your personal data only in compliance with data protection
+> laws. For further information on how Accenture processes your personal
+> data, please see our privacy statement at
+> https://www.accenture.com/us-en/privacy-policy.
+>
+> ______________________________________________________________________________________
+>
+> www.accenture.com
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180706/48d619cd/attachment-0001.html>
+
+From ilia.shakitko at accenture.com  Mon Jul  9 07:27:28 2018
+From: ilia.shakitko at accenture.com (Shakitko, Ilia)
+Date: Mon, 9 Jul 2018 07:27:28 +0000
+Subject: [Owasp-modsecurity-core-rule-set] [External] Re: Can't process
+ with allowing "application/x-git-upload-pack-request" in CRS
+In-Reply-To: <CAE8hE=qhEF6Z3iFnoAU5aR7o-fnxcSNZ-RTfo8M8hD5t8m-8Dg@mail.gmail.com>
+References: <97934822-11CE-48AE-B5A2-60C7F88D896C@accenture.com>
+	<CAE8hE=qhEF6Z3iFnoAU5aR7o-fnxcSNZ-RTfo8M8hD5t8m-8Dg@mail.gmail.com>
+Message-ID: <149C8A59-F049-409D-B012-5EC4F0315872@accenture.com>
+
+Hi Chaim,
+
+Thank you for a fast response. Apologies, it is indeed a piece of meaningful info is missing.
+
+nginx_version: 1.13.12-1~xenial
+owasp_rules_version: 3.0.0
+
+
+In addition to the behavior I described, next scenario happened (and made it work, but not clear why):
+
+1) changed the file /usr/local/owasp-modsecurity-crs-3.0.0/crs-setup.conf
+
+2) on line 340 added extra ?|foo? to the expression and it works (doesn?t block the rule anymore) ? like it was not respecting last argument
+
+setvar:'tx.allowed_request_content_type=application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json|text/plain|application/x-git-upload-pack-request|foo'"
+
+
+
+Met vriendelijke groet / With kind regards,
+
+Ilia Shakitko
+
+From: Chaim Sanders <chaim at chaimsanders.com>
+Date: Friday, 6 July 2018 at 23:03
+To: Ilia Shakitko <ilia.shakitko at accenture.com>
+Cc: "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [External] Re: [Owasp-modsecurity-core-rule-set] Can't process with allowing "application/x-git-upload-pack-request" in CRS
+
+For completeness can we have the version of CRS and the version of modsec you're running?
+On Fri, Jul 6, 2018, 3:56 PM Shakitko, Ilia <ilia.shakitko at accenture.com<mailto:ilia.shakitko at accenture.com>> wrote:
+Hi ModSecurity CRS Mailing List members,
+
+I am running into issue with CI for my GitLab. After enabling mod_security (crs-3.0.0), I?ve got few errors and latest one I am not able to resolve ? it relates to the request content type (application/x-git-upload-pack-request) is not allowed by policy. I found two places where I can add exception to allow content types, but enabling this doesn?t work -> please see the log below.
+
+Files:
+/usr/local/owasp-modsecurity-crs-3.0.0/crs-setup.conf
+and
+/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-901-INITIALIZATION.conf
+
+Result is still:
+
+ModSecurity: Warning. Matched "Operator Rx' with parameter^application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf|application/json|text/plain|application/x-git-upload-pack-request'$' against variable TX:0' (Value:application/x-git-upload-pack-request' ) [file "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf"] [line "911"] [id "920420"] [rev "2"] [msg "Request content type is not allowed by policy"] [data "application/x-git-upload-pack-request"] [severity "2"] [ver "OWASP_CRS/3.0.0"] [maturity "9"] [accuracy "9"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-protocol"] [tag "OWASP_CRS/POLICY/ENCODING_NOT_ALLOWED"] [tag "WASCTC/WASC-20"] [tag "OWASP_TOP_10/A1"] [tag "OWASP_AppSensor/EE2"] [tag "PCI/12.1"] [hostname "23.100.14.202"] [uri "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id "153088618260.910992"] [ref "v0,4o0,37o0,37v232,37"]
+ModSecurity: Access denied with code 403 (phase 2). Matched "Operator Ge' with parameter5' against variable TX:ANOMALY_SCORE' (Value:5' ) [file "/usr/local/owasp-modsecurity-crs-3.0.0/rules/REQUEST-949-BLOCKING-EVALUATION.conf"] [line "36"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded (Total Score: 5)"] [data ""] [severity "2"] [ver ""] [maturity "0"] [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-generic"] [hostname "23.100.14.202"] [uri "/ilia.shakitko/pass357.git/git-upload-pack"] [unique_id "153088618260.910992"] [ref ""]
+
+What am I doing wrong? And how to win the challenge? Looks like the changes I mage should just work?
+
+Thank you in advance.
+
+Met vriendelijke groet / With kind regards,
+
+Ilia Shakitko
+
+
+
+________________________________
+
+This message is for the designated recipient only and may contain privileged, proprietary, or otherwise confidential information. If you have received it in error, please notify the sender immediately and delete the original. Any other use of the e-mail by you is prohibited. Where allowed by local law, electronic communications with Accenture and its affiliates, including e-mail and instant messaging (including content), may be scanned by our systems for the purposes of information security and assessment of internal compliance with Accenture policy. Your privacy is important to us. Accenture uses your personal data only in compliance with data protection laws. For further information on how Accenture processes your personal data, please see our privacy statement at https://www.accenture.com/us-en/privacy-policy.
+______________________________________________________________________________________
+
+www.accenture.com<http://www.accenture.com>
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set<https://urldefense.proofpoint.com/v2/url?u=https-3A__lists.owasp.org_mailman_listinfo_owasp-2Dmodsecurity-2Dcore-2Drule-2Dset&d=DwMFaQ&c=eIGjsITfXP_y-DLLX0uEHXJvU8nOHrUK8IrwNKOtkVU&r=UCdLp1c4Q-Kjo3K5dDMh3ygmrQNo9bcLk043WaViLrQ&m=FysENspUGktgV55tZNvzRJTbYQPa-aLxy9jvU927gZ0&s=VotBjyFm9KcZTVrEgB4VaDTJV8vymASfCVwFGxBMJ1M&e=>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180709/2b3b3cf8/attachment-0001.html>
+
+From christian.folini at netnea.com  Thu Jul 12 12:24:53 2018
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 12 Jul 2018 14:24:53 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Reporting from the CRS Community
+	Summit
+Message-ID: <20180712122453.e6p7lkvejiru7so7@leander>
+
+Hi there,
+
+I just finished a first blog post about the CRS community summit we ran last
+week in London.
+
+https://coreruleset.org/20180712/reporting-from-the-first-crs-community-summit-in-london/
+
+More to come.
+
+Christian
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+https://www.feistyduck.com/books/modsecurity-handbook/
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+
+From mod.sec at ma.yer.at  Thu Jul 19 20:11:59 2018
+From: mod.sec at ma.yer.at (hans mayer)
+Date: Thu, 19 Jul 2018 22:11:59 +0200
+Subject: [Owasp-modsecurity-core-rule-set] exec: script for specific
+	directory
+Message-ID: <5B50F08F.9090202@ma.yer.at>
+
+
+Dear All,
+
+My environment: Apache/2.4 , engine mode: /modsecurity 2.7+
+
+I want to achieve whenever any security rule is triggered a script 
+should be executed for a specific directory.
+
+In the global Apache security module settings I have this line:
+
+SecDefaultAction "phase:2,deny,log,status:406"
+
+which does it's job very well
+
+So my idea was I define a similar line for this specific directory. In 
+my apache http.conf I have:
+
+<Directory  "/some/directory/path">
+      SecDefaultAction "phase:2,deny,log,status:406,exec:/path/to/script"
+</Directory>
+
+But obviously it doesn't work. The originally SecDefaultAction is maybe 
+executed first and not over ruled.
+/path/to/script is never executed.
+But an attack is successfully blocked.
+
+To verify if this script is generally working I modified this line to:
+
+SecAction "id:10003,pass,auditlog,log,phase:5,msg:'log 
+everything',exec:///path/to/script"
+
+And this works fine. My script is executed. But it triggers each time a 
+browser is going to "/some/directory/path" on this server. Even if it's 
+doing legal things.
+
+Any idea how I could solve my problem ? Any help is appreciated.
+
+I know version 3 is out with a lot of bugfixes. But currently I don't 
+want to upgrade.
+
+Kind regards
+Hans
+
+-- 
+
+
+
+From mod.sec at ma.yer.at  Fri Jul 20 20:32:36 2018
+From: mod.sec at ma.yer.at (hans mayer)
+Date: Fri, 20 Jul 2018 22:32:36 +0200
+Subject: [Owasp-modsecurity-core-rule-set] exec: script for specific
+	directory
+In-Reply-To: <CAN6xG9tVWkfFi6ieqfA9K45dLy33oCsBTQnWueHXkgNZ=YRH1w@mail.gmail.com>
+References: <5B50F08F.9090202@ma.yer.at>
+	<CAN6xG9tVWkfFi6ieqfA9K45dLy33oCsBTQnWueHXkgNZ=YRH1w@mail.gmail.com>
+Message-ID: <5B5246E4.1030505@ma.yer.at>
+
+
+
+Hi Manuel,
+
+Sorry, obviously I didn't explain well enough what I want to do.
+I do not want to run a script every time a block ( = certain directory 
+structure or URL )
+is read by a client.
+A script should only be triggered if one of these core rules from CRS
+found an attack and is blocking.
+Only in this situation a script should run for this specific URL.
+I hope this describes a little bit better.
+I tried different possibilities, for example with SecRule HIGHEST_SEVERITY,
+but all of them without success.
+
+
+// Hans
+
+
+On 19.07.18, 23:46, Manuel Spartan wrote:
+> Hi Hans,
+>
+> it may not be the best idea to execute external scripts every time you 
+> hit a block, it can easily result in a DOS situation, external scripts 
+> take longer to execute resulting in longer processing times, 
+> SecDefaultAction inside a directory must override the inherited 
+> SecDefaultAction in higher context but that would depend on your rules 
+> and apache configuration.
+>
+> Alternatively you may add a SecRule in phase 2 to check whatever 
+> condition you are targetting and use ctl:SkipAfter to jump the 
+> SecAction in phase 2. See how the paranoia markers and actions work as 
+> they use the same concept.
+>
+> Cheers!
+>
+> 2018-07-19 15:11 GMT-05:00 hans mayer <mod.sec at ma.yer.at 
+> <mailto:mod.sec at ma.yer.at>>:
+>
+>
+>     Dear All,
+>
+>     My environment: Apache/2.4 , engine mode: /modsecurity 2.7+
+>
+>     I want to achieve whenever any security rule is triggered a script
+>     should be executed for a specific directory.
+>
+>     In the global Apache security module settings I have this line:
+>
+>     SecDefaultAction "phase:2,deny,log,status:406"
+>
+>     which does it's job very well
+>
+>     So my idea was I define a similar line for this specific
+>     directory. In my apache http.conf I have:
+>
+>     <Directory  "/some/directory/path">
+>          SecDefaultAction
+>     "phase:2,deny,log,status:406,exec:/path/to/script"
+>     </Directory>
+>
+>     But obviously it doesn't work. The originally SecDefaultAction is
+>     maybe executed first and not over ruled.
+>     /path/to/script is never executed.
+>     But an attack is successfully blocked.
+>
+>     To verify if this script is generally working I modified this line to:
+>
+>     SecAction "id:10003,pass,auditlog,log,phase:5,msg:'log
+>     everything',exec:///path/to/script"
+>
+>     And this works fine. My script is executed. But it triggers each
+>     time a browser is going to "/some/directory/path" on this server.
+>     Even if it's doing legal things.
+>
+>     Any idea how I could solve my problem ? Any help is appreciated.
+>
+>     I know version 3 is out with a lot of bugfixes. But currently I
+>     don't want to upgrade.
+>
+>     Kind regards
+>     Hans
+>
+>     -- 
+>
+>
+>     _______________________________________________
+>     Owasp-modsecurity-core-rule-set mailing list
+>     Owasp-modsecurity-core-rule-set at lists.owasp.org
+>     <mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>     https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>     <https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>
+>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180720/514a8fce/attachment.html>
+
+From spartantri at gmail.com  Fri Jul 20 23:05:39 2018
+From: spartantri at gmail.com (spartantri at gmail.com)
+Date: Fri, 20 Jul 2018 18:05:39 -0500
+Subject: [Owasp-modsecurity-core-rule-set] exec: script for specific
+	directory
+In-Reply-To: <5B5246E4.1030505@ma.yer.at>
+References: <5B50F08F.9090202@ma.yer.at>
+	<CAN6xG9tVWkfFi6ieqfA9K45dLy33oCsBTQnWueHXkgNZ=YRH1w@mail.gmail.com>
+	<5B5246E4.1030505@ma.yer.at>
+Message-ID: <E0C1CB41-0D91-411A-A7AE-E3D1AE053DCD@gmail.com>
+
+Hi Hans, you can do a secrule in phase 5 that checks for the anomaly score higher than the threshold
+
+Cheers
+
+Sent from mobile
+
+> El 20 jul 2018, a las 15:32, hans mayer <mod.sec at ma.yer.at> escribi?:
+> 
+> 
+> 
+> Hi Manuel, 
+> 
+> Sorry, obviously I didn't explain well enough what I want to do. 
+> I do not want to run a script every time a block ( = certain directory structure or URL ) 
+> is read by a client. 
+> A script should only be triggered if one of these core rules from CRS 
+> found an attack and is blocking. 
+> Only in this situation a script should run for this specific URL.
+> I hope this describes a little bit better. 
+> I tried different possibilities, for example with SecRule HIGHEST_SEVERITY,
+> but all of them without success. 
+> 
+> 
+> // Hans 
+> 
+> 
+>> On 19.07.18, 23:46, Manuel Spartan wrote:
+>> Hi Hans, 
+>> 
+>> it may not be the best idea to execute external scripts every time you hit a block, it can easily result in a DOS situation, external scripts take longer to execute resulting in longer processing times, SecDefaultAction inside a directory must override the inherited SecDefaultAction in higher context but that would depend on your rules and apache configuration.
+>> 
+>> Alternatively you may add a SecRule in phase 2 to check whatever condition you are targetting and use ctl:SkipAfter to jump the SecAction in phase 2. See how the paranoia markers and actions work as they use the same concept.
+>> 
+>> Cheers! 
+>> 
+>> 2018-07-19 15:11 GMT-05:00 hans mayer <mod.sec at ma.yer.at>:
+>>> 
+>>> Dear All,
+>>> 
+>>> My environment: Apache/2.4 , engine mode: /modsecurity 2.7+
+>>> 
+>>> I want to achieve whenever any security rule is triggered a script should be executed for a specific directory.
+>>> 
+>>> In the global Apache security module settings I have this line:
+>>> 
+>>> SecDefaultAction "phase:2,deny,log,status:406"
+>>> 
+>>> which does it's job very well
+>>> 
+>>> So my idea was I define a similar line for this specific directory. In my apache http.conf I have:
+>>> 
+>>> <Directory  "/some/directory/path">
+>>>      SecDefaultAction "phase:2,deny,log,status:406,exec:/path/to/script"
+>>> </Directory>
+>>> 
+>>> But obviously it doesn't work. The originally SecDefaultAction is maybe executed first and not over ruled.
+>>> /path/to/script is never executed.
+>>> But an attack is successfully blocked.
+>>> 
+>>> To verify if this script is generally working I modified this line to:
+>>> 
+>>> SecAction "id:10003,pass,auditlog,log,phase:5,msg:'log everything',exec:///path/to/script"
+>>> 
+>>> And this works fine. My script is executed. But it triggers each time a browser is going to "/some/directory/path" on this server. Even if it's doing legal things.
+>>> 
+>>> Any idea how I could solve my problem ? Any help is appreciated.
+>>> 
+>>> I know version 3 is out with a lot of bugfixes. But currently I don't want to upgrade.
+>>> 
+>>> Kind regards
+>>> Hans
+>>> 
+>>> -- 
+>>> 
+>>> 
+>>> _______________________________________________
+>>> Owasp-modsecurity-core-rule-set mailing list
+>>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>> 
+> 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180720/10964234/attachment.html>
+
+From mod.sec at ma.yer.at  Sat Jul 21 20:48:15 2018
+From: mod.sec at ma.yer.at (hans mayer)
+Date: Sat, 21 Jul 2018 22:48:15 +0200
+Subject: [Owasp-modsecurity-core-rule-set] exec: script for specific
+	directory
+In-Reply-To: <E0C1CB41-0D91-411A-A7AE-E3D1AE053DCD@gmail.com>
+References: <5B50F08F.9090202@ma.yer.at>
+	<CAN6xG9tVWkfFi6ieqfA9K45dLy33oCsBTQnWueHXkgNZ=YRH1w@mail.gmail.com>
+	<5B5246E4.1030505@ma.yer.at>
+	<E0C1CB41-0D91-411A-A7AE-E3D1AE053DCD@gmail.com>
+Message-ID: <5B539C0F.2040405@ma.yer.at>
+
+
+
+Hi Manuel,
+
+Many thanks for your reply.
+
+I played around with a rule like this
+SecRule HIGHEST_SEVERITY "@le 90" "...."
+but this never triggered.
+With a SecAction rule I have seen HIGHEST_SEVERITY is always 255.
+This means it is uninitialized.
+Based on the wiki at github values can be between 0 and 7
+But not for me. And maybe HIGHEST_SEVERITY is not that what 
+documentation says about severity.
+
+I also tried the following rule
+SecAction 
+"id:10003,log,allow,phase:5,setenv:bodypost=%{tx.anomaly_score},exec:/path/to/script"
+In my script I see tx.anomaly_score is empty for a normal browser query 
+but set to 0 if it is an attack.
+This I could use to trigger a script in case of an attack.
+
+But I don't want that this shell script is executed each time someone is 
+visting this URL.
+So I tried a rule
+SecRule tx.anomaly_score "@ge 0" 
+id:10003,log,allow,phase:5,setenv:bodypost=%{tx.anomaly_score},exec:/path/to/script"
+But in this case Apache does not start, it terminates with
+Error creating rule: Unknown variable: tx.anomaly_score
+
+I tried to understand your e-mail. But obviously I do not.
+Could you give me some detailed explanation how-to configure a rule that 
+triggers a script if another rules detects previously an attack ?
+
+
+Kind regards
+Hans
+
+
+
+
+
+
+
+
+On 21.07.18, 01:05, spartantri at gmail.com wrote:
+> Hi Hans, you can do a secrule in phase 5 that checks for the anomaly 
+> score higher than the threshold
+>
+> Cheers
+>
+> Sent from mobile
+>
+> El 20 jul 2018, a las 15:32, hans mayer <mod.sec at ma.yer.at 
+> <mailto:mod.sec at ma.yer.at>> escribi?:
+>
+>>
+>>
+>> Hi Manuel,
+>>
+>> Sorry, obviously I didn't explain well enough what I want to do.
+>> I do not want to run a script every time a block ( = certain 
+>> directory structure or URL )
+>> is read by a client.
+>> A script should only be triggered if one of these core rules from CRS
+>> found an attack and is blocking.
+>> Only in this situation a script should run for this specific URL.
+>> I hope this describes a little bit better.
+>> I tried different possibilities, for example with SecRule 
+>> HIGHEST_SEVERITY,
+>> but all of them without success.
+>>
+>>
+>> // Hans
+>>
+>>
+>> On 19.07.18, 23:46, Manuel Spartan wrote:
+>>> Hi Hans,
+>>>
+>>> it may not be the best idea to execute external scripts every time 
+>>> you hit a block, it can easily result in a DOS situation, external 
+>>> scripts take longer to execute resulting in longer processing times, 
+>>> SecDefaultAction inside a directory must override the inherited 
+>>> SecDefaultAction in higher context but that would depend on your 
+>>> rules and apache configuration.
+>>>
+>>> Alternatively you may add a SecRule in phase 2 to check whatever 
+>>> condition you are targetting and use ctl:SkipAfter to jump the 
+>>> SecAction in phase 2. See how the paranoia markers and actions work 
+>>> as they use the same concept.
+>>>
+>>> Cheers!
+>>>
+>>> 2018-07-19 15:11 GMT-05:00 hans mayer <mod.sec at ma.yer.at 
+>>> <mailto:mod.sec at ma.yer.at>>:
+>>>
+>>>
+>>>     Dear All,
+>>>
+>>>     My environment: Apache/2.4 , engine mode: /modsecurity 2.7+
+>>>
+>>>     I want to achieve whenever any security rule is triggered a
+>>>     script should be executed for a specific directory.
+>>>
+>>>     In the global Apache security module settings I have this line:
+>>>
+>>>     SecDefaultAction "phase:2,deny,log,status:406"
+>>>
+>>>     which does it's job very well
+>>>
+>>>     So my idea was I define a similar line for this specific
+>>>     directory. In my apache http.conf I have:
+>>>
+>>>     <Directory  "/some/directory/path">
+>>>          SecDefaultAction
+>>>     "phase:2,deny,log,status:406,exec:/path/to/script"
+>>>     </Directory>
+>>>
+>>>     But obviously it doesn't work. The originally SecDefaultAction
+>>>     is maybe executed first and not over ruled.
+>>>     /path/to/script is never executed.
+>>>     But an attack is successfully blocked.
+>>>
+>>>     To verify if this script is generally working I modified this
+>>>     line to:
+>>>
+>>>     SecAction "id:10003,pass,auditlog,log,phase:5,msg:'log
+>>>     everything',exec:///path/to/script"
+>>>
+>>>     And this works fine. My script is executed. But it triggers each
+>>>     time a browser is going to "/some/directory/path" on this
+>>>     server. Even if it's doing legal things.
+>>>
+>>>     Any idea how I could solve my problem ? Any help is appreciated.
+>>>
+>>>     I know version 3 is out with a lot of bugfixes. But currently I
+>>>     don't want to upgrade.
+>>>
+>>>     Kind regards
+>>>     Hans
+>>>
+>>>     -- 
+>>>
+>>>
+>>>     _______________________________________________
+>>>     Owasp-modsecurity-core-rule-set mailing list
+>>>     Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>     <mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>>     https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>     <https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>>
+>>>
+>>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180721/7d34efd0/attachment.html>
+
+From mod.sec at ma.yer.at  Sun Jul 22 15:35:55 2018
+From: mod.sec at ma.yer.at (hans mayer)
+Date: Sun, 22 Jul 2018 17:35:55 +0200
+Subject: [Owasp-modsecurity-core-rule-set] exec: script for specific
+	directory
+In-Reply-To: <0BFFEC71-A335-44CA-8199-01BE50D573D9@gmail.com>
+References: <5B50F08F.9090202@ma.yer.at>
+	<CAN6xG9tVWkfFi6ieqfA9K45dLy33oCsBTQnWueHXkgNZ=YRH1w@mail.gmail.com>
+	<5B5246E4.1030505@ma.yer.at>
+	<E0C1CB41-0D91-411A-A7AE-E3D1AE053DCD@gmail.com>
+	<5B539C0F.2040405@ma.yer.at>
+	<0BFFEC71-A335-44CA-8199-01BE50D573D9@gmail.com>
+Message-ID: <5B54A45B.4060901@ma.yer.at>
+
+
+It says:
+Engine Mode  modsecurity 2.7+ only
+Producer Rule Set    ModSecurity for Apache/2.8.0 
+(http://www.modsecurity.org/).
+
+rule set seem to be
+Core ModSecurity Rule Set ver.2.2.9
+
+
+// Hans
+
+
+
+On 22.07.18, 02:17, spartantri at gmail.com wrote:
+> What modsec and CRS versions are you using?
+>
+> Sent from mobile
+>
+> El 21 jul 2018, a las 15:48, hans mayer <mod.sec at ma.yer.at 
+> <mailto:mod.sec at ma.yer.at>> escribi?:
+>
+>>
+>>
+>> Hi Manuel,
+>>
+>> Many thanks for your reply.
+>>
+>> I played around with a rule like this
+>> SecRule HIGHEST_SEVERITY "@le 90" "...."
+>> but this never triggered.
+>> With a SecAction rule I have seen HIGHEST_SEVERITY is always 255.
+>> This means it is uninitialized.
+>> Based on the wiki at github values can be between 0 and 7
+>> But not for me. And maybe HIGHEST_SEVERITY is not that what 
+>> documentation says about severity.
+>>
+>> I also tried the following rule
+>> SecAction 
+>> "id:10003,log,allow,phase:5,setenv:bodypost=%{tx.anomaly_score},exec:/path/to/script"
+>> In my script I see tx.anomaly_score is empty for a normal browser 
+>> query but set to 0 if it is an attack.
+>> This I could use to trigger a script in case of an attack.
+>>
+>> But I don't want that this shell script is executed each time someone 
+>> is visting this URL.
+>> So I tried a rule
+>> SecRule tx.anomaly_score "@ge 0" 
+>> id:10003,log,allow,phase:5,setenv:bodypost=%{tx.anomaly_score},exec:/path/to/script"
+>> But in this case Apache does not start, it terminates with
+>> Error creating rule: Unknown variable: tx.anomaly_score
+>>
+>> I tried to understand your e-mail. But obviously I do not.
+>> Could you give me some detailed explanation how-to configure a rule 
+>> that triggers a script if another rules detects previously an attack ?
+>>
+>>
+>> Kind regards
+>> Hans
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>> On 21.07.18, 01:05, spartantri at gmail.com wrote:
+>>> Hi Hans, you can do a secrule in phase 5 that checks for the anomaly 
+>>> score higher than the threshold
+>>>
+>>> Cheers
+>>>
+>>> Sent from mobile
+>>>
+>>> El 20 jul 2018, a las 15:32, hans mayer <mod.sec at ma.yer.at 
+>>> <mailto:mod.sec at ma.yer.at>> escribi?:
+>>>
+>>>>
+>>>>
+>>>> Hi Manuel,
+>>>>
+>>>> Sorry, obviously I didn't explain well enough what I want to do.
+>>>> I do not want to run a script every time a block ( = certain 
+>>>> directory structure or URL )
+>>>> is read by a client.
+>>>> A script should only be triggered if one of these core rules from CRS
+>>>> found an attack and is blocking.
+>>>> Only in this situation a script should run for this specific URL.
+>>>> I hope this describes a little bit better.
+>>>> I tried different possibilities, for example with SecRule 
+>>>> HIGHEST_SEVERITY,
+>>>> but all of them without success.
+>>>>
+>>>>
+>>>> // Hans
+>>>>
+>>>>
+>>>> On 19.07.18, 23:46, Manuel Spartan wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> it may not be the best idea to execute external scripts every time 
+>>>>> you hit a block, it can easily result in a DOS situation, external 
+>>>>> scripts take longer to execute resulting in longer processing 
+>>>>> times, SecDefaultAction inside a directory must override the 
+>>>>> inherited SecDefaultAction in higher context but that would depend 
+>>>>> on your rules and apache configuration.
+>>>>>
+>>>>> Alternatively you may add a SecRule in phase 2 to check whatever 
+>>>>> condition you are targetting and use ctl:SkipAfter to jump the 
+>>>>> SecAction in phase 2. See how the paranoia markers and actions 
+>>>>> work as they use the same concept.
+>>>>>
+>>>>> Cheers!
+>>>>>
+>>>>> 2018-07-19 15:11 GMT-05:00 hans mayer <mod.sec at ma.yer.at 
+>>>>> <mailto:mod.sec at ma.yer.at>>:
+>>>>>
+>>>>>
+>>>>>     Dear All,
+>>>>>
+>>>>>     My environment: Apache/2.4 , engine mode: /modsecurity 2.7+
+>>>>>
+>>>>>     I want to achieve whenever any security rule is triggered a
+>>>>>     script should be executed for a specific directory.
+>>>>>
+>>>>>     In the global Apache security module settings I have this line:
+>>>>>
+>>>>>     SecDefaultAction "phase:2,deny,log,status:406"
+>>>>>
+>>>>>     which does it's job very well
+>>>>>
+>>>>>     So my idea was I define a similar line for this specific
+>>>>>     directory. In my apache http.conf I have:
+>>>>>
+>>>>>     <Directory  "/some/directory/path">
+>>>>>          SecDefaultAction
+>>>>>     "phase:2,deny,log,status:406,exec:/path/to/script"
+>>>>>     </Directory>
+>>>>>
+>>>>>     But obviously it doesn't work. The originally SecDefaultAction
+>>>>>     is maybe executed first and not over ruled.
+>>>>>     /path/to/script is never executed.
+>>>>>     But an attack is successfully blocked.
+>>>>>
+>>>>>     To verify if this script is generally working I modified this
+>>>>>     line to:
+>>>>>
+>>>>>     SecAction "id:10003,pass,auditlog,log,phase:5,msg:'log
+>>>>>     everything',exec:///path/to/script"
+>>>>>
+>>>>>     And this works fine. My script is executed. But it triggers
+>>>>>     each time a browser is going to "/some/directory/path" on this
+>>>>>     server. Even if it's doing legal things.
+>>>>>
+>>>>>     Any idea how I could solve my problem ? Any help is appreciated.
+>>>>>
+>>>>>     I know version 3 is out with a lot of bugfixes. But currently
+>>>>>     I don't want to upgrade.
+>>>>>
+>>>>>     Kind regards
+>>>>>     Hans
+>>>>>
+>>>>>     -- 
+>>>>>
+>>>>>
+>>>>>     _______________________________________________
+>>>>>     Owasp-modsecurity-core-rule-set mailing list
+>>>>>     Owasp-modsecurity-core-rule-set at lists.owasp.org
+>>>>>     <mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+>>>>>     https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>>>>>     <https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set>
+>>>>>
+>>>>>
+>>>>
+>>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20180722/f46062db/attachment.html>
+
+From christian.folini at netnea.com  Thu Jul 26 05:49:16 2018
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 26 Jul 2018 07:49:16 +0200
+Subject: [Owasp-modsecurity-core-rule-set] News from the Core Rule Set
+	(2018-07-26)
+Message-ID: <20180726054916.4drmyhyryy6cah5x@leander>
+
+Dear all,
+
+The revamped news from the OWASP ModSecurity Core Rule Set project have been
+published at https://coreruleset.org/20180726/crs-project-news-july-2018/
+
+There is a report from the CRS community summit in London earlier this month,
+a group photo from said meeting and the link to a new CRS channel on the OWASP
+slack.
+
+Best,
+
+Christian Folini
+
+-- 
+https://www.feistyduck.com/training/modsecurity-training-course
+https://www.feistyduck.com/books/modsecurity-handbook/
+mailto:christian.folini at netnea.com
+twitter: @ChrFolini
+

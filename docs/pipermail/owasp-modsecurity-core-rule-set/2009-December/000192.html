@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Question about RBL Match for SPAM	Source Rule
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Question%20about%20RBL%20Match%20for%0A%20SPAM%09Source%20Rule&In-Reply-To=869a38360912082357h5b5d43bdm20cafd448314efdc%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000191.html">
+   <LINK REL="Next"  HREF="000193.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Question about RBL Match for SPAM	Source Rule</H1>
+    <B>Brian Rectanus</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Question%20about%20RBL%20Match%20for%0A%20SPAM%09Source%20Rule&In-Reply-To=869a38360912082357h5b5d43bdm20cafd448314efdc%40mail.gmail.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Question about RBL Match for SPAM	Source Rule">Brian.Rectanus at breach.com
+       </A><BR>
+    <I>Wed Dec  9 10:50:25 EST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000191.html">[Owasp-modsecurity-core-rule-set] Question about RBL Match for	SPAM Source Rule
+</A></li>
+        <LI>Next message: <A HREF="000193.html">[Owasp-modsecurity-core-rule-set] Question about RBL Match for SPAM	Source Rule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#192">[ date ]</a>
+              <a href="thread.html#192">[ thread ]</a>
+              <a href="subject.html#192">[ subject ]</a>
+              <a href="author.html#192">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>OSSEC junkie wrote:
+&gt;<i> All:
+</I>&gt;<i> 
+</I>&gt;<i> I am testing out this rule in our environment and wondered if this
+</I>&gt;<i> rule is a simple add into the /base_rules folder then restart Apache
+</I>&gt;<i> for this rule to take affect?  I removed the block action right now so
+</I>
+It is if the file was included (ie you used Include /path/to/*.conf).
+But I don't recommend that. Instead I always Include all the files and
+comment out the ones I don't want.
+
+&gt;<i> I can gauge the traffic going through and operate in a pass-through
+</I>&gt;<i> type of configuration but have yet to see any sort of RBL action in
+</I>&gt;<i> the logs.  Any ideas?  I know we get lots of activity from IP
+</I>&gt;<i> Addresses that are known bad according to spamhaus.
+</I>&gt;<i> 
+</I>
+The IP collection is initialized above this rule
+(initcol:IP=%{REMOTE_ADDR} or similar)?
+
+&gt;<i> SecRule &amp;IP:SPAMMER &quot;@eq 0&quot;
+</I>&gt;<i> &quot;chain,phase:1,t:none,block,nolog,auditlog,msg:'RBL Match for SPAM
+</I>&gt;<i> Source',tag:'AUTOMATION/MALICIOUS',severity:'2',skipAfter:END_RBL_CHECK&quot;
+</I>&gt;<i> 	SecRule REMOTE_ADDR &quot;@rbl sbl-xbl.spamhaus.org&quot; \
+</I>&gt;<i>         &quot;t:none,setvar:'tx.msg=%{rule.msg}',setvar:tx.automation_score=+1,setvar:tx.anomaly_score=+20,setvar:'tx.%{rule.id}=%{matched_var_name}=%{matched_var}',setvar:ip.spammer=1,expirevar:ip.spammer=86400&quot;
+</I>
+The above should set IP:SPAMMER to 1 if it did not exist for that IP and
+was in the RBL.  Although I believe that the skipAfter should be in the
+chained rule, not the starter (it may always be firing).  Check the
+debug log (level 9 and search for SPAMMER) and see what is up.
+
+&gt;<i> 
+</I>&gt;<i> SecRule IP:SPAMMER &quot;@eq 1&quot;
+</I>&gt;<i> &quot;phase:1,t:none,block,nolog,auditlog,msg:'RBL Match for SPAM
+</I>&gt;<i> Source',tag:'AUTOMATION/MALICIOUS',severity:'2',setvar:'tx.msg=%{rule.msg}',setvar:tx.automation_score=+1,setvar:tx.anomaly_score=+20,setvar:'tx.%{rule.id}=%{matched_var_name}=%{matched_var}'&quot;
+</I>
+Since you used anomaly scoring, make sure it actually exceeded your
+threshold or I don't think it will be logged to the error log.
+
+-B
+
+-- 
+Brian Rectanus
+Breach Security
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000191.html">[Owasp-modsecurity-core-rule-set] Question about RBL Match for	SPAM Source Rule
+</A></li>
+	<LI>Next message: <A HREF="000193.html">[Owasp-modsecurity-core-rule-set] Question about RBL Match for SPAM	Source Rule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#192">[ date ]</a>
+              <a href="thread.html#192">[ thread ]</a>
+              <a href="subject.html#192">[ subject ]</a>
+              <a href="author.html#192">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

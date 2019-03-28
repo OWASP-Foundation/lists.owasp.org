@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Error in	optional_rules/modsecurity_crs_43_csrf_protection.conf
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Error%20in%0A%09optional_rules/modsecurity_crs_43_csrf_protection.conf&In-Reply-To=C91AB803.18233%25rbarnett%40trustwave.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000560.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Error in	optional_rules/modsecurity_crs_43_csrf_protection.conf</H1>
+    <B>Jeronimo Zucco</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Error%20in%0A%09optional_rules/modsecurity_crs_43_csrf_protection.conf&In-Reply-To=C91AB803.18233%25rbarnett%40trustwave.com"
+       TITLE="[Owasp-modsecurity-core-rule-set] Error in	optional_rules/modsecurity_crs_43_csrf_protection.conf">jczucco at gmail.com
+       </A><BR>
+    <I>Tue Nov 30 14:36:25 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000560.html">[Owasp-modsecurity-core-rule-set] Error in optional_rules/modsecurity_crs_43_csrf_protection.conf
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#561">[ date ]</a>
+              <a href="thread.html#561">[ thread ]</a>
+              <a href="subject.html#561">[ subject ]</a>
+              <a href="author.html#561">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>2010/11/30 Ryan Barnett &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">RBarnett at trustwave.com</A>&gt;:
+&gt;<i> On 11/30/10 2:05 PM, &quot;Jeronimo Zucco&quot; &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">jczucco at gmail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> I am upgrading my servers to the ModSecurity 2.5.13 and core
+</I>&gt;&gt;<i> ruleset/2.0.10 and got this error in my config:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;ModSecurity: Could not set variable &quot;session.sessionid&quot; as the
+</I>&gt;&gt;<i> collection does not exist.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This error is generated when a rule is using setvar:session.... However the
+</I>&gt;<i> SESSION collection has not yet been initialized with the setsid action.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In the default optional_rules/modsecurity_crs_43_csrf_protection.conf has:
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Is this happening all the time or only when you initially started ModSec
+</I>&gt;<i> with the new CRS 43 csrf rules?
+</I>
+All the time, each access I do in the browser, got this error in
+apache error_log. Even with files in the apache does not exist or
+exist.
+
+
+&gt;<i>
+</I>&gt;&gt;<i> SecMarker BEGIN_SESSION_STARTUP
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule
+</I>&gt;&gt;<i> REQUEST_COOKIES:'/(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|c
+</I>&gt;&gt;<i> f(id|token)|sid)/'
+</I>&gt;&gt;<i> &quot;.*&quot; &quot;chain,phase:1,t:none,pass,nolog,auditlog,msg:'Invalid SessionID
+</I>&gt;&gt;<i> Submitted.',setsid:%{matched_var},setvar:tx.sessionid=%{matched_var},skipAfter
+</I>&gt;&gt;<i> :END_SESSION_STARTUP&quot;
+</I>&gt;&gt;<i> &#160; &#160; &#160; &#160;SecRule SESSION:VALID &quot;!@eq 1&quot; &quot;t:none&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecAction
+</I>&gt;&gt;<i> &quot;phase:1,t:none,nolog,pass,setuid:%{session.username},setvar:session.sessionid
+</I>&gt;&gt;<i> =%{tx.sessionid}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecMarker END_SESSION_STARTUP
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This initial section is checking to see if the client is submitting a
+</I>&gt;<i> SESSIONID cookie value. &#160;If they are, then it is using setsid to initialize
+</I>&gt;<i> the collection with the session id being submitted by the client as the key.
+</I>&gt;<i> The 2nd part of the chained rule is then looking to see if the SESSION
+</I>&gt;<i> collection has a variable set called VALID, which is previously set by
+</I>&gt;<i> ModSecurity (in the rules below) when the application is initially handing
+</I>&gt;<i> out the SESSIONID in a Set-Cookie response header. &#160;If the VALID variable is
+</I>&gt;<i> not present, then the client has submitted a bogus SESSIONID value.
+</I>&gt;<i>
+</I>&gt;<i> If the SESSIONID submitted is VALID, then it proceeds as normal.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SecRule RESPONSE_HEADERS:/Set-Cookie2?/
+</I>&gt;&gt;<i> &quot;(?i:(j?sessionid|(php)?sessid|(asp|jserv|jw)?session[-_]?(id)?|cf(id|token)|s
+</I>&gt;&gt;<i> id)=([^\s]+)\;\s?)&quot;
+</I>&gt;&gt;<i> &quot;chain,phase:3,t:none,pass,nolog,capture,setsid:%{TX.6},setvar:session.session
+</I>&gt;&gt;<i> id=%{TX.6},setvar:session.valid=1&quot;
+</I>&gt;&gt;<i> &#160; &#160; &#160; &#160;SecRule SESSION:SESSIONID &quot;(.*)&quot;
+</I>&gt;&gt;<i> &quot;t:none,t:sha1,t:hexEncode,capture,setvar:session.csrf_token=%{TX.1}&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This ruleset is inspecting the response headers looking for Set-Cookie
+</I>&gt;<i> headers that are sending common SessionID names. &#160;If this is found, then a
+</I>&gt;<i> SESSION collection is initialized with the SessionID as the key and a
+</I>&gt;<i> variable called VALID is created. &#160;We know this SESSIONID is valid since the
+</I>&gt;<i> application is handing it out.
+</I>&gt;<i>
+</I>&gt;<i> Do you have an audit_log example of this transaction? &#160;You can then look to
+</I>&gt;<i> see if the transaction has a SessionID in it or not.
+</I>
+
+Log bellow:
+
+modsec_debug.log:
+
+[30/Nov/2010:10:52:06 --0200]
+[vares04.ucs.br/sid#194bc180][rid#1c436ff8][/][3] Could not set
+variable &quot;session.sessionid&quot; as the collection does not exist.
+
+
+modsec_audit.log:
+
+-6cf66e6f-A--
+[30/Nov/2010:17:30:53 --0200] TPVQ7X8AAAEAAC9zNQkAAABD X.X.X.X 7801 Y.Y.Y.Y 5003
+--6cf66e6f-B--
+GET / HTTP/1.0
+Host: server.domain.com:5003
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; pt-BR; rv:1.9.2.12)
+Gecko/20101027 Fedora/3.6.12-1.fc14 Firefox/3.6.12
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-br,pt;q=0.8,en-us;q=0.5,en;q=0.3
+Accept-Encoding: identity
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Cache-Control: max-age=259200
+
+--6cf66e6f-F--
+HTTP/1.1 200 OK
+Last-Modified: Sat, 20 Nov 2004 20:16:24 GMT
+ETag: &quot;31ff0b-2c-3e9564c23b600&quot;
+Accept-Ranges: bytes
+Content-Length: 44
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/html
+
+--6cf66e6f-H--
+Message: Could not set variable &quot;session.sessionid&quot; as the collection
+does not exist.
+Stopwatch: 1291145453154984 3024 (1017 2402 -)
+Producer: ModSecurity for Apache/2.5.13 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>);
+core ruleset/2.0.10.
+Server: Apache/2.2.17 (Unix) mod_ssl/2.2.17 OpenSSL/0.9.8e-fips-rhel5
+WebApp-Info: &quot;default&quot; &quot;-&quot; &quot;&quot;
+
+--6cf66e6f-Z--
+
+
+-- 
+Jeronimo Zucco - CISSP
+<A HREF="http://jczucco.blogspot.com">http://jczucco.blogspot.com</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000560.html">[Owasp-modsecurity-core-rule-set] Error in optional_rules/modsecurity_crs_43_csrf_protection.conf
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#561">[ date ]</a>
+              <a href="thread.html#561">[ thread ]</a>
+              <a href="subject.html#561">[ subject ]</a>
+              <a href="author.html#561">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

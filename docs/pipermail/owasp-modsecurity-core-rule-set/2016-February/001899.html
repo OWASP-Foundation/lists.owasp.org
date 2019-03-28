@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Mode%3A%20Controversial%0A%09candidate%20950120%20/%20931130%20%28Possible%20RFI%29&In-Reply-To=%3C44545D09-6265-438E-B743-5564241D5336%40spam.lifeforms.nl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001910.html">
+   <LINK REL="Next"  HREF="001907.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)</H1>
+    <B>Walter Hop</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Paranoia%20Mode%3A%20Controversial%0A%09candidate%20950120%20/%20931130%20%28Possible%20RFI%29&In-Reply-To=%3C44545D09-6265-438E-B743-5564241D5336%40spam.lifeforms.nl%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial	candidate 950120 / 931130 (Possible RFI)">modsec at spam.lifeforms.nl
+       </A><BR>
+    <I>Sat Feb  6 19:42:26 UTC 2016</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001910.html">[Owasp-modsecurity-core-rule-set] libinjection (was: Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI))
+</A></li>
+        <LI>Next message: <A HREF="001907.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1899">[ date ]</a>
+              <a href="thread.html#1899">[ thread ]</a>
+              <a href="subject.html#1899">[ subject ]</a>
+              <a href="author.html#1899">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> Controversial Paranoia Mode Candidate 950120 (2.2.X) / 931130 (3.0.0rc1)
+</I>&gt;<i> msg: Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link 
+</I>&gt;<i> 
+</I>&gt;<i> [&#8230;]
+</I>&gt;<i> 
+</I>&gt;<i> In my blogpost at
+</I>&gt;<i> <A HREF="https://www.netnea.com/cms/2016/01/17/most-frequent-false-positives-triggered-by-owasp-modsecurity-core-rules-2-2-x/">https://www.netnea.com/cms/2016/01/17/most-frequent-false-positives-triggered-by-owasp-modsecurity-core-rules-2-2-x/</A>
+</I>&gt;<i> I identified the said rule as one with very few false positives. Walter however brought it up as a rule with many false positives.
+</I>&gt;<i> 
+</I>&gt;<i> A wider perspective is thus needed.
+</I>&gt;<i> 
+</I>&gt;<i> Does anybody has anything to add?
+</I>
+To talk about my opinion of with this rule a bit, it&#8217;s super easy to trigger it.
+Just any text input for a URL will do.
+For example: <A HREF="http://example/?url=https://yahoo.com/">http://example/?url=https://yahoo.com/</A>
+
+That is super common and bound to give various false positives on registration forms, contact forms, blog comment forms, etcetera. Firing on any plain URL submitted in a form? That&#8217;s a prime example of being paranoid :)
+
+Whether the rule annoys a user depends on the blocking score I guess. I personally block on first sight and think everybody should. As you guys said, with SQLi and XSS you usually get high scores, but with this type of vulnerability you just get one shot.
+
+What could improve false positives?
+- I have multiple whitelistings for this rule on ARGS:url. If I was non-paranoid, I would assume that IF a web application accepts a parameter called &#8220;url&#8221;, it&#8217;s pretty likely that this was intended to be a URL field and not an avenue for RFI. So ARGS:url could be excluded in normal mode.
+- From a quick log grep, people absolutely LOVE to do LFI and RFI on parameters like ARGS:page and ARGS:id. Maybe others have more suggestions.
+
+My recommendation would be:
+1) Put the full rule in paranoid set
+2) In the basic set, clone this rule, but ensure it doesn&#8217;t work on ARGS:url
+3) In the basic set, possibly consider raising the anomaly score if it&#8217;s sent as ARGS:id, ARGS:page
+
+-- 
+Walter Hop | PGP key: <A HREF="https://lifeforms.nl/pgp">https://lifeforms.nl/pgp</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160206/24ce4b27/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160206/24ce4b27/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001910.html">[Owasp-modsecurity-core-rule-set] libinjection (was: Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI))
+</A></li>
+	<LI>Next message: <A HREF="001907.html">[Owasp-modsecurity-core-rule-set] Paranoia Mode: Controversial candidate 950120 / 931130 (Possible RFI)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1899">[ date ]</a>
+              <a href="thread.html#1899">[ thread ]</a>
+              <a href="subject.html#1899">[ subject ]</a>
+              <a href="author.html#1899">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

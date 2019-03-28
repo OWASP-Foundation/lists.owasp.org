@@ -1,0 +1,4278 @@
+From cmacallister at probono.net  Thu May  5 18:29:36 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Thu, 5 May 2016 18:29:36 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large
+	post value
+Message-ID: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+Hi, all,
+
+As I fine-tune my CMS not to bark at me for valid traffic, I?ve come upon the following problem. When a rule matches (in anomaly scoring mode, haven?t tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, ?Blurb.?
+
+ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind? [followed by a chunk of the rest of the arg value]
+
+I checked it in the inspector, and indeed the ARG_NAME should be ?Blurb?. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I?d rather not.
+
+Have I found a bug? See the snippet from the audit log I attached to this email.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160505/8d171eeb/attachment.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: audit.7z
+Type: application/octet-stream
+Size: 2783 bytes
+Desc: audit.7z
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160505/8d171eeb/attachment.obj>
+
+From christian.folini at netnea.com  Thu May  5 19:20:29 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 5 May 2016 21:20:29 +0200
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large post value
+In-Reply-To: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <20160505192029.GA11306@elias>
+
+Colin,
+
+This is funny, indeed.
+
+The audit-log states, the "rc+is+knoowledgeable%2C+experienced%2C..."
+does not have a variable name. So either
+(a) your browser did not send the name (and inspector lied to you) 
+(b) you discovered a bug
+(c) the request body limit(s) is very low and you have processPartial
+    enabled and the beginning of the argument is cut, rather then the
+    end.
+
+(c) is highly speculative and I doubt that would be the behaviour
+in that particular case.
+
+What is puzzling me is that the response body documented in the audit
+log is indeed shorter (2930) then the 2975 announced in that request
+headers. 
+
+What to do?
+
+I think you need to sniff the traffic. Try and reproduce the behaviour
+in cleartext and then use wireshark / tcpdump to sniff it.
+
+If you are not proficient with the said tools, here is how you
+could dump it clientside or serverside with tcpdump:
+
+$> tcpdump -A -s0 port 80
+
+That should give you clear proof what is happening.
+
+Keep us posted, please!
+
+Christian
+
+    
+
+On Thu, May 05, 2016 at 06:29:36PM +0000, Colin MacAllister wrote:
+> Hi, all,
+> 
+> As I fine-tune my CMS not to bark at me for valid traffic, I?ve come upon the following problem. When a rule matches (in anomaly scoring mode, haven?t tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, ?Blurb.?
+> 
+> ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind? [followed by a chunk of the rest of the arg value]
+> 
+> I checked it in the inspector, and indeed the ARG_NAME should be ?Blurb?. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I?d rather not.
+> 
+> Have I found a bug? See the snippet from the audit log I attached to this email.
+> 
+
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From cmacallister at probono.net  Tue May 10 17:37:51 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Tue, 10 May 2016 17:37:51 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+Resurrecting this. I?m sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+
+I?ve attempted switching back from anomaly scoring mode to one-strike-you?re-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+
+Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+
+From: Colin MacAllister<mailto:cmacallister at probono.net>
+Sent: Thursday, May 5, 2016 2:39 PM
+To: OWASP List<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Hi, all,
+
+As I fine-tune my CMS not to bark at me for valid traffic, I?ve come upon the following problem. When a rule matches (in anomaly scoring mode, haven?t tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, ?Blurb.?
+
+ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind? [followed by a chunk of the rest of the arg value]
+
+I checked it in the inspector, and indeed the ARG_NAME should be ?Blurb?. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I?d rather not.
+
+Have I found a bug? See the snippet from the audit log I attached to this email.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160510/4d28fb0e/attachment.html>
+
+From cmacallister at probono.net  Wed May 11 15:03:44 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Wed, 11 May 2016 15:03:44 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <CO2PR18MB00121B41D41F582E5ACE7ED2DE720@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+I added part C (request body) to the audit log, and it also is showing truncated data. It's actually the entire form data post that is truncated so that just the last part gets through. But the entire post is received by the database.
+
+From: Colin MacAllister
+Sent: Tuesday, May 10, 2016 1:38 PM
+To: OWASP List <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Resurrecting this. I'm sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+
+I've attempted switching back from anomaly scoring mode to one-strike-you're-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+
+Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+
+From: Colin MacAllister<mailto:cmacallister at probono.net>
+Sent: Thursday, May 5, 2016 2:39 PM
+To: OWASP List<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Hi, all,
+
+As I fine-tune my CMS not to bark at me for valid traffic, I've come upon the following problem. When a rule matches (in anomaly scoring mode, haven't tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, "Blurb."
+
+ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind... [followed by a chunk of the rest of the arg value]
+
+I checked it in the inspector, and indeed the ARG_NAME should be "Blurb". As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I'd rather not.
+
+Have I found a bug? See the snippet from the audit log I attached to this email.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/ff65848e/attachment.html>
+
+From cmacallister at probono.net  Wed May 11 15:42:38 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Wed, 11 May 2016 15:42:38 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+References: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <CO2PR18MB00126F53EE88C88DDDEDC078DE720@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+Okay, more data. What's going on in this system I inherited is that I receive a friendly URL and rewrite it to /index.cfm?404;/[friendly URL]/. This has been working for decades. The friendly URL pass truncates the body of the form data, but the rewritten version doesn't (and just happens to correctly fail other tests I haven't whitelisted yet.)
+
+I attached the winmerge report comparing the headers of the two to show that there's really very little that's different.
+
+This one breaks ...
+
+--d25c0000-A--
+[11/May/2016:11:07:11 --0400] 12177733394557306202 69.12.26.106:23691 80 127.0.0.1 80
+--d25c0000-B--
+POST /featured_vols/description HTTP/1.1
+Cache-Control: max-age=0
+Connection: keep-alive
+Content-Length: 2975
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+Cookie: _ga=GA1.2.219992625.1458320050; CFID=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-267771; CFTOKEN=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-4eaddd7ee5a61753-DFBE0B9D-9D0A-05B8-72ADDAE8098402E1; __utma=165789951.219992625.1458320050.1462818223.1462821173.2; __utmc=165789951; __utmz=165789951.1462818223.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); JSESSIONID=63EE19F6E809FFAF93F6A49EF57E3693.cfusion; __utma=220594061.606745990.1458227854.1462818276.1462978225.14; __utmb=220594061.2.10.1462978225; __utmc=220594061; __utmz=220594061.1458227854.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);
+Host: my.server.com
+Referer: http://my.server.com/featured_vols/description
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36
+Origin: http://my.server.com
+Upgrade-Insecure-Requests: 1
+
+--d25c0000-C--
+rc+is+knowledgeable%2C+and+kind [which a segment of my form post starting further down, truncated so that it doesn't even include the ARG_NAME for this bit of data, followed by the rest of the post.]
+
+
+This one works (but fails the tests) ...
+
+
+--4e120000-A--
+[11/May/2016:11:07:11 --0400] 12177733394557306202 69.12.26.106:23691 80 127.0.0.1 80
+--4e120000-B--
+POST /index.cfm?404;/featured_vols/description HTTP/1.1
+Cache-Control: max-age=0
+Connection: keep-alive
+Content-Length: 11167
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+Cookie: _ga=GA1.2.219992625.1458320050; CFID=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-267771; CFTOKEN=Z1ykjrnh8rurd9kwjtcny1xlrbk2vcm3wvhlcq9mo2zxexkbmqy-4eaddd7ee5a61753-DFBE0B9D-9D0A-05B8-72ADDAE8098402E1; __utma=165789951.219992625.1458320050.1462818223.1462821173.2; __utmc=165789951; __utmz=165789951.1462818223.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); JSESSIONID=63EE19F6E809FFAF93F6A49EF57E3693.cfusion; __utma=220594061.606745990.1458227854.1462818276.1462978225.14; __utmb=220594061.2.10.1462978225; __utmc=220594061; __utmz=220594061.1458227854.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);
+Host: my.server.com
+Referer: http://my.server.com/featured_vols/description
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36
+Origin: http://my.server.com
+Upgrade-Insecure-Requests: 1
+X-Original-URL: /featured_vols/description
+
+--dc220000-C--
+Description=%3Ch3%3EWelcome+to [... the rest of the full post]
+
+
+
+From: Colin MacAllister
+Sent: Wednesday, May 11, 2016 11:03 AM
+To: OWASP List <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: RE: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+I added part C (request body) to the audit log, and it also is showing truncated data. It's actually the entire form data post that is truncated so that just the last part gets through. But the entire post is received by the database.
+
+From: Colin MacAllister
+Sent: Tuesday, May 10, 2016 1:38 PM
+To: OWASP List <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: RE: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Resurrecting this. I'm sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+
+I've attempted switching back from anomaly scoring mode to one-strike-you're-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+
+Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+
+From: Colin MacAllister<mailto:cmacallister at probono.net>
+Sent: Thursday, May 5, 2016 2:39 PM
+To: OWASP List<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Hi, all,
+
+As I fine-tune my CMS not to bark at me for valid traffic, I've come upon the following problem. When a rule matches (in anomaly scoring mode, haven't tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, "Blurb."
+
+ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind... [followed by a chunk of the rest of the arg value]
+
+I checked it in the inspector, and indeed the ARG_NAME should be "Blurb". As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I'd rather not.
+
+Have I found a bug? See the snippet from the audit log I attached to this email.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.html>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160511/806a372f/attachment-0001.htm>
+
+From jeichande at hotmail.com  Wed May 11 22:08:47 2016
+From: jeichande at hotmail.com (Dauto Jeichande)
+Date: Thu, 12 May 2016 00:08:47 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected - Invalid
+	Token
+In-Reply-To: <SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>,
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>
+Message-ID: <SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>
+
+Dear all,
+I?m testing the modsecurity_crs_43_csrf_protection.conf. I can see that the requests to the application contains the CSRF Token. However in the error.log I'm having the following warning when browsing the application:
+ ModSecurity: Warning. Match of "streq %{SESSION.CSRF_TOKEN}" against "ARGS:CSRF_TOKEN" required. [file "/usr/local/apache/conf/crs/activated_rules/modsecurity_crs_43_csrf_protection.conf"] [line "34"] [id "981144"] [msg "CSRF Attack Detected - Invalid Token."] [hostname "xxxxx"] [uri "xxxxxx"] [unique_id "xxxxxxxxxxxxxx"]
+What should  I do to fix this warning.
+Thanks,
+Dauto 		 	   		  
+
+- 		 	   		   		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160512/52902fa6/attachment.html>
+
+From christian.folini at netnea.com  Thu May 12 07:13:14 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 12 May 2016 09:13:14 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected -
+ Invalid Token
+In-Reply-To: <SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>
+	<SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>
+Message-ID: <20160512071314.GA905@elias>
+
+Dauto,
+
+As you know, this is part of the optional rules collection and this
+means it is less used and less tested then the other core rules.
+
+Personally, I have not used this ruleset, so I am not really sure it
+works as advertised.
+
+A few questions, I would try to answer if I was debugging this?
+- Is the 16 session hijacking ruleset enabled?
+- Are you sure it is executed before the 43 csrf file (I guess it is)
+- Is the session collection active at the moment 981144 is exctivated?
+- Do you see any values in the session collection?
+- Can you write and read from the session collection?
+
+Ahoj,
+
+Christian
+
+On Thu, May 12, 2016 at 12:08:47AM +0200, Dauto Jeichande wrote:
+> Dear all,
+> I?m testing the modsecurity_crs_43_csrf_protection.conf. I can see that the requests to the application contains the CSRF Token. However in the error.log I'm having the following warning when browsing the application:
+>  ModSecurity: Warning. Match of "streq %{SESSION.CSRF_TOKEN}" against "ARGS:CSRF_TOKEN" required. [file "/usr/local/apache/conf/crs/activated_rules/modsecurity_crs_43_csrf_protection.conf"] [line "34"] [id "981144"] [msg "CSRF Attack Detected - Invalid Token."] [hostname "xxxxx"] [uri "xxxxxx"] [unique_id "xxxxxxxxxxxxxx"]
+> What should  I do to fix this warning.
+> Thanks,
+> Dauto 		 	   		  
+> 
+> - 		 	   		   		 	   		  
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+-- 
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+
+From jeichande at hotmail.com  Thu May 12 07:50:29 2016
+From: jeichande at hotmail.com (Dauto Jeichande)
+Date: Thu, 12 May 2016 09:50:29 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected -
+ Invalid Token
+In-Reply-To: <20160512071314.GA905@elias>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>,
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>,
+	<SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>,
+	<20160512071314.GA905@elias>
+Message-ID: <SNT153-W89B09B7982EA16C9E8CD9FAC730@phx.gbl>
+
+Hi Christian,
+Thank you for your replay. I will use your feedback to investigate the reason, but will postpone to another time. From my research I found also that this rule is not much used and need some extra efforts to put it working on specific application.
+Regards,
+Dauto
+
+> Date: Thu, 12 May 2016 09:13:14 +0200
+> From: christian.folini at netnea.com
+> To: jeichande at hotmail.com
+> CC: owasp-modsecurity-core-rule-set at lists.owasp.org
+> Subject: Re: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected - Invalid Token
+> 
+> Dauto,
+> 
+> As you know, this is part of the optional rules collection and this
+> means it is less used and less tested then the other core rules.
+> 
+> Personally, I have not used this ruleset, so I am not really sure it
+> works as advertised.
+> 
+> A few questions, I would try to answer if I was debugging this?
+> - Is the 16 session hijacking ruleset enabled?
+> - Are you sure it is executed before the 43 csrf file (I guess it is)
+> - Is the session collection active at the moment 981144 is exctivated?
+> - Do you see any values in the session collection?
+> - Can you write and read from the session collection?
+> 
+> Ahoj,
+> 
+> Christian
+> 
+> On Thu, May 12, 2016 at 12:08:47AM +0200, Dauto Jeichande wrote:
+> > Dear all,
+> > I?m testing the modsecurity_crs_43_csrf_protection.conf. I can see that the requests to the application contains the CSRF Token. However in the error.log I'm having the following warning when browsing the application:
+> >  ModSecurity: Warning. Match of "streq %{SESSION.CSRF_TOKEN}" against "ARGS:CSRF_TOKEN" required. [file "/usr/local/apache/conf/crs/activated_rules/modsecurity_crs_43_csrf_protection.conf"] [line "34"] [id "981144"] [msg "CSRF Attack Detected - Invalid Token."] [hostname "xxxxx"] [uri "xxxxxx"] [unique_id "xxxxxxxxxxxxxx"]
+> > What should  I do to fix this warning.
+> > Thanks,
+> > Dauto 		 	   		  
+> > 
+> > - 		 	   		   		 	   		  
+> 
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+> 
+> 
+> -- 
+> mailto:christian.folini at netnea.com
+> http://www.christian-folini.ch
+> twitter: @ChrFolini
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160512/1497615e/attachment.html>
+
+From barry_pollard at hotmail.com  Thu May 12 09:01:53 2016
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Thu, 12 May 2016 10:01:53 +0100
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected -
+ Invalid Token
+In-Reply-To: <SNT153-W89B09B7982EA16C9E8CD9FAC730@phx.gbl>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>, ,
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>, ,
+	<SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>, ,
+	<20160512071314.GA905@elias>,
+	<SNT153-W89B09B7982EA16C9E8CD9FAC730@phx.gbl>
+Message-ID: <DUB119-W326C848024A833E1C740682730@phx.gbl>
+
+Dauto (and Christian),
+I had a look at this rule before and am not a fan.
+CSRF_TOKEN's should come from the app in my mind and not the WAF. However ModSecurity does have a method of using them, which is an interesting proof of concept, but I think it's flaky for a number of reasons.
+The way it works is it uses collections to store the CSRF_TOKEN. Rule 981145 uses content injection to inject a bit of Javascript to set the CSRF token on any URLs or forms for any HTML pages requested and when the subsequent request comes in after rule 981144 compares the CSRF_TOKEN in the collection and rejects any requests without a valid token. The below rule is firing because it didn't match.
+It's an interesting idea, and would work in certain scenarios, but I can see multiple issues with it. For a start when first turning it on none of the current messages will have CSRF tokens so need to think about how to deploy, and the content injection concept has multiple issues in my mind, but for me the biggest issues is with collections.
+Collections is, IMHO, one of the weak points of ModSecurity. As soon as you get any volume of traffic Modsecurity struggles to cope with the file based SDBM format it uses to hold collections. I (and lots of others) see multiple issues with managing collections, from alerts like "collections_remove_stale: Failed deleting collection" to collections growing massively in size unless periodically deleted, to collections not working across multiple instances of Apache/ModSecurity without a complicated sharing mechanism...etc.
+Maybe this will be improved in ModSecurity v3 which might have memcache based collections rather than disk based collections but for now, collections cannot really be relied upon in my view (though others may disagree). They are fine (just!) for rate limiting (where missing an odd update or read of collection doesn't matter too much as, in worst case you just don't block until a little later), but cannot be used when you need to reply on them. And CSRF_TOKEN's need to reply on them or they reject messages. Hoping it is fixed in v3 as reliable collections open up a wealth of opportunities like this CSRF implementation (though still wouldn't recommend it for CSRF for other reasons mentioned briefly above).
+Anyway for now I don't recommend using this (or most of the optional rules to be honest).
+Thanks,Barry
+
+ 		 	   		  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160512/8f2f5426/attachment.html>
+
+From christian.folini at netnea.com  Thu May 12 09:20:02 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Thu, 12 May 2016 11:20:02 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected -
+ Invalid Token
+In-Reply-To: <DUB119-W326C848024A833E1C740682730@phx.gbl>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>
+	<SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>
+	<20160512071314.GA905@elias>
+	<SNT153-W89B09B7982EA16C9E8CD9FAC730@phx.gbl>
+	<DUB119-W326C848024A833E1C740682730@phx.gbl>
+Message-ID: <20160512092002.GA5248@elias>
+
+Barry,
+
+On Thu, May 12, 2016 at 10:01:53AM +0100, Barry Pollard wrote:
+> I had a look at this rule before and am not a fan.  
+> CSRF_TOKEN's
+> should come from the app in my mind and not the WAF. However
+> ModSecurity does have a method of using them, which is an interesting
+> proof of concept, but I think it's flaky for a number of reasons.
+
+Thank you for sharing your experience / observations. This was exactly 
+my impression of this rule as well.
+
+I have sites in production that use persistent collections and
+prepend/append constructs. But the scope is very limited and none
+is high traffic.
+
+So yes, this can be made to work, but it's a road that is rarely
+travelled. It's kind of adventurous. 
+
+Ahoj,
+
+Christian
+
+-- 
+If you have men who will only come if they know there is a good road, 
+I don't want them. I want men who will come if there is no road at all.
+-- David Livingstone
+
+From ryan.barnett at owasp.org  Thu May 12 12:44:06 2016
+From: ryan.barnett at owasp.org (Ryan Barnett)
+Date: Thu, 12 May 2016 08:44:06 -0400
+Subject: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected -
+ Invalid Token
+In-Reply-To: <20160512092002.GA5248@elias>
+References: <SNT153-W3029F9F4F1EF014F34B909ACD00@phx.gbl>
+	<SNT153-W72A07F17C146201C0C5B3CACAD0@phx.gbl>
+	<SNT153-W71CE1B807E2033D1C5FF19AC720@phx.gbl>
+	<20160512071314.GA905@elias>
+	<SNT153-W89B09B7982EA16C9E8CD9FAC730@phx.gbl>
+	<DUB119-W326C848024A833E1C740682730@phx.gbl>
+	<20160512092002.GA5248@elias>
+Message-ID: <10F5694F-41AA-4E46-A7F2-CC40FE286331@owasp.org>
+
+Hey everyone,
+Thought I would come "out the shadows" and comment on this topic since I was the one who created those CSRF rules -
+These are definitely PoC level rules.  They were intended to show ModSecurity?s content injection capabilities and this was just one use-case.
+The actual JS code that is injected (https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/optional_rules/modsecurity_crs_43_csrf_protection.conf#L42-L107) is adapted from the older OWASP CSRFGuard code and it has limitations in its ability to properly modify all DOM elements to add the CSRF token.  There is newer code available for that project that addresses some of these limitations - https://github.com/esheri3/OWASP-CSRFGuard/blob/master/csrfguard/src/main/resources/csrfguard.js
+If you want to still try and use this ? you probably want to modify which URLs are enforcing this logic as currently it is matching all - https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/optional_rules/modsecurity_crs_43_csrf_protection.conf#L30
+In addition to also requiring that the session hijacking conf file is activated - https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/optional_rules/modsecurity_crs_16_session_hijacking.conf#L44-L45 ? you also should activate the Ignore Static Content conf file so that you aren?t triggering alerts for request to static image files, etc.. - https://github.com/SpiderLabs/owasp-modsecurity-crs/blob/master/optional_rules/modsecurity_crs_10_ignore_static.conf
+You might also want to try to use the @rsub approach mentioned at the bottom of this blog post - https://www.trustwave.com/Resources/SpiderLabs-Blog/Detecting-Malice-with-ModSecurity--(Updated)-CSRF-Attacks/.  This will modify the FORM HTML and inject the token directly into it vs. appending a bunch of JS and then having it modify the DOM.
+Now, if I were to try to tackle CSRF today in ModSecurity, I would use the RSUB approach (above) along with JS append to implement the Double-Submit Cookie anti-CSRF approach - http://appsandsecurity.blogspot.com/2012/01/stateless-csrf-protection.html.  The advantage to this approach is that it is ?stateless? meaning that you won?t have to use ModSecurity?s SDBM persistent storage.  If you are injecting the same anti-CSRF token value as BOTH a hidden FORM param and as a new Cookie value then all ModSecurity WAF has to do is make sure that URLs that you want to protect (e.g. - POST requests to URL /checkout, etc?) have BOTH the CSRF param and cookie and that they BOTH match each other.
+One last comment ? Perfection is the Enemy of Good.  While anti-CSRF tokens are sexy don?t sleep on good old Referer Enforcement checks.  If you have a workflow that follows a strict path and you want to prevent CSRF attacks, you can simply craft up some SecRules that check the Method + URL + Referer(s) and block ones that are: 1) Missing Referer, 2) Coming from off-domain, or 3) Not coming from your on-domain approved Referer page list.
+Hope this info helps.
+Ryan
+
+
+From:  <owasp-modsecurity-core-rule-set-bounces at lists.owasp.org> on behalf of Christian Folini <christian.folini at netnea.com>
+Date:  Thursday, May 12, 2016 at 5:20 AM
+To:  Barry Pollard <barry_pollard at hotmail.com>
+Cc:  "owasp-modsecurity-core-rule-set at lists.owasp.org" <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject:  Re: [Owasp-modsecurity-core-rule-set] CSRF Attack Detected - Invalid Token
+
+Barry,
+
+On Thu, May 12, 2016 at 10:01:53AM +0100, Barry Pollard wrote:
+ I had a look at this rule before and am not a fan.  
+ CSRF_TOKEN's
+ should come from the app in my mind and not the WAF. However
+ ModSecurity does have a method of using them, which is an interesting
+ proof of concept, but I think it's flaky for a number of reasons.
+
+Thank you for sharing your experience / observations. This was exactly 
+my impression of this rule as well.
+
+I have sites in production that use persistent collections and
+prepend/append constructs. But the scope is very limited and none
+is high traffic.
+
+So yes, this can be made to work, but it's a road that is rarely
+travelled. It's kind of adventurous. 
+
+Ahoj,
+
+Christian
+
+-- 
+If you have men who will only come if they know there is a good road, 
+I don't want them. I want men who will come if there is no road at all.
+-- David Livingstone
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160512/960aa497/attachment.html>
+
+From christian.folini at netnea.com  Fri May 13 18:14:36 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 13 May 2016 20:14:36 +0200
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00124952C9B5A15AB57FB02CDE7C0@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<CO2PR18MB001233D7EA3C1CC0FE7BE5E9DE710@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <20160513181436.GA32246@elias>
+
+Colin,
+
+I thought I would give this a try.
+
+Not sure, I understand you correctly though. I think your original 
+payload is:
+Blurb=rc+is+knowledgeable%2C+experienced%2C+empathetic%2C+and+kind...
+
+And then ModSec seems to strip Blurb in the request body and you
+end up with a very long variable name starting with rc... and no value.
+
+Then a 2nd variable named Control from the end of your payload.
+
+Whatever happens with the payload, the CRS don't like it. The
+score is between 45 and 53 depending of the version and the
+variable name Blurb being present or not.
+
+But in fact, I get the variable name and all is just fine
+(Apache 2.4.18, ModSec 2.9.1 on Ubuntu 14.04)
+
+SecRule &ARGS:Blurb ".*"	"id:1001,phase:2,pass,log,capture,msg:'# of variables named Blurb: %{MATCHED_VAR}'"
+SecRule ARGS:Blurb ".*"		"id:1002,phase:2,pass,log,capture,msg:'Variable Blurb: %{MATCHED_VAR}'"
+
+$> curl "$(cat payload)" localhost/index.html
+
+-> results in
+  1001 ARGS          # of variables named Blurb: 1
+  1002 ARGS:Blurb    Variable Blurb: rc is knowledgeable, experienced...
+
+Please confirm the payload is correct or submit the correct payload.
+
+If you have a different behaviour on Windows/ModSec, then yes, this is
+probably a bug.
+
+Ahoj,
+
+Christian
+
+
+
+
+
+On Tue, May 10, 2016 at 05:37:51PM +0000, Colin MacAllister wrote:
+> Resurrecting this. I?m sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+> 
+> I?ve attempted switching back from anomaly scoring mode to one-strike-you?re-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+> 
+> Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+> 
+> From: Colin MacAllister<mailto:cmacallister at probono.net>
+> Sent: Thursday, May 5, 2016 2:39 PM
+> To: OWASP List<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+> 
+> Hi, all,
+> 
+> As I fine-tune my CMS not to bark at me for valid traffic, I?ve come upon the following problem. When a rule matches (in anomaly scoring mode, haven?t tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, ?Blurb.?
+> 
+> ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind? [followed by a chunk of the rest of the arg value]
+> 
+> I checked it in the inspector, and indeed the ARG_NAME should be ?Blurb?. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I?d rather not.
+> 
+> Have I found a bug? See the snippet from the audit log I attached to this email.
+> 
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+-- 
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+
+From cmacallister at probono.net  Fri May 13 18:28:52 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Fri, 13 May 2016 18:28:52 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+Message-ID: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+The payload is not correct. The initial payload is something like "blurb=A stitch in time saves nine", but what comes through is just "ime saves nine", and mod security tries to interpret that as one of  the argnames instead of " blurb". I'm pretty sure this isn't by design.
+
+from my phone
+
+On May 13, 2016 2:14 PM, Christian Folini <christian.folini at netnea.com> wrote:
+Colin,
+
+I thought I would give this a try.
+
+Not sure, I understand you correctly though. I think your original
+payload is:
+Blurb=rc+is+knowledgeable%2C+experienced%2C+empathetic%2C+and+kind...
+
+And then ModSec seems to strip Blurb in the request body and you
+end up with a very long variable name starting with rc... and no value.
+
+Then a 2nd variable named Control from the end of your payload.
+
+Whatever happens with the payload, the CRS don't like it. The
+score is between 45 and 53 depending of the version and the
+variable name Blurb being present or not.
+
+But in fact, I get the variable name and all is just fine
+(Apache 2.4.18, ModSec 2.9.1 on Ubuntu 14.04)
+
+SecRule &ARGS:Blurb ".*"        "id:1001,phase:2,pass,log,capture,msg:'# of variables named Blurb: %{MATCHED_VAR}'"
+SecRule ARGS:Blurb ".*"         "id:1002,phase:2,pass,log,capture,msg:'Variable Blurb: %{MATCHED_VAR}'"
+
+$> curl "$(cat payload)" localhost/index.html
+
+-> results in
+  1001 ARGS          # of variables named Blurb: 1
+  1002 ARGS:Blurb    Variable Blurb: rc is knowledgeable, experienced...
+
+Please confirm the payload is correct or submit the correct payload.
+
+If you have a different behaviour on Windows/ModSec, then yes, this is
+probably a bug.
+
+Ahoj,
+
+Christian
+
+
+
+
+
+On Tue, May 10, 2016 at 05:37:51PM +0000, Colin MacAllister wrote:
+> Resurrecting this. I?m sure the arg value is being passed from the browser intact, because it show up in the database in one piece, and because Firefox reports that it is being sent in the Developer/Network view.
+>
+> I?ve attempted switching back from anomaly scoring mode to one-strike-you?re-out, and am still getting the problem. Should I being having this conversation with whoever puts out the Windows port of modsecurity?
+>
+> Sent from Mail<https://go.microsoft.com/fwlink/?LinkId=550986> for Windows 10
+>
+> From: Colin MacAllister<mailto:cmacallister at probono.net>
+> Sent: Thursday, May 5, 2016 2:39 PM
+> To: OWASP List<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+>
+> Hi, all,
+>
+> As I fine-tune my CMS not to bark at me for valid traffic, I?ve come upon the following problem. When a rule matches (in anomaly scoring mode, haven?t tested the other way) sometimes part of the value of the argument the will come through as the argument name, not the name itself, in this case, ?Blurb.?
+>
+> ARGS_NAMES:rc is knowledgeable, experienced, empathetic, and kind? [followed by a chunk of the rest of the arg value]
+>
+> I checked it in the inspector, and indeed the ARG_NAME should be ?Blurb?. As it is coming through, of course, it is impossible to check for, as it is variable. It might be possible to whitelist the last part of the URL path, but I?d rather not.
+>
+> Have I found a bug? See the snippet from the audit log I attached to this email.
+>
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+--
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160513/f1761153/attachment.html>
+
+From christian.folini at netnea.com  Fri May 13 18:40:14 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Fri, 13 May 2016 20:40:14 +0200
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <20160513184014.GA11607@elias>
+
+On Fri, May 13, 2016 at 06:28:52PM +0000, Colin MacAllister wrote:
+> The payload is not correct. The initial payload is something like "blurb=A stitch in time saves nine", but what comes through is just "ime saves nine", and mod security tries to interpret that as one of  the argnames instead of " blurb". I'm pretty sure this isn't by design.
+
+Thanks for pointing this out, Colin. Please provide the exact and
+complete payload. I think it really matters in order to reproduce this 
+issue.
+
+Ahoj,
+
+Christian
+
+
+-- 
+Every man takes the limits of his own field of vision for the
+limits of the world.        ?
+-- Arthur Schopenhauer
+
+From cmacallister at probono.net  Mon May 16 15:20:17 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Mon, 16 May 2016 15:20:17 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <20160513184014.GA11607@elias>
+References: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160513184014.GA11607@elias>
+Message-ID: <CO2PR18MB0012D68E157445646B363FF2DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+(Sent my payload to Christian offline.)
+
+One thing I should add is that for every rule ID I intend to circumvent I have a few lines line like this:
+SecRuleUpdateTargetById 950018 "!ARGS:'/text|Blurb|myxml|MailMessage|BodyField|TextEmail /'"
+... with the 2 subsequent lines include other arguments to ignore.
+
+-----Original Message-----
+From: Christian Folini [mailto:christian.folini at netnea.com] 
+Sent: Friday, May 13, 2016 2:40 PM
+To: Colin MacAllister <cmacallister at probono.net>
+Cc: OWASP CRS Mailing List <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+On Fri, May 13, 2016 at 06:28:52PM +0000, Colin MacAllister wrote:
+> The payload is not correct. The initial payload is something like "blurb=A stitch in time saves nine", but what comes through is just "ime saves nine", and mod security tries to interpret that as one of  the argnames instead of " blurb". I'm pretty sure this isn't by design.
+
+Thanks for pointing this out, Colin. Please provide the exact and complete payload. I think it really matters in order to reproduce this issue.
+
+Ahoj,
+
+Christian
+
+
+--
+Every man takes the limits of his own field of vision for the
+limits of the world.        ?
+-- Arthur Schopenhauer
+
+From christian.folini at netnea.com  Mon May 16 17:51:24 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 16 May 2016 19:51:24 +0200
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB0012D68E157445646B363FF2DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160513184014.GA11607@elias>
+	<CO2PR18MB0012D68E157445646B363FF2DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <20160516175124.GA24398@elias>
+
+Colin,
+
+On Mon, May 16, 2016 at 03:20:17PM +0000, Colin MacAllister wrote:
+> (Sent my payload to Christian offline.)
+
+Thank you for the entire payload and the audit.log.
+
+The payload has 8833 bytes.
+The Content-Length request header announces 3451 bytes.
+The request body (as written to the audit log) contains 3459 bytes.
+
+The request body starts at an arbitrary position on line 72 of your
+payload and runs up to the end of the payload.
+
+I have a strong feeling that your client is buggy. The mismatch
+in request header and request body is troubling.
+
+In your position, I would now unload the ModSec module and try anew
+for a test. If this works without ModSecurity, then you have a bug
+in ModSecurity for IIS. Otherwise, it's really the client.
+
+Ahoj,
+
+Christian
+
+
+
+
+> 
+> One thing I should add is that for every rule ID I intend to circumvent I have a few lines line like this:
+> SecRuleUpdateTargetById 950018 "!ARGS:'/text|Blurb|myxml|MailMessage|BodyField|TextEmail /'"
+> ... with the 2 subsequent lines include other arguments to ignore.
+> 
+> -----Original Message-----
+> From: Christian Folini [mailto:christian.folini at netnea.com] 
+> Sent: Friday, May 13, 2016 2:40 PM
+> To: Colin MacAllister <cmacallister at probono.net>
+> Cc: OWASP CRS Mailing List <owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+> 
+> On Fri, May 13, 2016 at 06:28:52PM +0000, Colin MacAllister wrote:
+> > The payload is not correct. The initial payload is something like "blurb=A stitch in time saves nine", but what comes through is just "ime saves nine", and mod security tries to interpret that as one of  the argnames instead of " blurb". I'm pretty sure this isn't by design.
+> 
+> Thanks for pointing this out, Colin. Please provide the exact and complete payload. I think it really matters in order to reproduce this issue.
+> 
+> Ahoj,
+> 
+> Christian
+> 
+> 
+> --
+> Every man takes the limits of his own field of vision for the
+> limits of the world.        ?
+> -- Arthur Schopenhauer
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From cmacallister at probono.net  Mon May 16 18:09:19 2016
+From: cmacallister at probono.net (Colin MacAllister)
+Date: Mon, 16 May 2016 18:09:19 +0000
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <20160516175124.GA24398@elias>
+References: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160513184014.GA11607@elias>
+	<CO2PR18MB0012D68E157445646B363FF2DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160516175124.GA24398@elias>
+Message-ID: <CO2PR18MB0012773E8818C9E7AC548F21DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+
+Thanks, Christian. But which client are you referring to? Not my Firefox browser? It's my IIS server which is receiving the post -- do you mean that might be buggy?
+
+-----Original Message-----
+From: Christian Folini [mailto:christian.folini at netnea.com] 
+Sent: Monday, May 16, 2016 1:51 PM
+To: Colin MacAllister <cmacallister at probono.net>
+Cc: OWASP CRS Mailing List <owasp-modsecurity-core-rule-set at lists.owasp.org>
+Subject: Re: [Owasp-modsecurity-core-rule-set] arg name not resolving for large post value
+
+Colin,
+
+On Mon, May 16, 2016 at 03:20:17PM +0000, Colin MacAllister wrote:
+> (Sent my payload to Christian offline.)
+
+Thank you for the entire payload and the audit.log.
+
+The payload has 8833 bytes.
+The Content-Length request header announces 3451 bytes.
+The request body (as written to the audit log) contains 3459 bytes.
+
+The request body starts at an arbitrary position on line 72 of your payload and runs up to the end of the payload.
+
+I have a strong feeling that your client is buggy. The mismatch in request header and request body is troubling.
+
+In your position, I would now unload the ModSec module and try anew for a test. If this works without ModSecurity, then you have a bug in ModSecurity for IIS. Otherwise, it's really the client.
+
+Ahoj,
+
+Christian
+
+
+
+
+> 
+> One thing I should add is that for every rule ID I intend to circumvent I have a few lines line like this:
+> SecRuleUpdateTargetById 950018 "!ARGS:'/text|Blurb|myxml|MailMessage|BodyField|TextEmail /'"
+> ... with the 2 subsequent lines include other arguments to ignore.
+> 
+> -----Original Message-----
+> From: Christian Folini [mailto:christian.folini at netnea.com]
+> Sent: Friday, May 13, 2016 2:40 PM
+> To: Colin MacAllister <cmacallister at probono.net>
+> Cc: OWASP CRS Mailing List 
+> <owasp-modsecurity-core-rule-set at lists.owasp.org>
+> Subject: Re: [Owasp-modsecurity-core-rule-set] arg name not resolving 
+> for large post value
+> 
+> On Fri, May 13, 2016 at 06:28:52PM +0000, Colin MacAllister wrote:
+> > The payload is not correct. The initial payload is something like "blurb=A stitch in time saves nine", but what comes through is just "ime saves nine", and mod security tries to interpret that as one of  the argnames instead of " blurb". I'm pretty sure this isn't by design.
+> 
+> Thanks for pointing this out, Colin. Please provide the exact and complete payload. I think it really matters in order to reproduce this issue.
+> 
+> Ahoj,
+> 
+> Christian
+> 
+> 
+> --
+> Every man takes the limits of his own field of vision for the
+> limits of the world.        ?
+> -- Arthur Schopenhauer
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list 
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From christian.folini at netnea.com  Mon May 16 18:27:39 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 16 May 2016 20:27:39 +0200
+Subject: [Owasp-modsecurity-core-rule-set] arg name not resolving for
+ large	post value
+In-Reply-To: <CO2PR18MB0012773E8818C9E7AC548F21DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+References: <CO2PR18MB00128D0B03FA8576927D6AC5DE740@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160513184014.GA11607@elias>
+	<CO2PR18MB0012D68E157445646B363FF2DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+	<20160516175124.GA24398@elias>
+	<CO2PR18MB0012773E8818C9E7AC548F21DE770@CO2PR18MB0012.namprd18.prod.outlook.com>
+Message-ID: <20160516182739.GA25542@elias>
+
+On Mon, May 16, 2016 at 06:09:19PM +0000, Colin MacAllister wrote:
+> Thanks, Christian. But which client are you referring to? Not my Firefox browser? It's my IIS server which is receiving the post -- do you mean that might be buggy?
+
+Client as in browser, or plugin in the browser, or javascript
+mistreating the request before it is being sent.
+
+Remove ModSec out of the chain and then you know if ModSec-IIS
+has a bug, or if something else is amiss.
+
+I would not rule out ModSec-IIS. I am sure it's not ModSec generally
+or a lot of sites would not work anymore. But ModSec-IIS is less
+used, so maybe.
+
+Ahoj,
+
+Christian
+
+
+-- 
+Pleasure is very seldom found where it is sought; our brightest
+blazes of gladness are commonly kindled by unexpected sparks.
+---  Samuel Johnson
+
+From t.lojo at irri.org  Tue May 17 04:28:54 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Tue, 17 May 2016 12:28:54 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+Message-ID: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+
+Hello,
+
+Our company has started using mod security as a web application firewall
+and we used the OWASP core rule set. When we apply the CRS Facebook cannot
+scrape our site and gives a 403 forbidden message. Can you provide
+directions on how to correct this? Our website is http://irri.org
+
+Kenneth
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/b1c8e05a/attachment-0001.html>
+
+From christian.folini at netnea.com  Tue May 17 04:57:44 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 17 May 2016 06:57:44 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+Message-ID: <20160517045744.GA14261@elias>
+
+Kenneth,
+
+On Tue, May 17, 2016 at 12:28:54PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> Our company has started using mod security as a web application firewall
+> and we used the OWASP core rule set. When we apply the CRS Facebook cannot
+> scrape our site and gives a 403 forbidden message. Can you provide
+> directions on how to correct this? Our website is http://irri.org
+
+This is typical behaviour for a new CRS install, which blocks
+what seem to be legitimate requests as false positives.
+
+If you want to continue in blocking mode, you need to tune the system.
+Which means you need to get rid of the false positives, by
+writing ModSec rules telling the engine to circumvent the said
+offending rules.
+
+Google for ModSecurity tuning and false positives.
+
+And good luck!
+
+Christian
+
+
+-- 
+First you make it, then it works, then you invite people to 
+make it better. 
+-- Eben Moglen, Free Software Foundation
+
+From t.lojo at irri.org  Tue May 17 05:00:31 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Tue, 17 May 2016 13:00:31 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <20160517045744.GA14261@elias>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+Message-ID: <CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+
+Can you point me to the right direction in correcting? It seems to be
+blocking all links that we post on Facebook other than the homepage. Which
+logs do I need to analyze? How do I circumvent?
+
+On Tue, May 17, 2016 at 12:57 PM, Christian Folini <
+christian.folini at netnea.com> wrote:
+
+> Kenneth,
+>
+> On Tue, May 17, 2016 at 12:28:54PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > Our company has started using mod security as a web application firewall
+> > and we used the OWASP core rule set. When we apply the CRS Facebook
+> cannot
+> > scrape our site and gives a 403 forbidden message. Can you provide
+> > directions on how to correct this? Our website is http://irri.org
+>
+> This is typical behaviour for a new CRS install, which blocks
+> what seem to be legitimate requests as false positives.
+>
+> If you want to continue in blocking mode, you need to tune the system.
+> Which means you need to get rid of the false positives, by
+> writing ModSec rules telling the engine to circumvent the said
+> offending rules.
+>
+> Google for ModSecurity tuning and false positives.
+>
+> And good luck!
+>
+> Christian
+>
+>
+> --
+> First you make it, then it works, then you invite people to
+> make it better.
+> -- Eben Moglen, Free Software Foundation
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/1453744c/attachment.html>
+
+From t.lojo at irri.org  Tue May 17 05:07:13 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Tue, 17 May 2016 13:07:13 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+Message-ID: <CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+
+I get this on my log:
+
+--5d2d5838-A--
+
+[17/May/2016:13:03:18 +0800] VzqmFgqA0uwAAA7nNtkAAAAW 66.220.158.117 29357
+10.144.68.249 80
+
+--5d2d5838-B--
+
+GET
+/our-impact/protecting-the-environment/increasing-soil-health-and-productivity-of-rice-crops
+HTTP/1.1
+
+User-Agent: facebookexternalhit/1.1 (+
+http://www.facebook.com/externalhit_uatext.php)
+
+Accept: */*
+
+Accept-Encoding: deflate, gzip
+
+Range: bytes=0-524287
+
+Host: irri.org
+
+Connection: close
+
+
+--5d2d5838-F--
+
+HTTP/1.1 403 Forbidden
+
+Content-Length: 293
+
+Connection: close
+
+Content-Type: text/html; charset=iso-8859-1
+
+
+--5d2d5838-E--
+
+
+--5d2d5838-H--
+
+Message: Access denied with code 403 (phase 2). String match "bytes=0-" at
+REQUEST_HEADERS:Range. [file
+"/etc/httpd/crs/owasp-modsecurity-crs/base_rules/modsecurity_crs_20_protocol_violations.conf"]
+[line "428"] [id "958291"] [rev "2"] [msg "Range: field exists and begins
+with 0."] [data "bytes=0-524287"] [severity "WARNING"] [ver
+"OWASP_CRS/2.2.9"] [maturity "6"] [accuracy "8"] [tag
+"OWASP_CRS/PROTOCOL_VIOLATION/INVALID_HREQ"]
+
+Action: Intercepted (phase 2)
+
+Stopwatch: 1463461398712034 9447 (- - -)
+
+Stopwatch2: 1463461398712034 9447; combined=438, p1=345, p2=53, p3=0, p4=0,
+p5=38, sr=183, sw=2, l=0, gc=0
+
+Response-Body-Transformed: Dechunked
+
+Producer: ModSecurity for Apache/2.7.3 (http://www.modsecurity.org/);
+OWASP_CRS/2.2.9. <http://2.2.0.9/>
+
+Server: Apache
+
+Engine-Mode: "ENABLED"
+
+
+--5d2d5838-Z--
+
+
+
+On Tue, May 17, 2016 at 1:00 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+wrote:
+
+> Can you point me to the right direction in correcting? It seems to be
+> blocking all links that we post on Facebook other than the homepage. Which
+> logs do I need to analyze? How do I circumvent?
+>
+> On Tue, May 17, 2016 at 12:57 PM, Christian Folini <
+> christian.folini at netnea.com> wrote:
+>
+>> Kenneth,
+>>
+>> On Tue, May 17, 2016 at 12:28:54PM +0800, T. Kenneth Lojo (IRRI) wrote:
+>> > Our company has started using mod security as a web application firewall
+>> > and we used the OWASP core rule set. When we apply the CRS Facebook
+>> cannot
+>> > scrape our site and gives a 403 forbidden message. Can you provide
+>> > directions on how to correct this? Our website is http://irri.org
+>>
+>> This is typical behaviour for a new CRS install, which blocks
+>> what seem to be legitimate requests as false positives.
+>>
+>> If you want to continue in blocking mode, you need to tune the system.
+>> Which means you need to get rid of the false positives, by
+>> writing ModSec rules telling the engine to circumvent the said
+>> offending rules.
+>>
+>> Google for ModSecurity tuning and false positives.
+>>
+>> And good luck!
+>>
+>> Christian
+>>
+>>
+>> --
+>> First you make it, then it works, then you invite people to
+>> make it better.
+>> -- Eben Moglen, Free Software Foundation
+>>
+>
+>
+>
+> --
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> <http://twitter.com/RiceResearch> [image: Flickr]
+> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> <https://plus.google.com/103972671963502739315>
+>
+> The International Rice Research Institute <http://irri.org> is a member
+> of the CGIAR <http://www.cgiar.org/>
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/d0ba2186/attachment-0001.html>
+
+From christian.folini at netnea.com  Tue May 17 06:15:08 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 17 May 2016 08:15:08 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+Message-ID: <20160517061508.GA12216@elias>
+
+Kenneth,
+
+You are running in blocking mode with anomaly scoring off.
+
+This is the hardest mode to tune and it will block immediately
+if something is amiss.
+
+I suggest you run in blocking mode with anomaly scoring on and
+a high anomaly limit (-> 1K or more).
+
+The rule which blocked your request is 958291. It is known for
+a lot of false positives and it is not one of my favorite rules.
+
+You can switch it off completely with 
+SecRuleRemoveByID 958291
+
+But be assured given your config, the next rule will bite immediately.
+
+We are sorry, getting starting with the CRS is so hard. We are working
+on a new release and new documentation which will make things easier.
+
+Best,
+
+Christian
+
+
+
+
+On Tue, May 17, 2016 at 01:07:13PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> I get this on my log:
+> 
+> --5d2d5838-A--
+> 
+> [17/May/2016:13:03:18 +0800] VzqmFgqA0uwAAA7nNtkAAAAW 66.220.158.117 29357
+> 10.144.68.249 80
+> 
+> --5d2d5838-B--
+> 
+> GET
+> /our-impact/protecting-the-environment/increasing-soil-health-and-productivity-of-rice-crops
+> HTTP/1.1
+> 
+> User-Agent: facebookexternalhit/1.1 (+
+> http://www.facebook.com/externalhit_uatext.php)
+> 
+> Accept: */*
+> 
+> Accept-Encoding: deflate, gzip
+> 
+> Range: bytes=0-524287
+> 
+> Host: irri.org
+> 
+> Connection: close
+> 
+> 
+> --5d2d5838-F--
+> 
+> HTTP/1.1 403 Forbidden
+> 
+> Content-Length: 293
+> 
+> Connection: close
+> 
+> Content-Type: text/html; charset=iso-8859-1
+> 
+> 
+> --5d2d5838-E--
+> 
+> 
+> --5d2d5838-H--
+> 
+> Message: Access denied with code 403 (phase 2). String match "bytes=0-" at
+> REQUEST_HEADERS:Range. [file
+> "/etc/httpd/crs/owasp-modsecurity-crs/base_rules/modsecurity_crs_20_protocol_violations.conf"]
+> [line "428"] [id "958291"] [rev "2"] [msg "Range: field exists and begins
+> with 0."] [data "bytes=0-524287"] [severity "WARNING"] [ver
+> "OWASP_CRS/2.2.9"] [maturity "6"] [accuracy "8"] [tag
+> "OWASP_CRS/PROTOCOL_VIOLATION/INVALID_HREQ"]
+> 
+> Action: Intercepted (phase 2)
+> 
+> Stopwatch: 1463461398712034 9447 (- - -)
+> 
+> Stopwatch2: 1463461398712034 9447; combined=438, p1=345, p2=53, p3=0, p4=0,
+> p5=38, sr=183, sw=2, l=0, gc=0
+> 
+> Response-Body-Transformed: Dechunked
+> 
+> Producer: ModSecurity for Apache/2.7.3 (http://www.modsecurity.org/);
+> OWASP_CRS/2.2.9. <http://2.2.0.9/>
+> 
+> Server: Apache
+> 
+> Engine-Mode: "ENABLED"
+> 
+> 
+> --5d2d5838-Z--
+> 
+> 
+> 
+> On Tue, May 17, 2016 at 1:00 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+> wrote:
+> 
+> > Can you point me to the right direction in correcting? It seems to be
+> > blocking all links that we post on Facebook other than the homepage. Which
+> > logs do I need to analyze? How do I circumvent?
+> >
+> > On Tue, May 17, 2016 at 12:57 PM, Christian Folini <
+> > christian.folini at netnea.com> wrote:
+> >
+> >> Kenneth,
+> >>
+> >> On Tue, May 17, 2016 at 12:28:54PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> >> > Our company has started using mod security as a web application firewall
+> >> > and we used the OWASP core rule set. When we apply the CRS Facebook
+> >> cannot
+> >> > scrape our site and gives a 403 forbidden message. Can you provide
+> >> > directions on how to correct this? Our website is http://irri.org
+> >>
+> >> This is typical behaviour for a new CRS install, which blocks
+> >> what seem to be legitimate requests as false positives.
+> >>
+> >> If you want to continue in blocking mode, you need to tune the system.
+> >> Which means you need to get rid of the false positives, by
+> >> writing ModSec rules telling the engine to circumvent the said
+> >> offending rules.
+> >>
+> >> Google for ModSecurity tuning and false positives.
+> >>
+> >> And good luck!
+> >>
+> >> Christian
+> >>
+> >>
+> >> --
+> >> First you make it, then it works, then you invite people to
+> >> make it better.
+> >> -- Eben Moglen, Free Software Foundation
+> >>
+> >
+> >
+> >
+> > --
+> > *T. Kenneth S. Lojo*
+> > Specialist-Online Media Design
+> > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> > +63 928 209 1191 (mobile)
+> > t.lojo at irri.org <g.lavina at irri.org>
+> > www.irri.org
+> > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> > <http://twitter.com/RiceResearch> [image: Flickr]
+> > <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> > <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> > <https://plus.google.com/103972671963502739315>
+> >
+> > The International Rice Research Institute <http://irri.org> is a member
+> > of the CGIAR <http://www.cgiar.org/>
+> >
+> 
+> 
+> 
+> -- 
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> <http://twitter.com/RiceResearch> [image: Flickr]
+> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> <https://plus.google.com/103972671963502739315>
+> 
+> The International Rice Research Institute <http://irri.org> is a member of
+> the CGIAR <http://www.cgiar.org/>
+> 
+> -- 
+> The International Rice Research Institute <http://irri.org> is a member of 
+> the CGIAR <http://cgiar.org> consortium
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From t.lojo at irri.org  Tue May 17 06:17:16 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Tue, 17 May 2016 14:17:16 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <20160517061508.GA12216@elias>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+Message-ID: <CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+
+Thanks for the reply Christian. How do I turn anomaly scoring on? Is there
+a disadvantage in turning off the headers rules?
+
+Kenneth
+
+On Tue, May 17, 2016 at 2:15 PM, Christian Folini <
+christian.folini at netnea.com> wrote:
+
+> Kenneth,
+>
+> You are running in blocking mode with anomaly scoring off.
+>
+> This is the hardest mode to tune and it will block immediately
+> if something is amiss.
+>
+> I suggest you run in blocking mode with anomaly scoring on and
+> a high anomaly limit (-> 1K or more).
+>
+> The rule which blocked your request is 958291. It is known for
+> a lot of false positives and it is not one of my favorite rules.
+>
+> You can switch it off completely with
+> SecRuleRemoveByID 958291
+>
+> But be assured given your config, the next rule will bite immediately.
+>
+> We are sorry, getting starting with the CRS is so hard. We are working
+> on a new release and new documentation which will make things easier.
+>
+> Best,
+>
+> Christian
+>
+>
+>
+>
+> On Tue, May 17, 2016 at 01:07:13PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > I get this on my log:
+> >
+> > --5d2d5838-A--
+> >
+> > [17/May/2016:13:03:18 +0800] VzqmFgqA0uwAAA7nNtkAAAAW 66.220.158.117
+> 29357
+> > 10.144.68.249 80
+> >
+> > --5d2d5838-B--
+> >
+> > GET
+> >
+> /our-impact/protecting-the-environment/increasing-soil-health-and-productivity-of-rice-crops
+> > HTTP/1.1
+> >
+> > User-Agent: facebookexternalhit/1.1 (+
+> > http://www.facebook.com/externalhit_uatext.php)
+> >
+> > Accept: */*
+> >
+> > Accept-Encoding: deflate, gzip
+> >
+> > Range: bytes=0-524287
+> >
+> > Host: irri.org
+> >
+> > Connection: close
+> >
+> >
+> > --5d2d5838-F--
+> >
+> > HTTP/1.1 403 Forbidden
+> >
+> > Content-Length: 293
+> >
+> > Connection: close
+> >
+> > Content-Type: text/html; charset=iso-8859-1
+> >
+> >
+> > --5d2d5838-E--
+> >
+> >
+> > --5d2d5838-H--
+> >
+> > Message: Access denied with code 403 (phase 2). String match "bytes=0-"
+> at
+> > REQUEST_HEADERS:Range. [file
+> >
+> "/etc/httpd/crs/owasp-modsecurity-crs/base_rules/modsecurity_crs_20_protocol_violations.conf"]
+> > [line "428"] [id "958291"] [rev "2"] [msg "Range: field exists and begins
+> > with 0."] [data "bytes=0-524287"] [severity "WARNING"] [ver
+> > "OWASP_CRS/2.2.9"] [maturity "6"] [accuracy "8"] [tag
+> > "OWASP_CRS/PROTOCOL_VIOLATION/INVALID_HREQ"]
+> >
+> > Action: Intercepted (phase 2)
+> >
+> > Stopwatch: 1463461398712034 9447 (- - -)
+> >
+> > Stopwatch2: 1463461398712034 9447; combined=438, p1=345, p2=53, p3=0,
+> p4=0,
+> > p5=38, sr=183, sw=2, l=0, gc=0
+> >
+> > Response-Body-Transformed: Dechunked
+> >
+> > Producer: ModSecurity for Apache/2.7.3 (http://www.modsecurity.org/);
+> > OWASP_CRS/2.2.9. <http://2.2.0.9/>
+> >
+> > Server: Apache
+> >
+> > Engine-Mode: "ENABLED"
+> >
+> >
+> > --5d2d5838-Z--
+> >
+> >
+> >
+> > On Tue, May 17, 2016 at 1:00 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org
+> >
+> > wrote:
+> >
+> > > Can you point me to the right direction in correcting? It seems to be
+> > > blocking all links that we post on Facebook other than the homepage.
+> Which
+> > > logs do I need to analyze? How do I circumvent?
+> > >
+> > > On Tue, May 17, 2016 at 12:57 PM, Christian Folini <
+> > > christian.folini at netnea.com> wrote:
+> > >
+> > >> Kenneth,
+> > >>
+> > >> On Tue, May 17, 2016 at 12:28:54PM +0800, T. Kenneth Lojo (IRRI)
+> wrote:
+> > >> > Our company has started using mod security as a web application
+> firewall
+> > >> > and we used the OWASP core rule set. When we apply the CRS Facebook
+> > >> cannot
+> > >> > scrape our site and gives a 403 forbidden message. Can you provide
+> > >> > directions on how to correct this? Our website is http://irri.org
+> > >>
+> > >> This is typical behaviour for a new CRS install, which blocks
+> > >> what seem to be legitimate requests as false positives.
+> > >>
+> > >> If you want to continue in blocking mode, you need to tune the system.
+> > >> Which means you need to get rid of the false positives, by
+> > >> writing ModSec rules telling the engine to circumvent the said
+> > >> offending rules.
+> > >>
+> > >> Google for ModSecurity tuning and false positives.
+> > >>
+> > >> And good luck!
+> > >>
+> > >> Christian
+> > >>
+> > >>
+> > >> --
+> > >> First you make it, then it works, then you invite people to
+> > >> make it better.
+> > >> -- Eben Moglen, Free Software Foundation
+> > >>
+> > >
+> > >
+> > >
+> > > --
+> > > *T. Kenneth S. Lojo*
+> > > Specialist-Online Media Design
+> > > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> > > +63 928 209 1191 (mobile)
+> > > t.lojo at irri.org <g.lavina at irri.org>
+> > > www.irri.org
+> > > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+> Twitter]
+> > > <http://twitter.com/RiceResearch> [image: Flickr]
+> > > <http://www.flickr.com/photos/ricephotos/collections/> [image:
+> Youtube]
+> > > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> > > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> > > <http://www.linkedin.com/company/international-rice-research-institute>
+> [image:
+> > > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> > > <https://plus.google.com/103972671963502739315>
+> > >
+> > > The International Rice Research Institute <http://irri.org> is a
+> member
+> > > of the CGIAR <http://www.cgiar.org/>
+> > >
+> >
+> >
+> >
+> > --
+> > *T. Kenneth S. Lojo*
+> > Specialist-Online Media Design
+> > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> > +63 928 209 1191 (mobile)
+> > t.lojo at irri.org <g.lavina at irri.org>
+> > www.irri.org
+> > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+> Twitter]
+> > <http://twitter.com/RiceResearch> [image: Flickr]
+> > <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> > <http://www.linkedin.com/company/international-rice-research-institute>
+> [image:
+> > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> > <https://plus.google.com/103972671963502739315>
+> >
+> > The International Rice Research Institute <http://irri.org> is a member
+> of
+> > the CGIAR <http://www.cgiar.org/>
+> >
+> > --
+> > The International Rice Research Institute <http://irri.org> is a member
+> of
+> > the CGIAR <http://cgiar.org> consortium
+>
+> > _______________________________________________
+> > Owasp-modsecurity-core-rule-set mailing list
+> > Owasp-modsecurity-core-rule-set at lists.owasp.org
+> > https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/bace9d9a/attachment-0001.html>
+
+From barry_pollard at hotmail.com  Tue May 17 07:05:17 2016
+From: barry_pollard at hotmail.com (Barry Pollard)
+Date: Tue, 17 May 2016 08:05:17 +0100
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+Message-ID: <DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+
+I would say first thing is to turn blocking off and run in DetectionOnly mode to help you fine tune your rules. To do that update your SecRuleEngine config like so:
+
+SecRuleEngine DetectionOnly
+This will of course mean you are not protected but us a necessary step to getting your set up right. Now leave it run for a while and then check the logs for every rule that fired (but did not block this time) and categories them into:
+
+1) False positive - this request looks to be the sort of request our application expects and ModSecurity should not be alerting on it.
+2) Bad request - this request shouldn't be made and ModSecurity was right to block it. This will include bots and scripts that scan websites even if they don't cause any trouble.
+
+For all the 1s (and there will be a lot at the beginning) you need to decide how to tweak the rules to not alert for False positives. This involves either turning the rule off completely (using the likes of SecRuleRemoveById), turning it off for particular parameters (using the likes of SecRuleUpdateActionById) or turning it off for particular URLs (this is more complicated aged and can require building a new rule to do this).
+
+Tuning rules is necessary and, as long as you have a good understanding of what the rules intention is, why it blocked, why that was incorrect thing for it to do then you should tweak and turn them off for certain scenarios. Does that reduce the effectiveness of ModSecurity? Potentially but then if it blocks all sorts of real visitors incorrectly then that's not much use is it! The OWASP CRS is very generic and all the rules will not be appropriate for all websites. By default it blocks too much. There is some work going on to make the default more lenient so you can start off with some protection and ramp up as you see fit rather than current situation where you start with too much protection and have to ramp down.
+
+Anyway after you see no more false positives for a while you can turn SecRuleEngine back to on.
+
+This can take some time. See my story here to prepare you: http://stackoverflow.com/questions/35149264/how-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules/35162976#35162976. A WAF like ModSecurity is, unfortunately, not just a turn it on and it works and you can forget about it solution. It takes a lot of set up to be useful, and then a bit if minding afterwards. Personally I think it's worth it but you also see people online saying WAFs are too much effort for this reason.
+
+Anomaly scoring mode is an interesting one. It basically let's all the rules run and then only blocks if a certain threshold applies. This means a number of unimportant rules can fire. e.g. most browsers send a user agent so no user agent, while it likely won't cause a problem is a flag that this is probably a bad request. If a few of these flags fire on same request then this is highly likely to be a bad request and should be blocked. Some rules (like missing user agent) might have low threshold and so won't block on their own and some will block with just one rule firing if it's obvious this request should not processed.
+
+While anomaly scoring is undoubtedly helpful to reduce the number of incorrect blocks, and lots of people use it and recommend it, I'm not a particular fan. I find it makes the log files noisy and confusing to see rules firing and not know if they caused a block or not. I prefer to turn off the low value rules completely and using the original block at first bad attempt mode despite the fact this takes extra work to set up initially and can allow more spam and bad bots through. But each to their own. Will leave Christian to explain how best to set it up if that's the way you want to go.
+
+Here's some other posts that might help:
+http://stackoverflow.com/questions/33676348/extra-sensitive-mod-security-rules-giving-403-forbidden-error
+http://stackoverflow.com/questions/34478019/keep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm/34484463#34484463
+http://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786
+Note this mailing list is awesome and you will get help here but I have also been answering ModSecurity questions on StackOverflow/ServerFault as feel they are better to reference again for common questions like yours. Been meaning to write a friendly, short, beginners containing a lot of the detail here but have a problem keeping my posts short :-)
+
+Hope that helps and feel free to ask any questions here. We're a friendly bunch.
+
+Thanks,
+Barry
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/1e470b35/attachment.html>
+-------------- next part --------------
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+From t.lojo at irri.org  Tue May 17 07:51:04 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Tue, 17 May 2016 15:51:04 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+Message-ID: <CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+
+Thank you for this Barry. We actually have attacks going on on the server
+and so far mod_sec has blocked it with the CRS. Our server with wordpress
+is being brute forced by a xmlrpc.php attack and our joomla server is being
+flooded by a torrent request when we don't have any torrents running. I may
+need to do both in parallel. Do the anomaly scoring to allow facebook
+scraping the content and probably setup another server and do your
+recommendation to better tweak the WAF and then apply to the production.
+
+On Tue, May 17, 2016 at 3:05 PM, Barry Pollard <barry_pollard at hotmail.com>
+wrote:
+
+> I would say first thing is to turn blocking off and run in DetectionOnly
+> mode to help you fine tune your rules. To do that update your SecRuleEngine
+> config like so:
+>
+> SecRuleEngine DetectionOnly
+>
+> This will of course mean you are not protected but us a necessary step to
+> getting your set up right. Now leave it run for a while and then check the
+> logs for every rule that fired (but did not block this time) and categories
+> them into:
+>
+> 1) False positive - this request looks to be the sort of request our
+> application expects and ModSecurity should not be alerting on it.
+> 2) Bad request - this request shouldn't be made and ModSecurity was right
+> to block it. This will include bots and scripts that scan websites even if
+> they don't cause any trouble.
+>
+> For all the 1s (and there will be a lot at the beginning) you need to
+> decide how to tweak the rules to not alert for False positives. This
+> involves either turning the rule off completely (using the likes of
+> SecRuleRemoveById), turning it off for particular parameters (using the
+> likes of SecRuleUpdateActionById) or turning it off for particular URLs
+> (this is more complicated aged and can require building a new rule to do
+> this).
+>
+> Tuning rules is necessary and, as long as you have a good understanding of
+> what the rules intention is, why it blocked, why that was incorrect thing
+> for it to do then you should tweak and turn them off for certain scenarios.
+> Does that reduce the effectiveness of ModSecurity? Potentially but then if
+> it blocks all sorts of real visitors incorrectly then that's not much use
+> is it! The OWASP CRS is very generic and all the rules will not be
+> appropriate for all websites. By default it blocks too much. There is some
+> work going on to make the default more lenient so you can start off with
+> some protection and ramp up as you see fit rather than current situation
+> where you start with too much protection and have to ramp down.
+>
+> Anyway after you see no more false positives for a while you can turn SecRuleEngine
+> back to on.
+>
+> This can take some time. See my story here to prepare you:
+> http://stackoverflow.com/questions/35149264/how-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules/35162976#35162976.
+> A WAF like ModSecurity is, unfortunately, not just a turn it on and it
+> works and you can forget about it solution. It takes a lot of set up to be
+> useful, and then a bit if minding afterwards. Personally I think it's worth
+> it but you also see people online saying WAFs are too much effort for this
+> reason.
+>
+> Anomaly scoring mode is an interesting one. It basically let's all the
+> rules run and then only blocks if a certain threshold applies. This means a
+> number of unimportant rules can fire. e.g. most browsers send a user agent
+> so no user agent, while it likely won't cause a problem is a flag that this
+> is probably a bad request. If a few of these flags fire on same request
+> then this is highly likely to be a bad request and should be blocked. Some
+> rules (like missing user agent) might have low threshold and so won't block
+> on their own and some will block with just one rule firing if it's obvious
+> this request should not processed.
+>
+> While anomaly scoring is undoubtedly helpful to reduce the number of
+> incorrect blocks, and lots of people use it and recommend it, I'm not a
+> particular fan. I find it makes the log files noisy and confusing to see
+> rules firing and not know if they caused a block or not. I prefer to turn
+> off the low value rules completely and using the original block at first
+> bad attempt mode despite the fact this takes extra work to set up initially
+> and can allow more spam and bad bots through. But each to their own. Will
+> leave Christian to explain how best to set it up if that's the way you want
+> to go.
+>
+> Here's some other posts that might help:
+>
+> http://stackoverflow.com/questions/33676348/extra-sensitive-mod-security-rules-giving-403-forbidden-error
+>
+> http://stackoverflow.com/questions/34478019/keep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm/34484463#34484463
+>
+> http://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786
+> Note this mailing list is awesome and you will get help here but I have
+> also been answering ModSecurity questions on StackOverflow/ServerFault as
+> feel they are better to reference again for common questions like yours.
+> Been meaning to write a friendly, short, beginners containing a lot of the
+> detail here but have a problem keeping my posts short :-)
+>
+> Hope that helps and feel free to ask any questions here. We're a friendly
+> bunch.
+>
+> Thanks,
+> Barry
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/ce0afc41/attachment-0001.html>
+
+From CSanders at trustwave.com  Tue May 17 22:51:38 2016
+From: CSanders at trustwave.com (Chaim Sanders)
+Date: Tue, 17 May 2016 22:51:38 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+Message-ID: <DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+
+In addition to Barry?s fantastic links I?ll direct you to this post written by Ryan Barnett that details how to add exceptions in an effective method. There is some tuning required as mentioned before but after about a week these tend to go away pretty quickly and just rarely rear their head. Check it out https://www.trustwave.com/Resources/SpiderLabs-Blog/ModSecurity-Advanced-Topic-of-the-Week--(Updated)-Exception-Handling/. If you need additional help please do reach out ?
+
+Chaim Sanders
+Security Researcher
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com<http://www.trustwave.com/>
+
+From: owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] On Behalf Of T. Kenneth Lojo (IRRI)
+Sent: Tuesday, May 17, 2016 3:51 AM
+To: Barry Pollard <barry_pollard at hotmail.com>
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+
+Thank you for this Barry. We actually have attacks going on on the server and so far mod_sec has blocked it with the CRS. Our server with wordpress is being brute forced by a xmlrpc.php attack and our joomla server is being flooded by a torrent request when we don't have any torrents running. I may need to do both in parallel. Do the anomaly scoring to allow facebook scraping the content and probably setup another server and do your recommendation to better tweak the WAF and then apply to the production.
+
+On Tue, May 17, 2016 at 3:05 PM, Barry Pollard <barry_pollard at hotmail.com<mailto:barry_pollard at hotmail.com>> wrote:
+I would say first thing is to turn blocking off and run in DetectionOnly mode to help you fine tune your rules. To do that update your SecRuleEngine config like so:
+
+
+SecRuleEngine DetectionOnly
+This will of course mean you are not protected but us a necessary step to getting your set up right. Now leave it run for a while and then check the logs for every rule that fired (but did not block this time) and categories them into:
+
+1) False positive - this request looks to be the sort of request our application expects and ModSecurity should not be alerting on it.
+2) Bad request - this request shouldn't be made and ModSecurity was right to block it. This will include bots and scripts that scan websites even if they don't cause any trouble.
+
+For all the 1s (and there will be a lot at the beginning) you need to decide how to tweak the rules to not alert for False positives. This involves either turning the rule off completely (using the likes of SecRuleRemoveById), turning it off for particular parameters (using the likes of SecRuleUpdateActionById) or turning it off for particular URLs (this is more complicated aged and can require building a new rule to do this).
+
+Tuning rules is necessary and, as long as you have a good understanding of what the rules intention is, why it blocked, why that was incorrect thing for it to do then you should tweak and turn them off for certain scenarios. Does that reduce the effectiveness of ModSecurity? Potentially but then if it blocks all sorts of real visitors incorrectly then that's not much use is it! The OWASP CRS is very generic and all the rules will not be appropriate for all websites. By default it blocks too much. There is some work going on to make the default more lenient so you can start off with some protection and ramp up as you see fit rather than current situation where you start with too much protection and have to ramp down.
+
+Anyway after you see no more false positives for a while you can turn SecRuleEngine back to on.
+
+This can take some time. See my story here to prepare you: http://stackoverflow.com/questions/35149264/how-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules/35162976#35162976<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jfp1DhFSw&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f35149264%2fhow-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules%2f35162976%2335162976>. A WAF like ModSecurity is, unfortunately, not just a turn it on and it works and you can forget about it solution. It takes a lot of set up to be useful, and then a bit if minding afterwards. Personally I think it's worth it but you also see people online saying WAFs are too much effort for this reason.
+
+Anomaly scoring mode is an interesting one. It basically let's all the rules run and then only blocks if a certain threshold applies. This means a number of unimportant rules can fire. e.g. most browsers send a user agent so no user agent, while it likely won't cause a problem is a flag that this is probably a bad request. If a few of these flags fire on same request then this is highly likely to be a bad request and should be blocked. Some rules (like missing user agent) might have low threshold and so won't block on their own and some will block with just one rule firing if it's obvious this request should not processed.
+
+While anomaly scoring is undoubtedly helpful to reduce the number of incorrect blocks, and lots of people use it and recommend it, I'm not a particular fan. I find it makes the log files noisy and confusing to see rules firing and not know if they caused a block or not. I prefer to turn off the low value rules completely and using the original block at first bad attempt mode despite the fact this takes extra work to set up initially and can allow more spam and bad bots through. But each to their own. Will leave Christian to explain how best to set it up if that's the way you want to go.
+
+Here's some other posts that might help:
+http://stackoverflow.com/questions/33676348/extra-sensitive-mod-security-rules-giving-403-forbidden-error<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mTj0m1ERQ&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f33676348%2fextra-sensitive-mod-security-rules-giving-403-forbidden-error>
+http://stackoverflow.com/questions/34478019/keep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm/34484463#34484463<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j6x0GVFTg&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f34478019%2fkeep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm%2f34484463%2334484463>
+http://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jGz12xDTw&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f33989273%2fmodsecurity-excessive-false-positives%2f34027786%2334027786>
+Note this mailing list is awesome and you will get help here but I have also been answering ModSecurity questions on StackOverflow/ServerFault as feel they are better to reference again for common questions like yours. Been meaning to write a friendly, short, beginners containing a lot of the detail here but have a problem keeping my posts short :-)
+
+Hope that helps and feel free to ask any questions here. We're a friendly bunch.
+
+Thanks,
+Barry
+
+
+
+--
+T. Kenneth S. Lojo
+Specialist-Online Media Design
+
+[Image removed by sender. IRRI]<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jay1mwTSg&s=5&u=http%3a%2f%2firri%2eorg%2f>
+
++63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org<mailto:g.lavina at irri.org>
+www.irri.org<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jPnhj0STA&s=5&u=http%3a%2f%2fwww%2eirri%2eorg>
+
+[Image removed by sender. Facebook]<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mTggTpFSg&s=5&u=http%3a%2f%2fwww%2efacebook%2ecom%2fIRRI%2ericenews> [Image removed by sender. Twitter] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mC2hjoRGQ&s=5&u=http%3a%2f%2ftwitter%2ecom%2fRiceResearch>  [Image removed by sender. Flickr] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jLn3D4WHA&s=5&u=http%3a%2f%2fwww%2eflickr%2ecom%2fphotos%2fricephotos%2fcollections%2f>  [Image removed by sender. Youtube] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jC2gD0TRA&s=5&u=http%3a%2f%2fwww%2eyoutube%2ecom%2fuser%2firrivideo%2ffeatured>  [Image removed by sender. Scribd] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mLig21AGA&s=5&u=http%3a%2f%2fwww%2escribd%2ecom%2fIRRI%5fresources>  [Image removed by sender. Linkedin] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j_p1GQQSQ&s=5&u=http%3a%2f%2fwww%2elinkedin%2ecom%2fcompany%2finternational-rice-research-institute>  [Image removed by sender. Soundcloud] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jPmhmwSHw&s=5&u=https%3a%2f%2fsoundcloud%2ecom%2firri-radio>  [Image removed by sender. Google+] <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jLo1TkWGQ&s=5&u=https%3a%2f%2fplus%2egoogle%2ecom%2f103972671963502739315>
+
+The International Rice Research Institute<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jXghm0XGA&s=5&u=http%3a%2f%2firri%2eorg> is a member of the CGIAR<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j_j1m4UGQ&s=5&u=http%3a%2f%2fwww%2ecgiar%2eorg%2f>
+
+
+The International Rice Research Institute<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jXghm0XGA&s=5&u=http%3a%2f%2firri%2eorg> is a member of the CGIAR<http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mOxgW4WSQ&s=5&u=http%3a%2f%2fcgiar%2eorg> consortium
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/b8443c66/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ~WRD000.jpg
+Type: image/jpeg
+Size: 823 bytes
+Desc: ~WRD000.jpg
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160517/b8443c66/attachment-0001.jpg>
+
+From t.lojo at irri.org  Wed May 18 03:05:49 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Wed, 18 May 2016 11:05:49 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+Message-ID: <CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+
+Christian,
+
+Where do I set the anomaly limit?
+
+On Wed, May 18, 2016 at 6:51 AM, Chaim Sanders <CSanders at trustwave.com>
+wrote:
+
+> In addition to Barry?s fantastic links I?ll direct you to this post
+> written by Ryan Barnett that details how to add exceptions in an effective
+> method. There is some tuning required as mentioned before but after about a
+> week these tend to go away pretty quickly and just rarely rear their head.
+> Check it out
+> https://www.trustwave.com/Resources/SpiderLabs-Blog/ModSecurity-Advanced-Topic-of-the-Week--(Updated)-Exception-Handling/.
+> If you need additional help please do reach out J
+>
+>
+>
+> *Chaim Sanders  *
+>
+> Security Researcher
+>
+> *Trustwave* | SMART SECURITY ON DEMAND
+>
+> www.trustwave.com
+>
+>
+>
+> *From:* owasp-modsecurity-core-rule-set-bounces at lists.owasp.org [mailto:
+> owasp-modsecurity-core-rule-set-bounces at lists.owasp.org] *On Behalf Of *T.
+> Kenneth Lojo (IRRI)
+> *Sent:* Tuesday, May 17, 2016 3:51 AM
+> *To:* Barry Pollard <barry_pollard at hotmail.com>
+> *Cc:* owasp-modsecurity-core-rule-set at lists.owasp.org
+> *Subject:* Re: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+>
+>
+>
+> Thank you for this Barry. We actually have attacks going on on the server
+> and so far mod_sec has blocked it with the CRS. Our server with wordpress
+> is being brute forced by a xmlrpc.php attack and our joomla server is being
+> flooded by a torrent request when we don't have any torrents running. I may
+> need to do both in parallel. Do the anomaly scoring to allow facebook
+> scraping the content and probably setup another server and do your
+> recommendation to better tweak the WAF and then apply to the production.
+>
+>
+>
+> On Tue, May 17, 2016 at 3:05 PM, Barry Pollard <barry_pollard at hotmail.com>
+> wrote:
+>
+> I would say first thing is to turn blocking off and run in DetectionOnly
+> mode to help you fine tune your rules. To do that update your SecRuleEngine
+> config like so:
+>
+>
+>
+> SecRuleEngine DetectionOnly
+>
+> This will of course mean you are not protected but us a necessary step to
+> getting your set up right. Now leave it run for a while and then check the
+> logs for every rule that fired (but did not block this time) and categories
+> them into:
+>
+>
+>
+> 1) False positive - this request looks to be the sort of request our
+> application expects and ModSecurity should not be alerting on it.
+>
+> 2) Bad request - this request shouldn't be made and ModSecurity was right
+> to block it. This will include bots and scripts that scan websites even if
+> they don't cause any trouble.
+>
+>
+>
+> For all the 1s (and there will be a lot at the beginning) you need to
+> decide how to tweak the rules to not alert for False positives. This
+> involves either turning the rule off completely (using the likes of
+> SecRuleRemoveById), turning it off for particular parameters (using the
+> likes of SecRuleUpdateActionById) or turning it off for particular URLs
+> (this is more complicated aged and can require building a new rule to do
+> this).
+>
+>
+>
+> Tuning rules is necessary and, as long as you have a good understanding of
+> what the rules intention is, why it blocked, why that was incorrect thing
+> for it to do then you should tweak and turn them off for certain scenarios.
+> Does that reduce the effectiveness of ModSecurity? Potentially but then if
+> it blocks all sorts of real visitors incorrectly then that's not much use
+> is it! The OWASP CRS is very generic and all the rules will not be
+> appropriate for all websites. By default it blocks too much. There is some
+> work going on to make the default more lenient so you can start off with
+> some protection and ramp up as you see fit rather than current situation
+> where you start with too much protection and have to ramp down.
+>
+>
+>
+> Anyway after you see no more false positives for a while you can
+> turn SecRuleEngine back to on.
+>
+>
+>
+> This can take some time. See my story here to prepare you:
+> http://stackoverflow.com/questions/35149264/how-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules/35162976#35162976
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jfp1DhFSw&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f35149264%2fhow-long-do-you-fine-tune-false-positives-with-mod-security-and-owasp-rules%2f35162976%2335162976>.
+> A WAF like ModSecurity is, unfortunately, not just a turn it on and it
+> works and you can forget about it solution. It takes a lot of set up to be
+> useful, and then a bit if minding afterwards. Personally I think it's worth
+> it but you also see people online saying WAFs are too much effort for this
+> reason.
+>
+>
+>
+> Anomaly scoring mode is an interesting one. It basically let's all the
+> rules run and then only blocks if a certain threshold applies. This means a
+> number of unimportant rules can fire. e.g. most browsers send a user agent
+> so no user agent, while it likely won't cause a problem is a flag that this
+> is probably a bad request. If a few of these flags fire on same request
+> then this is highly likely to be a bad request and should be blocked. Some
+> rules (like missing user agent) might have low threshold and so won't block
+> on their own and some will block with just one rule firing if it's obvious
+> this request should not processed.
+>
+>
+>
+> While anomaly scoring is undoubtedly helpful to reduce the number of
+> incorrect blocks, and lots of people use it and recommend it, I'm not a
+> particular fan. I find it makes the log files noisy and confusing to see
+> rules firing and not know if they caused a block or not. I prefer to turn
+> off the low value rules completely and using the original block at first
+> bad attempt mode despite the fact this takes extra work to set up initially
+> and can allow more spam and bad bots through. But each to their own. Will
+> leave Christian to explain how best to set it up if that's the way you want
+> to go.
+>
+>
+>
+> Here's some other posts that might help:
+>
+>
+> http://stackoverflow.com/questions/33676348/extra-sensitive-mod-security-rules-giving-403-forbidden-error
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mTj0m1ERQ&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f33676348%2fextra-sensitive-mod-security-rules-giving-403-forbidden-error>
+>
+>
+> http://stackoverflow.com/questions/34478019/keep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm/34484463#34484463
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j6x0GVFTg&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f34478019%2fkeep-modsecurity-enabled-with-symfony-installation-w-cpanel-whm%2f34484463%2334484463>
+>
+>
+> http://stackoverflow.com/questions/33989273/modsecurity-excessive-false-positives/34027786#34027786
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jGz12xDTw&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f33989273%2fmodsecurity-excessive-false-positives%2f34027786%2334027786>
+>
+> Note this mailing list is awesome and you will get help here but I have
+> also been answering ModSecurity questions on StackOverflow/ServerFault as
+> feel they are better to reference again for common questions like yours.
+> Been meaning to write a friendly, short, beginners containing a lot of the
+> detail here but have a problem keeping my posts short :-)
+>
+>
+>
+> Hope that helps and feel free to ask any questions here. We're a friendly
+> bunch.
+>
+>
+>
+> Thanks,
+>
+> Barry
+>
+>
+>
+>
+>
+> --
+>
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+>
+> [image: Image removed by sender. IRRI]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jay1mwTSg&s=5&u=http%3a%2f%2firri%2eorg%2f>
+>
+> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jPnhj0STA&s=5&u=http%3a%2f%2fwww%2eirri%2eorg>
+>
+> [image: Image removed by sender. Facebook]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mTggTpFSg&s=5&u=http%3a%2f%2fwww%2efacebook%2ecom%2fIRRI%2ericenews>
+>  [image: Image removed by sender. Twitter]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mC2hjoRGQ&s=5&u=http%3a%2f%2ftwitter%2ecom%2fRiceResearch>
+>  [image: Image removed by sender. Flickr]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jLn3D4WHA&s=5&u=http%3a%2f%2fwww%2eflickr%2ecom%2fphotos%2fricephotos%2fcollections%2f>
+>  [image: Image removed by sender. Youtube]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jC2gD0TRA&s=5&u=http%3a%2f%2fwww%2eyoutube%2ecom%2fuser%2firrivideo%2ffeatured>
+>  [image: Image removed by sender. Scribd]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mLig21AGA&s=5&u=http%3a%2f%2fwww%2escribd%2ecom%2fIRRI%5fresources>
+>  [image: Image removed by sender. Linkedin]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j_p1GQQSQ&s=5&u=http%3a%2f%2fwww%2elinkedin%2ecom%2fcompany%2finternational-rice-research-institute>
+>  [image: Image removed by sender. Soundcloud]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jPmhmwSHw&s=5&u=https%3a%2f%2fsoundcloud%2ecom%2firri-radio>
+>  [image: Image removed by sender. Google+]
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jLo1TkWGQ&s=5&u=https%3a%2f%2fplus%2egoogle%2ecom%2f103972671963502739315>
+>
+> The International Rice Research Institute
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jXghm0XGA&s=5&u=http%3a%2f%2firri%2eorg> is
+> a member of the CGIAR
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44j_j1m4UGQ&s=5&u=http%3a%2f%2fwww%2ecgiar%2eorg%2f>
+>
+>
+> The International Rice Research Institute
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44jXghm0XGA&s=5&u=http%3a%2f%2firri%2eorg> is
+> a member of the CGIAR
+> <http://scanmail.trustwave.com/?c=4062&d=otS611Q20SL86MvZAP2-57BForsTwwP44mOxgW4WSQ&s=5&u=http%3a%2f%2fcgiar%2eorg>
+>  consortium
+>
+> ------------------------------
+>
+> This transmission may contain information that is privileged,
+> confidential, and/or exempt from disclosure under applicable law. If you
+> are not the intended recipient, you are hereby notified that any
+> disclosure, copying, distribution, or use of the information contained
+> herein (including any reliance thereon) is strictly prohibited. If you
+> received this transmission in error, please immediately contact the sender
+> and destroy the material in its entirety, whether in electronic or hard
+> copy format.
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/7c4593b2/attachment-0001.html>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ~WRD000.jpg
+Type: image/jpeg
+Size: 823 bytes
+Desc: not available
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/7c4593b2/attachment-0001.jpg>
+
+From mail at noelzindel.org  Wed May 18 06:49:07 2016
+From: mail at noelzindel.org (=?utf-8?Q?No=C3=ABl_Zindel?=)
+Date: Wed, 18 May 2016 08:49:07 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+Message-ID: <F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+
+
+> On 18 May 2016, at 05:05, T. Kenneth Lojo (IRRI) <t.lojo at irri.org> wrote:
+> 
+> Where do I set the anomaly limit?
+
+"modsecurity_crs_10_setup.conf" handles anomaly limit by default. Look out for rule ID 900003 with variables "tx.inbound_anomaly_score_level=5? and "tx.outbound_anomaly_score_level=4?.
+
+The actual blocking is done by ?modsecurity_crs_49_inbound_blocking.conf" and ?modsecurity_crs_59_outbound_blocking.conf? respectively.
+
+Cheers,
+No?l
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 801 bytes
+Desc: Message signed with OpenPGP using GPGMail
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/82528a7d/attachment.pgp>
+
+From t.lojo at irri.org  Wed May 18 07:24:49 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Wed, 18 May 2016 15:24:49 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+References: <CAH0WUhFbzhFXR3V-=VAjkoh9S=yFLsstSqH8VWFPS=EMTZtiPQ@mail.gmail.com>
+	<20160517045744.GA14261@elias>
+	<CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+Message-ID: <CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+
+Hi No?l,
+
+thank you for the help
+
+Christian suggested:
+
+"I suggest you run in blocking mode with anomaly scoring on and
+a high anomaly limit (-> 1K or more)."
+
+Do I chance the inbound and outbound values to 1k+?
+
+
+I have also set in "modsecurity_crs_10_setup.conf" :
+
+(deny to delayed blocking)
+66 SecDefaultAction "phase:1,delayed blocking,log"
+67 SecDefaultAction "phase:2,delayed blocking,log"
+
+and uncommented:
+
+152 SecAction \
+       "id:'900004', \
+        phase:1, \
+        t:none, \
+        setvar:tx.anomaly_score_blocking=on, \
+        nolog, \
+        pass"
+
+
+Am I doing this right?
+
+Kenneth
+
+On Wed, May 18, 2016 at 2:49 PM, No?l Zindel <mail at noelzindel.org> wrote:
+
+>
+> > On 18 May 2016, at 05:05, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+> wrote:
+> >
+> > Where do I set the anomaly limit?
+>
+> "modsecurity_crs_10_setup.conf" handles anomaly limit by default. Look out
+> for rule ID 900003 with variables "tx.inbound_anomaly_score_level=5? and
+> "tx.outbound_anomaly_score_level=4?.
+>
+> The actual blocking is done by ?modsecurity_crs_49_inbound_blocking.conf"
+> and ?modsecurity_crs_59_outbound_blocking.conf? respectively.
+>
+> Cheers,
+> No?l
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/d664764b/attachment.html>
+
+From christian.folini at netnea.com  Wed May 18 09:07:56 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 18 May 2016 11:07:56 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+References: <CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+Message-ID: <20160518090756.GA5099@elias>
+
+Kenneth,
+
+On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> "I suggest you run in blocking mode with anomaly scoring on and
+> a high anomaly limit (-> 1K or more)."
+> 
+> Do I chance the inbound and outbound values to 1k+?
+
+The relevant one is inbound. It's very unusual to get outbound scores
+higher then 10 or 20. 
+
+For convenience, I usually configure the two in sync. Thus both to 1K to
+start with. Then I tune, then I lower the limits. In multiple
+iterations down to 10 or 5.
+
+> (deny to delayed blocking)
+> 66 SecDefaultAction "phase:1,delayed blocking,log"
+> 67 SecDefaultAction "phase:2,delayed blocking,log"
+
+What is delayed blocking? Looks like a misunderstanding.
+I run with pass/pass and let the core rules do the blocking (in the
+files mentioned by No?l).
+
+> and uncommented:
+> 
+> 152 SecAction \
+> ...
+
+That's the one.
+
+
+I think you have realised that there are multiple "schools" or
+strategies to CRS deployments or tuning in ithe general sense.
+Barry favors to start in detection mode, tune and then go to a 
+strict blocking mode. I am an advocate of starting in blocking mode
+with anomaly scoring and a high anomaly limit, then work your way
+down to a low limit. The final result will be almost the same.
+As Barry tends to disable non-critical rules, you end up with blocking
+on the critical ones. These are the ones which give you a score
+of 5. I usually try and tune down to a limit of 5. So it's
+really identical. It's just a different path to reach the same goal. 
+My key argument for my method is, that people never leave detection
+mode because they fear the switch to blocking. If you start with
+blocking (and a high limit), then every iteration lowering the limits
+helps you to build up confidence in your system and there is no
+final "switch from detection to blocking".
+The example which contradicts my statement is Barry who actually
+switches to blocking in the end. I think this is rare.
+
+Ahoj,
+
+Christian
+
+
+
+
+
+Ahoj,
+
+Christian
+
+
+-- 
+Happiness exists on earth, and it is won through prudent
+exercise of reason, knowledge of the harmony of the universe, and
+constant practice of generosity.       ?
+-- Jos? Mart?
+
+From t.lojo at irri.org  Wed May 18 09:13:06 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Wed, 18 May 2016 17:13:06 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <20160518090756.GA5099@elias>
+References: <CAH0WUhGWDeQEH989TEnNgMUjdkKMasHcqhkvO633OVvypyaYCw@mail.gmail.com>
+	<CAH0WUhH73-ow3_a0Ns=BmTuET9fwanS069+jVem=O4GiMrZEFg@mail.gmail.com>
+	<20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+	<20160518090756.GA5099@elias>
+Message-ID: <CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+
+Hi Christian,
+
+Thank you for this.
+
+The text before the switch says:
+
+#
+# -- [[ Modes of Operation: Self-Contained vs. Collaborative Detection ]]
+-----------------
+#
+# Each detection rule uses the "block" action which will inherit the
+SecDefaultAction
+# specified below.  Your settings here will determine which mode of
+operation you use.
+#
+# -- [[ Self-Contained Mode ]] --
+# Rules inherit the "deny" disruptive action.  The first rule that matches
+will block.
+#
+# -- [[ Collaborative Detection Mode ]] --
+# This is a "delayed blocking" mode of operation where each matching rule
+will inherit
+# the "pass" action and will only contribute to anomaly scores.
+Transactional blocking
+# can be applied
+#
+# -- [[ Alert Logging Control ]] --
+# You have three options -
+#
+# - To log to both the Apache error_log and ModSecurity audit_log file use:
+"log"
+# - To log *only* to the ModSecurity audit_log file use: "nolog,auditlog"
+# - To log *only* to the Apache error_log file use: "log,noauditlog"
+#
+# Ref:
+http://blog.spiderlabs.com/2010/11/advanced-topic-of-the-week-traditional-vs-anomaly-scoring-detection-modes.html
+# Ref:
+https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#wiki-SecDefaultAction
+
+#
+
+And that is where I change deny to delayed blocking. Did I do wrong?
+
+So inbound I set to 1000 then Check the logs. What will I look at the logs
+to warrant an adjustment?
+
+Thank you for your patience guys.
+
+Kenneth
+
+On Wed, May 18, 2016 at 5:07 PM, Christian Folini <
+christian.folini at netnea.com> wrote:
+
+> Kenneth,
+>
+> On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > "I suggest you run in blocking mode with anomaly scoring on and
+> > a high anomaly limit (-> 1K or more)."
+> >
+> > Do I chance the inbound and outbound values to 1k+?
+>
+> The relevant one is inbound. It's very unusual to get outbound scores
+> higher then 10 or 20.
+>
+> For convenience, I usually configure the two in sync. Thus both to 1K to
+> start with. Then I tune, then I lower the limits. In multiple
+> iterations down to 10 or 5.
+>
+> > (deny to delayed blocking)
+> > 66 SecDefaultAction "phase:1,delayed blocking,log"
+> > 67 SecDefaultAction "phase:2,delayed blocking,log"
+>
+> What is delayed blocking? Looks like a misunderstanding.
+> I run with pass/pass and let the core rules do the blocking (in the
+> files mentioned by No?l).
+>
+> > and uncommented:
+> >
+> > 152 SecAction \
+> > ...
+>
+> That's the one.
+>
+>
+> I think you have realised that there are multiple "schools" or
+> strategies to CRS deployments or tuning in ithe general sense.
+> Barry favors to start in detection mode, tune and then go to a
+> strict blocking mode. I am an advocate of starting in blocking mode
+> with anomaly scoring and a high anomaly limit, then work your way
+> down to a low limit. The final result will be almost the same.
+> As Barry tends to disable non-critical rules, you end up with blocking
+> on the critical ones. These are the ones which give you a score
+> of 5. I usually try and tune down to a limit of 5. So it's
+> really identical. It's just a different path to reach the same goal.
+> My key argument for my method is, that people never leave detection
+> mode because they fear the switch to blocking. If you start with
+> blocking (and a high limit), then every iteration lowering the limits
+> helps you to build up confidence in your system and there is no
+> final "switch from detection to blocking".
+> The example which contradicts my statement is Barry who actually
+> switches to blocking in the end. I think this is rare.
+>
+> Ahoj,
+>
+> Christian
+>
+>
+>
+>
+>
+> Ahoj,
+>
+> Christian
+>
+>
+> --
+> Happiness exists on earth, and it is won through prudent
+> exercise of reason, knowledge of the harmony of the universe, and
+> constant practice of generosity.
+> -- Jos? Mart?
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/40cf10e6/attachment-0001.html>
+
+From christian.folini at netnea.com  Wed May 18 09:19:50 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Wed, 18 May 2016 11:19:50 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+References: <20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+	<20160518090756.GA5099@elias>
+	<CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+Message-ID: <20160518091950.GA5594@elias>
+
+Kenneth,
+
+You misinterpreted the "delayed blocking". It meant "pass" and this
+would in effect work like a form of "delayed blocking".
+
+On Wed, May 18, 2016 at 05:13:06PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> So inbound I set to 1000 then Check the logs. What will I look at the logs
+> to warrant an adjustment?
+
+It's the "ModSecurity. Warning" messages in the error.log. You need to 
+read the various links submitted to you to understand how to tune these
+false positives.
+
+Ahoj,
+
+Christian
+
+> 
+> Thank you for your patience guys.
+> 
+> Kenneth
+> 
+> On Wed, May 18, 2016 at 5:07 PM, Christian Folini <
+> christian.folini at netnea.com> wrote:
+> 
+> > Kenneth,
+> >
+> > On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > > "I suggest you run in blocking mode with anomaly scoring on and
+> > > a high anomaly limit (-> 1K or more)."
+> > >
+> > > Do I chance the inbound and outbound values to 1k+?
+> >
+> > The relevant one is inbound. It's very unusual to get outbound scores
+> > higher then 10 or 20.
+> >
+> > For convenience, I usually configure the two in sync. Thus both to 1K to
+> > start with. Then I tune, then I lower the limits. In multiple
+> > iterations down to 10 or 5.
+> >
+> > > (deny to delayed blocking)
+> > > 66 SecDefaultAction "phase:1,delayed blocking,log"
+> > > 67 SecDefaultAction "phase:2,delayed blocking,log"
+> >
+> > What is delayed blocking? Looks like a misunderstanding.
+> > I run with pass/pass and let the core rules do the blocking (in the
+> > files mentioned by No?l).
+> >
+> > > and uncommented:
+> > >
+> > > 152 SecAction \
+> > > ...
+> >
+> > That's the one.
+> >
+> >
+> > I think you have realised that there are multiple "schools" or
+> > strategies to CRS deployments or tuning in ithe general sense.
+> > Barry favors to start in detection mode, tune and then go to a
+> > strict blocking mode. I am an advocate of starting in blocking mode
+> > with anomaly scoring and a high anomaly limit, then work your way
+> > down to a low limit. The final result will be almost the same.
+> > As Barry tends to disable non-critical rules, you end up with blocking
+> > on the critical ones. These are the ones which give you a score
+> > of 5. I usually try and tune down to a limit of 5. So it's
+> > really identical. It's just a different path to reach the same goal.
+> > My key argument for my method is, that people never leave detection
+> > mode because they fear the switch to blocking. If you start with
+> > blocking (and a high limit), then every iteration lowering the limits
+> > helps you to build up confidence in your system and there is no
+> > final "switch from detection to blocking".
+> > The example which contradicts my statement is Barry who actually
+> > switches to blocking in the end. I think this is rare.
+> >
+> > Ahoj,
+> >
+> > Christian
+> >
+> >
+> >
+> >
+> >
+> > Ahoj,
+> >
+> > Christian
+> >
+> >
+> > --
+> > Happiness exists on earth, and it is won through prudent
+> > exercise of reason, knowledge of the harmony of the universe, and
+> > constant practice of generosity.
+> > -- Jos? Mart?
+> >
+> 
+> 
+> 
+> -- 
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> <http://twitter.com/RiceResearch> [image: Flickr]
+> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> <https://plus.google.com/103972671963502739315>
+> 
+> The International Rice Research Institute <http://irri.org> is a member of
+> the CGIAR <http://www.cgiar.org/>
+> 
+> -- 
+> The International Rice Research Institute <http://irri.org> is a member of 
+> the CGIAR <http://cgiar.org> consortium
+
+From t.lojo at irri.org  Wed May 18 09:22:07 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Wed, 18 May 2016 17:22:07 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <20160518091950.GA5594@elias>
+References: <20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+	<20160518090756.GA5099@elias>
+	<CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+	<20160518091950.GA5594@elias>
+Message-ID: <CAH0WUhE_-2_htv4pARhywONcMMxP_YXCq2RQeabiiUqfJtKwQA@mail.gmail.com>
+
+Got it.
+
+On Wed, May 18, 2016 at 5:19 PM, Christian Folini <
+christian.folini at netnea.com> wrote:
+
+> Kenneth,
+>
+> You misinterpreted the "delayed blocking". It meant "pass" and this
+> would in effect work like a form of "delayed blocking".
+>
+> On Wed, May 18, 2016 at 05:13:06PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > So inbound I set to 1000 then Check the logs. What will I look at the
+> logs
+> > to warrant an adjustment?
+>
+> It's the "ModSecurity. Warning" messages in the error.log. You need to
+> read the various links submitted to you to understand how to tune these
+> false positives.
+>
+> Ahoj,
+>
+> Christian
+>
+> >
+> > Thank you for your patience guys.
+> >
+> > Kenneth
+> >
+> > On Wed, May 18, 2016 at 5:07 PM, Christian Folini <
+> > christian.folini at netnea.com> wrote:
+> >
+> > > Kenneth,
+> > >
+> > > On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI) wrote:
+> > > > "I suggest you run in blocking mode with anomaly scoring on and
+> > > > a high anomaly limit (-> 1K or more)."
+> > > >
+> > > > Do I chance the inbound and outbound values to 1k+?
+> > >
+> > > The relevant one is inbound. It's very unusual to get outbound scores
+> > > higher then 10 or 20.
+> > >
+> > > For convenience, I usually configure the two in sync. Thus both to 1K
+> to
+> > > start with. Then I tune, then I lower the limits. In multiple
+> > > iterations down to 10 or 5.
+> > >
+> > > > (deny to delayed blocking)
+> > > > 66 SecDefaultAction "phase:1,delayed blocking,log"
+> > > > 67 SecDefaultAction "phase:2,delayed blocking,log"
+> > >
+> > > What is delayed blocking? Looks like a misunderstanding.
+> > > I run with pass/pass and let the core rules do the blocking (in the
+> > > files mentioned by No?l).
+> > >
+> > > > and uncommented:
+> > > >
+> > > > 152 SecAction \
+> > > > ...
+> > >
+> > > That's the one.
+> > >
+> > >
+> > > I think you have realised that there are multiple "schools" or
+> > > strategies to CRS deployments or tuning in ithe general sense.
+> > > Barry favors to start in detection mode, tune and then go to a
+> > > strict blocking mode. I am an advocate of starting in blocking mode
+> > > with anomaly scoring and a high anomaly limit, then work your way
+> > > down to a low limit. The final result will be almost the same.
+> > > As Barry tends to disable non-critical rules, you end up with blocking
+> > > on the critical ones. These are the ones which give you a score
+> > > of 5. I usually try and tune down to a limit of 5. So it's
+> > > really identical. It's just a different path to reach the same goal.
+> > > My key argument for my method is, that people never leave detection
+> > > mode because they fear the switch to blocking. If you start with
+> > > blocking (and a high limit), then every iteration lowering the limits
+> > > helps you to build up confidence in your system and there is no
+> > > final "switch from detection to blocking".
+> > > The example which contradicts my statement is Barry who actually
+> > > switches to blocking in the end. I think this is rare.
+> > >
+> > > Ahoj,
+> > >
+> > > Christian
+> > >
+> > >
+> > >
+> > >
+> > >
+> > > Ahoj,
+> > >
+> > > Christian
+> > >
+> > >
+> > > --
+> > > Happiness exists on earth, and it is won through prudent
+> > > exercise of reason, knowledge of the harmony of the universe, and
+> > > constant practice of generosity.
+> > > -- Jos? Mart?
+> > >
+> >
+> >
+> >
+> > --
+> > *T. Kenneth S. Lojo*
+> > Specialist-Online Media Design
+> > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> > +63 928 209 1191 (mobile)
+> > t.lojo at irri.org <g.lavina at irri.org>
+> > www.irri.org
+> > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+> Twitter]
+> > <http://twitter.com/RiceResearch> [image: Flickr]
+> > <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> > <http://www.linkedin.com/company/international-rice-research-institute>
+> [image:
+> > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> > <https://plus.google.com/103972671963502739315>
+> >
+> > The International Rice Research Institute <http://irri.org> is a member
+> of
+> > the CGIAR <http://www.cgiar.org/>
+> >
+> > --
+> > The International Rice Research Institute <http://irri.org> is a member
+> of
+> > the CGIAR <http://cgiar.org> consortium
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160518/e5e1abac/attachment.html>
+
+From t.lojo at irri.org  Thu May 19 08:21:29 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Thu, 19 May 2016 16:21:29 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhE_-2_htv4pARhywONcMMxP_YXCq2RQeabiiUqfJtKwQA@mail.gmail.com>
+References: <20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+	<20160518090756.GA5099@elias>
+	<CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+	<20160518091950.GA5594@elias>
+	<CAH0WUhE_-2_htv4pARhywONcMMxP_YXCq2RQeabiiUqfJtKwQA@mail.gmail.com>
+Message-ID: <CAH0WUhEtAbN_4iiGxW_1yJBCGk6Aiiu84BJN-BY_13+suk+q2A@mail.gmail.com>
+
+Hi Christian,
+
+It worked. I changed the value of 900003 back to the default as when the
+error was triggered it only gave a value of 3 and nothing higher than that.
+Everything is ok now. Will continue to monitor. I hope I did right. I also
+have IT buy the book: Modsecurity handbook by Ivan Rustic
+
+On Wed, May 18, 2016 at 5:22 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+wrote:
+
+> Got it.
+>
+> On Wed, May 18, 2016 at 5:19 PM, Christian Folini <
+> christian.folini at netnea.com> wrote:
+>
+>> Kenneth,
+>>
+>> You misinterpreted the "delayed blocking". It meant "pass" and this
+>> would in effect work like a form of "delayed blocking".
+>>
+>> On Wed, May 18, 2016 at 05:13:06PM +0800, T. Kenneth Lojo (IRRI) wrote:
+>> > So inbound I set to 1000 then Check the logs. What will I look at the
+>> logs
+>> > to warrant an adjustment?
+>>
+>> It's the "ModSecurity. Warning" messages in the error.log. You need to
+>> read the various links submitted to you to understand how to tune these
+>> false positives.
+>>
+>> Ahoj,
+>>
+>> Christian
+>>
+>> >
+>> > Thank you for your patience guys.
+>> >
+>> > Kenneth
+>> >
+>> > On Wed, May 18, 2016 at 5:07 PM, Christian Folini <
+>> > christian.folini at netnea.com> wrote:
+>> >
+>> > > Kenneth,
+>> > >
+>> > > On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI)
+>> wrote:
+>> > > > "I suggest you run in blocking mode with anomaly scoring on and
+>> > > > a high anomaly limit (-> 1K or more)."
+>> > > >
+>> > > > Do I chance the inbound and outbound values to 1k+?
+>> > >
+>> > > The relevant one is inbound. It's very unusual to get outbound scores
+>> > > higher then 10 or 20.
+>> > >
+>> > > For convenience, I usually configure the two in sync. Thus both to 1K
+>> to
+>> > > start with. Then I tune, then I lower the limits. In multiple
+>> > > iterations down to 10 or 5.
+>> > >
+>> > > > (deny to delayed blocking)
+>> > > > 66 SecDefaultAction "phase:1,delayed blocking,log"
+>> > > > 67 SecDefaultAction "phase:2,delayed blocking,log"
+>> > >
+>> > > What is delayed blocking? Looks like a misunderstanding.
+>> > > I run with pass/pass and let the core rules do the blocking (in the
+>> > > files mentioned by No?l).
+>> > >
+>> > > > and uncommented:
+>> > > >
+>> > > > 152 SecAction \
+>> > > > ...
+>> > >
+>> > > That's the one.
+>> > >
+>> > >
+>> > > I think you have realised that there are multiple "schools" or
+>> > > strategies to CRS deployments or tuning in ithe general sense.
+>> > > Barry favors to start in detection mode, tune and then go to a
+>> > > strict blocking mode. I am an advocate of starting in blocking mode
+>> > > with anomaly scoring and a high anomaly limit, then work your way
+>> > > down to a low limit. The final result will be almost the same.
+>> > > As Barry tends to disable non-critical rules, you end up with blocking
+>> > > on the critical ones. These are the ones which give you a score
+>> > > of 5. I usually try and tune down to a limit of 5. So it's
+>> > > really identical. It's just a different path to reach the same goal.
+>> > > My key argument for my method is, that people never leave detection
+>> > > mode because they fear the switch to blocking. If you start with
+>> > > blocking (and a high limit), then every iteration lowering the limits
+>> > > helps you to build up confidence in your system and there is no
+>> > > final "switch from detection to blocking".
+>> > > The example which contradicts my statement is Barry who actually
+>> > > switches to blocking in the end. I think this is rare.
+>> > >
+>> > > Ahoj,
+>> > >
+>> > > Christian
+>> > >
+>> > >
+>> > >
+>> > >
+>> > >
+>> > > Ahoj,
+>> > >
+>> > > Christian
+>> > >
+>> > >
+>> > > --
+>> > > Happiness exists on earth, and it is won through prudent
+>> > > exercise of reason, knowledge of the harmony of the universe, and
+>> > > constant practice of generosity.
+>> > > -- Jos? Mart?
+>> > >
+>> >
+>> >
+>> >
+>> > --
+>> > *T. Kenneth S. Lojo*
+>> > Specialist-Online Media Design
+>> > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+>> > +63 928 209 1191 (mobile)
+>> > t.lojo at irri.org <g.lavina at irri.org>
+>> > www.irri.org
+>> > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+>> Twitter]
+>> > <http://twitter.com/RiceResearch> [image: Flickr]
+>> > <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+>> > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+>> > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+>> > <http://www.linkedin.com/company/international-rice-research-institute>
+>> [image:
+>> > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+>> > <https://plus.google.com/103972671963502739315>
+>> >
+>> > The International Rice Research Institute <http://irri.org> is a
+>> member of
+>> > the CGIAR <http://www.cgiar.org/>
+>> >
+>> > --
+>> > The International Rice Research Institute <http://irri.org> is a
+>> member of
+>> > the CGIAR <http://cgiar.org> consortium
+>>
+>
+>
+>
+> --
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> <http://twitter.com/RiceResearch> [image: Flickr]
+> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> <https://plus.google.com/103972671963502739315>
+>
+> The International Rice Research Institute <http://irri.org> is a member
+> of the CGIAR <http://www.cgiar.org/>
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160519/7da93bae/attachment.html>
+
+From t.lojo at irri.org  Thu May 19 08:21:47 2016
+From: t.lojo at irri.org (T. Kenneth Lojo (IRRI))
+Date: Thu, 19 May 2016 16:21:47 +0800
+Subject: [Owasp-modsecurity-core-rule-set] Facebook scrape problem
+In-Reply-To: <CAH0WUhEtAbN_4iiGxW_1yJBCGk6Aiiu84BJN-BY_13+suk+q2A@mail.gmail.com>
+References: <20160517061508.GA12216@elias>
+	<CAH0WUhHuyyL_+7SeqBND7jSZ+uHct14M8yPMZQ3DH22ddWO+8Q@mail.gmail.com>
+	<DUB408-EAS3623D590A0C1C28EBD566C82480@phx.gbl>
+	<CAH0WUhGFrHLNFFxGYZDFWBewsjAoZfZ946gNm5_943oyQ_VWww@mail.gmail.com>
+	<DM2PR0701MB129586A2E475A24EC6983332DB480@DM2PR0701MB1295.namprd07.prod.outlook.com>
+	<CAH0WUhGaF6Trdo8yYQ_P8hqVN7XmuDfqAG3-UKL+i6iVV_bBjA@mail.gmail.com>
+	<F7FDF046-1C75-4445-91B3-72DC6E6B9236@noelzindel.org>
+	<CAH0WUhHr_WiULpN_NdqEXBBdgQfLS7QxxDaV8uXZ3m3vHqGC_g@mail.gmail.com>
+	<20160518090756.GA5099@elias>
+	<CAH0WUhHWWSdNbYXhj4SANmh6Ya_dVO8oHLJHnCg9Q99yZ2NsHQ@mail.gmail.com>
+	<20160518091950.GA5594@elias>
+	<CAH0WUhE_-2_htv4pARhywONcMMxP_YXCq2RQeabiiUqfJtKwQA@mail.gmail.com>
+	<CAH0WUhEtAbN_4iiGxW_1yJBCGk6Aiiu84BJN-BY_13+suk+q2A@mail.gmail.com>
+Message-ID: <CAH0WUhFFYENgypZMytRWudn+Sw+aDYPz5D7qjePPRrYynRFNTA@mail.gmail.com>
+
+Thanks to all.
+
+On Thu, May 19, 2016 at 4:21 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+wrote:
+
+> Hi Christian,
+>
+> It worked. I changed the value of 900003 back to the default as when the
+> error was triggered it only gave a value of 3 and nothing higher than that.
+> Everything is ok now. Will continue to monitor. I hope I did right. I also
+> have IT buy the book: Modsecurity handbook by Ivan Rustic
+>
+> On Wed, May 18, 2016 at 5:22 PM, T. Kenneth Lojo (IRRI) <t.lojo at irri.org>
+> wrote:
+>
+>> Got it.
+>>
+>> On Wed, May 18, 2016 at 5:19 PM, Christian Folini <
+>> christian.folini at netnea.com> wrote:
+>>
+>>> Kenneth,
+>>>
+>>> You misinterpreted the "delayed blocking". It meant "pass" and this
+>>> would in effect work like a form of "delayed blocking".
+>>>
+>>> On Wed, May 18, 2016 at 05:13:06PM +0800, T. Kenneth Lojo (IRRI) wrote:
+>>> > So inbound I set to 1000 then Check the logs. What will I look at the
+>>> logs
+>>> > to warrant an adjustment?
+>>>
+>>> It's the "ModSecurity. Warning" messages in the error.log. You need to
+>>> read the various links submitted to you to understand how to tune these
+>>> false positives.
+>>>
+>>> Ahoj,
+>>>
+>>> Christian
+>>>
+>>> >
+>>> > Thank you for your patience guys.
+>>> >
+>>> > Kenneth
+>>> >
+>>> > On Wed, May 18, 2016 at 5:07 PM, Christian Folini <
+>>> > christian.folini at netnea.com> wrote:
+>>> >
+>>> > > Kenneth,
+>>> > >
+>>> > > On Wed, May 18, 2016 at 03:24:49PM +0800, T. Kenneth Lojo (IRRI)
+>>> wrote:
+>>> > > > "I suggest you run in blocking mode with anomaly scoring on and
+>>> > > > a high anomaly limit (-> 1K or more)."
+>>> > > >
+>>> > > > Do I chance the inbound and outbound values to 1k+?
+>>> > >
+>>> > > The relevant one is inbound. It's very unusual to get outbound scores
+>>> > > higher then 10 or 20.
+>>> > >
+>>> > > For convenience, I usually configure the two in sync. Thus both to
+>>> 1K to
+>>> > > start with. Then I tune, then I lower the limits. In multiple
+>>> > > iterations down to 10 or 5.
+>>> > >
+>>> > > > (deny to delayed blocking)
+>>> > > > 66 SecDefaultAction "phase:1,delayed blocking,log"
+>>> > > > 67 SecDefaultAction "phase:2,delayed blocking,log"
+>>> > >
+>>> > > What is delayed blocking? Looks like a misunderstanding.
+>>> > > I run with pass/pass and let the core rules do the blocking (in the
+>>> > > files mentioned by No?l).
+>>> > >
+>>> > > > and uncommented:
+>>> > > >
+>>> > > > 152 SecAction \
+>>> > > > ...
+>>> > >
+>>> > > That's the one.
+>>> > >
+>>> > >
+>>> > > I think you have realised that there are multiple "schools" or
+>>> > > strategies to CRS deployments or tuning in ithe general sense.
+>>> > > Barry favors to start in detection mode, tune and then go to a
+>>> > > strict blocking mode. I am an advocate of starting in blocking mode
+>>> > > with anomaly scoring and a high anomaly limit, then work your way
+>>> > > down to a low limit. The final result will be almost the same.
+>>> > > As Barry tends to disable non-critical rules, you end up with
+>>> blocking
+>>> > > on the critical ones. These are the ones which give you a score
+>>> > > of 5. I usually try and tune down to a limit of 5. So it's
+>>> > > really identical. It's just a different path to reach the same goal.
+>>> > > My key argument for my method is, that people never leave detection
+>>> > > mode because they fear the switch to blocking. If you start with
+>>> > > blocking (and a high limit), then every iteration lowering the limits
+>>> > > helps you to build up confidence in your system and there is no
+>>> > > final "switch from detection to blocking".
+>>> > > The example which contradicts my statement is Barry who actually
+>>> > > switches to blocking in the end. I think this is rare.
+>>> > >
+>>> > > Ahoj,
+>>> > >
+>>> > > Christian
+>>> > >
+>>> > >
+>>> > >
+>>> > >
+>>> > >
+>>> > > Ahoj,
+>>> > >
+>>> > > Christian
+>>> > >
+>>> > >
+>>> > > --
+>>> > > Happiness exists on earth, and it is won through prudent
+>>> > > exercise of reason, knowledge of the harmony of the universe, and
+>>> > > constant practice of generosity.
+>>> > > -- Jos? Mart?
+>>> > >
+>>> >
+>>> >
+>>> >
+>>> > --
+>>> > *T. Kenneth S. Lojo*
+>>> > Specialist-Online Media Design
+>>> > [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+>>> > +63 928 209 1191 (mobile)
+>>> > t.lojo at irri.org <g.lavina at irri.org>
+>>> > www.irri.org
+>>> > [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+>>> Twitter]
+>>> > <http://twitter.com/RiceResearch> [image: Flickr]
+>>> > <http://www.flickr.com/photos/ricephotos/collections/> [image:
+>>> Youtube]
+>>> > <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+>>> > <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+>>> > <http://www.linkedin.com/company/international-rice-research-institute>
+>>> [image:
+>>> > Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+>>> > <https://plus.google.com/103972671963502739315>
+>>> >
+>>> > The International Rice Research Institute <http://irri.org> is a
+>>> member of
+>>> > the CGIAR <http://www.cgiar.org/>
+>>> >
+>>> > --
+>>> > The International Rice Research Institute <http://irri.org> is a
+>>> member of
+>>> > the CGIAR <http://cgiar.org> consortium
+>>>
+>>
+>>
+>>
+>> --
+>> *T. Kenneth S. Lojo*
+>> Specialist-Online Media Design
+>> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+>> +63 928 209 1191 (mobile)
+>> t.lojo at irri.org <g.lavina at irri.org>
+>> www.irri.org
+>> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image:
+>> Twitter] <http://twitter.com/RiceResearch> [image: Flickr]
+>> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+>> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+>> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+>> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+>> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+>> <https://plus.google.com/103972671963502739315>
+>>
+>> The International Rice Research Institute <http://irri.org> is a member
+>> of the CGIAR <http://www.cgiar.org/>
+>>
+>
+>
+>
+> --
+> *T. Kenneth S. Lojo*
+> Specialist-Online Media Design
+> [image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
+> +63 928 209 1191 (mobile)
+> t.lojo at irri.org <g.lavina at irri.org>
+> www.irri.org
+> [image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+> <http://twitter.com/RiceResearch> [image: Flickr]
+> <http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+> <http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+> <http://www.scribd.com/IRRI_resources> [image: Linkedin]
+> <http://www.linkedin.com/company/international-rice-research-institute> [image:
+> Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+> <https://plus.google.com/103972671963502739315>
+>
+> The International Rice Research Institute <http://irri.org> is a member
+> of the CGIAR <http://www.cgiar.org/>
+>
+
+
+
+-- 
+*T. Kenneth S. Lojo*
+Specialist-Online Media Design
+[image: IRRI] <http://irri.org/> +63 2 580 5600 ext. 2703/2744
++63 928 209 1191 (mobile)
+t.lojo at irri.org <g.lavina at irri.org>
+www.irri.org
+[image: Facebook] <http://www.facebook.com/IRRI.ricenews> [image: Twitter]
+<http://twitter.com/RiceResearch> [image: Flickr]
+<http://www.flickr.com/photos/ricephotos/collections/> [image: Youtube]
+<http://www.youtube.com/user/irrivideo/featured> [image: Scribd]
+<http://www.scribd.com/IRRI_resources> [image: Linkedin]
+<http://www.linkedin.com/company/international-rice-research-institute> [image:
+Soundcloud] <https://soundcloud.com/irri-radio> [image: Google+]
+<https://plus.google.com/103972671963502739315>
+
+The International Rice Research Institute <http://irri.org> is a member of
+the CGIAR <http://www.cgiar.org/>
+
+-- 
+The International Rice Research Institute <http://irri.org> is a member of 
+the CGIAR <http://cgiar.org> consortium
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160519/bca8c829/attachment-0001.html>
+
+From dangelsaurus at gmail.com  Sat May 28 01:48:31 2016
+From: dangelsaurus at gmail.com (David Angel)
+Date: Fri, 27 May 2016 20:48:31 -0500
+Subject: [Owasp-modsecurity-core-rule-set] Error with CRS 3.0.0-rc1 "error
+	parsing actions unknown action \\"
+Message-ID: <CAEHOfYngo5XDSegMMTrBzyf3hTvg49XfwYSFWfQA+3Hhw+S7HQ@mail.gmail.com>
+
+Good evening,
+
+I originally posted this at
+http://stackoverflow.com/questions/37369990/modsecurity-error-parsing-actions-unknown-action
+and it was suggested to send to this listserv as well.
+
+I'm trying to get CRS 3.0.0.-rc1 working with ModSecurity 2.9.1 and Apache
+2.4.7 on an Ubuntu 14.04 machine.
+
+I'm using all the rules in the /rules directory, and when trying to start
+Apache I receive the following error. (Note: There is no entry in the
+Apache error.log file for this.)
+
+AH00526: Syntax error on line 35 of
+/etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES-PHP.conf:
+Error parsing actions: Unknown action: \\
+Action 'configtest' failed.
+
+In my troubleshooting of the *RESPONSE-50-DATA-LEAKAGES-PHP.conf
+*file, I combined line 35 with 34
+
+capture,ctl:auditLogParts=+E,\
+
+just to see if the line error would change (and make sure I was indeed
+troubleshooting the correct file) and suddenly this error is gone, and
+is replaced with another.
+
+AH00526: Syntax error on line 31 of
+/etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES.conf:
+Error parsing actions: Unknown action: \\
+
+which again is solved by combining with the line above it.
+
+accuracy:'9',t:none,\
+
+
+Now it starts correctly with no error.  Needless to say I'm pretty
+confused about this error, and more confused about the "fix" since I
+don't understand why removing a single line continuation would matter.
+
+Any thoughts on this?  Or any suggestions to increase debug\troubleshooting?
+
+Thanks,
+David Angel
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20160527/271bd1b2/attachment.html>
+
+From christian.folini at netnea.com  Mon May 30 20:34:25 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Mon, 30 May 2016 22:34:25 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Possible bug in ModSec (was: Re:
+ Error with CRS 3.0.0-rc1 "error parsing actions unknown action \\")
+In-Reply-To: <CAEHOfYngo5XDSegMMTrBzyf3hTvg49XfwYSFWfQA+3Hhw+S7HQ@mail.gmail.com>
+References: <CAEHOfYngo5XDSegMMTrBzyf3hTvg49XfwYSFWfQA+3Hhw+S7HQ@mail.gmail.com>
+Message-ID: <20160530203425.GD3226@elias>
+
+David,
+
+Thanks for writing in. I am X-posting this to modsec-dev as well.
+
+Yours is a very strange problem indeed. I am running the 3.0rc1
+ruleset in production and have been running dozens of tests without
+any issue.
+
+Here is the minimal configuration, which triggered the bug in my
+environment (Ubunt 14.04, apache 2.4.7, modsec 2.9.1)
+
+ServerName              localhost
+ServerAdmin             root at localhost
+ServerRoot              /opt/apache-2.4.18
+User                    www-data
+Group                   www-data
+PidFile			logs/httpd.pid
+
+ServerTokens            Prod
+UseCanonicalName        On
+TraceEnable             Off
+
+Timeout                 300
+MaxClients              100
+
+KeepAlive               On
+KeepAliveTimeout        100ms
+
+Listen                  127.0.0.1:80
+
+LoadModule              mpm_prefork_module      modules/mod_mpm_prefork.so
+LoadModule              unixd_module            modules/mod_unixd.so
+LoadModule              authz_host_module       modules/mod_authz_host.so
+LoadModule              log_config_module       modules/mod_log_config.so
+LoadModule              logio_module            modules/mod_logio.so
+
+LoadModule              headers_module          modules/mod_headers.so
+LoadModule              unique_id_module        modules/mod_unique_id.so
+LoadModule              security2_module        modules/mod_security2.so
+
+LoadModule              mime_module             modules/mod_mime.so
+LoadModule              status_module           modules/mod_status.so
+
+LoadModule              lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+
+LogLevel                        debug core:notice
+
+ErrorLogFormat "[%{cu}t] [%-m:%-l] %-a %-L %M"
+
+
+ErrorLog                logs/error.log
+
+DocumentRoot            /apache/htdocs
+
+# === Start ModSec Configuration
+
+SecRuleEngine                 On
+
+SecRequestBodyAccess          On
+SecRequestBodyLimit           10000000
+SecRequestBodyNoFilesLimit    64000
+
+SecResponseBodyAccess         On
+SecResponseBodyLimit          10000000
+
+SecTmpDir                     /tmp/
+SecDataDir                    /tmp/
+SecUploadDir                  /tmp/
+
+SecDebugLog                   /apache/logs/modsec_debug.log
+SecDebugLogLevel              9
+
+SecAuditEngine                RelevantOnly
+SecAuditLogRelevantStatus     "^(?:5|4(?!04))"
+SecAuditLogParts              ABEFHIJZ
+
+SecAuditLogType               Concurrent
+SecAuditLog                   /apache/logs/modsec_audit.log
+SecAuditLogStorageDir         /apache/logs/audit/
+
+SecPcreMatchLimit             500000
+SecPcreMatchLimitRecursion    500000
+
+SecDefaultAction              "phase:2,pass,log"
+
+
+SecRule RESPONSE_BODY "(?:<(?:TITLE>Index of.*?<H|title>Index of.*?<h)1>Index of|>\[To Parent Directory\]<\/[Aa]><br>)" \
+	"phase:response,\
+	rev:'2',\
+	ver:'OWASP_CRS/3.0.0',\
+	maturity:'9',\
+	accuracy:'9',\
+	t:none,\
+	block,\
+	id:'950110'"
+
+
+<Directory />
+        Options SymLinksIfOwnerMatch
+        AllowOverride None
+</Directory>
+
+<VirtualHost *:80>
+        ServerName localhost
+
+        <Directory /apache/htdocs>
+
+        </Directory>
+
+</VirtualHost>
+
+
+$> ./bin/httpd -X -f conf/httpd.conf_problem_of_the_day
+AH00526: Syntax error on line 82 of /opt/apache-2.4.18/conf/httpd.conf_problem_of_the_day
+Error parsing actions: Unknown action: \\
+
+I tried this with 2.4.7 as well.
+
+If I take a single character out of the regex or out of the version
+string (OWASP_CRS...), then the bug disappears.
+
+If I add a space in front of the backslash: bug disappears.
+
+Given the config above, I am quite sure there is a bug hidden somewhere.
+Maybe I am overlooking something and somebody can point me to an
+error. If that is not the case, then I think it is a bug.
+
+David: I suggest you open a bug report. Please open it against
+ModSecurity and not against the Core Rules.
+
+Ahoj,
+
+Christian
+
+
+
+
+
+On Fri, May 27, 2016 at 08:48:31PM -0500, David Angel wrote:
+> Good evening,
+> 
+> I originally posted this at
+> http://stackoverflow.com/questions/37369990/modsecurity-error-parsing-actions-unknown-action
+> and it was suggested to send to this listserv as well.
+> 
+> I'm trying to get CRS 3.0.0.-rc1 working with ModSecurity 2.9.1 and Apache
+> 2.4.7 on an Ubuntu 14.04 machine.
+> 
+> I'm using all the rules in the /rules directory, and when trying to start
+> Apache I receive the following error. (Note: There is no entry in the
+> Apache error.log file for this.)
+> 
+> AH00526: Syntax error on line 35 of
+> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES-PHP.conf:
+> Error parsing actions: Unknown action: \\
+> Action 'configtest' failed.
+> 
+> In my troubleshooting of the *RESPONSE-50-DATA-LEAKAGES-PHP.conf
+> *file, I combined line 35 with 34
+> 
+> capture,ctl:auditLogParts=+E,\
+> 
+> just to see if the line error would change (and make sure I was indeed
+> troubleshooting the correct file) and suddenly this error is gone, and
+> is replaced with another.
+> 
+> AH00526: Syntax error on line 31 of
+> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES.conf:
+> Error parsing actions: Unknown action: \\
+> 
+> which again is solved by combining with the line above it.
+> 
+> accuracy:'9',t:none,\
+> 
+> 
+> Now it starts correctly with no error.  Needless to say I'm pretty
+> confused about this error, and more confused about the "fix" since I
+> don't understand why removing a single line continuation would matter.
+> 
+> Any thoughts on this?  Or any suggestions to increase debug\troubleshooting?
+> 
+> Thanks,
+> David Angel
+
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+-- 
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+
+From FCosta at trustwave.com  Tue May 31 00:34:32 2016
+From: FCosta at trustwave.com (Felipe Costa)
+Date: Tue, 31 May 2016 00:34:32 +0000
+Subject: [Owasp-modsecurity-core-rule-set] [Mod-security-developers]
+ Possible bug in ModSec (was: Re: Error with CRS 3.0.0-rc1 "error parsing
+ actions unknown action \\")
+In-Reply-To: <20160530203425.GD3226@elias>
+References: <CAEHOfYngo5XDSegMMTrBzyf3hTvg49XfwYSFWfQA+3Hhw+S7HQ@mail.gmail.com>
+	<20160530203425.GD3226@elias>
+Message-ID: <6AD649C6-1940-4458-9827-5D018AD24FF7@trustwave.com>
+
+Hi Christian,
+
+It seems to me that this problem is associated with an known Apache issue.
+It is related to the utilization of the continuation lines ?\\? .
+
+For further details: https://bz.apache.org/bugzilla/show_bug.cgi?id=55910
+
+I made the comment #4 back on 2014: https://bz.apache.org/bugzilla/show_bug.cgi?id=55910#c4
+
+I think it is fixed on Apache 2.4.11+.
+
+Br.,
+Felipe ?Zimmerle? Costa
+Security Researcher, Lead Developer ModSecurity.
+
+Trustwave | SMART SECURITY ON DEMAND
+www.trustwave.com <http://www.trustwave.com/>
+
+
+
+
+
+
+
+
+On 5/30/16, 5:34 PM, "Christian Folini" <christian.folini at netnea.com> wrote:
+
+>David,
+>
+>Thanks for writing in. I am X-posting this to modsec-dev as well.
+>
+>Yours is a very strange problem indeed. I am running the 3.0rc1
+>ruleset in production and have been running dozens of tests without
+>any issue.
+>
+>Here is the minimal configuration, which triggered the bug in my
+>environment (Ubunt 14.04, apache 2.4.7, modsec 2.9.1)
+>
+>ServerName              localhost
+>ServerAdmin             root at localhost
+>ServerRoot              /opt/apache-2.4.18
+>User                    www-data
+>Group                   www-data
+>PidFile                        logs/httpd.pid
+>
+>ServerTokens            Prod
+>UseCanonicalName        On
+>TraceEnable             Off
+>
+>Timeout                 300
+>MaxClients              100
+>
+>KeepAlive               On
+>KeepAliveTimeout        100ms
+>
+>Listen                  127.0.0.1:80
+>
+>LoadModule              mpm_prefork_module      modules/mod_mpm_prefork.so
+>LoadModule              unixd_module            modules/mod_unixd.so
+>LoadModule              authz_host_module       modules/mod_authz_host.so
+>LoadModule              log_config_module       modules/mod_log_config.so
+>LoadModule              logio_module            modules/mod_logio.so
+>
+>LoadModule              headers_module          modules/mod_headers.so
+>LoadModule              unique_id_module        modules/mod_unique_id.so
+>LoadModule              security2_module        modules/mod_security2.so
+>
+>LoadModule              mime_module             modules/mod_mime.so
+>LoadModule              status_module           modules/mod_status.so
+>
+>LoadModule              lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+>
+>LogLevel                        debug core:notice
+>
+>ErrorLogFormat "[%{cu}t] [%-m:%-l] %-a %-L %M"
+>
+>
+>ErrorLog                logs/error.log
+>
+>DocumentRoot            /apache/htdocs
+>
+># === Start ModSec Configuration
+>
+>SecRuleEngine                 On
+>
+>SecRequestBodyAccess          On
+>SecRequestBodyLimit           10000000
+>SecRequestBodyNoFilesLimit    64000
+>
+>SecResponseBodyAccess         On
+>SecResponseBodyLimit          10000000
+>
+>SecTmpDir                     /tmp/
+>SecDataDir                    /tmp/
+>SecUploadDir                  /tmp/
+>
+>SecDebugLog                   /apache/logs/modsec_debug.log
+>SecDebugLogLevel              9
+>
+>SecAuditEngine                RelevantOnly
+>SecAuditLogRelevantStatus     "^(?:5|4(?!04))"
+>SecAuditLogParts              ABEFHIJZ
+>
+>SecAuditLogType               Concurrent
+>SecAuditLog                   /apache/logs/modsec_audit.log
+>SecAuditLogStorageDir         /apache/logs/audit/
+>
+>SecPcreMatchLimit             500000
+>SecPcreMatchLimitRecursion    500000
+>
+>SecDefaultAction              "phase:2,pass,log"
+>
+>
+>SecRule RESPONSE_BODY "(?:<(?:TITLE>Index of.*?<H|title>Index of.*?<h)1>Index of|>\[To Parent Directory\]<\/[Aa]><br>)" \
+>       "phase:response,\
+>       rev:'2',\
+>       ver:'OWASP_CRS/3.0.0',\
+>       maturity:'9',\
+>       accuracy:'9',\
+>       t:none,\
+>       block,\
+>       id:'950110'"
+>
+>
+><Directory />
+>        Options SymLinksIfOwnerMatch
+>        AllowOverride None
+></Directory>
+>
+><VirtualHost *:80>
+>        ServerName localhost
+>
+>        <Directory /apache/htdocs>
+>
+>        </Directory>
+>
+></VirtualHost>
+>
+>
+>$> ./bin/httpd -X -f conf/httpd.conf_problem_of_the_day
+>AH00526: Syntax error on line 82 of /opt/apache-2.4.18/conf/httpd.conf_problem_of_the_day
+>Error parsing actions: Unknown action: \\
+>
+>I tried this with 2.4.7 as well.
+>
+>If I take a single character out of the regex or out of the version
+>string (OWASP_CRS...), then the bug disappears.
+>
+>If I add a space in front of the backslash: bug disappears.
+>
+>Given the config above, I am quite sure there is a bug hidden somewhere.
+>Maybe I am overlooking something and somebody can point me to an
+>error. If that is not the case, then I think it is a bug.
+>
+>David: I suggest you open a bug report. Please open it against
+>ModSecurity and not against the Core Rules.
+>
+>Ahoj,
+>
+>Christian
+>
+>
+>
+>
+>
+>On Fri, May 27, 2016 at 08:48:31PM -0500, David Angel wrote:
+>> Good evening,
+>>
+>> I originally posted this at
+>> http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5l7QuIfKA&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f37369990%2fmodsecurity-error-parsing-actions-unknown-action
+>> and it was suggested to send to this listserv as well.
+>>
+>> I'm trying to get CRS 3.0.0.-rc1 working with ModSecurity 2.9.1 and Apache
+>> 2.4.7 on an Ubuntu 14.04 machine.
+>>
+>> I'm using all the rules in the /rules directory, and when trying to start
+>> Apache I receive the following error. (Note: There is no entry in the
+>> Apache error.log file for this.)
+>>
+>> AH00526: Syntax error on line 35 of
+>> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES-PHP.conf:
+>> Error parsing actions: Unknown action: \\
+>> Action 'configtest' failed.
+>>
+>> In my troubleshooting of the *RESPONSE-50-DATA-LEAKAGES-PHP.conf
+>> *file, I combined line 35 with 34
+>>
+>> capture,ctl:auditLogParts=+E,\
+>>
+>> just to see if the line error would change (and make sure I was indeed
+>> troubleshooting the correct file) and suddenly this error is gone, and
+>> is replaced with another.
+>>
+>> AH00526: Syntax error on line 31 of
+>> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES.conf:
+>> Error parsing actions: Unknown action: \\
+>>
+>> which again is solved by combining with the line above it.
+>>
+>> accuracy:'9',t:none,\
+>>
+>>
+>> Now it starts correctly with no error.  Needless to say I'm pretty
+>> confused about this error, and more confused about the "fix" since I
+>> don't understand why removing a single line continuation would matter.
+>>
+>> Any thoughts on this?  Or any suggestions to increase debug\troubleshooting?
+>>
+>> Thanks,
+>> David Angel
+>
+>> _______________________________________________
+>> Owasp-modsecurity-core-rule-set mailing list
+>> Owasp-modsecurity-core-rule-set at lists.owasp.org
+>> http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS50vHuBKKQ&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set
+>
+>
+>--
+>mailto:christian.folini at netnea.com
+>http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5h6QuYRJA&s=5&u=http%3a%2f%2fwww%2echristian-folini%2ech
+>twitter: @ChrFolini
+>
+>------------------------------------------------------------------------------
+>What NetFlow Analyzer can do for you? Monitors network bandwidth and traffic
+>patterns at an interface-level. Reveals which users, apps, and protocols are
+>consuming the most bandwidth. Provides multi-vendor support for NetFlow,
+>J-Flow, sFlow and other flows. Make informed decisions using capacity
+>planning reports. http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5svEuhJKA&s=5&u=https%3a%2f%2fad%2edoubleclick%2enet%2fddm%2fclk%2f305295220%3b132659582%3be
+>_______________________________________________
+>mod-security-developers mailing list
+>mod-security-developers at lists.sourceforge.net
+>http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5ksH-UfdQ&s=5&u=https%3a%2f%2flists%2esourceforge%2enet%2flists%2flistinfo%2fmod-security-developers
+>ModSecurity Services from Trustwave's SpiderLabs:
+>https://www.trustwave.com/spiderLabs.php
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+
+From christian.folini at netnea.com  Tue May 31 06:47:40 2016
+From: christian.folini at netnea.com (Christian Folini)
+Date: Tue, 31 May 2016 08:47:40 +0200
+Subject: [Owasp-modsecurity-core-rule-set] [Mod-security-developers]
+ Possible bug in ModSec (was: Re: Error with CRS 3.0.0-rc1 "error parsing
+ actions unknown action \\")
+In-Reply-To: <6AD649C6-1940-4458-9827-5D018AD24FF7@trustwave.com>
+References: <CAEHOfYngo5XDSegMMTrBzyf3hTvg49XfwYSFWfQA+3Hhw+S7HQ@mail.gmail.com>
+	<20160530203425.GD3226@elias>
+	<6AD649C6-1940-4458-9827-5D018AD24FF7@trustwave.com>
+Message-ID: <20160531064740.GA23446@elias>
+
+Felipe,
+
+Thank you for the quick response. Glad this is fixed.
+
+A glitch in my lab setup made me believe a new apache showed the
+same behaviour. But that was a false alarm. Thank you for pointing this
+out.
+
+Cheers,
+
+Christian
+
+
+
+
+On Tue, May 31, 2016 at 12:34:32AM +0000, Felipe Costa wrote:
+> Hi Christian,
+> 
+> It seems to me that this problem is associated with an known Apache issue.
+> It is related to the utilization of the continuation lines ?\\? .
+> 
+> For further details: https://bz.apache.org/bugzilla/show_bug.cgi?id=55910
+> 
+> I made the comment #4 back on 2014: https://bz.apache.org/bugzilla/show_bug.cgi?id=55910#c4
+> 
+> I think it is fixed on Apache 2.4.11+.
+> 
+> Br.,
+> Felipe ?Zimmerle? Costa
+> Security Researcher, Lead Developer ModSecurity.
+> 
+> Trustwave | SMART SECURITY ON DEMAND
+> www.trustwave.com <http://www.trustwave.com/>
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> On 5/30/16, 5:34 PM, "Christian Folini" <christian.folini at netnea.com> wrote:
+> 
+> >David,
+> >
+> >Thanks for writing in. I am X-posting this to modsec-dev as well.
+> >
+> >Yours is a very strange problem indeed. I am running the 3.0rc1
+> >ruleset in production and have been running dozens of tests without
+> >any issue.
+> >
+> >Here is the minimal configuration, which triggered the bug in my
+> >environment (Ubunt 14.04, apache 2.4.7, modsec 2.9.1)
+> >
+> >ServerName              localhost
+> >ServerAdmin             root at localhost
+> >ServerRoot              /opt/apache-2.4.18
+> >User                    www-data
+> >Group                   www-data
+> >PidFile                        logs/httpd.pid
+> >
+> >ServerTokens            Prod
+> >UseCanonicalName        On
+> >TraceEnable             Off
+> >
+> >Timeout                 300
+> >MaxClients              100
+> >
+> >KeepAlive               On
+> >KeepAliveTimeout        100ms
+> >
+> >Listen                  127.0.0.1:80
+> >
+> >LoadModule              mpm_prefork_module      modules/mod_mpm_prefork.so
+> >LoadModule              unixd_module            modules/mod_unixd.so
+> >LoadModule              authz_host_module       modules/mod_authz_host.so
+> >LoadModule              log_config_module       modules/mod_log_config.so
+> >LoadModule              logio_module            modules/mod_logio.so
+> >
+> >LoadModule              headers_module          modules/mod_headers.so
+> >LoadModule              unique_id_module        modules/mod_unique_id.so
+> >LoadModule              security2_module        modules/mod_security2.so
+> >
+> >LoadModule              mime_module             modules/mod_mime.so
+> >LoadModule              status_module           modules/mod_status.so
+> >
+> >LoadModule              lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+> >
+> >LogLevel                        debug core:notice
+> >
+> >ErrorLogFormat "[%{cu}t] [%-m:%-l] %-a %-L %M"
+> >
+> >
+> >ErrorLog                logs/error.log
+> >
+> >DocumentRoot            /apache/htdocs
+> >
+> ># === Start ModSec Configuration
+> >
+> >SecRuleEngine                 On
+> >
+> >SecRequestBodyAccess          On
+> >SecRequestBodyLimit           10000000
+> >SecRequestBodyNoFilesLimit    64000
+> >
+> >SecResponseBodyAccess         On
+> >SecResponseBodyLimit          10000000
+> >
+> >SecTmpDir                     /tmp/
+> >SecDataDir                    /tmp/
+> >SecUploadDir                  /tmp/
+> >
+> >SecDebugLog                   /apache/logs/modsec_debug.log
+> >SecDebugLogLevel              9
+> >
+> >SecAuditEngine                RelevantOnly
+> >SecAuditLogRelevantStatus     "^(?:5|4(?!04))"
+> >SecAuditLogParts              ABEFHIJZ
+> >
+> >SecAuditLogType               Concurrent
+> >SecAuditLog                   /apache/logs/modsec_audit.log
+> >SecAuditLogStorageDir         /apache/logs/audit/
+> >
+> >SecPcreMatchLimit             500000
+> >SecPcreMatchLimitRecursion    500000
+> >
+> >SecDefaultAction              "phase:2,pass,log"
+> >
+> >
+> >SecRule RESPONSE_BODY "(?:<(?:TITLE>Index of.*?<H|title>Index of.*?<h)1>Index of|>\[To Parent Directory\]<\/[Aa]><br>)" \
+> >       "phase:response,\
+> >       rev:'2',\
+> >       ver:'OWASP_CRS/3.0.0',\
+> >       maturity:'9',\
+> >       accuracy:'9',\
+> >       t:none,\
+> >       block,\
+> >       id:'950110'"
+> >
+> >
+> ><Directory />
+> >        Options SymLinksIfOwnerMatch
+> >        AllowOverride None
+> ></Directory>
+> >
+> ><VirtualHost *:80>
+> >        ServerName localhost
+> >
+> >        <Directory /apache/htdocs>
+> >
+> >        </Directory>
+> >
+> ></VirtualHost>
+> >
+> >
+> >$> ./bin/httpd -X -f conf/httpd.conf_problem_of_the_day
+> >AH00526: Syntax error on line 82 of /opt/apache-2.4.18/conf/httpd.conf_problem_of_the_day
+> >Error parsing actions: Unknown action: \\
+> >
+> >I tried this with 2.4.7 as well.
+> >
+> >If I take a single character out of the regex or out of the version
+> >string (OWASP_CRS...), then the bug disappears.
+> >
+> >If I add a space in front of the backslash: bug disappears.
+> >
+> >Given the config above, I am quite sure there is a bug hidden somewhere.
+> >Maybe I am overlooking something and somebody can point me to an
+> >error. If that is not the case, then I think it is a bug.
+> >
+> >David: I suggest you open a bug report. Please open it against
+> >ModSecurity and not against the Core Rules.
+> >
+> >Ahoj,
+> >
+> >Christian
+> >
+> >
+> >
+> >
+> >
+> >On Fri, May 27, 2016 at 08:48:31PM -0500, David Angel wrote:
+> >> Good evening,
+> >>
+> >> I originally posted this at
+> >> http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5l7QuIfKA&s=5&u=http%3a%2f%2fstackoverflow%2ecom%2fquestions%2f37369990%2fmodsecurity-error-parsing-actions-unknown-action
+> >> and it was suggested to send to this listserv as well.
+> >>
+> >> I'm trying to get CRS 3.0.0.-rc1 working with ModSecurity 2.9.1 and Apache
+> >> 2.4.7 on an Ubuntu 14.04 machine.
+> >>
+> >> I'm using all the rules in the /rules directory, and when trying to start
+> >> Apache I receive the following error. (Note: There is no entry in the
+> >> Apache error.log file for this.)
+> >>
+> >> AH00526: Syntax error on line 35 of
+> >> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES-PHP.conf:
+> >> Error parsing actions: Unknown action: \\
+> >> Action 'configtest' failed.
+> >>
+> >> In my troubleshooting of the *RESPONSE-50-DATA-LEAKAGES-PHP.conf
+> >> *file, I combined line 35 with 34
+> >>
+> >> capture,ctl:auditLogParts=+E,\
+> >>
+> >> just to see if the line error would change (and make sure I was indeed
+> >> troubleshooting the correct file) and suddenly this error is gone, and
+> >> is replaced with another.
+> >>
+> >> AH00526: Syntax error on line 31 of
+> >> /etc/apache2/conf/crs/rules/RESPONSE-50-DATA-LEAKAGES.conf:
+> >> Error parsing actions: Unknown action: \\
+> >>
+> >> which again is solved by combining with the line above it.
+> >>
+> >> accuracy:'9',t:none,\
+> >>
+> >>
+> >> Now it starts correctly with no error.  Needless to say I'm pretty
+> >> confused about this error, and more confused about the "fix" since I
+> >> don't understand why removing a single line continuation would matter.
+> >>
+> >> Any thoughts on this?  Or any suggestions to increase debug\troubleshooting?
+> >>
+> >> Thanks,
+> >> David Angel
+> >
+> >> _______________________________________________
+> >> Owasp-modsecurity-core-rule-set mailing list
+> >> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> >> http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS50vHuBKKQ&s=5&u=https%3a%2f%2flists%2eowasp%2eorg%2fmailman%2flistinfo%2fowasp-modsecurity-core-rule-set
+> >
+> >
+> >--
+> >mailto:christian.folini at netnea.com
+> >http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5h6QuYRJA&s=5&u=http%3a%2f%2fwww%2echristian-folini%2ech
+> >twitter: @ChrFolini
+> >
+> >------------------------------------------------------------------------------
+> >What NetFlow Analyzer can do for you? Monitors network bandwidth and traffic
+> >patterns at an interface-level. Reveals which users, apps, and protocols are
+> >consuming the most bandwidth. Provides multi-vendor support for NetFlow,
+> >J-Flow, sFlow and other flows. Make informed decisions using capacity
+> >planning reports. http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5svEuhJKA&s=5&u=https%3a%2f%2fad%2edoubleclick%2enet%2fddm%2fclk%2f305295220%3b132659582%3be
+> >_______________________________________________
+> >mod-security-developers mailing list
+> >mod-security-developers at lists.sourceforge.net
+> >http://scanmail.trustwave.com/?c=4062&d=9qPM115iL1ynPbZVTXRAV5XeKfPloSkwS5ksH-UfdQ&s=5&u=https%3a%2f%2flists%2esourceforge%2enet%2flists%2flistinfo%2fmod-security-developers
+> >ModSecurity Services from Trustwave's SpiderLabs:
+> >https://www.trustwave.com/spiderLabs.php
+> 
+> ________________________________
+> 
+> This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+> ------------------------------------------------------------------------------
+> What NetFlow Analyzer can do for you? Monitors network bandwidth and traffic
+> patterns at an interface-level. Reveals which users, apps, and protocols are 
+> consuming the most bandwidth. Provides multi-vendor support for NetFlow, 
+> J-Flow, sFlow and other flows. Make informed decisions using capacity 
+> planning reports. https://ad.doubleclick.net/ddm/clk/305295220;132659582;e
+> _______________________________________________
+> mod-security-developers mailing list
+> mod-security-developers at lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/mod-security-developers
+> ModSecurity Services from Trustwave's SpiderLabs:
+> https://www.trustwave.com/spiderLabs.php
+
+-- 
+mailto:christian.folini at netnea.com
+http://www.christian-folini.ch
+twitter: @ChrFolini
+

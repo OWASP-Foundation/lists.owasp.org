@@ -1,0 +1,309 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-appsensor-project] World Summit - AppSensor Results
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20World%20Summit%20-%20AppSensor%20Results&In-Reply-To=AANLkTi%3DO%3D4AvyduQPgHJJFPbt-rmcWxQdpj9CTRCRJL7%40mail.gmail.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000214.html">
+   <LINK REL="Next"  HREF="000216.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-appsensor-project] World Summit - AppSensor Results</H1>
+    <B>Colin Watson</B> 
+    <A HREF="mailto:owasp-appsensor-project%40lists.owasp.org?Subject=%5BOwasp-appsensor-project%5D%20World%20Summit%20-%20AppSensor%20Results&In-Reply-To=AANLkTi%3DO%3D4AvyduQPgHJJFPbt-rmcWxQdpj9CTRCRJL7%40mail.gmail.com"
+       TITLE="[Owasp-appsensor-project] World Summit - AppSensor Results">colin.watson at owasp.org
+       </A><BR>
+    <I>Sat Mar  5 05:40:28 EST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000214.html">[Owasp-appsensor-project] World Summit - AppSensor Results
+</A></li>
+        <LI>Next message: <A HREF="000216.html">[Owasp-appsensor-project] World Summit - AppSensor Results
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#215">[ date ]</a>
+              <a href="thread.html#215">[ thread ]</a>
+              <a href="subject.html#215">[ subject ]</a>
+              <a href="author.html#215">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>John
+
+Regarding logging, I have found it better to set up generic
+application logging (into a DB), and then separately look at the
+exporting/syndicating a subset of that.
+
+In a logging implementation last year, I created a table for the
+security event log (not just attacks and other appsensor events)
+called `log_security` and a separate table for larger chunks of data
+(e.g. response bodies) if it was useful to record something more
+`log_security_details` :
+
+CREATE TABLE IF NOT EXISTS `log_security` (
+  `id_log` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `log_timestamp` datetime NOT NULL,
+  `severity` tinyint(3) unsigned NOT NULL DEFAULT '7',
+  `event_timestamp` datetime NOT NULL,
+  `event_type` varchar(25) CHARACTER SET latin1 DEFAULT NULL,
+  `action` varchar(25) CHARACTER SET latin1 NOT NULL,
+  `object` varchar(25) CHARACTER SET latin1 NOT NULL,
+  `result_status` varchar(7) CHARACTER SET latin1 DEFAULT NULL,
+  `reason` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
+  `http_status_code` smallint(5) unsigned DEFAULT NULL,
+  `event_confidence` tinyint(3) unsigned NOT NULL DEFAULT '100',
+  `location` varchar(100) DEFAULT NULL,
+  `host` varchar(45) CHARACTER SET latin1 NOT NULL,
+  `service_name` varchar(25) CHARACTER SET latin1 NOT NULL,
+  `service_port` smallint(5) unsigned NOT NULL DEFAULT '80',
+  `service_protocol` varchar(10) CHARACTER SET latin1 NOT NULL DEFAULT 'http',
+  `http_method` varchar(10) CHARACTER SET latin1 DEFAULT NULL,
+  `entry_point` varchar(100) CHARACTER SET latin1 DEFAULT NULL,
+  `request_number` int(10) unsigned DEFAULT '0',
+  `source` varchar(45) CHARACTER SET latin1 NOT NULL COMMENT 'IP address',
+  `user_identity` int(10) unsigned NOT NULL DEFAULT '0' COMMENT
+'id_person or 0 for unauthenticated',
+  `http_user_agent` varchar(120) CHARACTER SET latin1 DEFAULT NULL,
+  `user_fingerprint` varchar(40) CHARACTER SET latin1 DEFAULT NULL,
+  `hash` varchar(40) CHARACTER SET latin1 DEFAULT NULL,
+  PRIMARY KEY (`id_log`),
+  KEY `Index_2` (`severity`),
+  KEY `Index_3` (`request_number`),
+  KEY `Index_4` (`user_identity`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `log_security_details` (
+  `id_log` int(10) unsigned NOT NULL,
+  `details` text COLLATE latin1_general_ci NOT NULL,
+  PRIMARY KEY (`id_log`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+
+I also needed:
+
+CREATE TABLE IF NOT EXISTS `log_request_counter` (
+  `counter` int(10) unsigned NOT NULL DEFAULT '1',
+  `modified` datetime DEFAULT NULL,
+  PRIMARY KEY (`counter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `log_request_counter` (`counter`, `modified`) VALUES
+(47, '2010-10-27 16:31:44');
+
+I also had another table `log_data`  used to track changes/deletions
+of individual database fields, but that isn't relevant here.
+
+In the main log,
+
+- `id_log` is an auto-incrementing ID
+
+- `log_timestamp` is determined when the log entry is written - not
+when the event was detected
+
+- `severity` is
+      0 (Emergency/Application unavailable for all users)
+      1 (Alert/Function unavailable for all users),
+      2 (Critical/Function or application unavailable to a single user),
+      3 (Error/Other security events not included in codes 0, 1, 2 or 4),
+      4 (Warning/A security event but user allowed to continue),
+      5 (Notice: normal but significant condition)
+      6 (Information/Normal user behaviour)
+
+- `event_timestamp` is the event date/time
+
+-  `event_type` is a broad description e.g. &quot;Input Validation&quot;,
+&quot;Authentication&quot;, &quot;Session Management&quot;, &quot;Output Validation&quot;
+
+-  `action` was the original intended purpose of the request e.g. Log
+In, Refresh Session ID, Log Out, Request
+
+-  `object` is the affected component or other object (user account,
+data resource, file) e.g. URL, Session ID, User Account
+
+- `result_status` is whether the ACTION aimed at the OBJECT was
+successful e.g. Success, Fail, Defer
+
+- `reason` is why the status above occurred e.g. User not
+authenticated in database check ..., Incorrect credentials
+
+- `http_status_code` is the status code returned to the user (often
+200 or 301, need to imagine many log entries here for a single
+request)
+
+- `event_confidence` is a percentage 0-100...confidence the event
+identified occurred as stated above - often 100% for whitelist input
+validation, but maybe less than that for data from a WAF about
+possible XSS attack
+
+- `location` is where event was detected - script or component (not the URL)
+
+- `host` e.g. www.example.com
+
+- `service_name` e.g. &quot;Colin's App&quot;
+
+- `service_port` e.g. 443
+
+- `service_protocol` e.g. http
+
+- `http_method` e.g. GET, POST
+
+- `entry_point` a URL e.g. /cw/Bench.php
+
+- `request_number` is a unique integer for every single request
+received by the application, and will be shared by a number of ecent
+log entries, so they can be correclated with each other i.e. one
+rqeuest may have multiple input validation errors
+
+- `source` varchar(45) CHARACTER SET latin1 NOT NULL COMMENT 'IP address',
+
+- `user_identity` might be a user ID, username or perhaps 0 for
+unauthenticated',
+
+- `http_user_agent` is HTTP_USER_AGENT
+
+-  `user_fingerprint` is a SHA!1 hash of user agent/request properties
+   sha1(substr(trim($_SERVER['REMOTE_ADDR']),0,7).trim($_SERVER['HTTP_USER_AGENT']).trim($_SERVER['HTTP_ACCEPT_ENCODING']).trim($_SERVER['HTTP_ACCEPT_LANGUAGE']));
+
+- `hash` a SHA1 hash of a salt concatenated with the hash of the
+immediately previous log entry and the log record above (including
+id_log) for integrity checking
+
+the only other thing I had wondered about adding was a field for which
+(e.g. type-identifier like RE3-2001) AppSensor detection point fired.
+This may be NULL for some entries.  Then perhaps also what responses
+ocuured (e.g. a list A,F,G or NULL).  That way it's easier to
+monitor/tune AppSensor.  Or possibly those two should be logged in
+another DB table..
+
+  id_log
+  appsensor_detectionpoint
+  appsensor_response (allow NULL)
+
+allowing for more than one record per id_log
+
+Some example log entries are:
+
+INSERT INTO `log_security` (`id_log`, `log_timestamp`, `severity`,
+`event_timestamp`, `event_type`, `action`, `object`, `result_status`,
+`reason`, `http_status_code`, `event_confidence`, `location`, `host`,
+`service_name`, `service_port`, `service_protocol`, `http_method`,
+`entry_point`, `request_number`, `source`, `user_identity`,
+`http_user_agent`, `user_fingerprint`, `hash`) VALUES ...
+
+(1205, '2010-10-08 08:39:29', 3, '2010-10-08 08:39:29', 'Input
+Validation', 'Request', 'URL', 'Fail', 'GET parameter ''dialogID'' is
+not permitted', 400, 100, 'includes:parameters-check-allowed.php',
+'example.com', 'CW Bench', 80, 'http', 'GET', '/cw/bench.php', 832,
+'xxx.xxx.xxx.xxx', 49, 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT
+6.0; Trident/4.0; SLCC1; .NET CLR 2.0.50727; InfoPath.2; .NET CLR
+3.0.3072', 'ed69a08f107c700f59c265198228f7968ac57e70',
+'26e9a8d4134180283cf04b533cd7de28c1c4545c'),
+
+(1424, '2010-10-08 16:50:30', 3, '2010-10-08 16:50:30', 'Input
+Validation', 'Request', 'URL', 'Fail', 'GET parameter
+''script&gt;ALERT_1__/script&gt;'' is not permitted', 400, 100,
+'includes:parameters-check-allowed.php', 'example.com', 'CW Bench',
+80, 'http', 'GET', '/cw/bench.php', 2408, 'xxx.xxx.xxx.xxx', 0,
+'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.3
+(KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3',
+'98309085b4e63d8a1f3ef898a6f05e1f83affc97',
+'ec3dfae274a7330289c7b618a292612a891f7a3e'),
+
+(2014, '2010-10-18 10:12:11', 3, '2010-10-18 10:12:11', 'Session
+Management', 'Check Authorised', 'Session ID', 'Fail',
+'$_SESSION[''AUTHORIZED''] does not exist', 301, 100,
+'includes:check-authorised.php', 'example.com', 'CW Bench', 80,
+'http', 'GET', '/cw/Bench.php', 103, 'xxx.xxx.xxx.xxx', 0,
+'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.2.10)
+Gecko/20100914 Firefox/3.6.10',
+'1e8d88986cc07e586acdd0c39f92728db6df8c06',
+'18d2114afb34211390851e6435149f220baedc80'),
+
+(3609, '2010-10-26 18:11:38', 5, '2010-10-26 18:11:38', 'Session
+Management', 'Log out', 'User Account', 'Success', '', 301, 100,
+'terminate.php', 'example.com', 'CW Bench', 80, 'http', 'POST',
+'/cw/terminate.php', 82, 'xxx.xxx.xxx.xxx', 0, 'Mozilla/5.0 (Windows;
+U; Windows NT 5.1; en-GB; rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11',
+'8c01499deb24a67ac60ae49aef867bcd7c434b28',
+'d89617515fadca0366cc74ede58855a9e1733066'),
+
+
+(3663, '2010-10-27 16:30:17', 5, '2010-10-27 16:30:17',
+'Authentication', 'Log In', 'User Account', 'Success', 'Successful log
+in', 301, 100, 'gegin.php', 'example.com', 'CW Bench', 80, 'http',
+'POST', '/cw/first.php', 34, 'xxx.xxx.xxx.xxx', 46, 'Mozilla/5.0
+(Windows; U; Windows NT 5.1; en-GB; rv:1.9.2.11) Gecko/20101012
+Firefox/3.6.11 ( .NET CLR 3.5.30729)',
+'511ceb082b2e8634cec7e160802eab9d15c185b4',
+'ce45be9a7654b9037e1922f9a75318c4182a89cb'),
+
+
+(3670, '2010-10-27 16:30:34', 3, '2010-10-27 16:30:34', 'Input
+Validation', 'Request', 'URL', 'Success', 'Attack - total impact 22
+(xss, csrf, sqli, id, lfi, rfe)', 200, 50, 'includes:phpids.php',
+'example.com', 'CW Bench', 80, 'http', 'POST',
+'/cw/jsonTemplate1.php', 41, '86.162.235.215', 46, 'Mozilla/5.0
+(Windows; U; Windows NT 5.1; en-GB; rv:1.9.2.11) Gecko/20101012
+Firefox/3.6.11 ( .NET CLR 3.5.30729)',
+'511ceb082b2e8634cec7e160802eab9d15c185b4',
+'f4052242441f4896e02cf6c1678240c4419eb502'),
+
+
+
+An example of a related additional details entry is data from PHPIDS:
+
+INSERT INTO `log_security_details` (`id_log`, `details`) VALUES
+(1219, 'Total impact: 56&lt;br/&gt;\nAffected tags: xss, csrf, id, rfe,
+lfi&lt;br/&gt;\n&lt;br/&gt;\nVariable: REQUEST.formtitle | Value: XXXXX
+&lt;br/&gt;\nImpact: 7 | Tags: xss, csrf, id, rfe, lfi&lt;br/&gt;\nDescription:
+Detects unknown attack vectors based on PHPIDS Centrifuge detection |
+Tags: xss, csrf, id, rfe, lfi | ID: 67&lt;br/&gt;\n&lt;br/&gt;\nVariable:
+REQUEST.formdescription | Value: XXXXX&lt;br/&gt;\nImpact: 7 | Tags: xss,
+csrf, id, rfe, lfi&lt;br/&gt;\nDescription: Detects unknown attack vectors
+based on PHPIDS Centrifuge detection | Tags: xss, csrf, id, rfe, lfi |
+ID: 67&lt;br/&gt;\n&lt;br/&gt;\nVariable: REQUEST.formlevel5 | Value:
+XXXXX.&lt;br/&gt;Impact: 7 | Tags: xss, csrf, id, rfe, lfi | ID:
+67&lt;br/&gt;\n&lt;br/&gt;Centrifuge detection data&lt;br/&gt;  Threshold: 3.49&lt;br/&gt;
+Ratio: 2.2857142857143&lt;br/&gt;&lt;br/&gt;\n'),
+
+
+
+On 3 March 2011 04:51, John Melton &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">jtmelton at gmail.com</A>&gt; wrote:
+&gt;<i> These ideas sound great. Responses inline below.
+</I>&gt;<i>
+</I>&gt;<i> Also, I asked on this list a while back, and I'll try again as there may be
+</I>&gt;<i> new folks on, does anyone have a doc that describes the common event format
+</I>&gt;<i> (CEF)? I would like to write something that will log to this format, but I
+</I>&gt;<i> don't have any tools that read it, or any documentation on how to write it.
+</I>&gt;<i> This could be a useful log format, as I understand it can be fed into SEIM
+</I>&gt;<i> tools. Any pointers here would be helpful.&#160; Some of the questions and
+</I>&gt;<i> comments I've heard seem to point to the fact that supporting various output
+</I>&gt;<i> formats is a definite positive for this project going forward.
+</I>&gt;<i>
+</I>&gt;<i> Thanks,
+</I>&gt;<i> John
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000214.html">[Owasp-appsensor-project] World Summit - AppSensor Results
+</A></li>
+	<LI>Next message: <A HREF="000216.html">[Owasp-appsensor-project] World Summit - AppSensor Results
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#215">[ date ]</a>
+              <a href="thread.html#215">[ thread ]</a>
+              <a href="subject.html#215">[ subject ]</a>
+              <a href="author.html#215">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-appsensor-project">More information about the Owasp-appsensor-project
+mailing list</a><br>
+</body></html>

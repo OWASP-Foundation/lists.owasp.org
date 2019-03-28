@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Mod%20security%20is%20not%20detecting%0A%20double%20header%27s&In-Reply-To=%3CCB751AF2.44BE1%25ryan.barnett%40owasp.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001018.html">
+   <LINK REL="Next"  HREF="001021.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's</H1>
+    <B>Ryan Barnett</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Mod%20security%20is%20not%20detecting%0A%20double%20header%27s&In-Reply-To=%3CCB751AF2.44BE1%25ryan.barnett%40owasp.org%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's">ryan.barnett at owasp.org
+       </A><BR>
+    <I>Thu Mar  1 17:25:25 UTC 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001018.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting	double header's
+</A></li>
+        <LI>Next message: <A HREF="001021.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1019">[ date ]</a>
+              <a href="thread.html#1019">[ thread ]</a>
+              <a href="subject.html#1019">[ subject ]</a>
+              <a href="author.html#1019">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have pushed CRS v2.2.4 out to SVN and you can access the updated rule file
+here -
+<A HREF="http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_r">http://mod-security.svn.sourceforge.net/viewvc/mod-security/crs/trunk/base_r</A>
+ules/modsecurity_crs_40_generic_attacks.conf?revision=1900
+
+Here is the updated rule -
+SecRule 
+REQUEST_COOKIES|REQUEST_COOKIES_NAMES|REQUEST_FILENAME|ARGS_NAMES|ARGS|XML:/
+* &quot;[\n\r](?:content-(type|length)|set-cookie|location):&quot; \
+        
+&quot;phase:2,rev:'2.2.4',t:none,t:lowercase,capture,ctl:auditLogParts=+E,block,m
+sg:'HTTP Response Splitting
+Attack',id:'950910',logdata:'%{TX.0}',severity:'2',setvar:'tx.msg=%{rule.msg
+}',setvar:tx.anomaly_score=+%{tx.critical_anomaly_score},setvar:tx.response_
+splitting_score=+%{tx.critical_anomaly_score},setvar:tx.%{rule.id}-WEB_ATTAC
+K/RESPONSE_SPLITTING-%{matched_var_name}=%{tx.0}&quot;
+-Ryan
+
+From:  Gagandeep Singh &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">gagandeepsohi at gmail.com</A>&gt;
+Date:  Thu, 1 Mar 2012 17:15:36 +0000
+To:  &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">owasp-modsecurity-core-rule-set at lists.owasp.org</A>&gt;
+Subject:  [Owasp-modsecurity-core-rule-set] Mod security is not detecting
+double header's
+
+&gt;<i> Hi 
+</I>&gt;<i> 
+</I>&gt;<i> We have configured modsecurity apache_2.6.3 and its working fine for most of
+</I>&gt;<i> the cases but we have identified a special attack which is causing a double
+</I>&gt;<i> header injection to the site.
+</I>&gt;<i> 
+</I>&gt;<i> Example :-
+</I>&gt;<i>  <A HREF="https://www.XYZ.com/%0d%0aLocation:http://www.google.com">https://www.XYZ.com/%0d%0aLocation:http://www.google.com</A>
+</I>&gt;<i>  Note - XYZ is any site.
+</I>&gt;<i> 
+</I>&gt;<i> This generates a Duplicate headers error page which is shown below-
+</I>&gt;<i> 
+</I>&gt;&gt;&gt;<i> Duplicate headers received from the server
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;&gt;<i> The response from the server contained duplicate headers. This problem is
+</I>&gt;&gt;&gt;<i> generally the result of a misconfigured website or proxy. Only the website
+</I>&gt;&gt;&gt;<i> or proxy administrator can fix this issue.
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;&gt;<i>  Error 350 (net::ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION): Multiple Location
+</I>&gt;&gt;&gt;<i> headers received. This is disallowed to protect against HTTP
+</I>&gt;&gt;&gt;<i> response-splitting attacks.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> As per the discussion with Bren we came to know that this will be fixed in CRS
+</I>&gt;<i> 2.2.4 but we need this urgently, Is it possible to get the rule for above
+</I>&gt;<i> issue so we can apply the patch for the time being and will apply 2.2.4 soon
+</I>&gt;<i> as it becomes available.
+</I>&gt;<i> 
+</I>&gt;<i> Could you please also assist on this, what configuration changes are required
+</I>&gt;<i> to handle this?
+</I>&gt;<i> 
+</I>&gt;<i> Regards
+</I>&gt;<i> Gagandeep Singh  Sohi
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Owasp-modsecurity-core-rule-set mailing list
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">Owasp-modsecurity-core-rule-set at lists.owasp.org</A>
+</I>&gt;<i> <A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set</A>
+</I>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120301/1dca5858/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20120301/1dca5858/attachment.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001018.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting	double header's
+</A></li>
+	<LI>Next message: <A HREF="001021.html">[Owasp-modsecurity-core-rule-set] Mod security is not detecting double header's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1019">[ date ]</a>
+              <a href="thread.html#1019">[ thread ]</a>
+              <a href="subject.html#1019">[ subject ]</a>
+              <a href="author.html#1019">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

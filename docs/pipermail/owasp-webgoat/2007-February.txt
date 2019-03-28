@@ -1,0 +1,648 @@
+From eoin.keary at owasp.org  Thu Feb  1 10:12:48 2007
+From: eoin.keary at owasp.org (Eoin)
+Date: Thu, 1 Feb 2007 15:12:48 +0000
+Subject: [Owasp-webgoat] Webgoat lesson.
+Message-ID: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>
+
+hi
+I was playing with webgoat and noticed that the SQL injection in
+"Denial of Service from multiple logins" is wrong:
+
+"Select * from table where user = 'user' and password = 'dont_care' or
+'1'='1' "
+would only return the user "user" (wouldnt it) as there is an "And" in the
+logic which is still enabled.?
+
+The result of this injection is that it returns all users, not just user
+"user".
+
+(or am I barking mad????!)
+
+-ek
+
+-- 
+Eoin Keary OWASP - Ireland
+http://www.owasp.org/local/ireland.html
+http://www.owasp.org/index.php/OWASP_Testing_Project
+http://www.owasp.org/index.php/OWASP_Code_Review_Project
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070201/262118ed/attachment.html 
+
+From bruce.mayhew at g2-inc.com  Thu Feb  1 10:47:55 2007
+From: bruce.mayhew at g2-inc.com (Bruce Mayhew)
+Date: Thu, 1 Feb 2007 10:47:55 -0500
+Subject: [Owasp-webgoat] Webgoat lesson.
+References: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>
+Message-ID: <7C3B5F778B082349A5F029AA4A61E61932FDF5@g2srvexch01.g2-inc.net>
+
+The query will return all the users because the "or true" will match all records including the user specified in the "user" parameter.  This allows the attacker to discover all the account names.  The intent then is to exhaust the connection pool for one of those users.  
+ 
+This is simply not a very good lesson.
+ 
+Bruce
+
+________________________________
+
+From: owasp-webgoat-bounces at lists.owasp.org on behalf of Eoin
+Sent: Thu 2/1/2007 10:12 AM
+To: owasp-webgoat at lists.owasp.org
+Subject: [Owasp-webgoat] Webgoat lesson.
+
+
+
+hi 
+I was playing with webgoat and noticed that the SQL injection in 
+"Denial of Service from multiple logins" is wrong:
+ 
+"Select * from table where user = 'user' and password = 'dont_care' or '1'='1' " 
+would only return the user "user" (wouldnt it) as there is an "And" in the logic which is still enabled.?
+ 
+The result of this injection is that it returns all users, not just user "user".
+ 
+(or am I barking mad????!)
+ 
+-ek
+
+-- 
+Eoin Keary OWASP - Ireland
+http://www.owasp.org/local/ireland.html
+http://www.owasp.org/index.php/OWASP_Testing_Project 
+http://www.owasp.org/index.php/OWASP_Code_Review_Project 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070201/d87d73ad/attachment.html 
+
+From lists at dawes.za.net  Thu Feb  1 11:02:38 2007
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Thu, 01 Feb 2007 18:02:38 +0200
+Subject: [Owasp-webgoat] Webgoat lesson.
+In-Reply-To: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>
+References: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>
+Message-ID: <45C20F1E.5020407@dawes.za.net>
+
+Eoin wrote:
+> 
+> hi
+> I was playing with webgoat and noticed that the SQL injection in
+> "Denial of Service from multiple logins" is wrong:
+>  
+> "Select * from table where user = 'user' and password = 'dont_care' or 
+> '1'='1' " 
+> would only return the user "user" (wouldnt it) as there is an "And" in 
+> the logic which is still enabled.?
+
+No, AND is higher precedence than OR. So it is equivalent to:
+
+(a AND b) OR TRUE == TRUE
+
+> The result of this injection is that it returns all users, not just user 
+> "user".
+
+As expected.
+
+> (or am I barking mad????!)
+
+Yip! ;-)
+
+> -ek
+
+Injecting "user' OR 'a'='" into the user field would give you:
+
+SELECT * FROM user WHERE user = 'user' OR 'a'='' AND password = 'dont_care'
+
+Which would result in the first stanza returning true when it matches 
+"user", but false for all other rows. ('a' is never = '')
+
+Rogan
+
+From eoinkeary at gmail.com  Thu Feb  1 10:53:34 2007
+From: eoinkeary at gmail.com (Eoin)
+Date: Thu, 1 Feb 2007 15:53:34 +0000
+Subject: [Owasp-webgoat] Webgoat lesson.
+In-Reply-To: <f3193c100702010752w1eb83c37n7b8a9eb1713fa597@mail.gmail.com>
+References: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>
+	<7C3B5F778B082349A5F029AA4A61E61932FDF5@g2srvexch01.g2-inc.net>
+	<f3193c100702010752w1eb83c37n7b8a9eb1713fa597@mail.gmail.com>
+Message-ID: <f3193c100702010753t20c5c6e9h35fac33829f64309@mail.gmail.com>
+
+>
+> I Must be missing something here:
+>
+
+
+
+> where user = "joe"and password = "blah" or 1=1
+>
+> means where the user *must* be Joe and password can be either blah or 1=1
+> (always true).
+> but the "AND" would mean that the user must exist?
+>
+>
+>
+>
+>
+> On 01/02/07, Bruce Mayhew <bruce.mayhew at g2-inc.com> wrote:
+> >
+> >  The query will return all the users because the "or true" will match
+> > all records including the user specified in the "user" parameter.  This
+> > allows the attacker to discover all the account names.  The intent then is
+> > to exhaust the connection pool for one of those users.
+> >
+> > This is simply not a very good lesson.
+> >
+> > Bruce
+> >
+> > ------------------------------
+> > *From:* owasp-webgoat-bounces at lists.owasp.org on behalf of Eoin
+> > *Sent:* Thu 2/1/2007 10:12 AM
+> > *To:* owasp-webgoat at lists.owasp.org
+> > *Subject:* [Owasp-webgoat] Webgoat lesson.
+> >
+> >
+> >
+> > hi
+> > I was playing with webgoat and noticed that the SQL injection in
+> > "Denial of Service from multiple logins" is wrong:
+> >
+> > "Select * from table where user = 'user' and password = 'dont_care' or
+> > '1'='1' "
+> > would only return the user "user" (wouldnt it) as there is an "And" in
+> > the logic which is still enabled.?
+> >
+> > The result of this injection is that it returns all users, not just user
+> > "user".
+> >
+> > (or am I barking mad????!)
+> >
+> > -ek
+> >
+> > --
+> > Eoin Keary OWASP - Ireland
+> > http://www.owasp.org/local/ireland.html
+> > http://www.owasp.org/index.php/OWASP_Testing_Project
+> > http://www.owasp.org/index.php/OWASP_Code_Review_Project
+> >
+>
+>
+>
+> --
+> Eoin Keary OWASP - Ireland
+> http://www.owasp.org/local/ireland.html
+> http://www.owasp.org/index.php/OWASP_Testing_Project
+> http://www.owasp.org/index.php/OWASP_Code_Review_Project
+>
+
+
+
+-- 
+Eoin Keary OWASP - Ireland
+http://www.owasp.org/local/ireland.html
+http://www.owasp.org/index.php/OWASP_Testing_Project
+http://www.owasp.org/index.php/OWASP_Code_Review_Project
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070201/4c73a722/attachment.html 
+
+From lists at dawes.za.net  Thu Feb  1 11:41:53 2007
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Thu, 01 Feb 2007 18:41:53 +0200
+Subject: [Owasp-webgoat] Webgoat lesson.
+In-Reply-To: <f3193c100702010753t20c5c6e9h35fac33829f64309@mail.gmail.com>
+References: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>	<7C3B5F778B082349A5F029AA4A61E61932FDF5@g2srvexch01.g2-inc.net>	<f3193c100702010752w1eb83c37n7b8a9eb1713fa597@mail.gmail.com>
+	<f3193c100702010753t20c5c6e9h35fac33829f64309@mail.gmail.com>
+Message-ID: <45C21851.6040901@dawes.za.net>
+
+Eoin wrote:
+>     I Must be missing something here:
+> 
+>  
+>  
+> 
+>     where user = "joe"and password = "blah" or 1=1
+>      
+>     means where the user /must/ be Joe and password can be either blah
+>     or 1=1 (always true).
+>     but the "AND" would mean that the user must exist?
+
+Nope.
+
+See my previous email (which seems to have got lost?)
+
+That is:
+
+  WHERE (user="joe" AND password="blah) OR 1=1
+
+ie. (anything) OR TRUE == TRUE
+
+ie. returns all rows.
+
+Rogan
+
+From bruce.mayhew at g2-inc.com  Thu Feb  1 14:03:37 2007
+From: bruce.mayhew at g2-inc.com (Bruce Mayhew)
+Date: Thu, 1 Feb 2007 14:03:37 -0500
+Subject: [Owasp-webgoat] Webgoat lesson.
+References: <f3193c100702010712k3c1657eepbc20915bfe480f54@mail.gmail.com>	<7C3B5F778B082349A5F029AA4A61E61932FDF5@g2srvexch01.g2-inc.net>	<f3193c100702010752w1eb83c37n7b8a9eb1713fa597@mail.gmail.com>
+	<f3193c100702010753t20c5c6e9h35fac33829f64309@mail.gmail.com>
+	<45C21851.6040901@dawes.za.net>
+Message-ID: <7C3B5F778B082349A5F029AA4A61E61932FDF9@g2srvexch01.g2-inc.net>
+
+Not to kick a dead horse....
+ 
+SELECT * FROM user_system_data WHERE user_name = 'tom' or '1'='1' and password = 'jeff' 
+userid 	user_name 	password 	cookie 	
+104 	jeff 	jeff 		
+ 
+SELECT * FROM user_system_data WHERE user_name = 'jsnow' or '1'='1' and password = 'passwd2' 
+userid 	user_name 	password 	cookie 	
+101 	jsnow 	passwd1 		
+102 	jdoe 	passwd2 		
+ 
+*See excerpt below to understand how the above queries work
+ 
+ 
+ 
+SELECT * FROM user_system_data WHERE user_name = 'foo' and password = 'foo' or '1'='1' 
+userid 	user_name 	password 	cookie 	
+101 	jsnow 	passwd1 		
+102 	jdoe 	passwd2 		
+103 	jplane 	passwd3 		
+104 	jeff 	jeff 		
+105 	dave 	dave 		
+ 
+ 
+ 
+
+It is important to understand how the database evaluates multiple comparisons in the WHERE clause.  All the AND comparisons (evaluated from Left to Right) are evaluated before the OR comparisons (evaluated from Left to Right).  For example:
+
+SELECT
+   Last_name,
+   Dept,
+   Salary
+FROM 
+   employee
+WHERE 
+   dept = 'FINANCE'
+OR 
+   dept = 'SALES'
+AND 
+   salary < 100000;
+
+As you read this query, it appears that you collect all the employees from the finance and sales department and then check that the salary is less than 1000000.  In this case, you would be wrong!  The database will evaluate the AND before the OR.  What this query actually does is list  employees in SALES with salary < 100000, and all the employees in the FINANCE department. 
+
+________________________________
+
+The above book excerpt is from:
+
+Easy Oracle SQL
+
+Get Started Fast writing SQL Reports with SQL*Plus
+
+ISBN 0-9727513-7-8
+
+Col. John Germany  
+
+ 
+ 
+Bruce
+
+________________________________
+
+From: Rogan Dawes [mailto:lists at dawes.za.net]
+Sent: Thu 2/1/2007 11:41 AM
+To: Eoin
+Cc: owasp-webgoat at lists.owasp.org; Bruce Mayhew
+Subject: Re: [Owasp-webgoat] Webgoat lesson.
+
+
+
+Eoin wrote:
+>     I Must be missing something here:
+>
+> 
+> 
+>
+>     where user = "joe"and password = "blah" or 1=1
+>     
+>     means where the user /must/ be Joe and password can be either blah
+>     or 1=1 (always true).
+>     but the "AND" would mean that the user must exist?
+
+Nope.
+
+See my previous email (which seems to have got lost?)
+
+That is:
+
+  WHERE (user="joe" AND password="blah) OR 1=1
+
+ie. (anything) OR TRUE == TRUE
+
+ie. returns all rows.
+
+Rogan
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070201/f7503f96/attachment.html 
+
+From Simon.Vuille at unil.ch  Mon Feb 19 17:46:38 2007
+From: Simon.Vuille at unil.ch (Simon Vuille)
+Date: Mon, 19 Feb 2007 23:46:38 +0100
+Subject: [Owasp-webgoat] Hello and login problem
+Message-ID: <C1602B7E-A359-4272-8BE8-7A43F54EA019@unil.ch>
+
+Hi All,
+
+I am not sure this is the best place to post this, but I installed  
+WebGoat on my Mac and I have a problem.
+
+Here is basically what I did:
+
+-Ran the latest os X java update (1 week old)
+-Installed tomcat 5.5.20 at /usr/local/apache-tomcat-5.5.20
+-Tested tomcat installation, works fine
+-Downloaded and unzipped WebGoat 5 RC1
+-Moved WebGoat.war to /usr/local/apache-tomcat-5.5.20/webapps
+-Moved webgoat.sh to /usr/local/apache-tomcat-5.5.20/bin
+-Edited webgoat.sh such that CATALINA_HOME=/usr/local/apache- 
+tomcat-5.5.20
+-Made webgoat.sh executable
+-sudo webgoat.sh start8080
+
+
+
+
+
+Than I point my browser to http://127.0.0.1:8080/WebGoat/attack
+
+I am greeted with a login/password prompt. There is NO way for me to  
+login there with guest/guest. It keeps refusing me. This is not a  
+browser specific issue either (I tested Firefox and Safari).
+
+Any ideas? Your help will be greatly appreciated.
+
+Regards
+
+Simon
+
+
+
+From lists at dawes.za.net  Mon Feb 19 23:17:35 2007
+From: lists at dawes.za.net (Rogan Dawes)
+Date: Tue, 20 Feb 2007 06:17:35 +0200
+Subject: [Owasp-webgoat] Hello and login problem
+In-Reply-To: <C1602B7E-A359-4272-8BE8-7A43F54EA019@unil.ch>
+References: <C1602B7E-A359-4272-8BE8-7A43F54EA019@unil.ch>
+Message-ID: <45DA765F.1040307@dawes.za.net>
+
+Simon Vuille wrote:
+> Hi All,
+> 
+> I am not sure this is the best place to post this, but I installed  
+> WebGoat on my Mac and I have a problem.
+> 
+> Here is basically what I did:
+> 
+> -Ran the latest os X java update (1 week old)
+> -Installed tomcat 5.5.20 at /usr/local/apache-tomcat-5.5.20
+> -Tested tomcat installation, works fine
+> -Downloaded and unzipped WebGoat 5 RC1
+> -Moved WebGoat.war to /usr/local/apache-tomcat-5.5.20/webapps
+> -Moved webgoat.sh to /usr/local/apache-tomcat-5.5.20/bin
+> -Edited webgoat.sh such that CATALINA_HOME=/usr/local/apache- 
+> tomcat-5.5.20
+> -Made webgoat.sh executable
+> -sudo webgoat.sh start8080
+> 
+> Than I point my browser to http://127.0.0.1:8080/WebGoat/attack
+> 
+> I am greeted with a login/password prompt. There is NO way for me to  
+> login there with guest/guest. It keeps refusing me. This is not a  
+> browser specific issue either (I tested Firefox and Safari).
+> 
+> Any ideas? Your help will be greatly appreciated.
+> 
+> Regards
+> 
+> Simon
+> 
+
+
+The user "guest" is normally created automatically when you install the 
+huge monolithic tomcat+webgoat installation.
+
+But if you install tomcat from another source, you need to create user 
+"guest" yourself. i.e. edit tomcat-user.xml:
+
+<user username="webgoat" password="webgoat" roles="webgoat_admin"/>
+<user username="basic" password="basic" roles="webgoat_user,webgoat_basic"/>
+<user username="guest" password="guest" roles="webgoat_user"/>
+<user username="admin" password="admin" roles="admin,manager"/>
+
+Rogan
+
+From timbelina at gmail.com  Wed Feb 21 18:38:49 2007
+From: timbelina at gmail.com (tim belina)
+Date: Thu, 22 Feb 2007 09:38:49 +1000
+Subject: [Owasp-webgoat] Linux test of WebGoat 5.0 RC1 - Trouble with HTTP
+	response splitting excercise
+Message-ID: <86479d7c0702211538v4b86704aoedf70b18bb97689c@mail.gmail.com>
+
+'morning all,
+
+I have been playing with WG5.0 RC1 on openSuSE10.2 x86 with JDK
+1.5.0_08 and using Firefox 2.0 as my browser. Its great! Well done to
+the contributors! Alas, I did have a few problems with one of the
+lessons; the HTTP response-splitting lesson.  Try as I might, I could
+not exploit the vuln... I even just cut'n'pasted the answer via
+WebScarab :-)  Can someone please confirm that the problem lies with
+me and not the lesson.
+
+Thanks,
+  Tim.
+
+From Simon.Vuille at unil.ch  Thu Feb 22 05:00:29 2007
+From: Simon.Vuille at unil.ch (Simon.Vuille at unil.ch)
+Date: Thu, 22 Feb 2007 11:00:29 +0100
+Subject: [Owasp-webgoat] Linux test of WebGoat 5.0 RC1 - Trouble with
+	HTTP response splitting excercise
+Message-ID: <45dd69bd.95.218e.1274623180@unil.ch>
+
+I have been using RC1 on OS X and, despite the program being
+very promising, I have found that several lessons do not
+work appropriately. I have the same problem with HTTP
+Splitting. Copy pasting the answer (last hint) yields the
+same result as anything else. I plan on sending pointing out
+the lessons that seem to cause problems in the future, I
+just need a bit more time.
+
+Regards,
+
+Simon
+----- Original Message -----
+Exp?diteur: "tim belina" <timbelina at gmail.com>
+?: owasp-webgoat at lists.owasp.org, bruce.mayhew at g2-inc.com
+Sujet: [Owasp-webgoat] Linux test of WebGoat 5.0 RC1 -
+Trouble with HTTP response splitting excercise
+Date: Thu, 22 Feb 2007 09:38:49 +1000
+
+> 'morning all,
+> 
+> I have been playing with WG5.0 RC1 on openSuSE10.2 x86
+> with JDK 1.5.0_08 and using Firefox 2.0 as my browser. Its
+> great! Well done to the contributors! Alas, I did have a
+> few problems with one of the lessons; the HTTP
+> response-splitting lesson.  Try as I might, I could not
+> exploit the vuln... I even just cut'n'pasted the answer
+> via WebScarab :-)  Can someone please confirm that the
+> problem lies with me and not the lesson.
+> 
+> Thanks,
+>   Tim.
+> _______________________________________________
+> Owasp-webgoat mailing list
+> Owasp-webgoat at lists.owasp.org
+> http://lists.owasp.org/mailman/listinfo/owasp-webgoat
+
+From bruce.mayhew at g2-inc.com  Thu Feb 22 11:29:41 2007
+From: bruce.mayhew at g2-inc.com (Bruce Mayhew)
+Date: Thu, 22 Feb 2007 11:29:41 -0500
+Subject: [Owasp-webgoat] Linux test of WebGoat 5.0 RC1 - Trouble with
+	HTTP response splitting excercise
+References: <86479d7c0702211538v4b86704aoedf70b18bb97689c@mail.gmail.com>
+Message-ID: <7C3B5F778B082349A5F029AA4A61E61932FE45@g2srvexch01.g2-inc.net>
+
+Tim
+ 
+Can you cut and paste the hint text directly into the search box on the page and let me know if it works for RC1
+ 
+Bruce
+
+________________________________
+
+From: tim belina [mailto:timbelina at gmail.com]
+Sent: Wed 2/21/2007 6:38 PM
+To: owasp-webgoat at lists.owasp.org; Bruce Mayhew
+Subject: Linux test of WebGoat 5.0 RC1 - Trouble with HTTP response splitting excercise
+
+
+
+'morning all,
+
+I have been playing with WG5.0 RC1 on openSuSE10.2 x86 with JDK
+1.5.0_08 and using Firefox 2.0 as my browser. Its great! Well done to
+the contributors! Alas, I did have a few problems with one of the
+lessons; the HTTP response-splitting lesson.  Try as I might, I could
+not exploit the vuln... I even just cut'n'pasted the answer via
+WebScarab :-)  Can someone please confirm that the problem lies with
+me and not the lesson.
+
+Thanks,
+  Tim.
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070222/b2ffccb3/attachment.html 
+
+From timbelina at gmail.com  Thu Feb 22 19:11:23 2007
+From: timbelina at gmail.com (tim belina)
+Date: Fri, 23 Feb 2007 10:11:23 +1000
+Subject: [Owasp-webgoat] Linux test of WebGoat 5.0 RC1 - Trouble with
+	HTTP response splitting excercise
+In-Reply-To: <7C3B5F778B082349A5F029AA4A61E61932FE45@g2srvexch01.g2-inc.net>
+References: <86479d7c0702211538v4b86704aoedf70b18bb97689c@mail.gmail.com>
+	<7C3B5F778B082349A5F029AA4A61E61932FE45@g2srvexch01.g2-inc.net>
+Message-ID: <86479d7c0702221611j6500ed44hab0c488280624f6f@mail.gmail.com>
+
+'morning Bruce,
+
+On 2/23/07, Bruce Mayhew <bruce.mayhew at g2-inc.com> wrote:
+>
+> Tim
+>
+> Can you cut and paste the hint text directly into the search box on the page
+> and let me know if it works for RC1
+
+I did the cut'n'paste, but no joy.  The page reloads, with part of the
+original search string appearing in the new search text field, but
+that's it.  I have had a look at the response with WebScarab, and it
+looks like the original search string appears in the response. I see a
+302 Moved Temporarily response, but the Location seems to be munged.
+For example, the second parameter reads, "&language=language=?foober
+...etc", and subsequent parts of that string show the hint text-string
+copied again. ie: appearing twice.
+
+Of course, I'm clueless, so this might be as intended :-)
+
+Let me know if I can provide more info.
+
+Thanks,
+  Tim.
+
+From donnyboy98 at hotmail.com  Wed Feb 28 09:42:44 2007
+From: donnyboy98 at hotmail.com (Don Patterson)
+Date: Wed, 28 Feb 2007 09:42:44 -0500
+Subject: [Owasp-webgoat] WebGoat to Test WAFs
+Message-ID: <BAY115-F1154A5B6DBBFA82F262BE1C8810@phx.gbl>
+
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070228/e63697a4/attachment.html 
+
+From mark.arnold at thermofisher.com  Mon Feb 26 10:29:12 2007
+From: mark.arnold at thermofisher.com (Arnold, Mark A.)
+Date: Mon, 26 Feb 2007 10:29:12 -0500
+Subject: [Owasp-webgoat] Webgoat v5 Role Based Access Control
+Message-ID: <EF4532F8D245DA4CB2A229CCAA44013802BC4F2A@USWAL-MXVS01.amer.thermo.com>
+
+I was cruising along the lessons but have been grounded to a halt on
+this lesson. 
+
+I've been trying to modify the post commands (e.g. intercept login and
+insert another employee---note-I did not enter a password).
+
+I do not get a 'login failed' message either. What gives? Sorry I am a
+newbie to some aspects of this web app security side.
+
+ 
+
+Best,
+
+Mark A Arnold
+
+Global Security Group
+
+Security Engineer
+
+Thermo Fisher Scientific
+
+81 Wyman Street
+
+Waltham, MA 02454-9046
+
+(781) 622-1007 (O)
+
+(617) 538-6803 (M)
+
+mark.arnold at thermofisher.com
+
+www.thermofisher.com <http://www.thermofisher.com> 
+
+ 
+
+Dissemination, distribution or copying of this email or the information
+herein by anyone other than the intended recipient, or an employee or
+agent of a system responsible for delivering the message to the intended
+recipient, is prohibited. If
+you are not the intended recipient, please inform the sender and delete
+all copies.
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.owasp.org/pipermail/owasp-webgoat/attachments/20070226/6d26ba61/attachment.html 
+

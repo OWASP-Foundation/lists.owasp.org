@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Help interpreting rule violation
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Help%20interpreting%20rule%20violation&In-Reply-To=%3Ca0363ab8-4fe9-b994-d26a-43da18de4070%40greenberg.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002353.html">
+   <LINK REL="Next"  HREF="002355.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Help interpreting rule violation</H1>
+    <B>Ed Greenberg</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20Help%20interpreting%20rule%20violation&In-Reply-To=%3Ca0363ab8-4fe9-b994-d26a-43da18de4070%40greenberg.org%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] Help interpreting rule violation">edg at greenberg.org
+       </A><BR>
+    <I>Wed May 17 15:45:03 UTC 2017</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002353.html">[Owasp-modsecurity-core-rule-set] 500-to-403 rule failing
+</A></li>
+        <LI>Next message: <A HREF="002355.html">[Owasp-modsecurity-core-rule-set] Help interpreting rule violation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2354">[ date ]</a>
+              <a href="thread.html#2354">[ thread ]</a>
+              <a href="subject.html#2354">[ subject ]</a>
+              <a href="author.html#2354">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have a violation of 941100 as follows. I believe that it is 
+false-positive, and I'm not sure whether it should be whitelisted.
+
+--bf187d07-B--
+GET /indexj.php HTTP/1.1
+Accept: text/html, application/xhtml+xml, */*
+Referer: 
+<A HREF="http://www.bing.com/search?q=xxxxxxxx+online&amp;src=IE-SearchBox&amp;FORM=IE11SR">http://www.bing.com/search?q=xxxxxxxx+online&amp;src=IE-SearchBox&amp;FORM=IE11SR</A>
+Accept-Language: en-US
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Host: www.xxxxxxxx.com
+DNT: 1
+Connection: Keep-Alive
+
+
+--bf187d07-H--
+Message: Warning. detected XSS using libinjection. [file 
+&quot;/etc/httpd/owasp-modsecurity-crs-3.0.0/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf&quot;] 
+[line &quot;56&quot;] [id &quot;941100&quot;] [rev &quot;2&quot;] [msg &quot;XSS Attack Detected via 
+libinjection&quot;] [data &quot;Matched Data: connection found within 
+REQUEST_HEADERS:Referer: <A HREF="http://www.bing.com/search?q=xxxxxxxx">http://www.bing.com/search?q=xxxxxxxx</A> 
+online&amp;src=IE-SearchBox&amp;FORM=IE11SR&quot;] [severity &quot;CRITICAL&quot;] [ver 
+&quot;OWASP_CRS/3.0.0&quot;] [maturity &quot;1&quot;] [accuracy &quot;9&quot;] [tag 
+&quot;application-multi&quot;] [tag &quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag 
+&quot;attack-xss&quot;] [tag &quot;OWASP_CRS/WEB_ATTACK/XSS&quot;] [tag &quot;WASCTC/WASC-8&quot;] 
+[tag &quot;WASCTC/WASC-22&quot;] [tag &quot;OWASP_TOP_10/A3&quot;] [tag 
+&quot;OWASP_AppSensor/IE1&quot;] [tag &quot;CAPEC-242&quot;]
+Message: Warning. Operator GE matched 5 at TX:anomaly_score. [file 
+&quot;/etc/httpd/owasp-modsecurity-crs-3.0.0/rules/REQUEST-949-BLOCKING-EVALUATION.conf&quot;] 
+[line &quot;57&quot;] [id &quot;949110&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total 
+Score: 5)&quot;] [severity &quot;CRITICAL&quot;] [tag &quot;application-multi&quot;] [tag 
+&quot;language-multi&quot;] [tag &quot;platform-multi&quot;] [tag &quot;attack-generic&quot;]
+Message: Warning. Operator GE matched 5 at TX:inbound_anomaly_score. 
+[file 
+&quot;/etc/httpd/owasp-modsecurity-crs-3.0.0/rules/RESPONSE-980-CORRELATION.conf&quot;] 
+[line &quot;73&quot;] [id &quot;980130&quot;] [msg &quot;Inbound Anomaly Score Exceeded (Total 
+Inbound Score: 5 - SQLI=0,XSS=5,RFI=0,LFI=0,RCE=0,PHPI=0,HTTP=0,SESS=0): 
+XSS Attack Detected via libinjection&quot;] [tag &quot;event-correlation&quot;]
+Apache-Error: [file &quot;apache2_util.c&quot;] [line 271] [level 3] [client %s] 
+ModSecurity: %s%s [uri &quot;%s&quot;]%s
+Apache-Error: [file &quot;apache2_util.c&quot;] [line 271] [level 3] [client %s] 
+ModSecurity: %s%s [uri &quot;%s&quot;]%s
+Apache-Error: [file &quot;apache2_util.c&quot;] [line 271] [level 3] [client %s] 
+ModSecurity: %s%s [uri &quot;%s&quot;]%s
+Apache-Handler: proxy:unix:/var/run/php5-fpm.sock|<A HREF="fcgi://localhost">fcgi://localhost</A>
+Stopwatch: 1495034424961653 46331 (- - -)
+Stopwatch2: 1495034424961653 46331; combined=1346, p1=337, p2=706, 
+p3=52, p4=155, p5=95, sr=53, sw=1, l=0, gc=0
+Response-Body-Transformed: Dechunked
+Producer: ModSecurity for Apache/2.9.1 (<A HREF="http://www.modsecurity.org/">http://www.modsecurity.org/</A>); 
+OWASP_CRS/3.0.0.
+Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips
+Engine-Mode: &quot;DETECTION_ONLY&quot;
+
+I will post more of the log entry if desired.
+
+The request is legit - the index page of the site, and the error seems 
+to object to the contents of the refering-page header line, which is a 
+bing search request.
+
+I don't understand how this is an XSS  attack.   The only special 
+characters in it are &amp; and ?.
+
+I read the rule, but didn't see how it works. I am only an egg.
+
+Could somebody explain?
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002353.html">[Owasp-modsecurity-core-rule-set] 500-to-403 rule failing
+</A></li>
+	<LI>Next message: <A HREF="002355.html">[Owasp-modsecurity-core-rule-set] Help interpreting rule violation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2354">[ date ]</a>
+              <a href="thread.html#2354">[ thread ]</a>
+              <a href="subject.html#2354">[ subject ]</a>
+              <a href="author.html#2354">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

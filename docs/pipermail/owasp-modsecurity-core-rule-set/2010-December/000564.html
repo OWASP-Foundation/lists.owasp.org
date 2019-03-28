@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] Apache config file order
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Apache%20config%20file%20order&In-Reply-To=">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000563.html">
+   <LINK REL="Next"  HREF="000566.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] Apache config file order</H1>
+    <B>Jim Riggs</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=%5BOwasp-modsecurity-core-rule-set%5D%20Apache%20config%20file%20order&In-Reply-To="
+       TITLE="[Owasp-modsecurity-core-rule-set] Apache config file order">apache-lists at riggs.me
+       </A><BR>
+    <I>Fri Dec 10 12:00:58 EST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000563.html">[Owasp-modsecurity-core-rule-set] Allowing z-push
+</A></li>
+        <LI>Next message: <A HREF="000566.html">[Owasp-modsecurity-core-rule-set] Apache config file order
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#564">[ date ]</a>
+              <a href="thread.html#564">[ thread ]</a>
+              <a href="subject.html#564">[ subject ]</a>
+              <a href="author.html#564">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm in the process of moving from an old, stale modsec/crs config to the current version.  In doing so, I am trying to understand a couple of things in particular with regards to getting all of the config files loaded in order in Apache.
+
+As we all know, the file structure looks like this:
+
+modsec/
++ modsecurity_crs_10_config.conf.example
++ modsecurity_crs_48_local_exceptions.conf.example
++ base_rules/
+|<i> - *.conf *.data
+</I>+ optional_rules/
+|<i> - *.conf *.data
+</I>+ ...
+
+The implication of this structure is that you will create your own local 10 and 48 files and put them in the top-level directory alongside the example files.  BUT, then the docs say that your apache config should be as follows:
+
+Include modsec/*.conf
+Include modsec/base_rules/*.conf
+
+So, my local 10 and 48 get loaded first, followed by the base_rules, which I don't believe will work correctly, right?  The 48 needs to be loaded after the rules but before 49, no?  If my logic is correct, what is the best way to fix this?:
+
+- Move 48.example into base_rules and update docs to say that the conf file needs to be created and edited in there?
+
+- Update docs to say that you shouldn't Include base_rules/*.conf but should instead move the conf/data files you want into the top-level dir?  (Not a good idea IMO.)
+
+- Update the Apache config example to load files one at a time or by other fnmatch()-type patterns that will get 48 put in the right place?  (Again, probably not a good idea.)
+
+- ??? (Am I missing something?)
+
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000563.html">[Owasp-modsecurity-core-rule-set] Allowing z-push
+</A></li>
+	<LI>Next message: <A HREF="000566.html">[Owasp-modsecurity-core-rule-set] Apache config file order
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#564">[ date ]</a>
+              <a href="thread.html#564">[ thread ]</a>
+              <a href="subject.html#564">[ subject ]</a>
+              <a href="author.html#564">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>

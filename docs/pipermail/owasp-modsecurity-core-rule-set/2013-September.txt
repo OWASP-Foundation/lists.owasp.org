@@ -1,0 +1,1069 @@
+From fuhrmann.marcel at gmx.de  Fri Sep  6 09:22:52 2013
+From: fuhrmann.marcel at gmx.de (Marcel Fuhrmann)
+Date: Fri, 6 Sep 2013 11:22:52 +0200 (CEST)
+Subject: [Owasp-modsecurity-core-rule-set] Nginx with Mod_Security and basic
+	core rule set
+Message-ID: <trinity-25cff3a4-aba0-49b9-a6de-b9d1cd8c72b0-1378459372673@3capp-gmx-bs16>
+
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130906/19961252/attachment.html>
+
+From RBarnett at trustwave.com  Fri Sep  6 11:26:30 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 6 Sep 2013 11:26:30 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Nginx with Mod_Security and
+ basic	core rule set
+In-Reply-To: <trinity-25cff3a4-aba0-49b9-a6de-b9d1cd8c72b0-1378459372673@3capp-gmx-bs16>
+References: <trinity-25cff3a4-aba0-49b9-a6de-b9d1cd8c72b0-1378459372673@3capp-gmx-bs16>
+Message-ID: <324C8A3E-EA9C-4D80-BCFB-0ADE48254864@trustwave.com>
+
+Marcel,
+See this blog post -
+http://blog.spiderlabs.com/2012/09/announcing-the-availability-of-modsecurity-extension-for-nginx.html
+
+At the time, you had to concatenate all ModSecurity config data into the one file specified by the ModSecurityConfig directive. Since then, however, we added Include support. This means that the file you specify should be the recommended base config for ModSecurity (https://github.com/SpiderLabs/ModSecurity/blob/master/modsecurity.conf-recommended) and at the end you add Include directives to the end to add OWASP CRS files.
+
+Ryan Barnett
+Lead Security Researcher, SpiderLabs
+
+
+On Sep 6, 2013, at 5:31 AM, "Marcel Fuhrmann" <fuhrmann.marcel at gmx.de<mailto:fuhrmann.marcel at gmx.de>> wrote:
+
+Hi Guys,
+
+is there a way to integrate<http://www.dict.cc/englisch-deutsch/integrate.html> the basic core rule set of owasp into nginx with ModSecurity?
+_______________________________________________
+Owasp-modsecurity-core-rule-set mailing list
+Owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:Owasp-modsecurity-core-rule-set at lists.owasp.org>
+https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130906/8d1bd0b1/attachment.html>
+
+From crs at spam.lifeforms.nl  Mon Sep  9 16:23:24 2013
+From: crs at spam.lifeforms.nl (Walter Hop)
+Date: Mon, 9 Sep 2013 18:23:24 +0200
+Subject: [Owasp-modsecurity-core-rule-set] CRS,
+	friendly blocking and 5xx statuses
+Message-ID: <E3D7571C-0E4F-4D13-8D9E-575FF2B868F0@spam.lifeforms.nl>
+
+Hi all,
+
+Besides using own blocking rules, I am experimenting with the CRS in anomaly scoring mode. Since I like to keep most of the rules enabled and create narrow exceptions, I regularly get some false positives on the CRS and I really need to have a friendly 'blocked' page.
+
+What seems to work for me in most situations, was changing the following default action in modsecurity_crs_10_setup.conf:
+
+SecDefaultAction phase:2,pass,log,status:509
+
+I've used the friendly error trick from the ModSecurity handbook, so my config also includes:
+
+ErrorDocument 509 /modsecurity-errorpage/
+Alias /modsecurity-errorpage/ /opt/httpd/etc/apache22/mod_security2/errorpage/
+
+<Directory "/opt/httpd/etc/apache22/mod_security2/errorpage/">
+Order allow,deny
+Allow from all
+</Directory>
+
+In that dir, there's an index.php that sends a 403 header and some info. This appears to work fine for the CRS in most situations. Inbound blocking now displays the error page, and outbound blocking mostly seems to display it as well.
+
+There seems to be one slight problem involving scripts that send a 5xx response status. If I trigger rules such as 970901 or 970021 in modsecurity_crs_50_outbound.conf by calling a PHP script which returns a 5xx status, such as:
+
+<?php
+header('HTTP/1.0 500 Error'); // The application is not available
+
+I don't get the friendly error page; instead I get Apache's default "internal error" page which says "509 unused":
+
+The server encountered an internal error or misconfiguration and was unable to complete your request. [...] Additionally, a 509 unused error was encountered while trying to use an ErrorDocument to handle the request.
+
+That's even scarier than the default 403 Forbidden page! I'm puzzled why it would encounter a problem resolving the ErrorDocument, and I'm not sure where the problem is, since the trick works fine in other outbound blocking situations that get a 2xx status (such as open dirs).
+
+Is there a better way to use friendly blocking in combination with the CRS, which (hopefully) resolves the problem with scripts returning 5xx status?
+
+Cheers!
+WH
+
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130909/e2b0d4d6/attachment.html>
+
+From jzy2000 at hotmail.com  Thu Sep 12 14:54:19 2013
+From: jzy2000 at hotmail.com (Rolling Stone)
+Date: Thu, 12 Sep 2013 10:54:19 -0400
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+Message-ID: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+
+Many agree that deploying CSP for Web apps is a hassle, one of which
+requires externalizing all inline JS.
+
+ 
+
+I would like to discuss about the idea of making this process automated by
+ModSecurity Core rule set with assistant of Lua script, can anyone help me
+validate this idea? Here is workflow:
+
+ 
+
+In "learning mode", creating Lua script to:
+
+1-     Intercept and scan response data, parses HTML and identify inline JS
+and JS embedded in HTML events. 
+
+2-     Then, creating a new .js file to include identified JS, store(e.g.
+FTP) it in one of web location can be accessed by public domain.
+
+3-     Remove inline JS blocks from response. 
+
+4-     Replace HTML event with new JS function for event call from response.
+
+5-     Calculate CSP content based on original response as well as adding
+location for newly generated .js file.
+
+6-     Append generated CSP headers to response.
+
+7-     Save metadata info (i.e. new .js file name, hash of original
+response, request URL to local data store for caching (performance
+consideration)
+
+"Learning mode" is referring to Core rule set performing above actions ONLY
+when it sees request from trusted source such as given IP address.
+
+Automated requested can be sent by open sources web crawlers available out
+there, or web browsers manually.
+
+ 
+
+Thanks,
+
+R.S.
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130912/18ac3dbe/attachment.html>
+
+From achim at owasp.org  Thu Sep 12 19:23:07 2013
+From: achim at owasp.org (Achim)
+Date: Thu, 12 Sep 2013 21:23:07 +0200
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+In-Reply-To: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+References: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+Message-ID: <5232149B.50808@owasp.org>
+
+
+Am 12.09.2013 16:54, schrieb Rolling Stone:
+
+> In "learning mode", creating Lua script to:
+
+Hmm, "learning mode" is WAF sales man's magic pitch. However it would be a good
+technique if it works.
+
+> 1-     Intercept and scan response data, parses HTML and identify inline JS
+> and JS embedded in HTML events. 
+
+1'st: how would you deal with JS embeded in JSON, with HTML with events embedded
+in JS and/or JSON and/or XML?
+What will be with other formats like DWR, GWT?
+And then there are obfuscated scripts, or packed, etc..
+
+2'nd: if all the learned rules are configured, how do we get rid of old rules?
+(I guess rapid web developing is faster than "learning mode":)
+
+These are not ModSecurity or CRS problems, and can be found in any other WAF
+with "learning mode" too.
+
+Sorry for asking questions instead of providing solutions.
+Parsing and detecting JS correctly in modern web apps is an infinite job.
+
+Achim
+
+
+
+From jzy2000 at hotmail.com  Thu Sep 12 20:47:04 2013
+From: jzy2000 at hotmail.com (Rolling Stone)
+Date: Thu, 12 Sep 2013 16:47:04 -0400
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+In-Reply-To: <5232149B.50808@owasp.org>
+References: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+	<5232149B.50808@owasp.org>
+Message-ID: <BAY169-DS106FFD9E06D0B07601C129A43A0@phx.gbl>
+
+Those are exact help I am looking for from ModSec community... identify limitations, weaknesses and possibly improve comprehension? 
+
+*	"1'st: how would you deal with JS embeded in JSON, with HTML with events embedded in JS and/or JSON and/or XML?"
+First I don't pretend to be Web2.0 expert.
+With DOM traversing and static analysis technique like inline-code-finder, detecting JS embedded in events and style should not be too hard. https://chrome.google.com/webstore/detail/inline-code-finder/lfllandeffkmadbndfckhdbkekdfahom#detail/inline-code-finder/lfllandeffkmadbndfckhdbkekdfahom
+
+If I understood correctly, JS in JSON, XML or custom data format are content cannot not directly be executed by browser without having JS to fetch and call eval(), correct? If so, you are right, I agree that static inline-JS parsing/removing will not detect code loaded at run-time, however...we rely on CSP *unsafe-eval* and *report-uri* directives for browsers to report and submit policy violation to server, in those cases, admin can choose to manually fix or making exemptions manually or automatically.
+
+*	To your 2nd point: "2'nd: if all the learned rules are configured, how do we get rid of old rules?"
+Previously stored metadata(configuration) should be *ALWAYS* refreshed only when sees request from trusted source for two reasons: making sure traffic under analyzing are normal traffic; preventing metadata from poisoning by attackers. Note: so called "Learning-mode" is different than conventional one, it can be set to always-On, using it whenever web apps change partially or entirely.
+
+Realistically, Even CSP 1.0 is not silver bullet, it leaves .innerHTML, .outHTML etc. unprotected, where JS can also be loaded at run-time.
+If a XSS defense can be *applied generically and safely*, majority use cases say 60% of legacy Webapps regardless of backend technologies are covered, will you agree that is worth of exploring?
+
+Thanks,
+R.S
+
+-----Original Message-----
+From: Achim [mailto:achim at owasp.org] 
+Sent: September-12-13 3:23 PM
+To: Rolling Stone
+Cc: owasp-modsecurity-core-rule-set at lists.owasp.org
+Subject: Re: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+
+
+Am 12.09.2013 16:54, schrieb Rolling Stone:
+
+> In "learning mode", creating Lua script to:
+
+Hmm, "learning mode" is WAF sales man's magic pitch. However it would be a good technique if it works.
+
+> 1-     Intercept and scan response data, parses HTML and identify inline JS
+> and JS embedded in HTML events. 
+
+1'st: how would you deal with JS embeded in JSON, with HTML with events embedded in JS and/or JSON and/or XML?
+What will be with other formats like DWR, GWT?
+And then there are obfuscated scripts, or packed, etc..
+
+2'nd: if all the learned rules are configured, how do we get rid of old rules?
+(I guess rapid web developing is faster than "learning mode":)
+
+These are not ModSecurity or CRS problems, and can be found in any other WAF with "learning mode" too.
+
+Sorry for asking questions instead of providing solutions.
+Parsing and detecting JS correctly in modern web apps is an infinite job.
+
+Achim
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130912/6b1f7c53/attachment-0001.html>
+
+From achim at owasp.org  Thu Sep 12 21:19:14 2013
+From: achim at owasp.org (Achim)
+Date: Thu, 12 Sep 2013 23:19:14 +0200
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+In-Reply-To: <BAY169-DS106FFD9E06D0B07601C129A43A0@phx.gbl>
+References: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+	<5232149B.50808@owasp.org>
+	<BAY169-DS106FFD9E06D0B07601C129A43A0@phx.gbl>
+Message-ID: <52322FD2.4050002@owasp.org>
+
+Am 12.09.2013 22:47, schrieb Rolling Stone:
+> ... majority use cases say 60% of legacy Webapps regardless of backend technologies are covered, ...
+
+That's a fair assumption ;-)
+
+From RBarnett at trustwave.com  Fri Sep 13 14:22:52 2013
+From: RBarnett at trustwave.com (Ryan Barnett)
+Date: Fri, 13 Sep 2013 14:22:52 +0000
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+In-Reply-To: <BAY169-DS15B048F59B29D2B1673CF1A43A0@phx.gbl>
+Message-ID: <CE578DEA.B6702%ryan.barnett@owasp.org>
+
+
+From: Rolling Stone <jzy2000 at hotmail.com<mailto:jzy2000 at hotmail.com>>
+Date: Thursday, September 12, 2013 10:54 AM
+To: <owasp-modsecurity-core-rule-set at lists.owasp.org<mailto:owasp-modsecurity-core-rule-set at lists.owasp.org>>
+Subject: [Owasp-modsecurity-core-rule-set] XSS/CSP brain storm
+
+Many agree that deploying CSP for Web apps is a hassle, one of which requires externalizing all inline JS.
+
+I would like to discuss about the idea of making this process automated by ModSecurity Core rule set with assistant of Lua script, can anyone help me validate this idea? Here is workflow:
+
+In ?learning mode?, creating Lua script to:
+
+1-     Intercept and scan response data, parses HTML and identify inline JS and JS embedded in HTML events.
+
+2-     Then, creating a new .js file to include identified JS, store(e.g. FTP) it in one of web location can be accessed by public domain.
+
+3-     Remove inline JS blocks from response.
+
+4-     Replace HTML event with new JS function for event call from response.
+
+5-     Calculate CSP content based on original response as well as adding location for newly generated .js file.
+
+6-     Append generated CSP headers to response.
+
+7-     Save metadata info (i.e. new .js file name, hash of original response, request URL to local data store for caching (performance consideration)
+?Learning mode? is referring to Core rule set performing above actions ONLY when it sees request from trusted source such as given IP address.
+Automated requested can be sent by open sources web crawlers available out there, or web browsers manually.
+
+Thanks,
+R.S.
+
+
+First of all ? I agree with your problem statement.  While CSP has value, orgs have a difficult time retro-fitting their apps to support it.  If you have not see it, please see my recently blog post on how to implement CSP as a part of virtual patching remediation for XSS vulns -
+http://blog.spiderlabs.com/2013/07/modsecurity-advanced-topic-of-the-week-mitigating-xss-vulnerabilities-using-targeted-csp-enforcement.html
+
+I like your idea however it would not be easy?  As Achim mentioned, doing proper parsing/extraction of JS data, etc? would be challenging.
+
+Due to the extensive respnose data changes needed here, this would probably best suited for some new additional engine vs. Lua API.
+
+I do think this idea is work exploring however.
+
+-Ryan
+
+
+________________________________
+
+This transmission may contain information that is privileged, confidential, and/or exempt from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any disclosure, copying, distribution, or use of the information contained herein (including any reliance thereon) is strictly prohibited. If you received this transmission in error, please immediately contact the sender and destroy the material in its entirety, whether in electronic or hard copy format.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130913/952769f6/attachment.html>
+
+From lists at aleksic.de  Thu Sep 19 10:31:32 2013
+From: lists at aleksic.de (=?UTF-8?B?U2xvYm9kYW4gQWxla3NpxIc=?=)
+Date: Thu, 19 Sep 2013 12:31:32 +0200
+Subject: [Owasp-modsecurity-core-rule-set] DoS Protection Problem
+In-Reply-To: <CA+Qch=KfhTV==vMEooj20ty4x+56yKBVGQtLbZFH8Kv=oiw_fQ@mail.gmail.com>
+References: <CA+Qch=Lw-jPOh2UROW_8249iOxrSWFVB7EfY+f8ZO5-iDf4nVQ@mail.gmail.com>
+	<CA+Qch=KfhTV==vMEooj20ty4x+56yKBVGQtLbZFH8Kv=oiw_fQ@mail.gmail.com>
+Message-ID: <523AD284.3040507@aleksic.de>
+
+Hello list,
+
+we have the same problem as Nick mentioned.
+We have loadbalancers in front of Apache reverse proxies and when
+activating the modsecurity_crs_11_dos_protection.conf the loadbalancers
+are causing the rule to trigger.
+We counted the requests - *only* about 120req/hour which is quiet normal.
+A whitelist is helping us, but what is with legitime requests like Nick
+mentioned? Any ideas or an improved version of
+modsecurity_crs_11_dos_protection.conf on the way ?
+
+
+Best regards
+
+
+
+
+On 05/07/2013 07:36 PM, Nick wrote:
+> I've been experimenting with this modsecurity_crs_11_dos_protection.conf
+> ruleset more. An outline of how it seems to work:
+> 
+> - Every non-image request increments the ip.dos_counter counter.
+> - If that counter is > tx.dos_counter_threshold, it increments
+> ip.dos_burst_counter, sets an expiration time on ip.dos_burst_counter,
+> and clears ip.dos_counter
+> - If ip.dos_burst_counter > ip.dos_burst_threshold, it blocks the
+> request until tx.dos_block_timeout seconds elapses
+> 
+> The rational behind the burst counter seems to be because mod_security
+> expiration doesn't work based on the FIRST write to a variable, it works
+> based on the most recent write. In my case, I'm using a time slice of 60
+> seconds, but if a bot requests a page every 10 seconds for hours it will
+> never expire ip_dos_counter, the only time that will happen is if they
+> don't do any requests for 60 seconds. So, this burst counter is designed
+> to try to get around this problem by waiting until the dos_counter is
+> over the threshold (which doesn't really prove anything about how fast
+> requests were being made, only that the user has done a bunch of
+> requests without pausing) and then it increments the burst counter which
+> has an expiration time (in my case, 60 seconds) and clears out the
+> dos_counter. So, if the dos counter gets up to the threshold AGAIN, then
+> it knows that those requests really all have come in the past 60
+> seconds, so it knows that the user is requesting too quickly.
+> 
+> Great in theory, but this is broken.
+> 
+> The problem scenario:
+> 
+> - A bot (bingbot in my case) has been requesting pages for the past
+> hour. Averaging one or two requests per second. Nothing to worry about.
+> - The dos_counter is over the threshold because it has been submitting
+> requests for a long time without pausing
+> - Sometimes it submits 2-4 requests virtually simultaneously (on the
+> same second in the log)
+> - It submits 2 or more requests simultaneously. For EACH REQUEST,
+> mod_security sees that ip_dos_counter is over the threshold, so each
+> request increments ip_dos_burst_counter. bingbot is now blocked.
+> 
+> So this is an example where the bot was blocked even though it was
+> operating at a far slower rate than the DoS settings specify. If those 2
+> requests would have been spaced apart by a second, it would not have
+> been blocked. But, by submitting requests very close together, a bot can
+> be blocked without really submitting that many requests very quickly.
+> This is happening on my server at least every day.
+> 
+> I am new to mod_security so I'm still learning exactly how these rules
+> work, but are there any solutions to this problem? The way this rule is
+> set up, it seems to be operating on the principle that the rule is
+> atomic when it clearly isn't. If dos_counter would be cleared before the
+> burst counter is incremented, this problem wouldn't exist.
+> 
+> I'm also unclear on how this is coordinated across the multiple apache
+> processes. I understand this to be a collection, which resides on disk,
+> so I'm not sure when mod_security writes this information to disk.
+> 
+> Does anyone have any pointers for where to look, or a different DoS
+> ruleset to try?
+> 
+> Or is DoS protection not something that is possible with mod_security,
+> and I need another module? I don't need anything fancy, I just want to
+> be able to limit an IP address to a certain number of requests within a
+> time period. Thanks,
+> 
+> Nick
+> 
+> 
+> On Mon, Apr 29, 2013 at 12:49 PM, Nick <darknovanick at gmail.com
+> <mailto:darknovanick at gmail.com>> wrote:
+> 
+>     Hello,
+> 
+>     I've been setting up mod_security and enabled
+>     the modsecurity_crs_11_dos_protection.conf rule. This is
+>     mod_security 2.6.8 and CRS version 2.2.5.
+> 
+>     I have initialized the settings with:
+>     SecAction \
+>       "id:'900015', \
+>       phase:1, \
+>       t:none, \
+>       setvar:'tx.dos_burst_time_slice=60', \
+>       setvar:'tx.dos_counter_threshold=300', \
+>       setvar:'tx.dos_block_timeout=600', \
+>       nolog, \
+>       pass"
+> 
+>     This works and it is blocking some very aggressive bots the way it
+>     should. But there is a problem. I have occasionally been getting
+>     lines like this in the log:
+> 
+>     Warning. Operator GE matched 2 at IP:dos_burst_counter. [file
+>     "/etc/httpd/modsecurity.d/activated_rules/modsecurity_crs_11_dos_protection.conf"]
+>     [line "44"] [id "981049"] [msg "Potential Denial of Service (DoS)
+>     Attack from 65.55.24.236 - # of Request Bursts: 3"]
+> 
+>     This bot was actually bingbot. I am new to mod_security, but my
+>     understanding of my settings is that it shouldn't block until a bot
+>     has requested 300 pages in 60 seconds.
+> 
+>     When I check the logs I see that IP 65.55.24.236 has requested 313
+>     pages in 1 hour. In the 60 seconds before the DoS block happening,
+>     this IP only requested 6 pages. This block obviously shouldn't be
+>     happening.
+> 
+>     I am grossly misunderstanding something, or what can I do to fix
+>     this? Thanks,
+> 
+>     Nick
+> 
+> 
+> 
+> 
+> This body part will be downloaded on demand.
+
+
+From darknovanick at gmail.com  Thu Sep 19 15:38:58 2013
+From: darknovanick at gmail.com (Nick)
+Date: Thu, 19 Sep 2013 10:38:58 -0500
+Subject: [Owasp-modsecurity-core-rule-set] DoS Protection Problem
+In-Reply-To: <523AD284.3040507@aleksic.de>
+References: <CA+Qch=Lw-jPOh2UROW_8249iOxrSWFVB7EfY+f8ZO5-iDf4nVQ@mail.gmail.com>
+	<CA+Qch=KfhTV==vMEooj20ty4x+56yKBVGQtLbZFH8Kv=oiw_fQ@mail.gmail.com>
+	<523AD284.3040507@aleksic.de>
+Message-ID: <CA+Qch=Lcatf12H3QuVVGZAjDDrencAP++JvvWT6QSBZFcp12=g@mail.gmail.com>
+
+Hello,
+
+I researched this more and never found any small modification to
+modsecurity_crs_11_dos_protection.conf that would fix this problem, so I
+decided to rewrite the rule.
+
+I pasted in the rule I'm using at the end of this email. I'm far from a
+mod_security expert, but I've been running this rule for a few months now
+and it seems to be working well in blocking most illegitimate clients while
+letting through virtually all legitimate ones. I haven't actually been
+attacked, as far as I know of, by anyone intent on actually bringing down
+the site, so I'm not sure that it would work under extreme pressure or not.
+I'd be very interested in hearing if other people tried it out, or made
+modifications to it, as I know it can be improved.
+
+The rule is based on the modsecurity_crs_11_dos_protection.conf rule, along
+with some examples I read in a book. There are basically two separate parts
+to the rule, and only one or the other needs to be enabled if desired (but
+I use both as they work differently).
+
+ID 2106 involves blocking an IP if it requests too quickly, which is
+similar to the broken DoS rule but does it a different way using the
+update_rate -- this has limitations compared to the theoretical CRS DoS
+rule, but doesn't have that bug, so it works much better for me.
+
+Rule 2105 actually keeps track of how much CPU time one IP is using and can
+block based on that. So that's more useful if you have some scripts that
+are "heavier" than other pages. I have notes in the code but the main weird
+thing about that rule is that mod_security 2.6.x (which is what I have)
+uses duration in milliseconds and they changed it in 2.7.x to use
+microseconds, so if you have 2.7.x you need to multiply by 1000 in order to
+get the same result. If using this rule it is very important to adjust that
+based on the version of mod_security you are using, or else it's not going
+to work.
+
+Rule 2104 adds a delay to fast requests, if they haven't met the block
+threshold. I added this after I found that some legitimate bots (like Bing)
+sometimes make a ton of requests simultaneously, and I think adding this
+delay gets them to slow down the requests a little. I've found that when
+using it, I have almost no legitimate clients trigger a block.
+
+And note that this rule probably doesn't play well with the CRS's DoS rule
+so you'd want to disable that one. If you do play with it and find a
+problem or make an improvement, please let me know! Thanks,
+
+Nick
+
+
+
+------
+
+#
+# Anti-Automation rule set for detecting Denial of Service Attacks.
+#
+# This ruleset is designed to monitor both how much server time an
+# IP address uses and also how quickly an IP makes requests, and
+# can block based on either factor.
+#
+# RULE NOTE -- IP.duration is in milliseconds in mod_security 2.6.x.
+# In mod_security 2.7.x this will change to microseconds, which requires
+that
+# all these constant factors be multiplied by 1000 to stay the same
+#
+# Settings of 30000 ms load until block and 250/1 deprecate factor
+effectively
+# mean that with a 4 core machine, a client can burst up to using one whole
+# core for 30s, or 4 cores for 7.5s, before being blocked. If it doesn't use
+# a full burst but still is requesting quickly, the 250/1 means that for
+every
+# 1 second that elapses we'll subtract 250 ms of load, so over time a client
+# can use about 1 full core without triggering the ban. This may be too much
+# but no legitimate client should use that much so it should be safe.
+
+
+#
+# Enforce an existing IP address block and log only 1-time/minute
+# We don't want to get flooded by alerts during an attack or scan so
+# we are only triggering an alert once/minute.  You can adjust how often
+# you want to receive status alerts by changing the expirevar setting below.
+#
+SecRule IP:DOS_BLOCK "@eq 1" "chain,phase:1,id:'2100',drop,msg:'Denial of
+Service (DoS) Attack Identified from %{remote_addr}
+(%{tx.dos_block_counter} hits since last
+alert)',setvar:ip.dos_block_counter=+1"
+        SecRule &IP:DOS_BLOCK_FLAG "@eq 0"
+"setvar:ip.dos_block_flag=1,expirevar:ip.dos_block_flag=60,setvar:tx.dos_block_counter=%{ip.dos_block_counter},setvar:ip.dos_block_counter=0"
+
+#
+# Block and track # of requests but don't log
+SecRule IP:DOS_BLOCK "@eq 1"
+"phase:1,id:'2101',t:none,drop,nolog,setvar:ip.dos_block_counter=+1"
+
+#
+# skipAfter Check
+# There are different scenarios where we don't want to do checks -
+# 1. If the current IP address has already been blocked due to high requests
+# In this case, we skip doing the request counts.
+#
+SecRule IP:DOS_BLOCK "@eq 1"
+"phase:5,id:'2102',t:none,nolog,pass,skipAfter:END_DOS_PROTECTION_CHECKS"
+
+
+
+# Keep track of how much web server time is consumed by each IP address
+# Decrease the load time by 250 ms every second that elapses so the load
+time decreases if the bot
+# lightens up on the requests.
+SecRule REQUEST_BASENAME "!\.(jpe?g|png|gif|js|css|ico)$"
+"phase:5,id:'2103',t:none,nolog,pass,setvar:IP.load=+%{DURATION},deprecatevar:IP.load=250/1"
+
+# If a bot is using a lot of time but isn't actually over the block
+threshold yet, slow it down.
+# This is most useful for "friendly" bots like bingbot that are just being
+more aggressive than
+# we'd like. If a bot is trying to do a denial-of-service attack, this
+could potentially be
+# bad as this Apache process will just sit idle for the delay period. But
+I'm not sure that's
+# all bad as we have a lot more processes than we have cores, so if this
+one is idle then
+# another thread will be able to use the CPU time if there is a lot going
+on with the server
+SecRule IP:LOAD "@ge 15000"
+"phase:5,id:'2104',t:none,log,pass,msg:'Delaying aggressive IP
+%{remote_addr} - IP load too high: %{IP.load}',pause:5000"
+
+
+# Block an IP address if it uses too much of the web server's time
+SecRule IP:LOAD "@ge 30000"
+"phase:5,id:'2105',t:none,log,pass,msg:'Potential Denial of Service (DoS)
+Attack from %{remote_addr} - IP load too high:
+%{IP.load}',setvar:ip.dos_block=1,expirevar:ip.dos_block=%{tx.dos_block_timeout}"
+
+
+# Also block an IP address if it makes too many requests too quickly.
+# IP.UPDATE_RATE contains the average number of requests per MINUTE, over
+the lifetime of the ip collection.
+# Note that since it is calculated over its lifetime, if the IP has been
+continually requesting pages for
+# a long time and then all of a sudden ramps things up a lot, the average
+will rise very slowly. This is
+# more useful when they start out hitting consistently hard.
+# IP.UPDATE_COUNTER is used to make sure it doesn't check the UPDATE_RATE
+if only a small number of
+# requests have been made, because if an IP makes 5 requests in the same
+second we don't necessarily want
+# to block immediately if those are all the requests they've made.
+SecRule IP:UPDATE_COUNTER "@ge 50"
+"chain,phase:5,id:'2106',t:none,log,pass,msg:'Potential Denial of Service
+(DoS) Attack from %{remote_addr} - Request update rate: %{IP.UPDATE_RATE}
+too high'"
+        SecRule IP:UPDATE_RATE "@ge 650"
+"setvar:ip.dos_block=1,expirevar:ip.dos_block=%{tx.dos_block_timeout}"
+
+SecMarker END_DOS_PROTECTION_CHECKS
+
+------
+
+
+On Thu, Sep 19, 2013 at 5:31 AM, Slobodan Aleksi? <lists at aleksic.de> wrote:
+
+> Hello list,
+>
+> we have the same problem as Nick mentioned.
+> We have loadbalancers in front of Apache reverse proxies and when
+> activating the modsecurity_crs_11_dos_protection.conf the loadbalancers
+> are causing the rule to trigger.
+> We counted the requests - *only* about 120req/hour which is quiet normal.
+> A whitelist is helping us, but what is with legitime requests like Nick
+> mentioned? Any ideas or an improved version of
+> modsecurity_crs_11_dos_protection.conf on the way ?
+>
+>
+> Best regards
+>
+>
+>
+>
+> On 05/07/2013 07:36 PM, Nick wrote:
+> > I've been experimenting with this modsecurity_crs_11_dos_protection.conf
+> > ruleset more. An outline of how it seems to work:
+> >
+> > - Every non-image request increments the ip.dos_counter counter.
+> > - If that counter is > tx.dos_counter_threshold, it increments
+> > ip.dos_burst_counter, sets an expiration time on ip.dos_burst_counter,
+> > and clears ip.dos_counter
+> > - If ip.dos_burst_counter > ip.dos_burst_threshold, it blocks the
+> > request until tx.dos_block_timeout seconds elapses
+> >
+> > The rational behind the burst counter seems to be because mod_security
+> > expiration doesn't work based on the FIRST write to a variable, it works
+> > based on the most recent write. In my case, I'm using a time slice of 60
+> > seconds, but if a bot requests a page every 10 seconds for hours it will
+> > never expire ip_dos_counter, the only time that will happen is if they
+> > don't do any requests for 60 seconds. So, this burst counter is designed
+> > to try to get around this problem by waiting until the dos_counter is
+> > over the threshold (which doesn't really prove anything about how fast
+> > requests were being made, only that the user has done a bunch of
+> > requests without pausing) and then it increments the burst counter which
+> > has an expiration time (in my case, 60 seconds) and clears out the
+> > dos_counter. So, if the dos counter gets up to the threshold AGAIN, then
+> > it knows that those requests really all have come in the past 60
+> > seconds, so it knows that the user is requesting too quickly.
+> >
+> > Great in theory, but this is broken.
+> >
+> > The problem scenario:
+> >
+> > - A bot (bingbot in my case) has been requesting pages for the past
+> > hour. Averaging one or two requests per second. Nothing to worry about.
+> > - The dos_counter is over the threshold because it has been submitting
+> > requests for a long time without pausing
+> > - Sometimes it submits 2-4 requests virtually simultaneously (on the
+> > same second in the log)
+> > - It submits 2 or more requests simultaneously. For EACH REQUEST,
+> > mod_security sees that ip_dos_counter is over the threshold, so each
+> > request increments ip_dos_burst_counter. bingbot is now blocked.
+> >
+> > So this is an example where the bot was blocked even though it was
+> > operating at a far slower rate than the DoS settings specify. If those 2
+> > requests would have been spaced apart by a second, it would not have
+> > been blocked. But, by submitting requests very close together, a bot can
+> > be blocked without really submitting that many requests very quickly.
+> > This is happening on my server at least every day.
+> >
+> > I am new to mod_security so I'm still learning exactly how these rules
+> > work, but are there any solutions to this problem? The way this rule is
+> > set up, it seems to be operating on the principle that the rule is
+> > atomic when it clearly isn't. If dos_counter would be cleared before the
+> > burst counter is incremented, this problem wouldn't exist.
+> >
+> > I'm also unclear on how this is coordinated across the multiple apache
+> > processes. I understand this to be a collection, which resides on disk,
+> > so I'm not sure when mod_security writes this information to disk.
+> >
+> > Does anyone have any pointers for where to look, or a different DoS
+> > ruleset to try?
+> >
+> > Or is DoS protection not something that is possible with mod_security,
+> > and I need another module? I don't need anything fancy, I just want to
+> > be able to limit an IP address to a certain number of requests within a
+> > time period. Thanks,
+> >
+> > Nick
+> >
+> >
+> > On Mon, Apr 29, 2013 at 12:49 PM, Nick <darknovanick at gmail.com
+> > <mailto:darknovanick at gmail.com>> wrote:
+> >
+> >     Hello,
+> >
+> >     I've been setting up mod_security and enabled
+> >     the modsecurity_crs_11_dos_protection.conf rule. This is
+> >     mod_security 2.6.8 and CRS version 2.2.5.
+> >
+> >     I have initialized the settings with:
+> >     SecAction \
+> >       "id:'900015', \
+> >       phase:1, \
+> >       t:none, \
+> >       setvar:'tx.dos_burst_time_slice=60', \
+> >       setvar:'tx.dos_counter_threshold=300', \
+> >       setvar:'tx.dos_block_timeout=600', \
+> >       nolog, \
+> >       pass"
+> >
+> >     This works and it is blocking some very aggressive bots the way it
+> >     should. But there is a problem. I have occasionally been getting
+> >     lines like this in the log:
+> >
+> >     Warning. Operator GE matched 2 at IP:dos_burst_counter. [file
+> >
+> "/etc/httpd/modsecurity.d/activated_rules/modsecurity_crs_11_dos_protection.conf"]
+> >     [line "44"] [id "981049"] [msg "Potential Denial of Service (DoS)
+> >     Attack from 65.55.24.236 - # of Request Bursts: 3"]
+> >
+> >     This bot was actually bingbot. I am new to mod_security, but my
+> >     understanding of my settings is that it shouldn't block until a bot
+> >     has requested 300 pages in 60 seconds.
+> >
+> >     When I check the logs I see that IP 65.55.24.236 has requested 313
+> >     pages in 1 hour. In the 60 seconds before the DoS block happening,
+> >     this IP only requested 6 pages. This block obviously shouldn't be
+> >     happening.
+> >
+> >     I am grossly misunderstanding something, or what can I do to fix
+> >     this? Thanks,
+> >
+> >     Nick
+> >
+> >
+> >
+> >
+> > This body part will be downloaded on demand.
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130919/09ce59ea/attachment-0001.html>
+
+From office at kocznar.com  Tue Sep 24 12:02:24 2013
+From: office at kocznar.com (Reinhard Kocznar)
+Date: Tue, 24 Sep 2013 14:02:24 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Request
+Message-ID: <17EFACF1E3B84837A3ED521577AD6EB2@kocheck.intern>
+
+Hello,
+
+ 
+
+I use mod_security (OWASP_CRS/2.2.7) on a Windows 2003 Server with Apache
+2.7.4. This works fine, and I want to use SecGeoLookupDb to block some
+countries. Unfortunately I do not come clear with the documentation for this
+job. Can anybody help?
+
+ 
+
+Thank you,
+
+Reinhard Kocznar 
+
+Zeus Versicherungsberatung e.U.
+Versicherungsmakler und Berater in Versicherungsangelegenheiten 
+
+Koernerstrasse 13                    Telefon +43 512 393824 
+A-6020 Innsbruck                       Fax +43 512 394617 
+
+ <http://www.kocznar.com/> http://www.zeus-1.at/ -
+<http://www.available-light.org/> http://www.available-light.org/ 
+
+----------------------------------------------------------------------------
+--------------- 
+
+Hamster im Laufrad, Essay, Limbus, Innsbruck ISBN 978-3-902534-92-7
+
+ <http://books.kocznar.com/> http://books.kocznar.com/
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130924/8a103d81/attachment.html>
+
+From jamuse at owasp.org  Tue Sep 24 20:09:45 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Tue, 24 Sep 2013 22:09:45 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Request
+In-Reply-To: <17EFACF1E3B84837A3ED521577AD6EB2@kocheck.intern>
+References: <17EFACF1E3B84837A3ED521577AD6EB2@kocheck.intern>
+Message-ID: <CAC+O4mHT7t7o88Xmn2waKnF_T4REf9u6PS-OT1L0bt0+3PrUFg@mail.gmail.com>
+
+On Tue, Sep 24, 2013 at 3:02 PM, Reinhard Kocznar <office at kocznar.com>wrote:
+
+>  Hello,****
+>
+> ** **
+>
+> I use mod_security (OWASP_CRS/2.2.7) on a Windows 2003 Server with Apache
+> 2.7.4. This works fine, and I want to use SecGeoLookupDb to block some
+> countries. Unfortunately I do not come clear with the documentation for
+> this job. Can anybody help?****
+>
+> **
+>
+
+Hi Reinhard,
+
+Have your tried something like the following. The example below defines
+where the GeoLiteCity database is stored. I chose /opt/modsecurity/var/lib
+but you could put the db somewhere else on your system. You can download
+the database from http://www.maxmind.com/. FWIW, the GEOIP2 databases do
+not work with ModSecurity (yet). Next I created a rule to lookup the remote
+IP address and deny the connection if the request did not come from a US
+based IP address.
+
+SecGeoLookupDb /opt/modsecurity/lib/GeoLiteCity.dat
+
+SecRule REMOTE_ADDR "@geoLookup" "phase:1,chain,id:1,deny,msg:'Non-US IP
+address'"
+  SecRule GEO:COUNTRY_CODE "!@streq US"
+
+--
+ - Josh
+
+ **
+>
+> Thank you,****
+>
+> Reinhard Kocznar ****
+>
+> Zeus Versicherungsberatung e.U.
+> Versicherungsmakler und Berater in Versicherungsangelegenheiten ****
+>
+> Koernerstrasse 13                    Telefon +43 512 393824
+> A-6020 Innsbruck                       Fax +43 512 394617 ****
+>
+> http://www.zeus-1.at/ <http://www.kocznar.com/> -
+> http://www.available-light.org/ ****
+>
+> -------------------------------------------------------------------------------------------
+> ****
+>
+> *Hamster im Laufrad*, Essay, Limbus, Innsbruck ISBN 978-3-902534-92-7****
+>
+> http://books.kocznar.com/****
+>
+> ** **
+>
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+>
+>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130924/7caa4db3/attachment.html>
+
+From lists at aleksic.de  Thu Sep 26 12:01:34 2013
+From: lists at aleksic.de (=?UTF-8?B?U2xvYm9kYW4gQWxla3NpxIc=?=)
+Date: Thu, 26 Sep 2013 14:01:34 +0200
+Subject: [Owasp-modsecurity-core-rule-set] ModSecurity:
+ collections_remove_stale: Failed deleting collection
+In-Reply-To: <CAD+qZx7w96bd2gHuhdeWPUCemnNYfK9GV-XDQ7fXgEXd5WpD3w@mail.gmail.com>
+References: <CAD+qZx7w96bd2gHuhdeWPUCemnNYfK9GV-XDQ7fXgEXd5WpD3w@mail.gmail.com>
+Message-ID: <5244221E.3070504@aleksic.de>
+
+Hi List,
+
+I have exactly the same phenomenom.
+Already set SecCollectionTimeout to 180 .
+.pag files are growing very fast. --> the server is under constant high
+traffic + the DOS-Rule (modsecurity_crs_11_dos_protection.conf) is active.
+
+Searched the net for this issue, seems to be unresolved?!
+
+
+Apache 2.2.23
+Modsecurity version 2.7.4
+CRS 2.2.7-17
+
+
+
+Best regards
+
+On 05/30/2013 04:52 PM, ONE2NET wrote:
+> Hello
+> 
+> Looking at our error_log, I noticed several entries with the following
+> alert log:
+> 
+> "ModSecurity: collections_remove_stale: Failed deleting collection"
+> 
+> Anyone could advise about the meaning of the above and how to avoid such errors?
+> 
+> Thanks a lot
+> 
+> Pierre
+> _______________________________________________
+> Owasp-modsecurity-core-rule-set mailing list
+> Owasp-modsecurity-core-rule-set at lists.owasp.org
+> https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set
+
+
+From stephen.e.canell at jpl.nasa.gov  Thu Sep 26 15:31:01 2013
+From: stephen.e.canell at jpl.nasa.gov (Canell, Stephen E (1734))
+Date: Thu, 26 Sep 2013 15:31:01 +0000
+Subject: [Owasp-modsecurity-core-rule-set] Need help to interpret a 403
+Message-ID: <CE69A143.84B39%scanell@jpl.nasa.gov>
+
+I am trying to understand what part of the data set in the "GET" is triggering rule 960911 to trigger.
+The "Match" section is listed.
+Thank you.
+
+
+
+403|HTTP/1.1 403 Forbidden|Action: Intercepted (phase 1)|Message: Access denied with code 403 (phase 1). Match of
+"rx ^(?:(?:[a-z]{3,10}\\s+(?:\\w{3,7}?://[\\w\\-\\./]*(?::\\d+)?)?/[^?#]*(?:\\?[^#\\s]*)?(?:#[\\S]*)?|connect
+(?:\\d{1,3}\\.){3}\\d{1,3}\\.?(?::\\d+)?|options \\*)\\s+[\\w\\./]+|get /[^?#]*(?:\\?[^#\\s]*)?(?:#[\\S]*)?)$" against
+"REQUEST_LINE" required. [file "/usr/local/apache2/conf/extra/modsecurity/modsecurity_crs_20_protocol_violations.conf"]
+[line "37"] [id "960911"] [rev "2.2.3"] [msg "Invalid HTTP Request Line"] [data "GET
+/ci20/index.jsp?INDEX=0&PS=CA&postingToApply=8338773&POSTINGID=8338773&PT=12383 - Staff Assistant III, Section 391 Business
+Administration&APPLICATIONNAME=jplCA&SEQ=jobDetails&PID=8338773&BOARD_ID=Compliance_H2H&LOCALE=en_U HTTP/1.1"]
+
+--
+
+Stephen Canell
+IT Security Engineer 4, EBIS Security
+Enterprise Business Information Services
+EBIS Security - 1734
+Jet Propulsion Laboratory
+4800 Oak Grove Drive
+Pasadena, California 91109
+Phone: 818-354-1731
+
+Procrastination is the thief of time!
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130926/77d3cc3b/attachment.html>
+
+From vkrasheninnikov at paysecure.ru  Thu Sep 26 16:35:01 2013
+From: vkrasheninnikov at paysecure.ru (Vitaliy Krasheninnikov)
+Date: Thu, 26 Sep 2013 20:35:01 +0400
+Subject: [Owasp-modsecurity-core-rule-set] Need help to interpret a 403
+In-Reply-To: <CE69A143.84B39%scanell@jpl.nasa.gov>
+References: <CE69A143.84B39%scanell@jpl.nasa.gov>
+Message-ID: <1779791.W9EG9JbtQG@krushik>
+
+On Thursday 26 September 2013 15:31:01 Canell, Stephen E wrote:
+> I am trying to understand what part of the data set in the "GET" is
+> triggering rule 960911 to trigger. The "Match" section is listed.
+> Thank you.
+> 
+> 403|HTTP/1.1 403 Forbidden|Action: Intercepted (phase 1)|Message: Access
+> denied with code 403 (phase 1). Match of "rx
+> ^(?:(?:[a-z]{3,10}\\s+(?:\\w{3,7}?://[\\w\\-\\./]*(?::\\d+)?)?/[^?#]*(?:\\?
+> [^#\\s]*)?(?:#[\\S]*)?|connect
+> (?:\\d{1,3}\\.){3}\\d{1,3}\\.?(?::\\d+)?|options \\*)\\s+[\\w\\./]+|get
+> /[^?#]*(?:\\?[^#\\s]*)?(?:#[\\S]*)?)$" against "REQUEST_LINE" required.
+> [file
+> "/usr/local/apache2/conf/extra/modsecurity/modsecurity_crs_20_protocol_viol
+> ations.conf"] [line "37"] [id "960911"] [rev "2.2.3"] [msg "Invalid HTTP
+> Request Line"] [data "GET
+> /ci20/index.jsp?INDEX=0&PS=CA&postingToApply=8338773&POSTINGID=8338773&PT=1
+> 2383 - Staff Assistant III, Section 391 Business
+> Administration&APPLICATIONNAME=jplCA&SEQ=jobDetails&PID=8338773&BOARD_ID=Co
+> mpliance_H2H&LOCALE=en_U HTTP/1.1"]
+
+Hi Stephen,
+I suspect this part: "get /[^?#]*(?:\\?[^#\\s]*)?(?:#[\\S]*)?"
+Generally there shouldn't be plain spaces in URL. It should be urlencoded to %20,
+so you will have the whole parameter as 
+PT=12383%20-%20Staff%20Assistant%20III%2C%20Section%20391%20Business%20Administration
+
+-- 
+Vitaliy Krasheninnikov
+Modern Payment Solution LLC
+Lead software integration engineer
+Phone: +78124381000 ext. 207
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130926/8ee7938c/attachment.html>
+
+From jamuse at owasp.org  Mon Sep 30 12:49:18 2013
+From: jamuse at owasp.org (Josh Amishav-Zlatin)
+Date: Mon, 30 Sep 2013 14:49:18 +0200
+Subject: [Owasp-modsecurity-core-rule-set] Announcement: Open Fraud
+	Detection Project
+Message-ID: <CAC+O4mHLtXeDXMe6Pext-=FQHN3Nwybdo-v1nX2WVR4ymxzy7g@mail.gmail.com>
+
+After years of running WAFs using the Core Rule Set I wanted a way to detect
+known malicious users before they get a chance to send their attack
+payloads.
+Normally, when an attacker sends their payload, the contents of the request
+are checked via ModSecurity using the Core Rule Set (CRS). The CRS is
+essentially a large black list which means that the payload either matches
+or passes. There
+is no middle ground. Attackers normally perform reconnaissance before they
+attack which may or may not contain malicious payloads. Ideally we want to
+stop
+known malicious attackers as early as possible, i.e. via an IP reputation
+background check, and not wait for them to send their attack.
+
+As a result, I started on the Open Fraud Detection Project (OFDEP) which
+aims at
+providing a free community supported API that ModSecurity can query to
+receive
+a score indicating the odds that a given user / transaction is bad. The WAF
+can
+then make a decision on how to proceed based on the score. At the moment the
+API is Beta quality and supports IP, email address and username lookups.
+Query
+results are currently returned in XML but JSON will be supported shortly.
+The
+most common use cases that I tried to cover are:
+
+o IP reputation
+o comment spam
+o account creation fraud
+
+For specific API details see: http://wafsec.com/api.html
+
+--
+ - Josh
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20130930/503f07e7/attachment.html>
+

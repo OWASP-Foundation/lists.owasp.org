@@ -1,0 +1,366 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-testing] Brainstorming about the new Index
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20Brainstorming%20about%20the%20new%20Index&In-Reply-To=001a01c6ec7f%2433435410%242215a8c0%40chathamfinancial.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000091.html">
+   <LINK REL="Next"  HREF="000093.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-testing] Brainstorming about the new Index</H1>
+    <B>Stephen de Vries</B> 
+    <A HREF="mailto:owasp-testing%40lists.owasp.org?Subject=%5BOwasp-testing%5D%20Brainstorming%20about%20the%20new%20Index&In-Reply-To=001a01c6ec7f%2433435410%242215a8c0%40chathamfinancial.com"
+       TITLE="[Owasp-testing] Brainstorming about the new Index">stephen at corsaire.com
+       </A><BR>
+    <I>Tue Oct 10 11:36:29 EDT 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000091.html">[Owasp-testing] Brainstorming about the new Index
+</A></li>
+        <LI>Next message: <A HREF="000093.html">[Owasp-testing] Brainstorming about the new Index
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#92">[ date ]</a>
+              <a href="thread.html#92">[ thread ]</a>
+              <a href="subject.html#92">[ subject ]</a>
+              <a href="author.html#92">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Some of the tools, particularly the functional testing tools, could  
+be of a lot of use to penetration testers too.
+For example, the WATIR tool (<A HREF="http://wtr.rubyforge.org/">http://wtr.rubyforge.org/</A>) provides a  
+ruby interface to IE, so you can control an instance of IE from a  
+script.
+Here's an example of a simple test using WATIR that performs 2 SQL  
+injection tests in a login form:
+
+require 'unittests/setup'
+require 'watir'
+
+$APP_HOME = '<A HREF="http://localhost:8080/ispatula'">http://localhost:8080/ispatula'</A>
+$USERNAME = 'corsaire1'
+$PASSWORD = 'corsaire1'
+$SQL_CONCAT_USERNAME = 'corsaire\'+\'1'
+
+class SQL_Injection_Test &lt; Test::Unit::TestCase
+     include Watir
+
+     def test_SQL_Blind_Injection()
+         $ie.goto($APP_HOME)
+         $ie.link(:url, /signonForm.do/).click
+         $ie.text_field(:name, 'username').set($USERNAME+'\' OR 1=1--')
+         $ie.form(:action, &quot;/ispatula/shop/signon.do&quot;).submit
+         assert($ie.contains_text('Signon failed'));
+     end
+
+     def test_SQL_Injection_String_Concat()
+         $ie.goto($APP_HOME)
+         $ie.link(:url, /signonForm.do/).click
+         $ie.text_field(:name, 'username').set($SQL_CONCAT_USERNAME)
+         $ie.text_field(:name, 'password').set($PASSWORD)
+         $ie.form(:action, &quot;/ispatula/shop/signon.do&quot;).submit
+         assert($ie.contains_text('Signon failed'));
+     end
+end
+
+HtmlUnit, Httpunit, jWebUnit and others provide similar functionality  
+by using their own HTTP client rather than IE.
+I think these could very powerful tools in a security tester's hands,  
+and since they're quite intuitive to use you don't really need a  
+strong programming background.
+
+regards,
+Stephen
+
+
+El 10 Oct 2006, a las 22:17, Mark Roxberry escribi&#243;:
+
+&gt;<i> Steve -
+</I>&gt;<i>
+</I>&gt;<i> Great - I'll take a look at your presentation later today.  Your  
+</I>&gt;<i> points are
+</I>&gt;<i> correct.  I've trained several teams of devs and fought battles  
+</I>&gt;<i> with project
+</I>&gt;<i> managers to get security design and testing (unit and functional)  
+</I>&gt;<i> and so far
+</I>&gt;<i> have had no major security breaches with those teams (yet).  I  
+</I>&gt;<i> don't think
+</I>&gt;<i> this stuff though has made it the general development population at  
+</I>&gt;<i> large.
+</I>&gt;<i> They know to validate input - but not exactly why or what damage  
+</I>&gt;<i> incorrectly
+</I>&gt;<i> validated input causes.
+</I>&gt;<i>
+</I>&gt;<i> Regards,
+</I>&gt;<i>
+</I>&gt;<i> Mark
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: Stephen de Vries [mailto:<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">stephen at corsaire.com</A>]
+</I>&gt;<i> Sent: Tuesday, October 10, 2006 10:42 AM
+</I>&gt;<i> To: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">mark.roxberry at mpi.us.com</A>
+</I>&gt;<i> Cc: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A>
+</I>&gt;<i> Subject: Re: [Owasp-testing] Brainstorming about the new Index
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hi Mark,
+</I>&gt;<i>
+</I>&gt;<i> I wrote a paper and a presentation on this very topic for the past  
+</I>&gt;<i> OWASP EU
+</I>&gt;<i> conference:
+</I>&gt;<i> <A HREF="http://www.owasp.org/index.php/">http://www.owasp.org/index.php/</A>
+</I>&gt;<i> Image:AutomatedSecurityTestingofWebApplications-StephendeVries.pdf
+</I>&gt;<i>
+</I>&gt;<i> Some of the main points:
+</I>&gt;<i> - Security testing is not that different from other software testing
+</I>&gt;<i> - Security testing can easily be integrated into unit testing,  
+</I>&gt;<i> integration
+</I>&gt;<i> testing and functional testing phases
+</I>&gt;<i> - There are a wealth of tools available for unit testing that can  
+</I>&gt;<i> be used
+</I>&gt;<i> for security testing, such as the unit testing frameworks, apache  
+</I>&gt;<i> cactus,
+</I>&gt;<i> htmlunit, httpunit, WATIR (for ruby), and more.
+</I>&gt;<i>
+</I>&gt;<i> I'd be glad to rework some of the material to fit into the guide,  
+</I>&gt;<i> if you
+</I>&gt;<i> decide it's appropriate.
+</I>&gt;<i>
+</I>&gt;<i> regards,
+</I>&gt;<i> Stephen
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> El 10 Oct 2006, a las 21:18, Mark Roxberry escribi&#243;:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi everyone,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am new to the testing list, so please forgive my presumptuousness,
+</I>&gt;&gt;<i> but I think 3.4 Phase 3 absolutely needs to be here.  Moreover,  I
+</I>&gt;&gt;<i> believe UNIT TESTING needs to be added to 3.4 Phase 3.  In my  
+</I>&gt;&gt;<i> opinion,
+</I>&gt;&gt;<i> it would be a mistake to *not* include a section for testing during
+</I>&gt;&gt;<i> development.  There are several tools for this, JUNIT, NUNIT, FxCOP
+</I>&gt;&gt;<i> that can be used to check for function bounds and any security rules.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Regards,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Mark
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Mark Roxberry, CISSP, CEH
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> From: &quot;Carlo Pelliccioni&quot; &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">carlo.pelliccioni at gmail.com</A>&gt;
+</I>&gt;&gt;<i> Sent: Tuesday, October 10, 2006 6:57 AM
+</I>&gt;&gt;<i> To: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">owasp-testing at lists.owasp.org</A>
+</I>&gt;&gt;<i> Subject: Re: [Owasp-testing] Brainstorming about the new Index
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'm sorry, I meant &quot;3.4 Phase 3&quot; (During development) and not  
+</I>&gt;&gt;<i> Phase 4.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Bye
+</I>&gt;&gt;<i> Carlo
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/10/06, Eoin &lt; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">eoinkeary at gmail.com</A>&gt; wrote:Hi, If you fee that we
+</I>&gt;&gt;<i> could &quot;Push&quot; any of the sections into the code review guide or the
+</I>&gt;&gt;<i> Development guide please suggest.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/10/06, Carlo Pelliccioni &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">carlo.pelliccioni at gmail.com</A>&gt;  
+</I>&gt;&gt;<i> wrote:Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I think that the new index is good but the Phase 4 (During
+</I>&gt;&gt;<i> development) is useless in this testing guide (I think).
+</I>&gt;&gt;<i> How do you feel about this?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Bye bye
+</I>&gt;&gt;<i> Carlo
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/10/06, Eoin &lt;<A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">eoinkeary at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Sounds very promising but take into account that the Autumn of Code
+</I>&gt;&gt;<i> project is of a finite time.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It is important to consider:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In order to re-write all the chapters AND add the required new  
+</I>&gt;&gt;<i> content
+</I>&gt;&gt;<i> shall take some time. The completion date is the 31st December 2006
+</I>&gt;&gt;<i> which gives us about 11 weeks, not much time from my experience of
+</I>&gt;&gt;<i> developing the existing Testing guide.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It would be better not to take too much on and miss the completion
+</I>&gt;&gt;<i> date. The guide shall be ever evolving and the aim of this AoC  
+</I>&gt;&gt;<i> project
+</I>&gt;&gt;<i> is to consolidate the existing guide and NOT to perform a complete
+</I>&gt;&gt;<i> rewrite.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So my concern is the amount of time we have to complete this project
+</I>&gt;&gt;<i> Vs the ever expanding scope of work.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> regards,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Eoin,
+</I>&gt;&gt;<i> OWASP Testing Guide Lead and coordinator.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/10/06, Matteo Meucci &lt; <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">matteo.meucci at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i> Hi all,
+</I>&gt;&gt;&gt;<i> What do you think about the new Index?
+</I>&gt;&gt;&gt;<i> <A HREF="http://www.owasp.org/index.php/">http://www.owasp.org/index.php/</A>
+</I>&gt;&gt;<i> OWASP_Testing_Guide_v2_Table_of_Contents
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> 1) Look at the doc &quot;OWASPTesting_PhaseOne&quot;
+</I>&gt;&gt;&gt;<i> (<A HREF="http://sourceforge.net/project/showfiles.php?">http://sourceforge.net/project/showfiles.php?</A>
+</I>&gt;&gt;<i> group_id=64424&amp;package_id=62285 )
+</I>&gt;&gt;&gt;<i> IMHO I think we have to insert the Chaper 2&quot; Principle of testing&quot; ,
+</I>&gt;&gt;&gt;<i> Chapter 3 &quot;Testing techniques explained&quot; and &quot;The OWASP Testing
+</I>&gt;&gt;&gt;<i> Framework&quot; as first chapter of this guide.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> 2) I'd like to rename Chapter 4 from &quot;Manual testing techniques&quot; to
+</I>&gt;&gt;&gt;<i> &quot;Web Application Penetration Testing&quot;.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> 3) In accordance with Alberto Revelli, we think to create a new
+</I>&gt;&gt;&gt;<i> template for Chapter 4:
+</I>&gt;&gt;&gt;<i> 1 Short Description of the Issue
+</I>&gt;&gt;&gt;<i> 2 How to Test
+</I>&gt;&gt;&gt;<i>     2.1 Black Box testing and example
+</I>&gt;&gt;&gt;<i>     2.2 White Box testing and example
+</I>&gt;&gt;&gt;<i> 3 References
+</I>&gt;&gt;&gt;<i>     Whitepapers
+</I>&gt;&gt;&gt;<i>     Tools
+</I>&gt;&gt;&gt;<i> What do you think about that? More, may be we have to rename
+</I>&gt;&gt;<i> White Box
+</I>&gt;&gt;&gt;<i> in Gray box, so it is clear the difference between penetration
+</I>&gt;&gt;<i> testing
+</I>&gt;&gt;&gt;<i> (Black and Gray Box) and Code Review (White Box) that is a different
+</I>&gt;&gt;&gt;<i> OWASP Project.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> What are your feed back?
+</I>&gt;&gt;&gt;<i> Thanks,
+</I>&gt;&gt;&gt;<i> Mat
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;<i> Matteo Meucci
+</I>&gt;&gt;&gt;<i> OWASP-Italy Chair, CISSP, CISA
+</I>&gt;&gt;&gt;<i> site: <A HREF="http://www.owasp.org/index.php/Italy">http://www.owasp.org/index.php/Italy</A>
+</I>&gt;&gt;&gt;<i> mail: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">matteo.meucci at owasp.org</A>
+</I>&gt;&gt;&gt;<i> ml: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-italy">http://lists.owasp.org/mailman/listinfo/owasp-italy</A>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Owasp-testing mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">http://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Eoin Keary OWASP - Ireland
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/local/ireland.html">http://www.owasp.org/local/ireland.html</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Testing Project Lead
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/index.php/OWASP_Testing_Project">http://www.owasp.org/index.php/OWASP_Testing_Project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Code Review Project Lead
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/index.php/OWASP_Code_Review_Project">http://www.owasp.org/index.php/OWASP_Code_Review_Project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Live CD Lead
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-testing mailing list
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">http://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-testing mailing list
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">http://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Eoin Keary OWASP - Ireland
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/local/ireland.html">http://www.owasp.org/local/ireland.html</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Testing Project Lead
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/index.php/OWASP_Testing_Project">http://www.owasp.org/index.php/OWASP_Testing_Project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Code Review Project Lead
+</I>&gt;&gt;<i> <A HREF="http://www.owasp.org/index.php/OWASP_Code_Review_Project">http://www.owasp.org/index.php/OWASP_Code_Review_Project</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OWASP Live CD Lead
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Owasp-testing mailing list
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">Owasp-testing at lists.owasp.org</A>
+</I>&gt;&gt;<i> <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">http://lists.owasp.org/mailman/listinfo/owasp-testing</A>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Stephen de Vries
+</I>&gt;<i> Corsaire Ltd
+</I>&gt;<i> E-mail: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">stephen at corsaire.com</A>
+</I>&gt;<i> Tel:	+44 1483 226014
+</I>&gt;<i> Fax: 	+44 1483 226068
+</I>&gt;<i> Web: 	<A HREF="http://www.corsaire.com">http://www.corsaire.com</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+-- 
+Stephen de Vries
+Corsaire Ltd
+E-mail: <A HREF="http://lists.owasp.org/mailman/listinfo/owasp-testing">stephen at corsaire.com</A>
+Tel:	+44 1483 226014
+Fax: 	+44 1483 226068
+Web: 	<A HREF="http://www.corsaire.com">http://www.corsaire.com</A>
+
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000091.html">[Owasp-testing] Brainstorming about the new Index
+</A></li>
+	<LI>Next message: <A HREF="000093.html">[Owasp-testing] Brainstorming about the new Index
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#92">[ date ]</a>
+              <a href="thread.html#92">[ thread ]</a>
+              <a href="subject.html#92">[ subject ]</a>
+              <a href="author.html#92">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.owasp.org/mailman/listinfo/owasp-testing">More information about the Owasp-testing
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot; matching unexpectedly
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%22multiple%20URL%20encoding%22%0A%20matching%20unexpectedly&In-Reply-To=%3CCAO-Tt1ub%2BY9KtG9JwSegmu8FrCVvWYEmR1V8Z%2BxmwJPBQMekjQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001534.html">
+   <LINK REL="Next"  HREF="001536.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot; matching unexpectedly</H1>
+    <B>Brian Rectanus</B> 
+    <A HREF="mailto:owasp-modsecurity-core-rule-set%40lists.owasp.org?Subject=Re%3A%20%5BOwasp-modsecurity-core-rule-set%5D%20%22multiple%20URL%20encoding%22%0A%20matching%20unexpectedly&In-Reply-To=%3CCAO-Tt1ub%2BY9KtG9JwSegmu8FrCVvWYEmR1V8Z%2BxmwJPBQMekjQ%40mail.gmail.com%3E"
+       TITLE="[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot; matching unexpectedly">brectanu at gmail.com
+       </A><BR>
+    <I>Thu Apr 10 08:58:51 UTC 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001534.html">[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot;	matching unexpectedly
+</A></li>
+        <LI>Next message: <A HREF="001536.html">[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot; matching unexpectedly
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1535">[ date ]</a>
+              <a href="thread.html#1535">[ thread ]</a>
+              <a href="subject.html#1535">[ subject ]</a>
+              <a href="author.html#1535">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tue, Apr 1, 2014 at 5:17 PM, Ty &lt;<A HREF="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">ty733420 at gmail.com</A>&gt; wrote:
+
+&gt;<i> I know this rule (950109) has been brought up on this list before because
+</I>&gt;<i> posters were confused by its behavior for various reasons.  I'm also by
+</I>&gt;<i> something very specific about it and so I'll get right to the point:
+</I>&gt;<i>
+</I>&gt;<i> If this string (before URL encoding) appears in a parameter, the rule
+</I>&gt;<i> matches:
+</I>&gt;<i>
+</I>&gt;<i> hello%0dworld
+</I>&gt;<i>
+</I>&gt;<i> Which is expected, and I understand (percent followed by two potentially
+</I>&gt;<i> hex characters).  What I don't understand is why this string:
+</I>&gt;<i>
+</I>&gt;<i> hello%world
+</I>&gt;<i>
+</I>&gt;<i> also causes the rule to match, and I don't understand that (the following
+</I>&gt;<i> characters are not hexadecimal).  Looking at the regex, it would appear
+</I>&gt;<i> it's been written to look specifically for hex characters (and their
+</I>&gt;<i> unicode equivalent):
+</I>&gt;<i>
+</I>&gt;<i> SecRule ARGS &quot;\%((?!$|\W)|[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})&quot; \
+</I>&gt;<i>
+</I>&gt;<i> But clearly it matches non-hex characters as well.  Am I misunderstanding
+</I>&gt;<i> how the rule should work, or is there a problem with the rule's regex?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>It is a bad regex.  It says:
+
+Match a &quot;%&quot; followed by (NOT (end of string OR non-word char)) OR 2 hex
+chars OR &quot;u&quot; + 4 hex chars
+
+Which matches &quot;%w&quot; (e.g., &quot;%&quot; followed by NOT a non-word char; &quot;%&quot; followed
+by any word character, which &quot;w&quot; is)
+
+I think you want something like:
+
+ &quot;\%([0-9a-fA-F]{2}|[uU][0-9a-fA-F]{4})&quot;
+
+I am not sure the intention of (?!$|\W), but I assume it was added to
+resolve some FP.
+
+-B
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140410/ff57b11c/attachment.html">http://lists.owasp.org/pipermail/owasp-modsecurity-core-rule-set/attachments/20140410/ff57b11c/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001534.html">[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot;	matching unexpectedly
+</A></li>
+	<LI>Next message: <A HREF="001536.html">[Owasp-modsecurity-core-rule-set] &quot;multiple URL encoding&quot; matching unexpectedly
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1535">[ date ]</a>
+              <a href="thread.html#1535">[ thread ]</a>
+              <a href="subject.html#1535">[ subject ]</a>
+              <a href="author.html#1535">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.owasp.org/mailman/listinfo/owasp-modsecurity-core-rule-set">More information about the Owasp-modsecurity-core-rule-set
+mailing list</a><br>
+</body></html>
