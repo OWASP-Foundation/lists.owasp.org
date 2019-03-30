@@ -1,4 +1,0 @@
-_______________________________________________
-To unsubscribe from the Owasp-all mailing list, you will need to unsubscribe yourself from all OWASP mailing lists you belong too. This list is automatically generated to allow OWASP to contact all it&#8217;s members in one distribution. 
-
-Best regards, OWASP
